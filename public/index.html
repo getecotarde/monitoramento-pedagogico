@@ -2922,11 +2922,383 @@ function gerarRelatorio(){
 
 <script>
 /* ════════════════════════════════════════════════════════════
+   SUPABASE — configuração
+   ════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+
+// Cliente Supabase simplificado via fetch
+const sb = {
+  async from(table){ return new SBQuery(table); }
+};
+
+class SBQuery {
+  constructor(table){ this.table = table; this._filters=[]; this._order=null; }
+  select(cols='*'){ this._sel=cols; return this; }
+  eq(col,val){ this._filters.push(`${col}=eq.${encodeURIComponent(val)}`); return this; }
+  order(col,{ascending=true}={}){ this._order=`${col}.${ascending?'asc':'desc'}`; return this; }
+  async execute(){
+    let url = `${SUPABASE_URL}/rest/v1/${this.table}?select=${this._sel||'*'}`;
+    if(this._filters.length) url += '&' + this._filters.join('&');
+    if(this._order) url += `&order=${this._order}`;
+    const r = await fetch(url, { headers: sbHeaders() });
+    const data = await r.json();
+    return { data, error: r.ok ? null : data };
+  }
+  async insert(rows){ return sbPost(this.table, rows); }
+  async update(obj){ return sbPatch(this.table, obj, this._filters); }
+}
+
+function sbHeaders(extra={}){
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extra
+  };
+}
+async function sbPost(table, rows){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method:'POST', headers: sbHeaders(),
+    body: JSON.stringify(Array.isArray(rows)?rows:[rows])
+  });
+  const data = await r.json();
+  return { data, error: r.ok ? null : data };
+}
+async function sbPatch(table, obj, filters){
+  let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+  if(filters && filters.length) url += filters.join('&');
+  const r = await fetch(url, {
+    method:'PATCH', headers: sbHeaders(),
+    body: JSON.stringify(obj)
+  });
+  const data = await r.json();
+  return { data, error: r.ok ? null : data };
+}
+async function sbDelete(table, filters){
+  let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+  if(filters && filters.length) url += filters.join('&');
+  const r = await fetch(url, { method:'DELETE', headers: sbHeaders() });
+  return { error: r.ok ? null : await r.json() };
+}
+
+/* ── Realtime via WebSocket ───────────────────────────────── */
+function sbRealtime(table, callback){
+  const wsUrl = SUPABASE_URL.replace('https','wss') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
+  const ws = new WebSocket(wsUrl);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({topic:`realtime:public:${table}`,event:'phx_join',payload:{},ref:'1'}));
+  };
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if(msg.event === 'phx_reply' && msg.payload?.status === 'ok') return;
+      if(['INSERT','UPDATE','DELETE'].includes(msg.payload?.type)){
+        callback(msg.payload);
+      }
+    } catch(err){}
+  };
+  ws.onerror = () => {}; // silencia erros de WS
+  return ws;
+}
+
+/* ════════════════════════════════════════════════════════════
    MOVIMENTAÇÕES
    ════════════════════════════════════════════════════════════ */
-let movLog = []; // {id, tipo, data, nomeAluno, turmaDe, turmaAte, motivo, registradoPor, studentIdx}
-let movIdCounter = 1;
+let movLog = [];
 let currentMovTipo = null;
+
+function openMovModal(tipo){
+  if(!currentRole){ alert('Você precisa estar logado para registrar movimentações.'); return; }
+  if(currentRole !== 'coord-ped' && currentRole !== 'coord-turno'){
+    alert('Apenas Coordenadores podem registrar movimentações.'); return;
+  }
+  currentMovTipo = tipo;
+  const titles = { transferencia:'Registrar Transferência', remanejamento:'Registrar Remanejamento de Sala', matricula:'Registrar Nova Matrícula' };
+  const subs   = { transferencia:'O estudante sairá do sistema (transferido para outra escola)', remanejamento:'Troca de turma dentro da escola', matricula:'Entrada de novo estudante no turno tarde' };
+  document.getElementById('movModalTitle').textContent = titles[tipo];
+  document.getElementById('movModalSub').textContent   = subs[tipo];
+  const turmaOptions  = TURMAS.map(t=>`<option value="${t}">${t}</option>`).join('');
+  const perfilOptions = `<option value="TÍPICO">Típico</option><option value="ATÍPICO">Atípico</option><option value="EM ANÁLISE">Em análise</option>`;
+  const encamOptions  = `<option value="REGULAR">Regular</option><option value="PIP">PIP</option><option value="ADAPTAÇÃO">Adaptação</option><option value="PIP/ADAPTAÇÃO">PIP/Adaptação</option><option value="REFORÇO">Reforço</option><option value="AVALIAR">Avaliar</option>`;
+  let bodyHtml = '';
+  if(tipo==='transferencia'){
+    const allStudents = S.filter(x=>!x._transferido).map(x=>`<option value="${x.id}">${x.n} (${x.t})</option>`).join('');
+    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Estudante *</label><select id="movEstudante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione o estudante —</option>${allStudents}</select></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data da transferência *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo / Observação</label><textarea id="movMotivo" rows="3" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>
+    <div style="background:#FAECE7;border-radius:6px;padding:10px 12px;font-size:12px;color:#7A2E10;margin-bottom:1rem">⚠️ O estudante será marcado como transferido e removido das estatísticas e listas ativas.</div>`;
+  } else if(tipo==='remanejamento'){
+    const allStudents = S.filter(x=>!x._transferido).map(x=>`<option value="${x.id}">${x.n} (${x.t})</option>`).join('');
+    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Estudante *</label><select id="movEstudante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" onchange="autoFillTurmaOrigem()"><option value="">— selecione o estudante —</option>${allStudents}</select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma de origem</label><input type="text" id="movTurmaDe" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;background:#FAFAF8" readonly></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Nova turma *</label><select id="movTurmaAte" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione —</option>${turmaOptions}</select></div></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo / Observação</label><textarea id="movMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>`;
+  } else if(tipo==='matricula'){
+    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Nome completo *</label><input type="text" id="movNomeNovo" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Nome do novo estudante"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma *</label><select id="movTurmaAte" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione —</option>${turmaOptions}</select></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Sexo</label><select id="movSexo" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="M">Masculino</option><option value="F">Feminino</option></select></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Perfil</label><select id="movPerfil" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">${perfilOptions}</select></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Encaminhamento</label><select id="movEncam" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">${encamOptions}</select></div></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data de matrícula *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">AEE / Diagnóstico (se houver)</label><input type="text" id="movAEE" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Ex: TEA, TDAH, N/A"></div>
+    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Observações</label><textarea id="movMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>`;
+  }
+  bodyHtml += `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:.5rem"><button class="btn-cancel" onclick="closeMovModalBtn()">Cancelar</button><button class="btn-save" onclick="submitMovimento()">Confirmar registro</button></div>`;
+  document.getElementById('movModalBody').innerHTML = bodyHtml;
+  document.getElementById('movModalOverlay').classList.add('open');
+}
+
+function autoFillTurmaOrigem(){
+  const sel = document.getElementById('movEstudante');
+  const id  = sel.value;
+  const est = S.find(x=>String(x.id)===String(id));
+  document.getElementById('movTurmaDe').value = est ? est.t : '';
+}
+
+function closeMovModal(e){ if(e.target===document.getElementById('movModalOverlay')) closeMovModalBtn(); }
+function closeMovModalBtn(){ document.getElementById('movModalOverlay').classList.remove('open'); currentMovTipo=null; }
+
+async function submitMovimento(){
+  const tipo   = currentMovTipo;
+  const data   = document.getElementById('movData')?.value;
+  const motivo = document.getElementById('movMotivo')?.value || '';
+  if(!data){ alert('Informe a data.'); return; }
+
+  if(tipo==='transferencia'){
+    const estId = document.getElementById('movEstudante').value;
+    if(!estId){ alert('Selecione o estudante.'); return; }
+    const est = S.find(x=>String(x.id)===String(estId));
+    // Salva movimentação
+    await sbPost('movimentacoes',{ tipo, data, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
+    // Atualiza estudante
+    await sbPatch('estudantes',{ transferido:true, data_transferencia:data },[ `id=eq.${est.id}` ]);
+    est._transferido=true;
+    showMovNotification(`Transferência de ${est.n} registrada.`,'coral');
+
+  } else if(tipo==='remanejamento'){
+    const estId    = document.getElementById('movEstudante').value;
+    const turmaAte = document.getElementById('movTurmaAte').value;
+    if(!estId){ alert('Selecione o estudante.'); return; }
+    if(!turmaAte){ alert('Selecione a turma de destino.'); return; }
+    const est = S.find(x=>String(x.id)===String(estId));
+    if(est.t===turmaAte){ alert('A turma de destino deve ser diferente da turma atual.'); return; }
+    await sbPost('movimentacoes',{ tipo, data, nome_aluno:est.n, turma_de:est.t, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    await sbPatch('estudantes',{ turma:turmaAte },[ `id=eq.${est.id}` ]);
+    est.t = turmaAte;
+    showMovNotification(`${est.n} remanejado(a) para ${turmaAte}.`,'azul');
+
+  } else if(tipo==='matricula'){
+    const nome    = document.getElementById('movNomeNovo').value.trim();
+    const turmaAte= document.getElementById('movTurmaAte').value;
+    const perfil  = document.getElementById('movPerfil').value;
+    const encam   = document.getElementById('movEncam').value;
+    const sexo    = document.getElementById('movSexo').value;
+    const aee     = document.getElementById('movAEE').value.trim()||'N/A';
+    if(!nome){ alert('Informe o nome do estudante.'); return; }
+    if(!turmaAte){ alert('Selecione a turma.'); return; }
+    const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:true, data_matricula:data });
+    const novo = novoArr?.[0];
+    if(novo) S.push({ id:novo.id, t:turmaAte, n:nome, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:true });
+    await sbPost('movimentacoes',{ tipo, data, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    showMovNotification(`${nome} matriculado(a) na turma ${turmaAte}.`,'verde');
+  }
+
+  await carregarMovimentacoes();
+  refreshAllViews();
+  closeMovModalBtn();
+}
+
+function showMovNotification(msg,color){
+  const colors={coral:'#D85A30',azul:'#2B7FD4',verde:'#1D9E75'};
+  const n=document.createElement('div');
+  n.style.cssText=`position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:${colors[color]||'#1D9E75'};color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.15);max-width:320px;line-height:1.4`;
+  n.textContent='✓ '+msg;
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(),3500);
+}
+
+function renderMovLog(){
+  const tipo  = document.getElementById('movFilterTipo')?.value||'';
+  const turma = document.getElementById('movFilterTurma')?.value||'';
+  let data = movLog.filter(m=>{ if(tipo&&m.tipo!==tipo)return false; if(turma&&m.turma_de!==turma&&m.turma_ate!==turma)return false; return true; });
+  document.getElementById('movCount').textContent=`${data.length} registro${data.length!==1?'s':''}`;
+  const tipoLabel={ transferencia:['Transferência','b-transferencia'], remanejamento:['Remanejamento','b-remanejamento'], matricula:['Nova matrícula','b-matricula'] };
+  const tbody=document.getElementById('movTableBody');
+  if(!data.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação${tipo||turma?' com os filtros selecionados':' registrada ainda.'}.</td></tr>`; return; }
+  tbody.innerHTML=data.map(m=>{ const [label,cls]=tipoLabel[m.tipo]||['—','']; const dataFmt=m.data?new Date(m.data+'T12:00:00').toLocaleDateString('pt-BR'):'—'; return `<tr><td style="white-space:nowrap;color:#888;font-size:12px">${dataFmt}</td><td><span class="badge ${cls}">${label}</span></td><td class="td-nome">${m.nome_aluno}</td><td class="td-turma">${m.turma_de}</td><td class="td-turma">${m.turma_ate}</td><td class="td-obs" title="${m.motivo}">${m.motivo||'<span style="color:#CCC">—</span>'}</td><td style="font-size:12px;color:#888">${m.registrado_por}</td></tr>`; }).join('');
+}
+
+/* ════════════════════════════════════════════════════════════
+   CARREGAR DADOS DO SUPABASE
+   ════════════════════════════════════════════════════════════ */
+async function carregarEstudantes(){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=*&order=turma.asc,nome.asc`, { headers: sbHeaders() });
+  const rows = await r.json();
+  S.length = 0;
+  rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo, p:x.perfil, a:x.aee, pip:x.pip, e:x.encam, r:x.rotina||'', o:x.obs||'', _transferido:x.transferido, _novaMatricula:x.nova_matricula }); });
+}
+
+async function carregarMovimentacoes(){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/movimentacoes?select=*&order=created_at.desc`, { headers: sbHeaders() });
+  movLog = await r.json();
+  renderMovLog();
+  document.getElementById('nb-mov').textContent = movLog.length;
+}
+
+async function carregarPendentes(){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/aprovacoes_pendentes?select=*,estudantes(nome)&order=created_at.asc`, { headers: sbHeaders() });
+  const rows = await r.json();
+  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
+  updatePendingBtn();
+}
+
+/* ════════════════════════════════════════════════════════════
+   REFRESH ALL VIEWS
+   ════════════════════════════════════════════════════════════ */
+function refreshAllViews(){
+  const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
+  const nav=document.getElementById('turmaSideNav'); nav.innerHTML='';
+  allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; const cur=sel.value; while(sel.options.length>1)sel.remove(1); allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); sel.value=cur; });
+  const active=S.filter(x=>!x._transferido);
+  document.getElementById('nb-total').textContent=active.length;
+  document.getElementById('nb-stud').textContent=active.length;
+  document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
+  renderDashboard(); renderTable(); renderAtipicos();
+  filtered=[...active];
+}
+
+/* ════════════════════════════════════════════════════════════
+   SUBMIT EDIT — agora salva no Supabase
+   ════════════════════════════════════════════════════════════ */
+async function submitEdit(){
+  const el = document.getElementById('editModalText');
+  if(!el || !editTarget) return;
+  const newVal = el.value.trim();
+  const { studentIdx, field } = editTarget;
+  const x = S[studentIdx];
+  const meta = FIELD_META[field];
+  const oldVal = field==='obs' ? (x.o||'') : (x[field]||'');
+  if(newVal===oldVal){ closeEditModalBtn(); return; }
+  const needsApproval = ROLES[currentRole].needsApproval;
+
+  if(needsApproval){
+    const { error } = await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label });
+    if(error){ showToast('Erro ao enviar para aprovação.','coral'); return; }
+    await carregarPendentes();
+    closeEditModalBtn();
+    showToast('Edição enviada para aprovação da Coordenação Pedagógica.','amber');
+  } else {
+    const dbField = { n:'nome', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
+    const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
+    if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+    if(field==='obs') x.o=newVal; else x[field]=newVal;
+    closeEditModalBtn();
+    if(currentModalIdx!==null) renderModalContent(currentModalIdx);
+    renderTable(); renderAtipicos(); renderDashboard();
+    showToast(`Campo "${meta.label}" atualizado com sucesso.`,'verde');
+  }
+  editTarget=null;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PENDING PANEL — agora salva no Supabase
+   ════════════════════════════════════════════════════════════ */
+function renderPendingPanel(){
+  const list=document.getElementById('pendingList');
+  if(!pendingEdits.length){ list.innerHTML=`<div class="pending-empty">Nenhuma edição pendente de aprovação.</div>`; return; }
+  list.innerHTML=pendingEdits.map(ed=>`
+    <div class="pending-item" id="pend-${ed.id}">
+      <div class="pending-item-header">
+        <div class="pending-item-name">${ed.studentNome}</div>
+        <span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>
+      </div>
+      <div class="pending-item-field">${ed.fieldLabel}</div>
+      <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
+      <div class="pending-item-new">${ed.newVal}</div>
+      <div class="pending-item-meta">Enviado às ${ed.ts}</div>
+      <div class="pending-item-actions">
+        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
+        <button class="btn-reject"  onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function approvePending(id){
+  const ed = pendingEdits.find(x=>x.id===id);
+  if(!ed) return;
+  const dbField = { n:'nome', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
+  await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
+  await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
+  // Atualiza S local
+  const idx = S.findIndex(x=>x.id===ed.studentId);
+  if(idx!==-1){ if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal; }
+  await carregarPendentes();
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx!==null) renderModalContent(currentModalIdx);
+  showToast('Edição aprovada e aplicada.','verde');
+}
+
+async function rejectPending(id){
+  await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
+  await carregarPendentes();
+  renderPendingPanel();
+  showToast('Edição rejeitada.','coral');
+}
+
+/* ════════════════════════════════════════════════════════════
+   REALTIME — escuta mudanças de outros usuários
+   ════════════════════════════════════════════════════════════ */
+function iniciarRealtime(){
+  sbRealtime('estudantes', async ()=>{
+    await carregarEstudantes();
+    refreshAllViews();
+  });
+  sbRealtime('movimentacoes', async ()=>{
+    await carregarMovimentacoes();
+  });
+  sbRealtime('aprovacoes_pendentes', async ()=>{
+    await carregarPendentes();
+    renderPendingPanel();
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════════ */
+async function init(){
+  // Mostra loading
+  document.getElementById('view-dashboard').innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;color:#999"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="32" height="32" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg><span style="font-size:14px">Carregando dados…</span></div>`;
+
+  await carregarEstudantes();
+  await carregarMovimentacoes();
+
+  // Sidebar turmas
+  const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
+  const nav=document.getElementById('turmaSideNav');
+  allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
+
+  // Turma selects
+  ['filterTurma','filterAtTurma','relTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); });
+
+  const active=S.filter(x=>!x._transferido);
+  document.getElementById('nb-total').textContent=active.length;
+  document.getElementById('nb-stud').textContent=active.length;
+  document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
+
+  renderDashboard(); renderTable(); renderAtipicos();
+  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
+
+  iniciarRealtime();
+}
+
+// Spinner CSS
+const styleEl=document.createElement('style');
+styleEl.textContent=`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`;
+document.head.appendChild(styleEl);
+
+init();
+</script>
 
 function openMovModal(tipo){
   if(!currentRole){
