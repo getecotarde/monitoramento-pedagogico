@@ -1802,7 +1802,8 @@ function renderDashboard(){
   const adaptacao= S.filter(x=>encamKey(x.e)==="ADAPTAÇÃO").length;
   const masc     = S.filter(x=>x.s==="M").length;
 
-  document.getElementById('statsGrid').innerHTML=`
+  const statsGrid=document.getElementById('statsGrid'); if(!statsGrid) return;
+  statsGrid.innerHTML=`
     <div class="stat-card">
       <div class="stat-icon cinza"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       <div class="stat-num">${S.length}</div>
@@ -1841,7 +1842,7 @@ function renderDashboard(){
     {label:"Atípico",val:atipico,  color:"#D85A30"},
     {label:"Em análise",val:analise,color:"#BA7517"},
   ];
-  const maxP = Math.max(...perfilData.map(x=>x.val));
+  const maxP = Math.max(1, ...perfilData.map(x=>x.val));
   document.getElementById('chartPerfil').innerHTML = perfilData.map(d=>`
     <div class="horiz-bar">
       <div class="horiz-bar-label"><span class="horiz-bar-name">${d.label}</span><span class="horiz-bar-val">${d.val}</span></div>
@@ -1853,7 +1854,7 @@ function renderDashboard(){
   const encKeys=["PIP","ADAPTAÇÃO","PIP/ADAPTAÇÃO","REFORÇO","AVALIAR","REGULAR"];
   const encColors={"PIP":"#2B7FD4","ADAPTAÇÃO":"#6B65CC","PIP/ADAPTAÇÃO":"#9C8FE0","REFORÇO":"#1D9E75","AVALIAR":"#BA7517","REGULAR":"#888780"};
   const encData = encKeys.map(k=>({label:k, val:S.filter(x=>encamKey(x.e)===k).length, color:encColors[k]})).filter(x=>x.val>0);
-  const maxE = Math.max(...encData.map(x=>x.val));
+  const maxE = Math.max(1, ...encData.map(x=>x.val));
   document.getElementById('chartEncam').innerHTML = encData.map(d=>`
     <div class="horiz-bar">
       <div class="horiz-bar-label"><span class="horiz-bar-name">${d.label}</span><span class="horiz-bar-val">${d.val}</span></div>
@@ -3134,15 +3135,32 @@ function renderMovLog(){
    CARREGAR DADOS DO SUPABASE
    ════════════════════════════════════════════════════════════ */
 async function carregarEstudantes(){
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=*&order=turma.asc,nome.asc`, { headers: sbHeaders() });
-  const rows = await r.json();
-  S.length = 0;
-  rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo, p:x.perfil, a:x.aee, pip:x.pip, e:x.encam, r:x.rotina||'', o:x.obs||'', _transferido:x.transferido, _novaMatricula:x.nova_matricula }); });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=*&order=turma.asc,nome.asc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if (!r.ok || !Array.isArray(rows)) {
+      console.warn('Supabase retornou erro em estudantes:', rows);
+      return; // mantém dados locais ja em S
+    }
+    S.length = 0;
+    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo, p:x.perfil, a:x.aee, pip:x.pip, e:x.encam, r:x.rotina||'', o:x.obs||'', _transferido:x.transferido, _novaMatricula:x.nova_matricula }); });
+    // Recalcula TURMAS com base nos dados reais
+    TURMAS.length = 0;
+    [...new Set(S.filter(x=>!x._transferido).map(x=>x.t))].forEach(t=>TURMAS.push(t));
+  } catch(err) {
+    console.error('Erro ao carregar estudantes do Supabase:', err);
+    // Mantém dados locais hardcoded em S
+  }
 }
 
 async function carregarMovimentacoes(){
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/movimentacoes?select=*&order=created_at.desc`, { headers: sbHeaders() });
-  movLog = await r.json();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/movimentacoes?select=*&order=created_at.desc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if (r.ok && Array.isArray(rows)) movLog = rows;
+  } catch(err) {
+    console.error('Erro ao carregar movimentacoes:', err);
+  }
   renderMovLog();
   const nbMov = document.getElementById('nb-mov');
   if(nbMov) nbMov.textContent = movLog.length;
