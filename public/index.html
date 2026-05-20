@@ -832,7 +832,11 @@
 <main class="main">
 
   <!-- ─── VIEW: DASHBOARD ─────────────────────────────────── -->
-  <div id="view-dashboard" class="view active">
+  <div id="view-dashboard" class="view active" style="position:relative">
+    <div id="dashboard-loading" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;color:#999;position:absolute;top:0;left:0;right:0;bottom:0;background:#F7F6F2;z-index:10">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="32" height="32" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+      <span style="font-size:14px">Carregando dados…</span>
+    </div>
     <div class="page-header">
       <h1>Painel geral</h1>
       <p>Visão consolidada de todas as turmas do turno tarde — 3º ciclo</p>
@@ -3268,7 +3272,9 @@ function iniciarRealtime(){
    ════════════════════════════════════════════════════════════ */
 async function init(){
   // Mostra loading
-  document.getElementById('view-dashboard').innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;color:#999"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="32" height="32" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg><span style="font-size:14px">Carregando dados…</span></div>`;
+  // Mostra overlay de loading sem destruir os elementos do dashboard
+  const dashLoading = document.getElementById('dashboard-loading');
+  if(dashLoading) dashLoading.style.display = 'flex';
 
   await carregarEstudantes();
   await carregarMovimentacoes();
@@ -3300,6 +3306,9 @@ async function init(){
   // Inicializar filtros e renderizar
   filtered = [...active];
   renderDashboard(); renderTable(); renderAtipicos();
+  // Esconder overlay de loading do dashboard
+  const dl = document.getElementById('dashboard-loading');
+  if(dl) dl.style.display = 'none';
   ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
 
   iniciarRealtime();
