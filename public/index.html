@@ -3117,16 +3117,10 @@ async function carregarEstudantes(){
       console.warn('Supabase retornou erro em estudantes:', rows);
       return; // mantém dados locais ja em S
     }
-    // Normalizar perfil para maiúsculas (banco pode ter variações)
-    const normPerfil = v => {
-      if(!v) return 'TÍPICO';
-      const u = v.toUpperCase().trim();
-      if(u.includes('AN') || u.includes('LISE')) return 'EM ANÁLISE';
-      if(u.includes('AT')) return 'ATÍPICO';
-      return 'TÍPICO';
-    };
+    console.log('[DEBUG] Supabase retornou', rows.length, 'estudantes. Exemplo perfil:', rows[0]?.perfil, '| encam:', rows[0]?.encam);
     S.length = 0;
-    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:normPerfil(x.perfil), a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
+    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO', a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
+    console.log('[DEBUG] S populado com', S.length, 'itens. Exemplo p:', S[0]?.p, '| e:', S[0]?.e);
     // Recalcula TURMAS com base nos dados reais
     TURMAS.length = 0;
     [...new Set(S.filter(x=>!x._transferido).map(x=>x.t))].forEach(t=>TURMAS.push(t));
@@ -3302,6 +3296,7 @@ async function init(){
   document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
 
   // Inicializar filtros e renderizar
+  console.log('[DEBUG] active.length=', active.length, '| TURMAS=', TURMAS, '| filtered será=', active.length);
   filtered = [...active];
   renderDashboard(); renderTable(); renderAtipicos();
   ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
