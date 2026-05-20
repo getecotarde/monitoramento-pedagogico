@@ -1712,7 +1712,7 @@ const S = [
 /* ════════════════════════════════════════════════════════════
    HELPERS
    ════════════════════════════════════════════════════════════ */
-const TURMAS = [...new Set(S.map(x=>x.t))];
+let TURMAS = []; // preenchido após carregarEstudantes()
 const perfilBadge = p => {
   if(p==="ATÍPICO")   return `<span class="badge b-atipico">Atípico</span>`;
   if(p==="EM ANÁLISE")return `<span class="badge b-analise">Em análise</span>`;
@@ -1735,38 +1735,7 @@ const encamKey = e => {
 /* ════════════════════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════════════════════ */
-function init(){
-  // Sidebar turmas with year-based dot colors
-  const nav = document.getElementById('turmaSideNav');
-  TURMAS.forEach(t=>{
-    const btn = document.createElement('button');
-    const ano = parseInt(t);
-    const dotClass = ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':'';
-    btn.className='turma-nav';
-    btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`;
-    btn.onclick=()=>{ filterByTurma(t); };
-    nav.appendChild(btn);
-  });
-
-  // Turma selects
-  ['filterTurma','filterAtTurma','relTurma'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    TURMAS.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-  });
-
-  // Badges navbar
-  document.getElementById('nb-total').textContent = S.length;
-  document.getElementById('nb-stud').textContent  = S.length;
-  document.getElementById('nb-at').textContent    = S.filter(x=>x.p!=="TÍPICO").length;
-
-  renderDashboard();
-  renderTable();
-  renderAtipicos();
-
-  // Initialize multi-select dropdowns
-  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
-}
+// (init síncrono removido — substituído pelo async init() abaixo)
 
 /* ════════════════════════════════════════════════════════════
    NAVIGATION
@@ -3286,18 +3255,8 @@ async function init(){
   }
   loadingDiv.remove();
 
-  // Sidebar turmas
-  const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
-  const nav=document.getElementById('turmaSideNav');
-  allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
-
-  // Turma selects
-  ['filterTurma','filterAtTurma','relTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); });
-
-  const active=S.filter(x=>!x._transferido);
-  document.getElementById('nb-total').textContent=active.length;
-  document.getElementById('nb-stud').textContent=active.length;
-  document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
+  // Atualiza TURMAS e reconstrói sidebar/selects com dados do Supabase
+  rebuildTurmas();
 
   renderDashboard(); renderTable(); renderAtipicos();
   ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
