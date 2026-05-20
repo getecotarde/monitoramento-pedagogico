@@ -1728,45 +1728,20 @@ const encamBadge = e => {
 };
 const initials = n => n.split(' ').filter((_,i)=>i<2).map(w=>w[0]).join('').toUpperCase();
 const encamKey = e => {
-  for(const k of ["PIP/ADAPTAÇÃO","ADAPTAÇÃO","PIP","REFORÇO","AVALIAR"]) if(e.includes(k)) return k;
+  if(!e) return "REGULAR";
+  const eu = e.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  if(eu.includes("PIP") && eu.includes("ADAPT")) return "PIP/ADAPTAÇÃO";
+  if(eu.includes("ADAPT")) return "ADAPTAÇÃO";
+  if(eu.includes("PIP")) return "PIP";
+  if(eu.includes("REFOR")) return "REFORÇO";
+  if(eu.includes("AVALI")) return "AVALIAR";
   return "REGULAR";
 };
 
 /* ════════════════════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════════════════════ */
-function init(){
-  // Sidebar turmas with year-based dot colors
-  const nav = document.getElementById('turmaSideNav');
-  TURMAS.forEach(t=>{
-    const btn = document.createElement('button');
-    const ano = parseInt(t);
-    const dotClass = ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':'';
-    btn.className='turma-nav';
-    btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`;
-    btn.onclick=()=>{ filterByTurma(t); };
-    nav.appendChild(btn);
-  });
-
-  // Turma selects
-  ['filterTurma','filterAtTurma','relTurma'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel)return;
-    TURMAS.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-  });
-
-  // Badges navbar
-  document.getElementById('nb-total').textContent = S.length;
-  document.getElementById('nb-stud').textContent  = S.length;
-  document.getElementById('nb-at').textContent    = S.filter(x=>x.p!=="TÍPICO").length;
-
-  renderDashboard();
-  renderTable();
-  renderAtipicos();
-
-  // Initialize multi-select dropdowns
-  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
-}
+/* init() síncrona removida — substituída pela versão assíncrona abaixo */
 
 /* ════════════════════════════════════════════════════════════
    NAVIGATION
@@ -3142,8 +3117,16 @@ async function carregarEstudantes(){
       console.warn('Supabase retornou erro em estudantes:', rows);
       return; // mantém dados locais ja em S
     }
+    // Normalizar perfil para maiúsculas (banco pode ter variações)
+    const normPerfil = v => {
+      if(!v) return 'TÍPICO';
+      const u = v.toUpperCase().trim();
+      if(u.includes('AN') || u.includes('LISE')) return 'EM ANÁLISE';
+      if(u.includes('AT')) return 'ATÍPICO';
+      return 'TÍPICO';
+    };
     S.length = 0;
-    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo, p:x.perfil, a:x.aee, pip:x.pip, e:x.encam, r:x.rotina||'', o:x.obs||'', _transferido:x.transferido, _novaMatricula:x.nova_matricula }); });
+    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:normPerfil(x.perfil), a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
     // Recalcula TURMAS com base nos dados reais
     TURMAS.length = 0;
     [...new Set(S.filter(x=>!x._transferido).map(x=>x.t))].forEach(t=>TURMAS.push(t));
@@ -3294,19 +3277,32 @@ async function init(){
   await carregarEstudantes();
   await carregarMovimentacoes();
 
+  // Recalcular TURMAS com os dados reais (pode diferir dos hardcoded)
+  const active = S.filter(x=>!x._transferido);
+  const allTurmas = [...new Set(active.map(x=>x.t))];
+  // Sincronizar array global TURMAS
+  TURMAS.length = 0;
+  allTurmas.forEach(t=>TURMAS.push(t));
+
   // Sidebar turmas
-  const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
   const nav=document.getElementById('turmaSideNav');
+  nav.innerHTML = '';
   allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
 
-  // Turma selects
-  ['filterTurma','filterAtTurma','relTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); });
+  // Turma selects — limpa antes de popular para evitar duplicatas
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel)return;
+    while(sel.options.length>1) sel.remove(1);
+    allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+  });
 
-  const active=S.filter(x=>!x._transferido);
+  // Contadores navbar
   document.getElementById('nb-total').textContent=active.length;
   document.getElementById('nb-stud').textContent=active.length;
   document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
 
+  // Inicializar filtros e renderizar
+  filtered = [...active];
   renderDashboard(); renderTable(); renderAtipicos();
   ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
 
