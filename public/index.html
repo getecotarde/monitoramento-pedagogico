@@ -3118,14 +3118,16 @@ function showMovNotification(msg,color){
 }
 
 function renderMovLog(){
+  const tbody=document.getElementById('movTableBody');
+  if(!tbody) return; // elementos do painel ainda não existem no DOM
   const tipo  = document.getElementById('movFilterTipo')?.value||'';
   const turma = document.getElementById('movFilterTurma')?.value||'';
   let data = movLog.filter(m=>{ if(tipo&&m.tipo!==tipo)return false; if(turma&&m.turma_de!==turma&&m.turma_ate!==turma)return false; return true; });
-  document.getElementById('movCount').textContent=`${data.length} registro${data.length!==1?'s':''}`;
+  const movCount=document.getElementById('movCount');
+  if(movCount) movCount.textContent=`${data.length} registro${data.length!==1?'s':''}`;
   const tipoLabel={ transferencia:['Transferência','b-transferencia'], remanejamento:['Remanejamento','b-remanejamento'], matricula:['Nova matrícula','b-matricula'] };
-  const tbody=document.getElementById('movTableBody');
   if(!data.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação${tipo||turma?' com os filtros selecionados':' registrada ainda.'}.</td></tr>`; return; }
-  tbody.innerHTML=data.map(m=>{ const [label,cls]=tipoLabel[m.tipo]||['—','']; const dataFmt=m.data?new Date(m.data+'T12:00:00').toLocaleDateString('pt-BR'):'—'; return `<tr><td style="white-space:nowrap;color:#888;font-size:12px">${dataFmt}</td><td><span class="badge ${cls}">${label}</span></td><td class="td-nome">${m.nome_aluno}</td><td class="td-turma">${m.turma_de}</td><td class="td-turma">${m.turma_ate}</td><td class="td-obs" title="${m.motivo}">${m.motivo||'<span style="color:#CCC">—</span>'}</td><td style="font-size:12px;color:#888">${m.registrado_por}</td></tr>`; }).join('');
+  tbody.innerHTML=data.map(m=>{ const [label,cls]=tipoLabel[m.tipo]||['—','']; const dataFmt=m.data?new Date(m.data.length>10?m.data:m.data+'T12:00:00').toLocaleDateString('pt-BR'):'—'; return `<tr><td style="white-space:nowrap;color:#888;font-size:12px">${dataFmt}</td><td><span class="badge ${cls}">${label}</span></td><td class="td-nome">${m.nome_aluno}</td><td class="td-turma">${m.turma_de}</td><td class="td-turma">${m.turma_ate}</td><td class="td-obs" title="${m.motivo}">${m.motivo||'<span style="color:#CCC">—</span>'}</td><td style="font-size:12px;color:#888">${m.registrado_por}</td></tr>`; }).join('');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -3142,7 +3144,8 @@ async function carregarMovimentacoes(){
   const r = await fetch(`${SUPABASE_URL}/rest/v1/movimentacoes?select=*&order=created_at.desc`, { headers: sbHeaders() });
   movLog = await r.json();
   renderMovLog();
-  document.getElementById('nb-mov').textContent = movLog.length;
+  const nbMov = document.getElementById('nb-mov');
+  if(nbMov) nbMov.textContent = movLog.length;
 }
 
 async function carregarPendentes(){
@@ -3300,6 +3303,7 @@ document.head.appendChild(styleEl);
 init();
 </script>
 
+<script>
 function openMovModal(tipo){
   if(!currentRole){
     alert('Você precisa estar logado para registrar movimentações.');
@@ -3609,12 +3613,10 @@ function refreshAllViews(){
   renderAtipicos();
   filtered=[...S.filter(x=>!x._transferido)];
 }
-
-init();
 </script>
 
 <footer class="platform-footer">
   E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026 &nbsp;·&nbsp; <strong>Coord. Pedagógico: Prof. Everton Corrêa Alves</strong>
 </footer>
--e </body>
+</body>
 </html>
