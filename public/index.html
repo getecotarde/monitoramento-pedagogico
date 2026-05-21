@@ -2919,7 +2919,7 @@ function renderModalContent(idx){
         <div class="modal-row">
           <span class="modal-key">Atendimento PIP</span>
           <span class="modal-val" style="display:flex;align-items:center;gap:6px">
-            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#888">Dispensado</span>'; if(v==='Avaliar') return '<span style="color:#BA7517">⚑ Avaliar</span>'; return `<span style="color:#2B7FD4">✓ ${v}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
+            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#1D9E75">Dispensado</span>'; if(v==='Avaliar') return '<span style="color:#BA7517">⚑ Avaliar</span>'; return `<span style="color:#2B7FD4">✓ ${v}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
           </span>
         </div>
       </div>
