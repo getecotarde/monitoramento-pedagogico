@@ -2764,7 +2764,7 @@ function renderTable(){
         <td>${perfilBadge(x.p)}</td>
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?(x.a==='Avaliar AEE'?'<span style="background:#FEF3DC;color:#BA7517;font-weight:600;font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap">⚑ Avaliar AEE</span>':x.a):'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${v}</span>`; })()}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
