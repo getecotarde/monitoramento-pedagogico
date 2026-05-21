@@ -175,26 +175,78 @@
     .main { margin-left: 0 !important; max-width: 100% !important; padding: 0.5rem !important; }
     .view { display: none !important; }
     .view.active { display: block !important; }
-    .table-wrap { box-shadow: none !important; border: 1px solid #ddd !important; }
+    .table-wrap { box-shadow: none !important; border: 1px solid #ccc !important; border-radius: 0 !important; }
     .table-scroll { overflow: visible !important; }
-    table { min-width: 0 !important; width: 100% !important; font-size: 10px; }
-    thead th { background: #f5f5f5 !important; color: #333 !important; font-size: 9px; padding: 6px 8px !important; }
-    tbody td { padding: 6px 8px !important; border-bottom: 1px solid #eee !important; vertical-align: top !important; }
-    tbody tr:hover td { background: none !important; }
-    .badge { font-size: 9px !important; padding: 2px 5px !important; }
-    .print-header { display: block !important; }
-    .page-header h1 { font-size: 16px !important; }
-    .page-header p { font-size: 11px !important; }
-    /* Fix Roteiro and Observações text wrapping in print */
-    .td-rotina, .td-obs {
+
+    table {
+      min-width: 0 !important; width: 100% !important;
+      font-size: 10px; border-collapse: collapse !important;
+      table-layout: fixed !important;
+    }
+
+    /* Cabeçalho — fixo e destacado */
+    thead { display: table-header-group; }
+    thead th {
+      background: #2A2A28 !important; color: #fff !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      font-size: 8.5px !important; padding: 6px 8px !important;
+      border: none !important; text-align: left;
+      white-space: nowrap !important;
+    }
+
+    /* Linhas zebradas */
+    tbody tr:nth-child(odd)  td { background: #fff !important; }
+    tbody tr:nth-child(even) td { background: #F5F5F3 !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    tbody tr:hover td { background: inherit !important; }
+
+    /* Células — sem cortar texto */
+    tbody td {
+      padding: 5px 8px !important;
+      border-bottom: 1px solid #E0E0DC !important;
+      vertical-align: top !important;
+      word-break: break-word !important;
       white-space: normal !important;
       overflow: visible !important;
       text-overflow: clip !important;
-      max-width: 200px !important;
-      word-break: break-word !important;
-      font-size: 9px !important;
+      hyphens: auto;
     }
-    @page { margin: 1.5cm; size: landscape; }
+
+    /* Não quebrar uma linha no meio de uma página */
+    tbody tr { page-break-inside: avoid; }
+
+    /* Larguras de coluna para caber em landscape */
+    .th-turma, td:nth-child(1)  { width: 6% !important; }
+    .th-nome,  td:nth-child(2)  { width: 18% !important; }
+    .th-sexo,  td:nth-child(3)  { width: 4% !important; }
+    .th-perfil,td:nth-child(4)  { width: 9% !important; }
+    .th-aee,   td:nth-child(5)  { width: 10% !important; }
+    .th-pip,   td:nth-child(6)  { width: 5% !important; }
+    .th-encam, td:nth-child(7)  { width: 10% !important; }
+    .th-rotina,td:nth-child(8)  { width: 22% !important; }
+    .th-obs,   td:nth-child(9)  { width: 16% !important; }
+
+    /* Mostrar colunas ocultas no mobile */
+    .col-rotina, .col-obs, .th-rotina, .th-obs { display: table-cell !important; }
+
+    .badge { font-size: 8px !important; padding: 2px 5px !important; }
+    .td-nome { white-space: normal !important; }
+    .td-turma { font-size: 9px !important; }
+    .td-aee, .td-obs, .td-rotina {
+      font-size: 9px !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      max-width: none !important;
+      word-break: break-word !important;
+    }
+
+    .print-header { display: block !important; }
+    .page-header h1 { font-size: 16px !important; }
+    .page-header p  { font-size: 11px !important; }
+
+    @page { margin: 1.2cm 1cm; size: landscape; }
   }
 
   /* Hidden in screen, visible in print */
@@ -374,6 +426,12 @@
   @keyframes syncFlash {
     0%, 100% { opacity: 1; }
     50%       { opacity: .2; }
+  }
+  /* Sync indicator na sidebar */
+  .sidebar .sync-indicator {
+    width: 100%; justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
   }
   /* Ocultar label no mobile, manter só o ponto */
   @media (max-width: 480px) {
@@ -1137,10 +1195,6 @@
       </button>
     </div>
     <span class="topbar-badge">Fev–Dez 2026</span>
-    <span class="sync-indicator connecting" id="syncIndicator" title="Status da sincronização com o banco de dados">
-      <span class="sync-dot"></span>
-      <span class="sync-label" id="syncLabel">Conectando…</span>
-    </span>
     <button class="pending-btn hidden" id="pendingBtn" onclick="openPendingPanel()">
       <span class="pending-dot" id="pendingDot"></span>
       <span id="pendingLabel">Notificações</span>
@@ -1193,6 +1247,13 @@
   <div class="sidebar-section">
     <div class="sidebar-label">Turmas</div>
     <div class="nav-turma-group" id="turmaSideNav"></div>
+  </div>
+
+  <div class="sidebar-section" style="margin-top:auto;padding-top:.5rem">
+    <span class="sync-indicator connecting" id="syncIndicator" title="Status da sincronização com o banco de dados" style="display:inline-flex;width:100%;justify-content:center">
+      <span class="sync-dot"></span>
+      <span class="sync-label" id="syncLabel">Conectando…</span>
+    </span>
   </div>
 
   <div class="sidebar-section">
