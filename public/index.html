@@ -785,7 +785,7 @@
   }
   .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
   .b-tipico    { background: var(--verde-bg);  color: var(--verde-dark); }
-  .b-atipico   { background: var(--coral-bg);  color: var(--coral-dark); }
+  .b-atipico   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-analise   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-pip       { background: var(--azul-bg);   color: var(--azul-dark);  }
   .b-adaptacao { background: var(--roxo-bg);   color: var(--roxo-dark);  }
@@ -2504,7 +2504,7 @@ function renderDashboard(){
   // Perfil chart
   const perfilData=[
     {label:"Típico", val:tipico,   color:"#1D9E75"},
-    {label:"Atípico",val:atipico,  color:"#D85A30"},
+    {label:"Atípico",val:atipico,  color:"#BA7517"},
     {label:"Em análise",val:analise,color:"#BA7517"},
   ];
   const maxP = Math.max(1, ...perfilData.map(x=>x.val));
@@ -3445,7 +3445,7 @@ function gerarRelatorio(){
   .aluno-nome { font-size:12pt; font-weight:700; margin-bottom:2px; }
   .aluno-meta { font-size:9pt; color:#888; margin-bottom:8px; display:flex; gap:12px; flex-wrap:wrap; }
   .aluno-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:9pt; font-weight:600; }
-  .badge-atipico { background:#FAECE7; color:#7A2E10; }
+  .badge-atipico { background:#FEF3DC; color:#7A4A08; }
   .badge-analise { background:#FEF3DC; color:#7A4A08; }
   .badge-tipico  { background:#E1F5EE; color:#0F6E56; }
   .campo-label { font-size:9pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.04em; margin-top:8px; margin-bottom:2px; }
