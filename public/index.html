@@ -1918,7 +1918,7 @@ const FIELD_META = {
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
   'a':   { label:'AEE / Diagnóstico',            type:'text'    },
-  'pip': { label:'Atendimento PIP',              type:'text'    },
+  'pip': { label:'Atendimento PIP', type:'select', options:['N/A','SIM','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','J.A.','Dispensado','Avaliar'] },
   'r':   { label:'Rotina / Recomendações AEE',   type:'textarea'},
   'obs': { label:'Observações',                  type:'textarea'},
 };
@@ -2770,7 +2770,7 @@ function renderTable(){
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${x.pip&&x.pip!=="N/A"?'<span style="color:#2B7FD4;font-size:15px">✓</span>':'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A'||v==='Dispensado'||v==='Avaliar') return '<span style="color:#D0CFC9">—</span>'; return `<span title="${v}" style="color:#2B7FD4;font-size:15px">✓</span>`; })()}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
@@ -2919,7 +2919,7 @@ function renderModalContent(idx){
         <div class="modal-row">
           <span class="modal-key">Atendimento PIP</span>
           <span class="modal-val" style="display:flex;align-items:center;gap:6px">
-            <span>${x.pip&&x.pip!=="N/A"?`<span style="color:#2B7FD4">✓ ${x.pip}</span>`:'<span style="color:#CCC">Não indicado</span>'}</span>${fieldEditBtn(idx,'pip')}
+            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#888">Dispensado</span>'; if(v==='Avaliar') return '<span style="color:#BA7517">⚑ Avaliar</span>'; return `<span style="color:#2B7FD4">✓ ${v}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
           </span>
         </div>
       </div>
