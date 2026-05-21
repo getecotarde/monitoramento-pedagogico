@@ -117,6 +117,30 @@
   [data-theme="dark"] .pending-panel { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #F0EFE9 !important; }
   [data-theme="dark"] .modal-edit-hint-bar { background: #252523 !important; color: #888 !important; }
 
+  /* ── UNDO/REDO BUTTONS ──────────────────────────── */
+  .undo-redo-group {
+    display: flex; align-items: center; gap: 2px;
+    background: #F3F2EF; border-radius: 7px; padding: 2px;
+    border: 1px solid #E8E7E3;
+  }
+  [data-theme="dark"] .undo-redo-group { background: #252523 !important; border-color: #2E2E2B !important; }
+  .ur-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 5px;
+    border: none; background: transparent; cursor: pointer;
+    color: #888; transition: all .12s; flex-shrink: 0;
+  }
+  .ur-btn:hover:not(:disabled) { background: #E8E7E3; color: #1A1916; }
+  [data-theme="dark"] .ur-btn:hover:not(:disabled) { background: #333 !important; color: #F0EFE9 !important; }
+  .ur-btn:disabled { opacity: .3; cursor: default; }
+  .ur-btn svg { width: 15px; height: 15px; }
+  .ur-count {
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    color: #AAA; padding: 0 4px; min-width: 14px; text-align: center;
+    line-height: 1;
+  }
+  [data-theme="dark"] .ur-count { color: #555 !important; }
+
   /* ── DARK MODE TOGGLE BUTTON ──── */
   .theme-toggle {
     display: flex; align-items: center; justify-content: center;
@@ -1032,6 +1056,31 @@
   .pending-empty {
     padding: 2rem; text-align: center; color: #BBB; font-size: 13px;
   }
+  /* Notificação informativa (sem ações) — para PIP e AEE */
+  .pending-item.notif-only {
+    border-left: 3px solid var(--azul);
+    background: var(--azul-bg);
+  }
+  .pending-item.notif-only .pending-item-new {
+    background: rgba(43,127,212,.12); color: var(--azul-dark);
+  }
+  .pending-item.notif-aee {
+    border-left: 3px solid var(--roxo);
+    background: var(--roxo-bg);
+  }
+  .pending-item.notif-aee .pending-item-new {
+    background: rgba(107,101,204,.12); color: var(--roxo-dark);
+  }
+  .notif-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 10px; margin-left: auto; white-space: nowrap;
+  }
+  .notif-tag.pip { background: var(--azul-bg); color: var(--azul-dark); }
+  .notif-tag.aee { background: var(--roxo-bg); color: var(--roxo-dark); }
+  .notif-tag.coord { background: var(--amber-bg); color: var(--amber-dark); }
+  [data-theme="dark"] .pending-item.notif-only { background: rgba(43,127,212,.08) !important; }
+  [data-theme="dark"] .pending-item.notif-aee  { background: rgba(107,101,204,.08) !important; }
 </style>
 </head>
 <body>
@@ -1077,6 +1126,16 @@
     <div class="topbar-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
   </div>
   <div class="topbar-right">
+    <!-- Undo / Redo -->
+    <div class="undo-redo-group" id="undoRedoGroup" style="display:none">
+      <button class="ur-btn" id="btnUndo" onclick="undoEdit()" title="Desfazer (Ctrl+Z)" disabled>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M3 13C5.5 7.5 11 4 17 5.5a9 9 0 0 1 4 14"/></svg>
+      </button>
+      <span class="ur-count" id="urCount">0</span>
+      <button class="ur-btn" id="btnRedo" onclick="redoEdit()" title="Refazer (Ctrl+Y)" disabled>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M21 13C18.5 7.5 13 4 7 5.5a9 9 0 0 0-4 14"/></svg>
+      </button>
+    </div>
     <span class="topbar-badge">Fev–Dez 2026</span>
     <span class="sync-indicator connecting" id="syncIndicator" title="Status da sincronização com o banco de dados">
       <span class="sync-dot"></span>
@@ -1084,7 +1143,7 @@
     </span>
     <button class="pending-btn hidden" id="pendingBtn" onclick="openPendingPanel()">
       <span class="pending-dot" id="pendingDot"></span>
-      <span id="pendingLabel">Aprovações</span>
+      <span id="pendingLabel">Notificações</span>
     </button>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar modo claro/escuro">
       <svg id="themeIconSun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -1540,7 +1599,7 @@
 <div class="pending-panel-overlay" id="pendingPanelOverlay" onclick="closePendingPanel(event)">
   <div class="pending-panel">
     <div class="pending-panel-header">
-      <div class="pending-panel-title">Aprovações pendentes</div>
+      <div class="pending-panel-title">Notificações</div>
       <button class="pending-panel-close" onclick="closePendingPanelBtn()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -1580,6 +1639,87 @@ function toggleTheme(){
     }
   } catch(e){}
 })();
+
+/* ════════════════════════════════════════════════════════════
+   UNDO / REDO ENGINE
+   ════════════════════════════════════════════════════════════ */
+const MAX_HISTORY = 50;
+let undoStack = []; // [{studentIdx, field, oldVal, newVal, label}]
+let redoStack = [];
+
+function pushHistory(entry){
+  undoStack.push(entry);
+  if(undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack = []; // nova ação limpa o redo
+  updateUndoRedoUI();
+}
+
+function updateUndoRedoUI(){
+  const group = document.getElementById('undoRedoGroup');
+  const btnU  = document.getElementById('btnUndo');
+  const btnR  = document.getElementById('btnRedo');
+  const count = document.getElementById('urCount');
+  if(!group) return;
+
+  const hasHistory = undoStack.length > 0 || redoStack.length > 0;
+  // Show only when logged in
+  group.style.display = currentRole ? 'flex' : 'none';
+
+  btnU.disabled = undoStack.length === 0;
+  btnR.disabled = redoStack.length === 0;
+  count.textContent = undoStack.length;
+
+  // Tooltip dinâmico
+  if(undoStack.length){
+    const last = undoStack[undoStack.length-1];
+    btnU.title = `Desfazer: ${last.label} (Ctrl+Z)`;
+  } else {
+    btnU.title = 'Desfazer (Ctrl+Z)';
+  }
+  if(redoStack.length){
+    const next = redoStack[redoStack.length-1];
+    btnR.title = `Refazer: ${next.label} (Ctrl+Y)`;
+  } else {
+    btnR.title = 'Refazer (Ctrl+Y)';
+  }
+}
+
+function applyHistoryChange(studentIdx, field, val){
+  const x = S[studentIdx];
+  if(!x) return;
+  if(field === 'obs') x.o = val; else x[field] = val;
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx === studentIdx) renderModalContent(studentIdx);
+}
+
+function undoEdit(){
+  if(!undoStack.length) return;
+  const entry = undoStack.pop();
+  redoStack.push(entry);
+  applyHistoryChange(entry.studentIdx, entry.field, entry.oldVal);
+  updateUndoRedoUI();
+  showToast(`Desfeito: ${entry.label}`, 'amber');
+}
+
+function redoEdit(){
+  if(!redoStack.length) return;
+  const entry = redoStack.pop();
+  undoStack.push(entry);
+  applyHistoryChange(entry.studentIdx, entry.field, entry.newVal);
+  updateUndoRedoUI();
+  showToast(`Refeito: ${entry.label}`, 'verde');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if(!currentRole) return;
+  if((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z'){
+    e.preventDefault(); undoEdit();
+  }
+  if((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))){
+    e.preventDefault(); redoEdit();
+  }
+});
 
 /* ════════════════════════════════════════════════════════════
    ROLES / PERMISSIONS
@@ -1664,6 +1804,7 @@ async function doLogin(){
     const badge = document.getElementById('roleBadge');
     badge.className = 'role-badge ' + role.cls;
     document.getElementById('roleBadgeLabel').textContent = role.label;
+    updateUndoRedoUI(); // show undo/redo group
     updatePendingBtn();
     applyRoleVisibility(currentRole);
 
@@ -1690,6 +1831,7 @@ function applyRoleVisibility(role){
 function doLogout(){
   if(!confirm('Trocar de perfil? Edições pendentes não serão perdidas.')) return;
   currentRole = null;
+  undoStack = []; redoStack = []; updateUndoRedoUI();
   sessionStorage.removeItem('monit_role');
   sessionStorage.removeItem('monit_label');
   // Reset visibility
@@ -1706,16 +1848,31 @@ function doLogout(){
 
 function updatePendingBtn(){
   const btn = document.getElementById('pendingBtn');
-  if(!currentRole) return;
-  if(currentRole === 'coord-ped'){
-    btn.classList.remove('hidden');
-    document.getElementById('pendingLabel').textContent = pendingEdits.length
-      ? `${pendingEdits.length} pendente${pendingEdits.length>1?'s':''}`
-      : 'Aprovações';
-    document.getElementById('pendingDot').style.display = pendingEdits.length ? '' : 'none';
+  if(!currentRole){ btn.classList.add('hidden'); return; }
+
+  // Conta quantas notificações são visíveis para o perfil atual
+  const visible = getVisibleNotifications();
+  btn.classList.remove('hidden');
+
+  if(visible.length){
+    document.getElementById('pendingLabel').textContent = `${visible.length} notificação${visible.length>1?'s':''}`;
+    document.getElementById('pendingDot').style.display = '';
   } else {
-    btn.classList.add('hidden');
+    document.getElementById('pendingLabel').textContent = 'Notificações';
+    document.getElementById('pendingDot').style.display = 'none';
   }
+}
+
+// Retorna as entradas visíveis para o perfil logado
+function getVisibleNotifications(){
+  if(!currentRole) return [];
+  return pendingEdits.filter(ed => {
+    if(currentRole === 'coord-ped') return true; // vê tudo
+    if(currentRole === 'pip')       return ['pip','r'].includes(ed.field); // campos do PIP
+    if(currentRole === 'aee')       return ['a','r'].includes(ed.field);   // campos do AEE
+    if(currentRole === 'coord-turno') return ['obs'].includes(ed.field);
+    return false;
+  });
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -3597,12 +3754,21 @@ async function submitEdit(){
     const { error } = await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label });
     if(error){ showToast('Erro ao enviar para aprovação.','coral'); return; }
     await carregarPendentes();
+    renderPendingPanel();
     closeEditModalBtn();
-    showToast('Edição enviada para aprovação da Coordenação Pedagógica.','amber');
+    showToast('Edição registrada. A Coordenação Pedagógica será notificada.','amber');
   } else {
     const dbField = { n:'nome', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+    // Registra no histórico de desfazer/refazer
+    pushHistory({
+      studentIdx,
+      field,
+      oldVal,
+      newVal,
+      label: `${meta.label} de ${x.n}`
+    });
     if(field==='obs') x.o=newVal; else x[field]=newVal;
     closeEditModalBtn();
     if(currentModalIdx!==null) renderModalContent(currentModalIdx);
@@ -3616,23 +3782,52 @@ async function submitEdit(){
    PENDING PANEL — agora salva no Supabase
    ════════════════════════════════════════════════════════════ */
 function renderPendingPanel(){
-  const list=document.getElementById('pendingList');
-  if(!pendingEdits.length){ list.innerHTML=`<div class="pending-empty">Nenhuma edição pendente de aprovação.</div>`; return; }
-  list.innerHTML=pendingEdits.map(ed=>`
-    <div class="pending-item" id="pend-${ed.id}">
+  const list = document.getElementById('pendingList');
+  const visible = getVisibleNotifications();
+
+  if(!visible.length){
+    list.innerHTML = `<div class="pending-empty">Nenhuma notificação no momento.</div>`;
+    return;
+  }
+
+  const isCoord = currentRole === 'coord-ped';
+
+  list.innerHTML = visible.map(ed => {
+    // Define aparência por tipo de destinatário
+    const isPipField = ['pip','r'].includes(ed.field) && !['a'].includes(ed.field);
+    const isAeeField = ['a'].includes(ed.field);
+
+    // Para o coord: mostra tudo com aprovação/rejeição
+    // Para PIP/AEE/coord-turno: só notificação informativa
+    const itemClass = isCoord
+      ? ''
+      : (isAeeField ? 'notif-aee' : 'notif-only');
+
+    const tagHtml = isCoord
+      ? `<span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>`
+      : (isAeeField
+          ? `<span class="notif-tag aee">AEE</span>`
+          : `<span class="notif-tag pip">PIP</span>`);
+
+    const actionsHtml = isCoord
+      ? `<div class="pending-item-actions">
+           <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
+           <button class="btn-reject"  onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
+         </div>`
+      : `<div style="font-size:11px;color:#999;font-style:italic;margin-top:4px">Aguardando aprovação da Coordenação Pedagógica.</div>`;
+
+    return `<div class="pending-item ${itemClass}" id="pend-${ed.id}">
       <div class="pending-item-header">
         <div class="pending-item-name">${ed.studentNome}</div>
-        <span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>
+        ${tagHtml}
       </div>
       <div class="pending-item-field">${ed.fieldLabel}</div>
       <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
       <div class="pending-item-new">${ed.newVal}</div>
-      <div class="pending-item-meta">Enviado às ${ed.ts}</div>
-      <div class="pending-item-actions">
-        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
-        <button class="btn-reject"  onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
-      </div>
-    </div>`).join('');
+      <div class="pending-item-meta">Editado às ${ed.ts} por ${ed.label}</div>
+      ${actionsHtml}
+    </div>`;
+  }).join('');
 }
 
 async function approvePending(id){
@@ -3643,7 +3838,11 @@ async function approvePending(id){
   await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
   // Atualiza S local
   const idx = S.findIndex(x=>x.id===ed.studentId);
-  if(idx!==-1){ if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal; }
+  if(idx!==-1){
+    const oldV = ed.field==='obs' ? (S[idx].o||'') : (S[idx][ed.field]||'');
+    pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:ed.newVal, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
+    if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal;
+  }
   await carregarPendentes();
   renderTable(); renderAtipicos(); renderDashboard();
   if(currentModalIdx!==null) renderModalContent(currentModalIdx);
@@ -3671,6 +3870,7 @@ function iniciarRealtime(){
   sbRealtime('aprovacoes_pendentes', async ()=>{
     await carregarPendentes();
     renderPendingPanel();
+    updatePendingBtn();
   });
 }
 
