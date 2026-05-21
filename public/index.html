@@ -1937,7 +1937,7 @@ const FIELD_META = {
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
   'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar AEE','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
-  'pip': { label:'PIP/Pedagógico', type:'select', options:['N/A','Adaptado','Adaptado — LP/MAT','Adaptado — Reforço','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar PIP'] },
+  'pip': { label:'PIP/Pedagógico', type:'select', options:['N/A','SIM','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar PIP'] },
   'r':   { label:'Rotina / Recomendações AEE',   type:'textarea'},
   'obs': { label:'Observações',                  type:'textarea'},
 };
@@ -2090,7 +2090,7 @@ const S = [
   {t:"6ºA",n:"Kaua Victor Nunes Silva",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP",e:"AVALIAR",r:"Reforço em MAT",o:"Dificuldade de aprendizagem"},
   {t:"6ºA",n:"Kaliam Robson Moreira Costa da Silva",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
   {t:"6ºA",n:"Lucas Damian Barbosa Gonçalves",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Lucca Campos Saldanha",s:"M",p:"ATÍPICO",a:"TDAH",pip:"Adaptado — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Organizar atividades em etapas curtas, com rotina previsível, apoio visual e tempo ampliado. Exemplo: entregar uma atividade com 3 questões por vez e um roteiro no quadro. Analisar possível troca de sala.",o:"Apresenta dificuldade"},
+  {t:"6ºA",n:"Lucca Campos Saldanha",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Organizar atividades em etapas curtas, com rotina previsível, apoio visual e tempo ampliado. Exemplo: entregar uma atividade com 3 questões por vez e um roteiro no quadro. Analisar possível troca de sala.",o:"Apresenta dificuldade"},
   {t:"6ºA",n:"Andre Xavier da Silva Bispo",s:"M",p:"ATÍPICO",a:"TEA",pip:"N/A",e:"ADAPTAÇÃO",r:"O estudante demanda estrito cumprimento dos prazos estabelecidos com a turma, principalmente combinados e feitos diretamente com ele. Casos de imprevistos: favor avisar de ajustes em reagendamentos. Não demanda APOIO; apresenta quadro de ansiedade e agitação.",o:"Não demanda APOIO. Apresenta quadro de ansiedade e agitação."},
   {t:"6ºA",n:"Bernardo Martins Emídio de Sousa",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de concentração"},
   {t:"6ºA",n:"Luara Valentina Barbosa Pinto Camilo",s:"F",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
@@ -2143,9 +2143,9 @@ const S = [
   {t:"6ºB",n:"Valentina Almeida Macalhaes",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"6ºB",n:"Matheus Michael Ferreira Valentim",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 6ºC ─────────────────────────────────────────────── */
-  {t:"6ºC",n:"Gustavo Gabriel Silva Fernandes",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"Adaptado — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Manter rotina estruturada, instruções objetivas, mediação direta e adaptação de tempo. Exemplo: explicar oralmente e também escrever os passos da tarefa no quadro.",o:"Acompanhamento"},
+  {t:"6ºC",n:"Gustavo Gabriel Silva Fernandes",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Manter rotina estruturada, instruções objetivas, mediação direta e adaptação de tempo. Exemplo: explicar oralmente e também escrever os passos da tarefa no quadro.",o:"Acompanhamento"},
   {t:"6ºC",n:"Arthur Ventura da Silva Araujo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Kaua Felipe de Oliveira Alvarenga",s:"M",p:"ATÍPICO",a:"TDAH",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Aluno com diagnóstico recente. Demanda por menor quantidade de registro do quadro, por disponibilização de conteúdos impressos, além de sentar mais à frente no mapeamento e de acompanhamento/apoio individual na realização de atividades avaliativas. PROVAS. ATIVIDADES ADAPTADAS. SENTAR NAS PRIMEIRAS FILEIRAS.",o:"Dificuldade de aprendizagem"},
+  {t:"6ºC",n:"Kaua Felipe de Oliveira Alvarenga",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Aluno com diagnóstico recente. Demanda por menor quantidade de registro do quadro, por disponibilização de conteúdos impressos, além de sentar mais à frente no mapeamento e de acompanhamento/apoio individual na realização de atividades avaliativas. PROVAS. ATIVIDADES ADAPTADAS. SENTAR NAS PRIMEIRAS FILEIRAS.",o:"Dificuldade de aprendizagem"},
   {t:"6ºC",n:"Sophia Almeida Pereira da Cruz",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"REFORÇO",r:"Reforço em LP",o:"Apresenta dificuldade"},
   {t:"6ºC",n:"Yuri Cândida Medeiros",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Apresenta dificuldade"},
   {t:"6ºC",n:"Arthur Vinicius Oliveira de Paiva",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
@@ -2172,12 +2172,12 @@ const S = [
   {t:"6ºC",n:"Sofia Pereira de Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"6ºC",n:"Zion Roberto Bandeira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 6ºD ─────────────────────────────────────────────── */
-  {t:"6ºD",n:"Cecilia de Oliveira Tavares",s:"F",p:"ATÍPICO",a:"DI",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Usar atividades concretas, apoio visual, mediação passo a passo e avaliação flexível. Exemplo: trabalhar com figuras, cartões e material manipulável antes do registro escrito.",o:""},
-  {t:"6ºD",n:"Davi Chiogio Maciel Rosa",s:"M",p:"ATÍPICO",a:"TEA/TDAH",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Garantir rotina previsível, tarefas segmentadas, apoio gradual e estímulo à autonomia. Exemplo: combinar um tempo curto para iniciar a tarefa sozinho e depois revisar com o professor.",o:"Possibilita autonomia"},
+  {t:"6ºD",n:"Cecilia de Oliveira Tavares",s:"F",p:"ATÍPICO",a:"DI",pip:"SIM",e:"ADAPTAÇÃO",r:"Usar atividades concretas, apoio visual, mediação passo a passo e avaliação flexível. Exemplo: trabalhar com figuras, cartões e material manipulável antes do registro escrito.",o:""},
+  {t:"6ºD",n:"Davi Chiogio Maciel Rosa",s:"M",p:"ATÍPICO",a:"TEA/TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Garantir rotina previsível, tarefas segmentadas, apoio gradual e estímulo à autonomia. Exemplo: combinar um tempo curto para iniciar a tarefa sozinho e depois revisar com o professor.",o:"Possibilita autonomia"},
   {t:"6ºD",n:"Davi Kenedy do Espírito Santo Azevedo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço em Matemática",o:""},
   {t:"6ºD",n:"Gabrielly Corrêa Lima",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"Reforço em LP>",o:""},
   {t:"6ºD",n:"Gustavo Junio da Silva Pereira",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP",e:"PIP",r:"Em matemática, confirmar com João(PIP).",o:"Dificuldade de aprendizagem"},
-  {t:"6ºD",n:"Levi Benjamin Costa",s:"M",p:"ATÍPICO",a:"TEA",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Trabalhar com previsibilidade, apoio visual, transições mediadas e reforço positivo. Exemplo: avisar com antecedência quando a atividade vai mudar e mostrar a sequência das ações.",o:""},
+  {t:"6ºD",n:"Levi Benjamin Costa",s:"M",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Trabalhar com previsibilidade, apoio visual, transições mediadas e reforço positivo. Exemplo: avisar com antecedência quando a atividade vai mudar e mostrar a sequência das ações.",o:""},
   {t:"6ºD",n:"Marco Antonio Gonçalves Lima",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP. Em MAT, consultar João.",o:"Apresenta dificuldade"},
   {t:"6ºD",n:"Pyetro Junio Souza de Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"",o:"Muito hiperativo"},
   {t:"6ºD",n:"Eduardo Augusto Soares Silva",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
@@ -2234,9 +2234,9 @@ const S = [
   {t:"6ºE",n:"Raul Henrique Araújo Teixeira de Faria",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"6ºE",n:"Sophia Victoria Santos do Nascimento",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 6ºF ─────────────────────────────────────────────── */
-  {t:"6ºF",n:"Anny Marie Victoria de Souza Oliveira",s:"F",p:"ATÍPICO",a:"TEA",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Oferecer rotina estável, linguagem clara, apoio concreto e tarefas em pequenas etapas. Exemplo: dividir a atividade em início, meio e fim, com modelo de resposta.",o:""},
+  {t:"6ºF",n:"Anny Marie Victoria de Souza Oliveira",s:"F",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Oferecer rotina estável, linguagem clara, apoio concreto e tarefas em pequenas etapas. Exemplo: dividir a atividade em início, meio e fim, com modelo de resposta.",o:""},
   {t:"6ºF",n:"Isabelly de Souza Xavier",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"6ºF",n:"Samuel Lucca de Sousa Pereira",s:"M",p:"ATÍPICO",a:"TEA",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Organizar sequência bem definida, apoio constante, tempo ampliado e acompanhamento próximo. Exemplo: permitir que o aluno resolva uma parte, pause e depois retome com orientação.",o:""},
+  {t:"6ºF",n:"Samuel Lucca de Sousa Pereira",s:"M",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Organizar sequência bem definida, apoio constante, tempo ampliado e acompanhamento próximo. Exemplo: permitir que o aluno resolva uma parte, pause e depois retome com orientação.",o:""},
   {t:"6ºF",n:"Arthur Guimarães Gomes Ferreira",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"",o:"Apresenta dificuldade"},
   {t:"6ºF",n:"Cecília Amaral Tomaz",s:"F",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"",o:"Dificuldade de concentração"},
   {t:"6ºF",n:"Claudio Calixto Fernandes Junior",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
@@ -2264,13 +2264,13 @@ const S = [
   {t:"6ºF",n:"Ritha Gabrielly Gonçalves da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 7ºA ─────────────────────────────────────────────── */
   {t:"7ºA",n:"Alice Cosso Guimarães de Souza Simão",s:"F",p:"ATÍPICO",a:"Avaliar AEE",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºA",n:"Alice Rodrigues Amorim",s:"F",p:"ATÍPICO",a:"SURDEZ",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Garantir comunicação acessível, apoio escrito, recursos visuais e checagem de compreensão. Exemplo: entregar a instrução impressa e confirmar se a aluna entendeu antes de começar.",o:""},
-  {t:"7ºA",n:"Enzo Damasceno Salvador",s:"M",p:"ATÍPICO",a:"TDAH",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Reduzir distrações, propor metas curtas, dar feedback imediato e manter rotina visível. Exemplo: organizar a carteira em local mais tranquilo e combinar pequenas metas durante a aula.",o:""},
+  {t:"7ºA",n:"Alice Rodrigues Amorim",s:"F",p:"ATÍPICO",a:"SURDEZ",pip:"SIM",e:"ADAPTAÇÃO",r:"Garantir comunicação acessível, apoio escrito, recursos visuais e checagem de compreensão. Exemplo: entregar a instrução impressa e confirmar se a aluna entendeu antes de começar.",o:""},
+  {t:"7ºA",n:"Enzo Damasceno Salvador",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Reduzir distrações, propor metas curtas, dar feedback imediato e manter rotina visível. Exemplo: organizar a carteira em local mais tranquilo e combinar pequenas metas durante a aula.",o:""},
   {t:"7ºA",n:"Gabriel de Assis Furtado Brandão",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºA",n:"Gabriel Rodrigo Ferreira de Aquino",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Usar instruções curtas, apoio à organização, acompanhamento frequente e avaliação adaptada. Exemplo: orientar com 'primeiro, depois e por último', acompanhando o andamento da tarefa.",o:""},
+  {t:"7ºA",n:"Gabriel Rodrigo Ferreira de Aquino",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"SIM",e:"ADAPTAÇÃO",r:"Usar instruções curtas, apoio à organização, acompanhamento frequente e avaliação adaptada. Exemplo: orientar com 'primeiro, depois e por último', acompanhando o andamento da tarefa.",o:""},
   {t:"7ºA",n:"Miguel Gonçalves de Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºA",n:"Pedro Henrique Alves Bueno",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
-  {t:"7ºA",n:"Samuel de Araújo Magalhães",s:"M",p:"ATÍPICO",a:"TDAH/Bx.Vis/Neuro",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Planejar atividades curtas, com metas claras, apoio à autorregulação e reforço positivo. Exemplo: combinar um sinal para o aluno pedir pausa quando perceber dificuldade de atenção.",o:""},
+  {t:"7ºA",n:"Samuel de Araújo Magalhães",s:"M",p:"ATÍPICO",a:"TDAH/Bx.Vis/Neuro",pip:"SIM",e:"ADAPTAÇÃO",r:"Planejar atividades curtas, com metas claras, apoio à autorregulação e reforço positivo. Exemplo: combinar um sinal para o aluno pedir pausa quando perceber dificuldade de atenção.",o:""},
   {t:"7ºA",n:"Samuel Lucas Costa de Aguiar",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºA",n:"Stephanie Katlen de Almeida Lapa",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºA",n:"Allyce Yevina Martins dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
@@ -2294,16 +2294,16 @@ const S = [
   {t:"7ºA",n:"Yasmin Gonçalves da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 7ºB ─────────────────────────────────────────────── */
   {t:"7ºB",n:"Davi Alves Resende",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Davi Phillip Pereira da Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Estruturar a rotina, dividir tarefas, usar apoio visual e adaptar a avaliação ao ritmo. Exemplo: entregar um passo a passo com duas questões por vez. REforço em PORT e MAT.",o:""},
-  {t:"7ºB",n:"Debick Alejandro dos Santos",s:"M",p:"ATÍPICO",a:"DI/TDAH",pip:"Adaptado — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Trabalhar com tarefas simples, apoio constante, previsibilidade e avaliação por demonstração. Exemplo: permitir que o aluno mostre oralmente ou com apoio como fez a atividade.",o:""},
+  {t:"7ºB",n:"Davi Phillip Pereira da Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD",pip:"SIM",e:"ADAPTAÇÃO",r:"Estruturar a rotina, dividir tarefas, usar apoio visual e adaptar a avaliação ao ritmo. Exemplo: entregar um passo a passo com duas questões por vez. REforço em PORT e MAT.",o:""},
+  {t:"7ºB",n:"Debick Alejandro dos Santos",s:"M",p:"ATÍPICO",a:"DI/TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Trabalhar com tarefas simples, apoio constante, previsibilidade e avaliação por demonstração. Exemplo: permitir que o aluno mostre oralmente ou com apoio como fez a atividade.",o:""},
   {t:"7ºB",n:"Eduardo Augusto Silva da Anunciação",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
   {t:"7ºB",n:"Jose Gabriel Menezes Guenha",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºB",n:"Kayo Cristiano Rodrigues Silva",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
   {t:"7ºB",n:"Maria Rita Nunes Silva",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Nicolle Ester de Oliveira Guimarães",s:"F",p:"ATÍPICO",a:"DI/TDAH",pip:"Adaptado — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Oferecer mediação próxima, rotina estável, apoio concreto e redução de estímulos. Exemplo: usar material concreto e repetir a explicação em linguagem mais simples.",o:""},
+  {t:"7ºB",n:"Nicolle Ester de Oliveira Guimarães",s:"F",p:"ATÍPICO",a:"DI/TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Oferecer mediação próxima, rotina estável, apoio concreto e redução de estímulos. Exemplo: usar material concreto e repetir a explicação em linguagem mais simples.",o:""},
   {t:"7ºB",n:"Raphael da Silva Lobo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"",o:""},
   {t:"7ºB",n:"Sarah Emanuelly Gonçalves de Deus",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP.",o:""},
-  {t:"7ºB",n:"Sophya Gabrielly Vieira Souza",s:"F",p:"ATÍPICO",a:"DI",pip:"Adaptado — LP/MAT",e:"ADAPTAÇÃO",r:"Priorizar linguagem simples, repetição orientada, apoio visual e objetivos essenciais. Exemplo: apresentar o conteúdo com um exemplo pronto antes de pedir a resolução sozinha.",o:""},
+  {t:"7ºB",n:"Sophya Gabrielly Vieira Souza",s:"F",p:"ATÍPICO",a:"DI",pip:"SIM — LP/MAT",e:"ADAPTAÇÃO",r:"Priorizar linguagem simples, repetição orientada, apoio visual e objetivos essenciais. Exemplo: apresentar o conteúdo com um exemplo pronto antes de pedir a resolução sozinha.",o:""},
   {t:"7ºB",n:"Ana Clara Vitorino Santos Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"7ºB",n:"Arthur Pietro Veloso Conrado",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"7ºB",n:"Ayla Oliveira Rodrigues",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
@@ -2324,7 +2324,7 @@ const S = [
   {t:"7ºB",n:"Pietra Mendes Alves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"7ºB",n:"Sara Nicácio Nicolau",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 7ºC ─────────────────────────────────────────────── */
-  {t:"7ºC",n:"Augusto Novais Assis Xavier Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD/M.UC/T.Alim.",pip:"Adaptado — Reforço",e:"PIP/ADAPTAÇÃO",r:"Reforço em LP.",o:""},
+  {t:"7ºC",n:"Augusto Novais Assis Xavier Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD/M.UC/T.Alim.",pip:"SIM — Reforço",e:"PIP/ADAPTAÇÃO",r:"Reforço em LP.",o:""},
   {t:"7ºC",n:"Enzo Reis Paulino",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
   {t:"7ºC",n:"Fabio Batista Santos",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço em MAT.",o:""},
   {t:"7ºC",n:"Hadassa Gabrielle Alves de Araújo",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"Dispensada em LP.",o:""},
@@ -2356,8 +2356,8 @@ const S = [
   {t:"7ºC",n:"Victor Lucas Cardoso Mendes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 7ºD ─────────────────────────────────────────────── */
   {t:"7ºD",n:"Bianka Vitória Reis de Mendonça",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço MAT.",o:""},
-  {t:"7ºD",n:"Davi Soares de Sousa",s:"M",p:"ATÍPICO",a:"DI/DI/Neuro",pip:"Adaptado",e:"ADAPTAÇÃO",r:"",o:""},
-  {t:"7ºD",n:"Henrique Meira Ursine",s:"M",p:"ATÍPICO",a:"TDAH",pip:"Adaptado",e:"ADAPTAÇÃO",r:"Reduzir distrações, dividir em etapas curtas, usar instruções objetivas e tempo ampliado. Exemplo: entregar a atividade em blocos menores e conferir cada bloco antes de seguir.",o:""},
+  {t:"7ºD",n:"Davi Soares de Sousa",s:"M",p:"ATÍPICO",a:"DI/DI/Neuro",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:""},
+  {t:"7ºD",n:"Henrique Meira Ursine",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Reduzir distrações, dividir em etapas curtas, usar instruções objetivas e tempo ampliado. Exemplo: entregar a atividade em blocos menores e conferir cada bloco antes de seguir.",o:""},
   {t:"7ºD",n:"Hitalo Henrique da Silva Vieira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºD",n:"Juan Guilherme Pereira da Silva",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"LP e MAT.",o:""},
   {t:"7ºD",n:"Pedro Augusto de Souza Ribeiro",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
@@ -2386,9 +2386,9 @@ const S = [
   {t:"7ºD",n:"Wallace Brayan dos Santos Alves",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"7ºD",n:"Yasmin Magalhães Keler Dias",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 7ºE ─────────────────────────────────────────────── */
-  {t:"7ºE",n:"Bernardo de Paula Germano Moreira",s:"M",p:"ATÍPICO",a:"Bx.Visão",pip:"Adaptado",e:"ADAPTAÇÃO",r:"",o:"Grave problema na visão. Solicitar informações."},
+  {t:"7ºE",n:"Bernardo de Paula Germano Moreira",s:"M",p:"ATÍPICO",a:"Bx.Visão",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:"Grave problema na visão. Solicitar informações."},
   {t:"7ºE",n:"Gabriel Xisto de Jesus Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
-  {t:"7ºE",n:"Giovanna Vitória Rodrigues de Freitas",s:"F",p:"ATÍPICO",a:"TEA",pip:"Adaptado",e:"ADAPTAÇÃO",r:"",o:""},
+  {t:"7ºE",n:"Giovanna Vitória Rodrigues de Freitas",s:"F",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:""},
   {t:"7ºE",n:"Pedro Henrique de Paula Pereira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
   {t:"7ºE",n:"Robert Taylor dos Santos Monteiro Primo",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"O aluno relatou problemas nas vistas."},
   {t:"7ºE",n:"Ana Luiza Gomes Rosa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
@@ -2610,15 +2610,9 @@ function getUniquePIPValues(){
   S.forEach(x=>{
     if(!x.pip || x.pip==='N/A') return;
     const v = x.pip;
-    if(v.startsWith('Adaptado')) all.add(v.includes('—') ? v : 'Adaptado');
-    else if(v==='Avaliar PIP') all.add('Avaliar PIP');
-    else if(v.startsWith('SIM')){
-      if(v.includes('LP/MAT')) all.add('SIM — LP/MAT');
-      else if(v.includes('LP')) all.add('SIM — LP');
-      else if(v.includes('MAT')) all.add('SIM — MAT');
-      else if(v.includes('Reforço')) all.add('SIM — Reforço');
-      else all.add('SIM');
-    } else if(v==='Dispensado') all.add('Dispensado');
+    if(v==='Avaliar PIP') all.add('Avaliar PIP');
+    else if(v==='Dispensado') all.add('Dispensado');
+    else if(v.startsWith('SIM')) all.add(v);
   });
   return [...all].sort((a,b)=>a.localeCompare(b,'pt-BR'));
 }
@@ -2716,16 +2710,10 @@ function matchPIP(studentVal, selectedSet){
   if(!studentVal || studentVal==='N/A') return false;
   const v = studentVal;
   for(const sel of selectedSet){
-    if(sel==='Adaptado' && v.startsWith('Adaptado')) return true;
-    if(sel==='Adaptado — LP/MAT' && v==='Adaptado — LP/MAT') return true;
-    if(sel==='Adaptado — Reforço' && v==='Adaptado — Reforço') return true;
     if(sel==='Avaliar PIP' && v==='Avaliar PIP') return true;
-    if(sel==='SIM' && v.startsWith('SIM')) return true;
-    if(sel==='SIM — LP/MAT' && v==='SIM — LP/MAT') return true;
-    if(sel==='SIM — LP' && v==='SIM — LP') return true;
-    if(sel==='SIM — MAT' && v==='SIM — MAT') return true;
-    if(sel==='SIM — Reforço' && v==='SIM — Reforço') return true;
     if(sel==='Dispensado' && v==='Dispensado') return true;
+    if(sel===v) return true;
+    if(sel==='SIM' && v.startsWith('SIM')) return true;
   }
   return false;
 }
