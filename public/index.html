@@ -1493,10 +1493,10 @@
             <col class="col-nome">
             <col class="col-sexo">
             <col class="col-perfil">
-            <col class="col-aee">
-            <col class="col-pip">
             <col class="col-encam">
             <col class="col-rotina">
+            <col class="col-aee">
+            <col class="col-pip">
             <col class="col-obs">
           </colgroup>
           <thead>
@@ -1505,10 +1505,10 @@
               <th class="th-nome">Nome do estudante</th>
               <th class="th-sexo">Sx</th>
               <th class="th-perfil">Perfil</th>
-              <th class="th-aee">AEE / Diagnóstico</th>
-              <th class="th-pip">PIP</th>
               <th class="th-encam">Encaminhamento</th>
               <th class="th-rotina col-rotina">Rotina / Recomendações</th>
+              <th class="th-aee">AEE / Diagnóstico</th>
+              <th class="th-pip">PIP</th>
               <th class="th-obs col-obs">Observações</th>
             </tr>
           </thead>
@@ -2765,10 +2765,10 @@ function renderTable(){
         <td class="td-nome" title="${x.n}">${x.n}</td>
         <td class="td-sexo"><span class="badge ${x.s==='M'?'b-m':'b-f'}" style="padding:2px 6px">${x.s}</span></td>
         <td>${perfilBadge(x.p)}</td>
-        <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${x.pip&&x.pip!=="N/A"?'<span style="color:#2B7FD4;font-size:15px">✓</span>':'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-pip">${x.pip&&x.pip!=="N/A"?'<span style="color:#2B7FD4;font-size:15px">✓</span>':'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
