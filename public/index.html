@@ -2832,7 +2832,7 @@ function renderAtipicos(){
           ${perfilBadge(x.p)}
           ${encamBadge(x.e)}
           ${hasAEE?(x.a==='Avaliar AEE'?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`:`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`):''}
-          ${hasPIP?`<span class="badge" style="background:#E6F1FB;color:#154F8A">✓ PIP</span>`:''}
+          ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${v}</span>`; })():''}
         </div>
         <div style="margin-top:8px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Rotina / Recomendações</div>
