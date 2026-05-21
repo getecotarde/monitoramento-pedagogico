@@ -1471,7 +1471,7 @@
       <!-- PIP multi-select -->
       <div class="ms-wrap" id="msWrapPIP">
         <div class="ms-trigger" id="msTriggerPIP" onclick="toggleMs('PIP')">
-          <span class="ms-trigger-label" id="msLabelPIP">Atendimento PIP</span>
+          <span class="ms-trigger-label" id="msLabelPIP">PIP/Pedagógico</span>
           <span class="ms-count" id="msCountPIP" style="display:none"></span>
           <span class="ms-trigger-arrow">▼</span>
         </div>
@@ -1574,7 +1574,7 @@
       <!-- PIP multi-select (atipicos view) -->
       <div class="ms-wrap" id="msWrapAtPIP">
         <div class="ms-trigger" id="msTriggerAtPIP" onclick="toggleMs('AtPIP')">
-          <span class="ms-trigger-label" id="msLabelAtPIP">Atendimento PIP</span>
+          <span class="ms-trigger-label" id="msLabelAtPIP">PIP/Pedagógico</span>
           <span class="ms-count" id="msCountAtPIP" style="display:none"></span>
           <span class="ms-trigger-arrow">▼</span>
         </div>
@@ -1790,7 +1790,7 @@
     </div>
     <div class="edit-modal-actions">
       <button class="btn-cancel" onclick="closeEditModalBtn()">Cancelar</button>
-      <button class="btn-save" onclick="submitEdit()">Enviar para aprovação</button>
+      <button class="btn-save" onclick="submitEdit()">Enviar / Notificar Coordenação</button>
     </div>
   </div>
 </div>
@@ -1936,7 +1936,7 @@ const FIELD_META = {
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
   'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
-  'pip': { label:'Atendimento PIP', type:'select', options:['N/A','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar'] },
+  'pip': { label:'PIP/Pedagógico', type:'select', options:['N/A','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar'] },
   'r':   { label:'Rotina / Recomendações AEE',   type:'textarea'},
   'obs': { label:'Observações',                  type:'textarea'},
 };
@@ -2580,9 +2580,9 @@ const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new 
 // Config per filter key
 const MS_CONFIG = {
   AEE:   { label:'AEE / Diagnóstico',  onchange: ()=>applyFilters() },
-  PIP:   { label:'Atendimento PIP',    onchange: ()=>applyFilters() },
+  PIP:   { label:'PIP/Pedagógico',    onchange: ()=>applyFilters() },
   AtAEE: { label:'AEE / Diagnóstico',  onchange: ()=>renderAtipicos() },
-  AtPIP: { label:'Atendimento PIP',    onchange: ()=>renderAtipicos() },
+  AtPIP: { label:'PIP/Pedagógico',    onchange: ()=>renderAtipicos() },
 };
 
 // Split compound diagnostic values like "DI/TDAH" → ["DI","TDAH"]
@@ -2935,7 +2935,7 @@ function renderModalContent(idx){
           </span>
         </div>
         <div class="modal-row">
-          <span class="modal-key">Atendimento PIP</span>
+          <span class="modal-key">PIP/Pedagógico</span>
           <span class="modal-val" style="display:flex;align-items:center;gap:6px">
             <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#1D9E75">Dispensado</span>'; if(v==='Avaliar') return '<span style="color:#BA7517">⚑ Avaliar</span>'; return `<span style="color:#2B7FD4">✓ ${v}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
           </span>
@@ -3114,7 +3114,7 @@ function openEditFromModal(idx, field){
   container.appendChild(noteEl);
 
   const saveBtn = document.querySelector('.btn-save');
-  saveBtn.textContent = needsApproval ? 'Enviar para aprovação' : 'Salvar alteração';
+  saveBtn.textContent = needsApproval ? 'Enviar / Notificar Coordenação' : 'Salvar alteração';
 
   document.getElementById('editModalOverlay').classList.add('open');
 
@@ -3605,7 +3605,7 @@ function gerarRelatorio(){
         html+=`<div class="campo-label">AEE / Diagnóstico</div><div class="campo-val">${x.a}</div>`;
       }
       if(incPIP&&x.pip&&x.pip!=='N/A'){
-        html+=`<div class="campo-label">Atendimento PIP</div><div class="campo-val">${x.pip}</div>`;
+        html+=`<div class="campo-label">PIP/Pedagógico</div><div class="campo-val">${x.pip}</div>`;
       }
       if(incRoteiro&&x.r){
         html+=`<div class="campo-label">Roteiro / Recomendações AEE</div><div class="campo-val">${x.r}</div>`;
@@ -3699,7 +3699,7 @@ function gerarRelatorio(){
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="relIncRoteiro" checked> Roteiro / Recomendações AEE</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="relIncObs" checked> Observações</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="relIncPIP" checked> Atendimento PIP</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="relIncPIP" checked> PIP/Pedagógico</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" id="relIncAEE" checked> AEE / Diagnóstico</label>
         </div>
       </div>
