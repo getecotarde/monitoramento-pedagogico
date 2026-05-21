@@ -789,12 +789,12 @@
   .b-atipico   { background: #FFD600; color: #1A1916; font-weight: 700; }
   .b-analise   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-pip       { background: var(--azul-bg);   color: var(--azul-dark);  }
-  .b-adaptacao { background: var(--roxo-bg);   color: var(--roxo-dark);  }
+  .b-adaptacao { background: #FFD600; color: #1A1916; font-weight: 700; }
   /* movimentações */
   .b-transferencia { background:#FAECE7; color:#7A2E10; }
   .b-remanejamento { background:#E6F1FB; color:#154F8A; }
   .b-matricula     { background:#E1F5EE; color:#0F6E56; }
-  .b-pipadapt  { background: var(--roxo-bg);   color: var(--roxo-dark);  }
+  .b-pipadapt  { background: #FFD600; color: #1A1916; font-weight: 700; }
   .b-reforco   { background: var(--verde-bg);  color: var(--verde-dark); }
   .b-avaliar   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-regular   { background: var(--verde-bg);  color: var(--verde-dark); }
@@ -1381,6 +1381,12 @@
 
 
 
+  <div id="sidebarResizer" style="
+    position:absolute; top:0; right:0; width:5px; height:100%;
+    cursor:col-resize; z-index:10;
+    background:transparent;
+    transition: background .15s;
+  " title="Arraste para redimensionar"></div>
 </nav><!-- /.sidebar -->
 
 <!-- ═══ MAIN ═══════════════════════════════════════════════════ -->
@@ -4123,6 +4129,35 @@ async function init(){
 
   iniciarRealtime();
 }
+
+// ── Sidebar resize ───────────────────────────────────────────
+(function(){
+  const MIN_W = 160, MAX_W = 480;
+  const resizer = document.getElementById('sidebarResizer');
+  if(!resizer) return;
+
+  resizer.addEventListener('mouseenter', ()=>{ resizer.style.background='rgba(0,0,0,.08)'; });
+  resizer.addEventListener('mouseleave', ()=>{ resizer.style.background='transparent'; });
+
+  resizer.addEventListener('mousedown', function(e){
+    e.preventDefault();
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(e){
+      let w = Math.min(MAX_W, Math.max(MIN_W, e.clientX));
+      document.documentElement.style.setProperty('--sidebar-w', w + 'px');
+    }
+    function onUp(){
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
 
 // ── Sidebar mobile toggle ────────────────────────────────────
 function toggleSidebar(){
