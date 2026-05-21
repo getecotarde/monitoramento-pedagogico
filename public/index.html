@@ -36,6 +36,99 @@
     --border:      1px solid #E8E7E3;
   }
 
+  /* ── DARK MODE ─────────────────────────────────── */
+  [data-theme="dark"] {
+    --bg-page:    #111110;
+    --bg-card:    #1C1C1A;
+    --bg-hover:   #252523;
+    --bg-muted:   #2A2A28;
+    --border-col: #2E2E2B;
+    --text-main:  #F0EFE9;
+    --text-sub:   #888780;
+    --text-muted: #555450;
+    --border:     1px solid #2E2E2B;
+    --shadow:     0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+
+    --verde-bg:   rgba(29,158,117,.15);
+    --verde-dark: #4DC9A0;
+    --coral-bg:   rgba(216,90,48,.15);
+    --coral-dark: #F0845A;
+    --amber-bg:   rgba(186,117,23,.15);
+    --amber-dark: #D9A03A;
+    --azul-bg:    rgba(43,127,212,.15);
+    --azul-dark:  #5BA8E8;
+    --roxo-bg:    rgba(107,101,204,.15);
+    --roxo-dark:  #9490DC;
+    --cinza-bg:   rgba(136,135,128,.15);
+    --cinza-dark: #A8A79F;
+  }
+
+  body { transition: background .25s, color .25s; }
+
+  [data-theme="dark"] body          { background: var(--bg-page, #111110) !important; color: var(--text-main, #F0EFE9) !important; }
+  [data-theme="dark"] .topbar       { background: var(--bg-card, #1C1C1A) !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .sidebar      { background: var(--bg-card, #1C1C1A) !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .nav-item     { color: #888 !important; }
+  [data-theme="dark"] .nav-item:hover { background: #252523 !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .turma-nav    { color: #888 !important; }
+  [data-theme="dark"] .turma-nav:hover { background: #252523 !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .topbar-title { color: #F0EFE9 !important; }
+  [data-theme="dark"] .sidebar-label { color: #555 !important; }
+  [data-theme="dark"] .stat-card,
+  [data-theme="dark"] .card,
+  [data-theme="dark"] .turma-card,
+  [data-theme="dark"] .detail-card,
+  [data-theme="dark"] .fluxo-card,
+  [data-theme="dark"] .table-wrap   { background: #1C1C1A !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .stat-num     { color: #F0EFE9 !important; }
+  [data-theme="dark"] .turma-card-name { color: #F0EFE9 !important; }
+  [data-theme="dark"] .detail-nome  { color: #F0EFE9 !important; }
+  [data-theme="dark"] thead th      { background: #252523 !important; color: #666 !important; }
+  [data-theme="dark"] tbody td      { border-color: #252523 !important; color: #C0BFB8 !important; }
+  [data-theme="dark"] tbody tr:hover td { background: #252523 !important; }
+  [data-theme="dark"] .td-nome      { color: #F0EFE9 !important; }
+  [data-theme="dark"] .modal-box,
+  [data-theme="dark"] .edit-modal-box { background: #1C1C1A !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .modal-header { background: #1C1C1A !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .modal-key    { color: #666 !important; }
+  [data-theme="dark"] .modal-val    { color: #F0EFE9 !important; }
+  [data-theme="dark"] .modal-nome   { color: #F0EFE9 !important; }
+  [data-theme="dark"] .modal-text   { background: #252523 !important; color: #C0BFB8 !important; }
+  [data-theme="dark"] .action-btn   { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #AAA !important; }
+  [data-theme="dark"] .action-btn:hover { background: #252523 !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] select,
+  [data-theme="dark"] .search-wrap input,
+  [data-theme="dark"] .ms-trigger   { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #C0BFB8 !important; }
+  [data-theme="dark"] .ms-dropdown  { background: #1C1C1A !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .ms-option    { color: #C0BFB8 !important; }
+  [data-theme="dark"] .ms-option:hover { background: #252523 !important; }
+  [data-theme="dark"] .platform-footer { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #444 !important; }
+  [data-theme="dark"] .page-btn     { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #888 !important; }
+  [data-theme="dark"] .page-btn:hover { background: #252523 !important; }
+  [data-theme="dark"] .horiz-bar-track { background: #252523 !important; }
+  [data-theme="dark"] .detail-rotina { background: #252523 !important; color: #999 !important; }
+  [data-theme="dark"] .fluxo-node   { background: #252523 !important; border-color: #2E2E2B !important; }
+  [data-theme="dark"] .section-title { color: #444 !important; }
+  [data-theme="dark"] .login-overlay { background: #111110 !important; }
+  [data-theme="dark"] .login-box    { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .login-input,
+  [data-theme="dark"] .login-select { background: #252523 !important; border-color: #2E2E2B !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .login-label  { color: #AAA !important; }
+  [data-theme="dark"] .pending-panel { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #F0EFE9 !important; }
+  [data-theme="dark"] .modal-edit-hint-bar { background: #252523 !important; color: #888 !important; }
+
+  /* ── DARK MODE TOGGLE BUTTON ──── */
+  .theme-toggle {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid #E8E7E3; background: #fff;
+    cursor: pointer; transition: all .15s; flex-shrink: 0;
+    color: #555; font-family: inherit;
+  }
+  .theme-toggle:hover { background: #F3F2EF; color: #1A1916; }
+  [data-theme="dark"] .theme-toggle { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #AAA !important; }
+  [data-theme="dark"] .theme-toggle:hover { background: #252523 !important; color: #F0EFE9 !important; }
+
   /* ── ACTION BUTTONS ─────────────────────────────── */
   .action-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -533,32 +626,52 @@
   .b-f         { background: #FBEAF0;           color: #72243E;           }
 
   /* ── DETAIL PANEL (atípicos) ─────────────────── */
-  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
   .detail-card {
-    background: #fff; border-radius: var(--radius); border: var(--border);
-    padding: 1.25rem; box-shadow: var(--shadow); cursor: pointer;
-    transition: all .15s;
+    background: #fff; border-radius: 12px; border: var(--border);
+    padding: 0; box-shadow: var(--shadow); cursor: pointer;
+    transition: all .18s; overflow: hidden;
   }
-  .detail-card:hover { border-color: var(--coral); transform: translateY(-1px); }
+  .detail-card:hover { border-color: var(--coral); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.10); }
   .detail-card.analise:hover { border-color: var(--amber); }
-  .detail-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+
+  .detail-card-strip {
+    height: 4px; width: 100%;
+    background: var(--coral);
+  }
+  .detail-card.analise .detail-card-strip { background: var(--amber); }
+
+  .detail-card-inner { padding: 1.1rem 1.25rem; }
+
+  .detail-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
   .detail-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
+    width: 44px; height: 44px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 600; flex-shrink: 0;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+    letter-spacing: -.5px;
   }
   .avatar-at  { background: var(--coral-bg); color: var(--coral-dark); }
   .avatar-an  { background: var(--amber-bg); color: var(--amber-dark); }
-  .detail-nome { font-size: 13px; font-weight: 600; color: #1A1916; line-height: 1.3; }
-  .detail-turma{ font-size: 11px; color: #999; }
-  .detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
-  .detail-rotina {
-    font-size: 12px; color: #777; line-height: 1.6;
-    background: #FAFAF8; border-radius: var(--radius-sm);
-    padding: 8px 10px; border-left: 3px solid #E8E7E3;
+  .detail-nome { font-size: 15px; font-weight: 700; color: #1A1916; line-height: 1.25; margin-bottom: 3px; }
+  .detail-turma{ font-size: 12px; color: #999; font-weight: 400; }
+
+  .detail-chips {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid #F3F2EF;
   }
-  .detail-rotina.has-content { border-left-color: var(--verde); }
-  .detail-obs { font-size: 12px; color: #AAA; margin-top: 6px; font-style: italic; }
+
+  .detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .detail-rotina {
+    font-size: 12px; color: #666; line-height: 1.65;
+    background: #FAFAF8; border-radius: var(--radius-sm);
+    padding: 9px 11px; border-left: 3px solid #E8E7E3;
+  }
+  .detail-rotina.has-content { border-left-color: var(--verde); color: #555; }
+  .detail-obs {
+    font-size: 12px; color: #AAA; margin-top: 8px; font-style: italic;
+    padding: 6px 0 0; border-top: 1px solid #F3F2EF;
+  }
 
   /* ── MODAL ─────────────────────────────────── */
   .modal-overlay {
@@ -972,6 +1085,10 @@
     <button class="pending-btn hidden" id="pendingBtn" onclick="openPendingPanel()">
       <span class="pending-dot" id="pendingDot"></span>
       <span id="pendingLabel">Aprovações</span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar modo claro/escuro">
+      <svg id="themeIconSun" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="themeIconMoon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
     <span class="role-badge" id="roleBadge" onclick="doLogout()" title="Clique para trocar perfil">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1438,6 +1555,32 @@
 </div>
 
 <script>
+/* ════════════════════════════════════════════════════════════
+   DARK MODE
+   ════════════════════════════════════════════════════════════ */
+function toggleTheme(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  document.getElementById('themeIconSun').style.display  = isDark ? 'none' : 'block';
+  document.getElementById('themeIconMoon').style.display = isDark ? 'block' : 'none';
+  try { localStorage.setItem('theme', newTheme); } catch(e){}
+}
+// Restore saved theme
+(function(){
+  try {
+    const saved = localStorage.getItem('theme');
+    if(saved === 'dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      // Icons updated after DOM ready
+      document.addEventListener('DOMContentLoaded', ()=>{
+        document.getElementById('themeIconSun').style.display  = 'block';
+        document.getElementById('themeIconMoon').style.display = 'none';
+      });
+    }
+  } catch(e){}
+})();
+
 /* ════════════════════════════════════════════════════════════
    ROLES / PERMISSIONS
    ════════════════════════════════════════════════════════════ */
@@ -2339,22 +2482,30 @@ function renderAtipicos(){
   document.getElementById('detailGrid').innerHTML = data.map(x=>{
     const idx=S.indexOf(x);
     const isAt=x.p==="ATÍPICO";
+    const hasAEE = x.a && x.a!=="N/A";
+    const hasPIP = x.pip && x.pip!=="N/A";
     return `<div class="detail-card ${isAt?'':'analise'}" onclick="openModal(${idx})">
-      <div class="detail-header">
-        <div class="detail-avatar ${isAt?'avatar-at':'avatar-an'}">${initials(x.n)}</div>
-        <div>
-          <div class="detail-nome">${x.n}</div>
-          <div class="detail-turma">${x.t} · ${x.s==='M'?'Masculino':'Feminino'}</div>
+      <div class="detail-card-strip"></div>
+      <div class="detail-card-inner">
+        <div class="detail-header">
+          <div class="detail-avatar ${isAt?'avatar-at':'avatar-an'}">${initials(x.n)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="detail-nome">${x.n}</div>
+            <div class="detail-turma">${x.t} · ${x.s==='M'?'Masculino':'Feminino'}</div>
+          </div>
         </div>
+        <div class="detail-chips">
+          ${perfilBadge(x.p)}
+          ${encamBadge(x.e)}
+          ${hasAEE?`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`:''}
+          ${hasPIP?`<span class="badge" style="background:#E6F1FB;color:#154F8A">✓ PIP</span>`:''}
+        </div>
+        ${x.r
+          ?`<div class="detail-rotina has-content">${x.r.length>140?x.r.slice(0,140)+'…':x.r}</div>`
+          :`<div class="detail-rotina" style="color:#CCC;font-style:italic">Sem rotina específica registrada.</div>`
+        }
+        ${x.o?`<div class="detail-obs">${x.o.length>90?x.o.slice(0,90)+'…':x.o}</div>`:''}
       </div>
-      <div class="detail-tags">
-        ${perfilBadge(x.p)}
-        ${encamBadge(x.e)}
-        ${x.a&&x.a!=="N/A"?`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`:''}
-        ${x.pip&&x.pip!=="N/A"?`<span class="badge" style="background:#E6F1FB;color:#154F8A">PIP</span>`:''}
-      </div>
-      ${x.r?`<div class="detail-rotina has-content">${x.r.length>140?x.r.slice(0,140)+'…':x.r}</div>`:`<div class="detail-rotina">Sem rotina específica registrada.</div>`}
-      ${x.o?`<div class="detail-obs">${x.o}</div>`:''}
     </div>`;
   }).join('');
 }
