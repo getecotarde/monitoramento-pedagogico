@@ -3267,49 +3267,83 @@ function exportCSV(){
 /* ════════════════════════════════════════════════════════════
    PRINT TABLE
    ════════════════════════════════════════════════════════════ */
+// ── PRINT COLUMNS CONFIG ───────────────────────────────────
+const PRINT_COLS = [
+  { key:'turma',  label:'Turma',                    default:true  },
+  { key:'nome',   label:'Nome',                     default:true  },
+  { key:'perfil', label:'Perfil',                   default:true  },
+  { key:'encam',  label:'Encaminhamento',            default:true  },
+  { key:'aee',    label:'AEE / Diagnóstico',         default:true  },
+  { key:'pip',    label:'PIP/Pedagógico',            default:true  },
+  { key:'rotina', label:'Rotina / Recomendações',    default:true  },
+  { key:'obs',    label:'Observações',               default:false },
+];
+
 function printTable(){
-  // Build print-only header with filter context
+  const container = document.getElementById('printColChecks');
+  container.innerHTML = PRINT_COLS.map(c=>`
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+      <input type="checkbox" id="prcol_${c.key}" ${c.default?'checked':''} style="accent-color:var(--verde);width:15px;height:15px;cursor:pointer">
+      ${c.label}
+    </label>
+  `).join('');
+  document.getElementById('printRowCount').textContent = filtered.length + ' estudante' + (filtered.length!==1?'s':'');
+  document.getElementById('printModalOverlay').classList.add('open');
+}
+
+function closePrintModal(e){ if(e.target===e.currentTarget) closePrintModalBtn(); }
+function closePrintModalBtn(){ document.getElementById('printModalOverlay').classList.remove('open'); }
+
+function executePrint(){
+  closePrintModalBtn();
+  const active = {};
+  PRINT_COLS.forEach(c=>{ active[c.key] = document.getElementById('prcol_'+c.key)?.checked; });
+
   let headerEl = document.querySelector('.print-header');
   if(!headerEl){
     headerEl = document.createElement('div');
     headerEl.className = 'print-header';
     document.getElementById('view-students').prepend(headerEl);
   }
-  const turma   = document.getElementById('filterTurma').value  || 'Todas as turmas';
-  const perfil  = document.getElementById('filterPerfil').value || 'Todos os perfis';
-  const encam   = document.getElementById('filterEncam').value  || 'Todos os encaminhamentos';
-  const search  = document.getElementById('searchInput').value  || '';
-  const rows    = filtered;
-  const now     = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const turma  = document.getElementById('filterTurma').value  || 'Todas as turmas';
+  const perfil = document.getElementById('filterPerfil').value || 'Todos os perfis';
+  const encam  = document.getElementById('filterEncam').value  || 'Todos os encaminhamentos';
+  const search = document.getElementById('searchInput').value  || '';
+  const now    = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const colsLabel = PRINT_COLS.filter(c=>active[c.key]).map(c=>c.label).join(' · ');
   headerEl.innerHTML = `
     <div style="margin-bottom:12px">
       <h2 style="font-size:15px;font-weight:700;margin-bottom:4px">Monitoramento Pedagógico — Turno Tarde 2026</h2>
-      <div style="font-size:10px;color:#666">E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Impresso em ${now} &nbsp;·&nbsp; ${rows.length} estudante${rows.length!==1?'s':''}</div>
-      <div style="font-size:10px;color:#888;margin-top:3px">Filtros: ${turma} &nbsp;|&nbsp; ${perfil} &nbsp;|&nbsp; ${encam}${search?' | Busca: "'+search+'"':''}</div>
+      <div style="font-size:10px;color:#666">E. M. Geraldo Teixeira da Costa · Impresso em ${now} · ${filtered.length} estudante${filtered.length!==1?'s':''}</div>
+      <div style="font-size:10px;color:#888;margin-top:3px">Filtros: ${turma} | ${perfil} | ${encam}${search?' | Busca: "'+search+'"':''}</div>
+      <div style="font-size:10px;color:#999;margin-top:2px">Colunas: ${colsLabel}</div>
       <div style="font-size:10px;color:#AAA;margin-top:6px;border-top:1px solid #eee;padding-top:6px">Coord. Pedagógico: Prof. Everton Corrêa Alves</div>
     </div>`;
 
-  // Temporarily show all filtered rows (bypass pagination for printing)
+  const thead = document.querySelector('#view-students thead tr');
+  const thMap = { turma:'Turma', nome:'Nome do estudante', perfil:'Perfil', encam:'Encaminhamento', aee:'AEE / Diagnóstico', pip:'PIP/Pedagógico', rotina:'Rotina / Recomendações', obs:'Observações' };
+  const savedThead = thead.innerHTML;
+  thead.innerHTML = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${thMap[c.key]}</th>`).join('');
+
   const tbody = document.getElementById('tableBody');
   const savedHTML = tbody.innerHTML;
-  tbody.innerHTML = rows.map(x=>`
-    <tr>
-      <td class="td-turma">${x.t}</td>
-      <td class="td-nome">${x.n}</td>
-      <td>${x.s==='M'?'M':'F'}</td>
-      <td>${x.p}</td>
-      <td class="td-aee">${x.a&&x.a!=="N/A"?x.a:'—'}</td>
-      <td class="td-aee">${x.pip&&x.pip!=="N/A"?x.pip:'—'}</td>
-      <td>${encamKey(x.e)}</td>
-      <td class="td-rotina" style="white-space:normal;overflow:visible;text-overflow:clip">${x.r||'—'}</td>
-      <td class="td-obs" style="white-space:normal;overflow:visible;text-overflow:clip">${x.o||'—'}</td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = filtered.map(x=>{
+    const cells = [];
+    if(active.turma)  cells.push(`<td class="td-turma">${x.t}</td>`);
+    if(active.nome)   cells.push(`<td class="td-nome">${x.n}</td>`);
+    if(active.perfil) cells.push(`<td>${x.p}</td>`);
+    if(active.encam)  cells.push(`<td>${encamKey(x.e)}</td>`);
+    if(active.aee)    cells.push(`<td class="td-aee">${x.a&&x.a!=='N/A'?x.a:'—'}</td>`);
+    if(active.pip)    cells.push(`<td class="td-aee">${x.pip&&x.pip!=='N/A'?x.pip:'—'}</td>`);
+    if(active.rotina) cells.push(`<td class="td-rotina" style="white-space:normal;overflow:visible;text-overflow:clip">${x.r||'—'}</td>`);
+    if(active.obs)    cells.push(`<td class="td-obs" style="white-space:normal;overflow:visible;text-overflow:clip">${x.o||'—'}</td>`);
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
 
   window.print();
 
-  // Restore paginated view
   tbody.innerHTML = savedHTML;
+  thead.innerHTML = savedThead;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -3583,7 +3617,40 @@ function gerarRelatorio(){
     html+=`</div>`;
   });
 
-  html+=`<div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Uso exclusivo da equipe pedagógica.</div></body></html>`;
+  html+=`<div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Uso exclusivo da equipe pedagógica.</div>
+<!-- ═══ PRINT OPTIONS MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="printModalOverlay" onclick="closePrintModal(event)" style="z-index:300">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="modal-nome">Opções de impressão</div>
+        <div class="modal-sub">Escolha as colunas a incluir</div>
+      </div>
+      <button class="modal-close" onclick="closePrintModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:12px">Colunas visíveis na impressão</div>
+      <div id="printColChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem"></div>
+      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
+        Os filtros ativos da tela serão aplicados. Apenas os <strong style="color:#555" id="printRowCount">—</strong> estudantes visíveis serão impressos.
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-cancel" onclick="closePrintModalBtn()">Cancelar</button>
+        <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`;
 
   const win=window.open('','_blank');
   win.document.write(html);
