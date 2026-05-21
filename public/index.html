@@ -223,7 +223,7 @@
     col.col-sexo   { display: none !important; }
     col.col-perfil { width: 82px !important; }
     col.col-aee    { width: 11% !important; }
-    col.col-pip    { width: 38px !important; }
+    col.col-pip    { width: 100px !important; }
     col.col-encam  { width: 90px !important; }
     col.col-rotina { width: auto !important; }
     col.col-obs    { width: 15% !important; }
@@ -722,7 +722,7 @@
   col.col-sexo    { display: none; }  /* oculto */
   col.col-perfil  { width: 100px; }   /* badge curto */
   col.col-aee     { width: 12%;   }   /* diagnóstico pode ser longo */
-  col.col-pip     { width: 52px;  }   /* ✓ / — */
+  col.col-pip     { width: 130px; }   /* SIM — LP/MAT etc. */
   col.col-encam   { width: 110px; }   /* "PIP/ADAPTAÇÃO" */
   col.col-rotina  { width: auto;  }   /* ocupa o resto */
   col.col-obs     { width: 16%;   }   /* observações secundárias */
@@ -740,7 +740,7 @@
   .td-sexo { display: none; }
 
   /* Cabeçalhos centrados para colunas curtas */
-  thead th.th-pip { text-align: center; }
+  thead th.th-pip { text-align: left; }
 
   tbody td {
     padding: 10px 12px;
@@ -767,7 +767,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .td-sexo { text-align: center; }
-  .td-pip  { text-align: center; font-size: 13px; }
+  .td-pip  { text-align: left; font-size: 11px; }
   .td-aee  {
     font-size: 12px; color: #555;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -2765,7 +2765,7 @@ function renderTable(){
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span title="${v}" style="color:#BA7517;font-size:13px">⚑</span>`; if(v==='Dispensado') return `<span title="Dispensado" style="color:#1D9E75;font-size:12px;font-weight:600">D</span>`; return `<span title="${v}" style="color:#2B7FD4;font-size:15px">✓</span>`; })()}</td>
+        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${v}</span>`; })()}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
