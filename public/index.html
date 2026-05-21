@@ -1482,11 +1482,7 @@
           <button class="ms-clear" onclick="clearMs('PIP')">✕ Limpar seleção</button>
         </div>
       </div>
-      <select id="filterSexo" onchange="applyFilters()">
-        <option value="">M / F</option>
-        <option value="M">Masculino</option>
-        <option value="F">Feminino</option>
-      </select>
+
       <span class="results-count" id="resultsCount"></span>
       <button id="btnExportCSV" class="action-btn" onclick="exportCSV()" title="Exportar dados filtrados em CSV">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2725,14 +2721,12 @@ function applyFilters(){
   const ft = document.getElementById('filterTurma').value;
   const fp = document.getElementById('filterPerfil').value;
   const fe = document.getElementById('filterEncam').value;
-  const fs = document.getElementById('filterSexo').value;
 
   filtered = S.filter(x=>{
     if(q  && !x.n.toLowerCase().includes(q)) return false;
     if(ft && x.t !== ft) return false;
     if(fp && x.p !== fp) return false;
     if(fe && encamKey(x.e) !== fe) return false;
-    if(fs && x.s !== fs) return false;
     if(!matchAEE(x.a, MS_STATE.AEE)) return false;
     if(!matchPIP(x.pip, MS_STATE.PIP)) return false;
     return true;
