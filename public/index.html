@@ -2777,7 +2777,7 @@ function renderTable(){
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A'||v==='Dispensado'||v==='Avaliar PIP') return '<span style="color:#D0CFC9">—</span>'; return `<span title="${v}" style="color:#2B7FD4;font-size:15px">✓</span>`; })()}</td>
+        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span title="${v}" style="color:#BA7517;font-size:13px">⚑</span>`; if(v==='Dispensado') return `<span title="Dispensado" style="color:#1D9E75;font-size:12px;font-weight:600">D</span>`; return `<span title="${v}" style="color:#2B7FD4;font-size:15px">✓</span>`; })()}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
