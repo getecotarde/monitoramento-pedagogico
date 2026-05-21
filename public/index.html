@@ -2834,11 +2834,14 @@ function renderAtipicos(){
           ${hasAEE?`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`:''}
           ${hasPIP?`<span class="badge" style="background:#E6F1FB;color:#154F8A">✓ PIP</span>`:''}
         </div>
-        ${x.r
-          ?`<div class="detail-rotina has-content">${x.r.length>140?x.r.slice(0,140)+'…':x.r}</div>`
-          :`<div class="detail-rotina" style="color:#CCC;font-style:italic">Sem rotina específica registrada.</div>`
-        }
-        ${x.o?`<div class="detail-obs">${x.o.length>90?x.o.slice(0,90)+'…':x.o}</div>`:''}
+        <div style="margin-top:8px">
+          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Rotina / Recomendações</div>
+          ${x.r
+            ?`<div class="detail-rotina has-content">${x.r.length>140?x.r.slice(0,140)+'…':x.r}</div>`
+            :`<div class="detail-rotina" style="color:#CCC;font-style:italic">Sem rotina específica registrada.</div>`
+          }
+        </div>
+        ${x.o?`<div style="margin-top:8px"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Observações</div><div class="detail-obs">${x.o.length>90?x.o.slice(0,90)+'…':x.o}</div></div>`:''}
       </div>
     </div>`;
   }).join('');
