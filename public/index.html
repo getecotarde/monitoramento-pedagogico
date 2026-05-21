@@ -83,8 +83,9 @@
   [data-theme="dark"] .stat-num     { color: #F0EFE9 !important; }
   [data-theme="dark"] .turma-card-name { color: #F0EFE9 !important; }
   [data-theme="dark"] .detail-nome  { color: #F0EFE9 !important; }
-  [data-theme="dark"] thead th      { background: #252523 !important; color: #666 !important; }
+  [data-theme="dark"] thead th      { background: #222220 !important; color: #555 !important; border-color: #2E2E2B !important; }
   [data-theme="dark"] tbody td      { border-color: #252523 !important; color: #C0BFB8 !important; }
+  [data-theme="dark"] tbody tr:nth-child(even) td { background: #1F1F1D !important; }
   [data-theme="dark"] tbody tr:hover td { background: #252523 !important; }
   [data-theme="dark"] .td-nome      { color: #F0EFE9 !important; }
   [data-theme="dark"] .modal-box,
@@ -217,20 +218,22 @@
     tbody tr { page-break-inside: avoid; }
 
     /* Larguras de coluna para caber em landscape */
-    .th-turma, td:nth-child(1)  { width: 6% !important; }
-    .th-nome,  td:nth-child(2)  { width: 18% !important; }
-    .th-sexo,  td:nth-child(3)  { width: 4% !important; }
-    .th-perfil,td:nth-child(4)  { width: 9% !important; }
-    .th-aee,   td:nth-child(5)  { width: 10% !important; }
-    .th-pip,   td:nth-child(6)  { width: 5% !important; }
-    .th-encam, td:nth-child(7)  { width: 10% !important; }
-    .th-rotina,td:nth-child(8)  { width: 22% !important; }
-    .th-obs,   td:nth-child(9)  { width: 16% !important; }
+    col.col-turma  { width: 48px !important; }
+    col.col-nome   { width: 21% !important; }
+    col.col-sexo   { width: 32px !important; }
+    col.col-perfil { width: 82px !important; }
+    col.col-aee    { width: 11% !important; }
+    col.col-pip    { width: 38px !important; }
+    col.col-encam  { width: 90px !important; }
+    col.col-rotina { width: auto !important; }
+    col.col-obs    { width: 15% !important; }
 
     /* Mostrar colunas ocultas no mobile */
     .col-rotina, .col-obs, .th-rotina, .th-obs { display: table-cell !important; }
 
     .badge { font-size: 8px !important; padding: 2px 5px !important; }
+    .td-turma { text-align: center !important; }
+    .td-sexo, .td-pip { text-align: center !important; }
     .td-nome { white-space: normal !important; }
     .td-turma { font-size: 9px !important; }
     .td-aee, .td-obs, .td-rotina {
@@ -698,23 +701,79 @@
     overflow: hidden; box-shadow: var(--shadow);
   }
   .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
-  thead th {
-    background: #FAFAF8;
-    padding: 10px 14px;
-    text-align: left; font-weight: 600; font-size: 10px;
-    text-transform: uppercase; letter-spacing: .06em;
-    color: #AAA; white-space: nowrap;
-    border-bottom: var(--border); position: sticky; top: 0;
+
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: 12.5px; min-width: 960px;
+    table-layout: fixed;
   }
-  tbody td { padding: 10px 14px; border-bottom: 1px solid #F3F2EF; color: #333; vertical-align: middle; }
+
+  /* ── Larguras calibradas por conteúdo real ── */
+  col.col-turma   { width: 62px;  }   /* "8ºB" — estreito */
+  col.col-nome    { width: 22%;   }   /* nome completo — maior */
+  col.col-sexo    { width: 46px;  }   /* M / F — mínimo */
+  col.col-perfil  { width: 100px; }   /* badge curto */
+  col.col-aee     { width: 12%;   }   /* diagnóstico pode ser longo */
+  col.col-pip     { width: 52px;  }   /* ✓ / — */
+  col.col-encam   { width: 110px; }   /* "PIP/ADAPTAÇÃO" */
+  col.col-rotina  { width: auto;  }   /* ocupa o resto */
+  col.col-obs     { width: 16%;   }   /* observações secundárias */
+
+  thead th {
+    background: #F7F6F2;
+    padding: 9px 12px;
+    text-align: left; font-weight: 700; font-size: 9.5px;
+    text-transform: uppercase; letter-spacing: .07em;
+    color: #B0AFA9; white-space: nowrap;
+    border-bottom: 2px solid #ECEAE4;
+    position: sticky; top: 0; z-index: 2;
+  }
+  /* Cabeçalhos centrados para colunas curtas */
+  thead th.th-sexo,
+  thead th.th-pip { text-align: center; }
+
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #F3F2EF;
+    color: #333;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: #FAFAF8; }
-  .td-nome { font-weight: 500; color: #1A1916; white-space: nowrap; }
-  .td-turma { font-family: 'DM Mono', monospace; font-size: 12px; color: #888; white-space: nowrap; }
-  .td-obs { max-width: 220px; color: #999; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .td-rotina { max-width: 260px; color: #777; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .td-aee { font-size: 12px; color: #666; }
+
+  /* Colunas específicas */
+  .td-turma {
+    font-family: 'DM Mono', monospace; font-size: 11.5px;
+    color: #999; white-space: nowrap;
+    font-weight: 600; letter-spacing: .03em;
+    text-align: center;
+  }
+  .td-nome {
+    font-weight: 500; color: #1A1916;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .td-sexo { text-align: center; }
+  .td-pip  { text-align: center; font-size: 13px; }
+  .td-aee  {
+    font-size: 12px; color: #555;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .td-encam { white-space: nowrap; }
+  .td-obs {
+    color: #999; font-size: 11.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .td-rotina {
+    color: #666; font-size: 11.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Zebra suave em tela */
+  tbody tr:nth-child(even) td { background: #FAFAF9; }
+  tbody tr:nth-child(even):hover td { background: #F3F2EF; }
 
   /* ── BADGES ─────────────────────────────────── */
   .badge {
@@ -1424,17 +1483,28 @@
     <div class="table-wrap">
       <div class="table-scroll">
         <table>
+          <colgroup>
+            <col class="col-turma">
+            <col class="col-nome">
+            <col class="col-sexo">
+            <col class="col-perfil">
+            <col class="col-aee">
+            <col class="col-pip">
+            <col class="col-encam">
+            <col class="col-rotina">
+            <col class="col-obs">
+          </colgroup>
           <thead>
             <tr>
-              <th>Turma</th>
-              <th>Nome do estudante</th>
-              <th>Sexo</th>
-              <th>Perfil</th>
-              <th>AEE / Diagnóstico</th>
-              <th>PIP</th>
-              <th>Encaminhamento</th>
-              <th>Rotina / Recomendações AEE</th>
-              <th>Observações</th>
+              <th class="th-turma">Turma</th>
+              <th class="th-nome">Nome do estudante</th>
+              <th class="th-sexo">Sx</th>
+              <th class="th-perfil">Perfil</th>
+              <th class="th-aee">AEE / Diagnóstico</th>
+              <th class="th-pip">PIP</th>
+              <th class="th-encam">Encaminhamento</th>
+              <th class="th-rotina col-rotina">Rotina / Recomendações</th>
+              <th class="th-obs col-obs">Observações</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -2687,14 +2757,14 @@ function renderTable(){
     tbody.innerHTML = slice.map((x,i)=>`
       <tr style="cursor:pointer" onclick="openModal(${S.indexOf(x)})">
         <td class="td-turma">${x.t}</td>
-        <td class="td-nome">${x.n}</td>
-        <td><span class="badge ${x.s==='M'?'b-m':'b-f'}">${x.s}</span></td>
+        <td class="td-nome" title="${x.n}">${x.n}</td>
+        <td class="td-sexo"><span class="badge ${x.s==='M'?'b-m':'b-f'}" style="padding:2px 6px">${x.s}</span></td>
         <td>${perfilBadge(x.p)}</td>
-        <td class="td-aee">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#CCC">—</span>'}</td>
-        <td class="td-aee">${x.pip&&x.pip!=="N/A"?'<span style="color:#2B7FD4">✓</span>':'<span style="color:#CCC">—</span>'}</td>
-        <td>${encamBadge(x.e)}</td>
-        <td class="td-rotina" title="${x.r}">${x.r||'<span style="color:#CCC">—</span>'}</td>
-        <td class="td-obs" title="${x.o}">${x.o||'<span style="color:#CCC">—</span>'}</td>
+        <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?x.a:'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-pip">${x.pip&&x.pip!=="N/A"?'<span style="color:#2B7FD4;font-size:15px">✓</span>':'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-encam">${encamBadge(x.e)}</td>
+        <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
+        <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
   }
