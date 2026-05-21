@@ -1935,7 +1935,7 @@ const FIELD_META = {
   'n':   { label:'Nome do estudante',           type:'text'    },
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
-  'a':   { label:'AEE / Diagnóstico', type:'select', options:['N/A','Avaliar','TEA','TEA/TDAH','TDAH','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH/Bx.Vis/Neuro','TDH','TDH e Outras','DI','DI/TDAH','DI/DI/Neuro','SURDEZ','Bx.Visão'] },
+  'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
   'pip': { label:'Atendimento PIP', type:'select', options:['N/A','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar'] },
   'r':   { label:'Rotina / Recomendações AEE',   type:'textarea'},
   'obs': { label:'Observações',                  type:'textarea'},
@@ -2080,7 +2080,7 @@ function getVisibleNotifications(){
    ════════════════════════════════════════════════════════════ */
 const S = [
   /* ── 6ºA ─────────────────────────────────────────────── */
-  {t:"6ºA",n:"Bryan Felipe de Caria Teixeira",s:"M",p:"ATÍPICO",a:"TDH",pip:"N/A",e:"ADAPTAÇÃO",r:"",o:"Apresenta dificuldade"},
+  {t:"6ºA",n:"Bryan Felipe de Caria Teixeira",s:"M",p:"ATÍPICO",a:"TDAH",pip:"N/A",e:"ADAPTAÇÃO",r:"",o:"Apresenta dificuldade"},
   {t:"6ºA",n:"Davi Nathan Silva Nascimento",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
   {t:"6ºA",n:"Diulia Victoria Lima da Cruz",s:"F",p:"ATÍPICO",a:"N/A",pip:"SIM — LP/MAT",e:"PIP",r:"",o:""},
   {t:"6ºA",n:"Esther Almeida Brito",s:"F",p:"ATÍPICO",a:"Avaliar",pip:"SIM — MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
@@ -2089,7 +2089,7 @@ const S = [
   {t:"6ºA",n:"Kaua Victor Nunes Silva",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — LP",e:"AVALIAR",r:"Reforço em MAT",o:"Dificuldade de aprendizagem"},
   {t:"6ºA",n:"Kaliam Robson Moreira Costa da Silva",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
   {t:"6ºA",n:"Lucas Damian Barbosa Gonçalves",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Lucca Campos Saldanha",s:"M",p:"ATÍPICO",a:"TDH",pip:"J.A. — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Organizar atividades em etapas curtas, com rotina previsível, apoio visual e tempo ampliado. Exemplo: entregar uma atividade com 3 questões por vez e um roteiro no quadro. Analisar possível troca de sala.",o:"Apresenta dificuldade"},
+  {t:"6ºA",n:"Lucca Campos Saldanha",s:"M",p:"ATÍPICO",a:"TDAH",pip:"J.A. — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Organizar atividades em etapas curtas, com rotina previsível, apoio visual e tempo ampliado. Exemplo: entregar uma atividade com 3 questões por vez e um roteiro no quadro. Analisar possível troca de sala.",o:"Apresenta dificuldade"},
   {t:"6ºA",n:"Andre Xavier da Silva Bispo",s:"M",p:"ATÍPICO",a:"TEA",pip:"N/A",e:"ADAPTAÇÃO",r:"O estudante demanda estrito cumprimento dos prazos estabelecidos com a turma, principalmente combinados e feitos diretamente com ele. Casos de imprevistos: favor avisar de ajustes em reagendamentos. Não demanda APOIO; apresenta quadro de ansiedade e agitação.",o:"Não demanda APOIO. Apresenta quadro de ansiedade e agitação."},
   {t:"6ºA",n:"Bernardo Martins Emídio de Sousa",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de concentração"},
   {t:"6ºA",n:"Luara Valentina Barbosa Pinto Camilo",s:"F",p:"EM ANÁLISE",a:"Avaliar",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
@@ -2142,9 +2142,9 @@ const S = [
   {t:"6ºB",n:"Valentina Almeida Macalhaes",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   {t:"6ºB",n:"Matheus Michael Ferreira Valentim",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
   /* ── 6ºC ─────────────────────────────────────────────── */
-  {t:"6ºC",n:"Gustavo Gabriel Silva Fernandes",s:"M",p:"ATÍPICO",a:"TDH e Outras",pip:"J.A. — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Manter rotina estruturada, instruções objetivas, mediação direta e adaptação de tempo. Exemplo: explicar oralmente e também escrever os passos da tarefa no quadro.",o:"Acompanhamento"},
+  {t:"6ºC",n:"Gustavo Gabriel Silva Fernandes",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"J.A. — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Manter rotina estruturada, instruções objetivas, mediação direta e adaptação de tempo. Exemplo: explicar oralmente e também escrever os passos da tarefa no quadro.",o:"Acompanhamento"},
   {t:"6ºC",n:"Arthur Ventura da Silva Araujo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Kaua Felipe de Oliveira Alvarenga",s:"M",p:"ATÍPICO",a:"TDH",pip:"J.A.",e:"ADAPTAÇÃO",r:"Aluno com diagnóstico recente. Demanda por menor quantidade de registro do quadro, por disponibilização de conteúdos impressos, além de sentar mais à frente no mapeamento e de acompanhamento/apoio individual na realização de atividades avaliativas. PROVAS. ATIVIDADES ADAPTADAS. SENTAR NAS PRIMEIRAS FILEIRAS.",o:"Dificuldade de aprendizagem"},
+  {t:"6ºC",n:"Kaua Felipe de Oliveira Alvarenga",s:"M",p:"ATÍPICO",a:"TDAH",pip:"J.A.",e:"ADAPTAÇÃO",r:"Aluno com diagnóstico recente. Demanda por menor quantidade de registro do quadro, por disponibilização de conteúdos impressos, além de sentar mais à frente no mapeamento e de acompanhamento/apoio individual na realização de atividades avaliativas. PROVAS. ATIVIDADES ADAPTADAS. SENTAR NAS PRIMEIRAS FILEIRAS.",o:"Dificuldade de aprendizagem"},
   {t:"6ºC",n:"Sophia Almeida Pereira da Cruz",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"REFORÇO",r:"Reforço em LP",o:"Apresenta dificuldade"},
   {t:"6ºC",n:"Yuri Cândida Medeiros",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Apresenta dificuldade"},
   {t:"6ºC",n:"Arthur Vinicius Oliveira de Paiva",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
@@ -2206,7 +2206,7 @@ const S = [
   {t:"6ºE",n:"Henrique da Silva Jardim",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:"Dificuldade de aprendizagem"},
   {t:"6ºE",n:"Isaac Augusto Moreira Deziderio",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:"Dificuldade de aprendizagem"},
   {t:"6ºE",n:"Kallen William Gonçalves Rossi",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Maria Clara Alves Costa",s:"F",p:"ATÍPICO",a:"TDH",pip:"SIM — LP",e:"PIP",r:"Ambiente e organização: posicioná-la próxima ao professor, longe de janelas e fontes de dispersão. Dar instruções curtas e segmentadas (uma etapa por vez); confirmar compreensão. Oferecer tempo estendido para atividades e avaliações. Reduzir volume de itens por atividade. Permitir material de apoio (resumos, roteiros). Avaliação: priorizar avaliações orais ou em ambiente reservado quando possível. Diversificar instrumentos; valorizar o processo e o esforço, não só o resultado. Suporte emocional: evitar exposição ou comparação diante da turma; reforçar positivamente suas conquistas. Comunicar à coordenação qualquer sinal de ansiedade, bloqueio ou dificuldade relevante.",o:"Dificuldade de aprendizagem"},
+  {t:"6ºE",n:"Maria Clara Alves Costa",s:"F",p:"ATÍPICO",a:"TDAH",pip:"SIM — LP",e:"PIP",r:"Ambiente e organização: posicioná-la próxima ao professor, longe de janelas e fontes de dispersão. Dar instruções curtas e segmentadas (uma etapa por vez); confirmar compreensão. Oferecer tempo estendido para atividades e avaliações. Reduzir volume de itens por atividade. Permitir material de apoio (resumos, roteiros). Avaliação: priorizar avaliações orais ou em ambiente reservado quando possível. Diversificar instrumentos; valorizar o processo e o esforço, não só o resultado. Suporte emocional: evitar exposição ou comparação diante da turma; reforçar positivamente suas conquistas. Comunicar à coordenação qualquer sinal de ansiedade, bloqueio ou dificuldade relevante.",o:"Dificuldade de aprendizagem"},
   {t:"6ºE",n:"Maria Eduarda de Oliveira Teixeira",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"6ºE",n:"Tiago Ruan Silveira Mendes",s:"M",p:"ATÍPICO",a:"Avaliar",pip:"SIM — LP",e:"PIP",r:"Reforço em MAT.",o:"Indicação para Elane: Transformê?"},
   {t:"6ºE",n:"Clariesse de Almeida Carvalho",s:"F",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
@@ -2266,7 +2266,7 @@ const S = [
   {t:"7ºA",n:"Alice Rodrigues Amorim",s:"F",p:"ATÍPICO",a:"SURDEZ",pip:"J.A.",e:"ADAPTAÇÃO",r:"Garantir comunicação acessível, apoio escrito, recursos visuais e checagem de compreensão. Exemplo: entregar a instrução impressa e confirmar se a aluna entendeu antes de começar.",o:""},
   {t:"7ºA",n:"Enzo Damasceno Salvador",s:"M",p:"ATÍPICO",a:"TDAH",pip:"J.A.",e:"ADAPTAÇÃO",r:"Reduzir distrações, propor metas curtas, dar feedback imediato e manter rotina visível. Exemplo: organizar a carteira em local mais tranquilo e combinar pequenas metas durante a aula.",o:""},
   {t:"7ºA",n:"Gabriel de Assis Furtado Brandão",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºA",n:"Gabriel Rodrigo Ferreira de Aquino",s:"M",p:"ATÍPICO",a:"TDH e Outras",pip:"J.A.",e:"ADAPTAÇÃO",r:"Usar instruções curtas, apoio à organização, acompanhamento frequente e avaliação adaptada. Exemplo: orientar com 'primeiro, depois e por último', acompanhando o andamento da tarefa.",o:""},
+  {t:"7ºA",n:"Gabriel Rodrigo Ferreira de Aquino",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"J.A.",e:"ADAPTAÇÃO",r:"Usar instruções curtas, apoio à organização, acompanhamento frequente e avaliação adaptada. Exemplo: orientar com 'primeiro, depois e por último', acompanhando o andamento da tarefa.",o:""},
   {t:"7ºA",n:"Miguel Gonçalves de Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
   {t:"7ºA",n:"Pedro Henrique Alves Bueno",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
   {t:"7ºA",n:"Samuel de Araújo Magalhães",s:"M",p:"ATÍPICO",a:"TDAH/Bx.Vis/Neuro",pip:"J.A.",e:"ADAPTAÇÃO",r:"Planejar atividades curtas, com metas claras, apoio à autorregulação e reforço positivo. Exemplo: combinar um sinal para o aluno pedir pausa quando perceber dificuldade de atenção.",o:""},
@@ -2977,7 +2977,100 @@ function openEditFromModal(idx, field){
   container.innerHTML = ''; // clear previous contents
 
   let fieldEl;
-  if(meta.type === 'select'){
+  if(meta.type === 'multiselect'){
+    // Build a custom multi-select widget for AEE / Diagnóstico
+    const currentVals = new Set(currentVal ? currentVal.split('/').map(v=>v.trim()).filter(Boolean) : []);
+    // If single compound value like "TEA/TDAH" doesn't match individual atoms, treat as whole
+    // Actually store as comma-separated list of selected items
+    const storedVals = new Set(currentVal ? currentVal.split(',').map(v=>v.trim()).filter(Boolean) : []);
+
+    fieldEl = document.createElement('div');
+    fieldEl.id = 'editModalText';
+    fieldEl.setAttribute('data-type','multiselect');
+
+    // Get all options, merging stored custom ones
+    const allOpts = [...meta.options];
+    storedVals.forEach(v=>{ if(!allOpts.includes(v)) allOpts.push(v); });
+
+    // Render checkboxes
+    const chkWrap = document.createElement('div');
+    chkWrap.style.cssText = 'border:1px solid #E8E7E3;border-radius:6px;overflow:hidden;max-height:280px;overflow-y:auto;';
+    allOpts.forEach((opt, i) => {
+      const row = document.createElement('label');
+      row.style.cssText = `display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:${i<allOpts.length-1?'1px solid #F0EFEB':'none'};transition:background .1s;`;
+      row.onmouseenter = ()=>row.style.background='#F7F6F2';
+      row.onmouseleave = ()=>row.style.background='';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.value = opt;
+      chk.checked = storedVals.has(opt);
+      chk.style.cssText = 'width:15px;height:15px;accent-color:var(--verde);flex-shrink:0;cursor:pointer;';
+      chk.addEventListener('change', ()=>{
+        // If N/A is checked, uncheck everything else
+        if(chk.value==='N/A' && chk.checked){
+          chkWrap.querySelectorAll('input[type=checkbox]').forEach(c=>{ if(c.value!=='N/A') c.checked=false; });
+        } else if(chk.value!=='N/A' && chk.checked){
+          const naChk = chkWrap.querySelector('input[value="N/A"]');
+          if(naChk) naChk.checked=false;
+        }
+      });
+      const lbl = document.createElement('span');
+      lbl.textContent = opt;
+      row.appendChild(chk);
+      row.appendChild(lbl);
+      chkWrap.appendChild(row);
+    });
+    fieldEl.appendChild(chkWrap);
+
+    // "Add new diagnosis" section
+    const addRow = document.createElement('div');
+    addRow.style.cssText = 'display:flex;gap:8px;margin-top:10px;align-items:center;';
+    const addInput = document.createElement('input');
+    addInput.type = 'text';
+    addInput.placeholder = 'Adicionar diagnóstico não listado…';
+    addInput.style.cssText = 'flex:1;padding:8px 12px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;transition:border .15s;';
+    addInput.addEventListener('focus', ()=>addInput.style.borderColor='var(--verde)');
+    addInput.addEventListener('blur',  ()=>addInput.style.borderColor='#E8E7E3');
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '+ Adicionar';
+    addBtn.style.cssText = 'padding:8px 14px;border-radius:6px;border:1px solid var(--verde);background:var(--verde-bg);color:var(--verde-dark);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;';
+    addBtn.onclick = ()=>{
+      const v = addInput.value.trim();
+      if(!v) return;
+      // Check if already exists
+      const existing = chkWrap.querySelector(`input[value="${CSS.escape(v)}"]`);
+      if(existing){ existing.checked=true; addInput.value=''; return; }
+      // Add new checkbox row
+      const newRow = document.createElement('label');
+      newRow.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;transition:background .1s;border-top:1px solid #F0EFEB;';
+      newRow.onmouseenter = ()=>newRow.style.background='#F7F6F2';
+      newRow.onmouseleave = ()=>newRow.style.background='';
+      const newChk = document.createElement('input');
+      newChk.type = 'checkbox';
+      newChk.value = v;
+      newChk.checked = true;
+      newChk.style.cssText = 'width:15px;height:15px;accent-color:var(--verde);flex-shrink:0;cursor:pointer;';
+      newChk.addEventListener('change', ()=>{
+        if(newChk.value!=='N/A' && newChk.checked){
+          const naChk = chkWrap.querySelector('input[value="N/A"]');
+          if(naChk) naChk.checked=false;
+        }
+      });
+      const newLbl = document.createElement('span');
+      newLbl.textContent = v;
+      newRow.appendChild(newChk);
+      newRow.appendChild(newLbl);
+      chkWrap.appendChild(newRow);
+      addInput.value = '';
+      // Also add to meta options so it persists in future opens
+      if(!meta.options.includes(v)) meta.options.push(v);
+    };
+    addInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addBtn.click(); }});
+    addRow.appendChild(addInput);
+    addRow.appendChild(addBtn);
+    fieldEl.appendChild(addRow);
+
+  } else if(meta.type === 'select'){
     fieldEl = document.createElement('select');
     fieldEl.id = 'editModalText';
     fieldEl.style.cssText = 'width:100%;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;transition:border .15s;background:#fff';
@@ -3026,7 +3119,7 @@ function openEditFromModal(idx, field){
   document.getElementById('editModalOverlay').classList.add('open');
 
   // Focus field after modal opens
-  setTimeout(()=>{ fieldEl.focus(); }, 50);
+  setTimeout(()=>{ if(fieldEl.focus) fieldEl.focus(); }, 50);
 }
 
 function closeModalBtn(){ document.getElementById('modalOverlay').classList.remove('open'); currentModalIdx=null; }
@@ -3045,7 +3138,13 @@ function closeEditModal(e){
 function submitEdit(){
   const el = document.getElementById('editModalText');
   if(!el || !editTarget) return;
-  const newVal = el.value.trim();
+  let newVal;
+  if(el.getAttribute && el.getAttribute('data-type')==='multiselect'){
+    const checked = Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
+    newVal = checked.length === 0 ? 'N/A' : checked.join(', ');
+  } else {
+    newVal = el.value.trim();
+  }
   const { studentIdx, field } = editTarget;
   const x = S[studentIdx];
   const meta = FIELD_META[field];
@@ -3949,7 +4048,13 @@ function refreshAllViews(){
 async function submitEdit(){
   const el = document.getElementById('editModalText');
   if(!el || !editTarget) return;
-  const newVal = el.value.trim();
+  let newVal;
+  if(el.getAttribute && el.getAttribute('data-type')==='multiselect'){
+    const checked = Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
+    newVal = checked.length === 0 ? 'N/A' : checked.join(', ');
+  } else {
+    newVal = el.value.trim();
+  }
   const { studentIdx, field } = editTarget;
   const x = S[studentIdx];
   const meta = FIELD_META[field];
