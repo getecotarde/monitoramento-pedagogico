@@ -220,7 +220,7 @@
     /* Larguras de coluna para caber em landscape */
     col.col-turma  { width: 48px !important; }
     col.col-nome   { width: 21% !important; }
-    col.col-sexo   { width: 32px !important; }
+    col.col-sexo   { display: none !important; }
     col.col-perfil { width: 82px !important; }
     col.col-aee    { width: 11% !important; }
     col.col-pip    { width: 38px !important; }
@@ -711,7 +711,7 @@
   /* ── Larguras calibradas por conteúdo real ── */
   col.col-turma   { width: 62px;  }   /* "8ºB" — estreito */
   col.col-nome    { width: 22%;   }   /* nome completo — maior */
-  col.col-sexo    { width: 46px;  }   /* M / F — mínimo */
+  col.col-sexo    { display: none; }  /* oculto */
   col.col-perfil  { width: 100px; }   /* badge curto */
   col.col-aee     { width: 12%;   }   /* diagnóstico pode ser longo */
   col.col-pip     { width: 52px;  }   /* ✓ / — */
@@ -728,8 +728,10 @@
     border-bottom: 2px solid #ECEAE4;
     position: sticky; top: 0; z-index: 2;
   }
-  /* Cabeçalhos centrados para colunas curtas */
   thead th.th-sexo,
+  .td-sexo { display: none; }
+
+  /* Cabeçalhos centrados para colunas curtas */
   thead th.th-pip { text-align: center; }
 
   tbody td {
@@ -764,11 +766,11 @@
   .td-encam { white-space: nowrap; }
   .td-obs {
     color: #999; font-size: 11.5px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    white-space: normal; word-break: break-word;
   }
   .td-rotina {
     color: #666; font-size: 11.5px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    white-space: normal; word-break: break-word;
   }
 
   /* Zebra suave em tela */
