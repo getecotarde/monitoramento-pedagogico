@@ -1553,12 +1553,7 @@
         <option value="ATÍPICO">Somente atípicos</option>
         <option value="EM ANÁLISE">Somente em análise</option>
       </select>
-      <select id="filterAtEspecial" onchange="renderAtipicos()">
-        <option value="">Todos</option>
-        <option value="PIP">No PIP (LP e/ou MAT)</option>
-        <option value="ADAPTACAO">Com adaptação curricular</option>
-        <option value="DISPENSADO">Dispensados do PIP</option>
-      </select>
+
       <!-- AEE multi-select (atipicos view) -->
       <div class="ms-wrap" id="msWrapAtAEE">
         <div class="ms-trigger" id="msTriggerAtAEE" onclick="toggleMs('AtAEE')">
@@ -2798,13 +2793,9 @@ function goPage(p){ page=p; renderTable(); window.scrollTo(0,0); }
 function renderAtipicos(){
   const ft = document.getElementById('filterAtTurma').value;
   const fp = document.getElementById('filterAtPerfil').value;
-  const fe = document.getElementById('filterAtEspecial').value;
   let data = S.filter(x=>x.p!=="TÍPICO");
   if(ft) data=data.filter(x=>x.t===ft);
   if(fp) data=data.filter(x=>x.p===fp);
-  if(fe==='PIP') data=data.filter(x=>x.pip&&x.pip!=='N/A');
-  else if(fe==='ADAPTACAO') data=data.filter(x=>encamKey(x.e)==='ADAPTAÇÃO'||encamKey(x.e)==='PIP/ADAPTAÇÃO');
-  else if(fe==='DISPENSADO') data=data.filter(x=>!x.pip||x.pip==='N/A');
   data = data.filter(x=>matchAEE(x.a, MS_STATE.AtAEE));
   data = data.filter(x=>matchPIP(x.pip, MS_STATE.AtPIP));
   document.getElementById('atCount').textContent=`${data.length} estudante${data.length!==1?'s':''}`;
