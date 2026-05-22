@@ -3269,14 +3269,15 @@ function exportCSV(){
    ════════════════════════════════════════════════════════════ */
 // ── PRINT COLUMNS CONFIG ───────────────────────────────────
 const PRINT_COLS = [
-  { key:'turma',  label:'Turma',                    default:true  },
-  { key:'nome',   label:'Nome',                     default:true  },
-  { key:'perfil', label:'Perfil',                   default:true  },
-  { key:'encam',  label:'Encaminhamento',            default:true  },
-  { key:'aee',    label:'AEE / Diagnóstico',         default:true  },
-  { key:'pip',    label:'PIP/Pedagógico',            default:true  },
-  { key:'rotina', label:'Rotina / Recomendações',    default:true  },
-  { key:'obs',    label:'Observações',               default:false },
+  { key:'turma',  label:'Turma',                 default:true  },
+  { key:'nome',   label:'Nome',                  default:true  },
+  { key:'sexo',   label:'Sexo',                  default:false },
+  { key:'perfil', label:'Perfil',                default:true  },
+  { key:'encam',  label:'Encaminhamento',         default:true  },
+  { key:'rotina', label:'Rotina / Recomendações', default:true  },
+  { key:'aee',    label:'AEE / Diagnóstico',      default:true  },
+  { key:'pip',    label:'PIP/Pedagógico',         default:true  },
+  { key:'obs',    label:'Observações',            default:false },
 ];
 
 function printTable(){
@@ -3296,9 +3297,11 @@ function closePrintModalBtn(){ document.getElementById('printModalOverlay').clas
 
 function executePrint(){
   closePrintModalBtn();
-  const active = {};
-  PRINT_COLS.forEach(c=>{ active[c.key] = document.getElementById('prcol_'+c.key)?.checked; });
 
+  const active = {};
+  PRINT_COLS.forEach(c=>{ active[c.key] = !!document.getElementById('prcol_'+c.key)?.checked; });
+
+  // Build print header
   let headerEl = document.querySelector('.print-header');
   if(!headerEl){
     headerEl = document.createElement('div');
@@ -3320,28 +3323,31 @@ function executePrint(){
       <div style="font-size:10px;color:#AAA;margin-top:6px;border-top:1px solid #eee;padding-top:6px">Coord. Pedagógico: Prof. Everton Corrêa Alves</div>
     </div>`;
 
+  // Rebuild thead with only selected columns
   const thead = document.querySelector('#view-students thead tr');
-  const thMap = { turma:'Turma', nome:'Nome do estudante', perfil:'Perfil', encam:'Encaminhamento', aee:'AEE / Diagnóstico', pip:'PIP/Pedagógico', rotina:'Rotina / Recomendações', obs:'Observações' };
   const savedThead = thead.innerHTML;
-  thead.innerHTML = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${thMap[c.key]}</th>`).join('');
+  thead.innerHTML = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${c.label}</th>`).join('');
 
+  // Rebuild tbody with only selected columns, all rows (no pagination)
   const tbody = document.getElementById('tableBody');
   const savedHTML = tbody.innerHTML;
   tbody.innerHTML = filtered.map(x=>{
     const cells = [];
     if(active.turma)  cells.push(`<td class="td-turma">${x.t}</td>`);
     if(active.nome)   cells.push(`<td class="td-nome">${x.n}</td>`);
+    if(active.sexo)   cells.push(`<td>${x.s}</td>`);
     if(active.perfil) cells.push(`<td>${x.p}</td>`);
     if(active.encam)  cells.push(`<td>${encamKey(x.e)}</td>`);
-    if(active.aee)    cells.push(`<td class="td-aee">${x.a&&x.a!=='N/A'?x.a:'—'}</td>`);
-    if(active.pip)    cells.push(`<td class="td-aee">${x.pip&&x.pip!=='N/A'?x.pip:'—'}</td>`);
-    if(active.rotina) cells.push(`<td class="td-rotina" style="white-space:normal;overflow:visible;text-overflow:clip">${x.r||'—'}</td>`);
-    if(active.obs)    cells.push(`<td class="td-obs" style="white-space:normal;overflow:visible;text-overflow:clip">${x.o||'—'}</td>`);
+    if(active.rotina) cells.push(`<td style="white-space:normal">${x.r||'—'}</td>`);
+    if(active.aee)    cells.push(`<td>${x.a&&x.a!=='N/A'?x.a:'—'}</td>`);
+    if(active.pip)    cells.push(`<td>${x.pip&&x.pip!=='N/A'?x.pip:'—'}</td>`);
+    if(active.obs)    cells.push(`<td style="white-space:normal">${x.o||'—'}</td>`);
     return `<tr>${cells.join('')}</tr>`;
   }).join('');
 
   window.print();
 
+  // Restore original table
   tbody.innerHTML = savedHTML;
   thead.innerHTML = savedThead;
 }
