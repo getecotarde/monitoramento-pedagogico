@@ -3624,38 +3624,6 @@ function gerarRelatorio(){
   });
 
   html+=`<div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Uso exclusivo da equipe pedagógica.</div>
-<!-- ═══ PRINT OPTIONS MODAL ═══════════════════════════════ -->
-<div class="modal-overlay" id="printModalOverlay" onclick="closePrintModal(event)" style="z-index:300">
-  <div class="modal-box" style="max-width:460px">
-    <div class="modal-header">
-      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      </div>
-      <div style="flex:1">
-        <div class="modal-nome">Opções de impressão</div>
-        <div class="modal-sub">Escolha as colunas a incluir</div>
-      </div>
-      <button class="modal-close" onclick="closePrintModalBtn()">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:12px">Colunas visíveis na impressão</div>
-      <div id="printColChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem"></div>
-      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
-        Os filtros ativos da tela serão aplicados. Apenas os <strong style="color:#555" id="printRowCount">—</strong> estudantes visíveis serão impressos.
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px">
-        <button class="btn-cancel" onclick="closePrintModalBtn()">Cancelar</button>
-        <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Imprimir
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 </body></html>`;
 
   const win=window.open('','_blank');
@@ -4514,5 +4482,37 @@ function openMovModal(tipo){
 <footer class="platform-footer">
   E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026 &nbsp;·&nbsp; <strong>Coord. Pedagógico: Prof. Everton Corrêa Alves</strong>
 </footer>
+
+<!-- ═══ PRINT OPTIONS MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="printModalOverlay" onclick="closePrintModal(event)" style="z-index:300">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
+      </div>
+      <div style="flex:1">
+        <div class="modal-nome">Opções de impressão</div>
+        <div class="modal-sub">Escolha as colunas a incluir</div>
+      </div>
+      <button class="modal-close" onclick="closePrintModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:12px">Colunas visíveis na impressão</div>
+      <div id="printColChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem"></div>
+      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
+        Os filtros ativos da tela serão aplicados. Apenas os <strong style="color:#555" id="printRowCount">—</strong> estudantes visíveis serão impressos.
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-cancel" onclick="closePrintModalBtn()">Cancelar</button>
+        <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
+          Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
