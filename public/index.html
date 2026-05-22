@@ -3379,112 +3379,142 @@ function executePrint(){
   const active = {};
   PRINT_COLS.forEach(c=>{ active[c.key] = !!document.getElementById('prcol_'+c.key)?.checked; });
 
-  // ── Quais alunos foram selecionados no modal ──
+  // Quais alunos selecionados
   const selectedIdxs = new Set(
     [...document.querySelectorAll('.print-aluno-chk:checked')].map(c=>+c.value)
   );
   const printStudents = filtered.filter((_,i)=> selectedIdxs.has(i));
+  if(!printStudents.length){ alert('Nenhum estudante selecionado.'); return; }
 
-  // ── Quais turmas estão presentes na seleção ──
   const selectedTurmas = [...new Set(printStudents.map(x=>x.t))];
+  const turmaLabel = selectedTurmas.length === TURMAS.length ? 'Todas as turmas' : selectedTurmas.join(', ');
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Build print header
-  let headerEl = document.querySelector('.print-header');
-  if(!headerEl){
-    headerEl = document.createElement('div');
-    headerEl.className = 'print-header';
-    document.getElementById('view-students').prepend(headerEl);
-  }
-  const turmaLabel = selectedTurmas.length === TURMAS.length
-    ? 'Todas as turmas'
-    : selectedTurmas.join(', ');
-  const perfil = document.getElementById('filterPerfil').value || 'Todos os perfis';
-  const encam  = document.getElementById('filterEncam').value  || 'Todos os encaminhamentos';
-  const search = document.getElementById('searchInput').value  || '';
-  const now    = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const colsLabel = PRINT_COLS.filter(c=>active[c.key]).map(c=>c.label).join(' · ');
-  headerEl.innerHTML = `
-    <div style="margin-bottom:12px">
-      <h2 style="font-size:15px;font-weight:700;margin-bottom:4px">Monitoramento Pedagógico — Turno Tarde 2026</h2>
-      <div style="font-size:10px;color:#666">E. M. Geraldo Teixeira da Costa · Impresso em ${now} · ${printStudents.length} estudante${printStudents.length!==1?'s':''}</div>
-      <div style="font-size:10px;color:#888;margin-top:3px">Turmas: ${turmaLabel} | ${perfil} | ${encam}${search?' | Busca: "'+search+'"':''}</div>
-      <div style="font-size:10px;color:#999;margin-top:2px">Colunas: ${colsLabel}</div>
-      <div style="font-size:10px;color:#AAA;margin-top:6px;border-top:1px solid #eee;padding-top:6px">Coord. Pedagógico: Prof. Everton Corrêa Alves</div>
-    </div>`;
+  // Colunas ativas
+  const activeCols = PRINT_COLS.filter(c=>active[c.key]);
 
-  // Rebuild thead with only selected columns
-  const thead = document.querySelector('#view-students thead tr');
-  const savedThead = thead.innerHTML;
+  // Larguras relativas por coluna
+  const colWidths = {turma:'5%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'20%',aee:'10%',pip:'8%',obs:'17%'};
 
-  const colHeaders = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${c.label}</th>`).join('');
-
-  // Rebuild tbody grouped by turma, with page-break between turmas
-  const tbody = document.getElementById('tableBody');
-  const savedHTML = tbody.innerHTML;
-
-  function buildRow(x){
-    const cells = [];
-    if(active.turma)  cells.push(`<td class="td-turma">${x.t}</td>`);
-    if(active.nome)   cells.push(`<td class="td-nome">${x.n}</td>`);
-    if(active.sexo)   cells.push(`<td>${x.s}</td>`);
-    if(active.perfil) cells.push(`<td>${x.p}</td>`);
-    if(active.encam)  cells.push(`<td>${encamKey(x.e)}</td>`);
-    if(active.rotina) cells.push(`<td style="white-space:normal">${x.r||'—'}</td>`);
-    if(active.aee)    cells.push(`<td>${x.a&&x.a!=='N/A'?x.a:'—'}</td>`);
-    if(active.pip)    cells.push(`<td>${x.pip&&x.pip!=='N/A'?x.pip:'—'}</td>`);
-    if(active.obs)    cells.push(`<td style="white-space:normal">${x.o||'—'}</td>`);
-    return `<tr>${cells.join('')}</tr>`;
+  function buildRow(x, idx){
+    const bg = idx%2===0 ? '#fff' : '#F7F6F2';
+    return `<tr style="background:${bg}">` + activeCols.map(c=>{
+      let val = '';
+      if(c.key==='turma')  val = `<b>${x.t}</b>`;
+      else if(c.key==='nome')   val = x.n;
+      else if(c.key==='sexo')   val = x.s;
+      else if(c.key==='perfil') val = x.p||'—';
+      else if(c.key==='encam')  val = encamKey(x.e);
+      else if(c.key==='rotina') val = x.r||'—';
+      else if(c.key==='aee')    val = (x.a&&x.a!=='N/A')?x.a:'—';
+      else if(c.key==='pip')    val = (x.pip&&x.pip!=='N/A')?x.pip:'—';
+      else if(c.key==='obs')    val = x.o||'—';
+      return `<td style="padding:5px 8px;border-bottom:1px solid #E2E1DC;vertical-align:top;word-break:break-word;white-space:normal;font-size:9.5px">${val}</td>`;
+    }).join('') + '</tr>';
   }
 
-  if(selectedTurmas.length <= 1){
-    // Sem agrupamento — tabela única
-    thead.innerHTML = colHeaders;
-    tbody.innerHTML = printStudents.map(buildRow).join('');
-  } else {
-    // Agrupado por turma: uma tabela por turma, com page-break entre elas
-    // Esconde a tabela principal e injeta wrapper de impressão
-    const tableWrap = document.querySelector('#view-students .table-wrap');
-    const savedDisplay = tableWrap.style.display;
-    tableWrap.style.display = 'none';
-
-    const printWrap = document.createElement('div');
-    printWrap.id = 'multiTurmaPrintWrap';
-    printWrap.style.display = 'none'; // visível apenas no print via @media print
-    document.getElementById('view-students').appendChild(printWrap);
-
-    printWrap.innerHTML = selectedTurmas.map((t, ti)=>{
-      const alunos = printStudents.filter(x=>x.t===t);
-      const rows = alunos.map(buildRow).join('');
-      const pageBreak = ti < selectedTurmas.length - 1
-        ? 'page-break-after:always;'
-        : '';
-      return `
-        <div style="${pageBreak}padding-bottom:8px">
-          <div style="font-size:11px;font-weight:700;margin-bottom:6px;padding:4px 0;border-bottom:2px solid #2A2A28">
-            Turma ${t} — ${alunos.length} estudante${alunos.length!==1?'s':''}
-          </div>
-          <table style="width:100%;border-collapse:collapse;font-size:10px">
-            <thead><tr>${colHeaders}</tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>`;
-    }).join('');
-
-    window.print();
-
-    // Restaura
-    printWrap.remove();
-    tableWrap.style.display = savedDisplay;
-    thead.innerHTML = savedThead;
-    tbody.innerHTML = savedHTML;
-    return;
+  function buildTable(students, titulo, subtitulo){
+    const colgroup = activeCols.map(c=>`<col style="width:${colWidths[c.key]||'auto'}">`).join('');
+    const thead = activeCols.map(c=>`<th style="background:#1A3A2A;color:#fff;padding:7px 8px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;border:none">${c.label}</th>`).join('');
+    const rows  = students.map((x,i)=>buildRow(x,i)).join('');
+    return `
+      <div class="turma-block">
+        <div class="turma-header">
+          <span class="turma-title">${titulo}</span>
+          <span class="turma-sub">${subtitulo}</span>
+        </div>
+        <table>
+          <colgroup>${colgroup}</colgroup>
+          <thead><tr>${thead}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
   }
 
-  window.print();
+  // Monta páginas por turma
+  let bodyContent = '';
+  selectedTurmas.forEach((t, ti)=>{
+    const alunos = printStudents.filter(x=>x.t===t);
+    const bloco = buildTable(alunos, `Turma ${t}`, `${alunos.length} estudante${alunos.length!==1?'s':''}`);
+    const pb = ti < selectedTurmas.length-1 ? '<div class="page-break"></div>' : '';
+    bodyContent += bloco + pb;
+  });
 
-  // Restore original table
-  tbody.innerHTML = savedHTML;
-  thead.innerHTML = savedThead;
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Monitoramento Pedagógico — Turno Tarde 2026</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  @page{size:landscape A4;margin:1.2cm 1.2cm 1.5cm 1.2cm}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#1A1916;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  /* ── Cabeçalho do documento ── */
+  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #0F6E56;padding-bottom:10px;margin-bottom:18px}
+  .doc-title{font-size:15px;font-weight:700;color:#0F6E56;margin-bottom:3px}
+  .doc-sub{font-size:9px;color:#666;line-height:1.6}
+  .doc-badge{background:#E1F5EE;border:1px solid #9FD9C3;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#0F6E56;line-height:1.7;white-space:nowrap}
+  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#0A4F3C}
+
+  /* ── Bloco de turma ── */
+  .turma-block{margin-bottom:20px}
+  .turma-header{display:flex;align-items:baseline;gap:10px;background:#0F6E56;color:#fff;padding:7px 10px;border-radius:4px 4px 0 0}
+  .turma-title{font-size:11px;font-weight:700;letter-spacing:.02em}
+  .turma-sub{font-size:9px;opacity:.75}
+
+  /* ── Tabela ── */
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  thead tr th{border-right:1px solid rgba(255,255,255,.15)}
+  thead tr th:last-child{border-right:none}
+  tbody tr td{border-right:1px solid #ECEAE4}
+  tbody tr td:last-child{border-right:none}
+  tbody tr:last-child td{border-bottom:2px solid #0F6E56}
+
+  /* ── Rodapé ── */
+  .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
+
+  /* ── Quebra de página ── */
+  .page-break{page-break-after:always;break-after:page;height:0;display:block}
+  .turma-block{page-break-inside:avoid;break-inside:avoid}
+  /* se o bloco for muito grande, permitir quebrar dentro mas nunca separar header da tabela */
+  .turma-header{page-break-after:avoid;break-after:avoid}
+  tbody tr{page-break-inside:avoid;break-inside:avoid}
+
+  /* no print, repetir header da tabela em cada página */
+  thead{display:table-header-group}
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div>
+    <div class="doc-title">Monitoramento Pedagógico — Turno Tarde 2026</div>
+    <div class="doc-sub">
+      E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Coord. Pedagógico: Prof. Everton Corrêa Alves<br>
+      Turmas: ${turmaLabel} &nbsp;·&nbsp; ${printStudents.length} estudante${printStudents.length!==1?'s':''}
+    </div>
+  </div>
+  <div class="doc-badge">
+    <strong>${now}</strong>
+    Data de emissão
+  </div>
+</div>
+
+${bodyContent}
+
+<div class="doc-footer">
+  <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
+  <span>Coord. Pedagógico: Prof. Everton Corrêa Alves &nbsp;·&nbsp; Emitido em ${now}</span>
+</div>
+
+<script>window.onload=function(){window.print();}<\/script>
+</body>
+</html>`;
+
+  const win = window.open('','_blank','width=1100,height=800');
+  win.document.write(html);
+  win.document.close();
 }
 
 /* ════════════════════════════════════════════════════════════
