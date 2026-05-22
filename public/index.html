@@ -266,6 +266,31 @@
     @page { margin: 1.2cm 1cm; size: landscape; }
   }
 
+    /* Wrapper multi-turma: oculto na tela, visível no print */
+    #multiTurmaPrintWrap { display: none !important; }
+    @media print {
+      #multiTurmaPrintWrap { display: block !important; }
+      #multiTurmaPrintWrap table { width:100%; border-collapse:collapse; font-size:10px; }
+      #multiTurmaPrintWrap thead tr { background:#2A2A28 !important; }
+      #multiTurmaPrintWrap thead th {
+        background: #2A2A28 !important; color:#fff !important;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+        font-size:8.5px !important; padding:6px 8px !important;
+        border:none !important; text-align:left; white-space:nowrap !important;
+      }
+      #multiTurmaPrintWrap tbody tr:nth-child(odd)  td { background:#fff !important; }
+      #multiTurmaPrintWrap tbody tr:nth-child(even) td {
+        background:#F5F5F3 !important;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact;
+      }
+      #multiTurmaPrintWrap tbody td {
+        padding:5px 8px !important; border-bottom:1px solid #E0E0DC !important;
+        vertical-align:top !important; word-break:break-word !important;
+        white-space:normal !important;
+      }
+      #multiTurmaPrintWrap tbody tr { page-break-inside:avoid; }
+    }
+
   /* Hidden in screen, visible in print */
   .print-header { display: none; }
 
@@ -3302,8 +3327,47 @@ function printTable(){
       ${c.label}
     </label>
   `).join('');
-  document.getElementById('printRowCount').textContent = filtered.length + ' estudante' + (filtered.length!==1?'s':'');
+
+  // ── Filtro de Turmas ─────────────────────────────
+  const turmaFilterDiv = document.getElementById('printTurmaFilter');
+  turmaFilterDiv.innerHTML = TURMAS.map(t=>`
+    <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;padding:5px 9px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+      <input type="checkbox" class="print-turma-chk" value="${t}" checked style="accent-color:var(--verde);width:13px;height:13px;cursor:pointer" onchange="updatePrintStudentList()">
+      ${t}
+    </label>
+  `).join('');
+
+  // ── Lista de Alunos ──────────────────────────────
+  updatePrintStudentList();
+
   document.getElementById('printModalOverlay').classList.add('open');
+}
+
+function updatePrintStudentList(){
+  const selectedTurmas = [...document.querySelectorAll('.print-turma-chk:checked')].map(c=>c.value);
+  const base = filtered.filter(x=> selectedTurmas.includes(x.t));
+
+  const listDiv = document.getElementById('printStudentList');
+  listDiv.innerHTML = base.length === 0
+    ? `<div style="font-size:12px;color:#AAA;padding:6px">Nenhum estudante nas turmas selecionadas.</div>`
+    : base.map((x,i)=>`
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:5px;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${x.n}">
+        <input type="checkbox" class="print-aluno-chk" value="${filtered.indexOf(x)}" checked style="accent-color:var(--verde);width:13px;height:13px;cursor:pointer;flex-shrink:0" onchange="updatePrintCount()">
+        <span style="overflow:hidden;text-overflow:ellipsis">${x.n} <span style="color:#AAA;font-size:10px">(${x.t})</span></span>
+      </label>
+    `).join('');
+
+  updatePrintCount();
+}
+
+function toggleAllPrintAlunos(check){
+  document.querySelectorAll('.print-aluno-chk').forEach(c=>c.checked=check);
+  updatePrintCount();
+}
+
+function updatePrintCount(){
+  const n = document.querySelectorAll('.print-aluno-chk:checked').length;
+  document.getElementById('printRowCount').textContent = n + ' estudante' + (n!==1?'s':'');
 }
 
 function closePrintModal(e){ if(e.target===e.currentTarget) closePrintModalBtn(); }
@@ -3315,6 +3379,15 @@ function executePrint(){
   const active = {};
   PRINT_COLS.forEach(c=>{ active[c.key] = !!document.getElementById('prcol_'+c.key)?.checked; });
 
+  // ── Quais alunos foram selecionados no modal ──
+  const selectedIdxs = new Set(
+    [...document.querySelectorAll('.print-aluno-chk:checked')].map(c=>+c.value)
+  );
+  const printStudents = filtered.filter((_,i)=> selectedIdxs.has(i));
+
+  // ── Quais turmas estão presentes na seleção ──
+  const selectedTurmas = [...new Set(printStudents.map(x=>x.t))];
+
   // Build print header
   let headerEl = document.querySelector('.print-header');
   if(!headerEl){
@@ -3322,7 +3395,9 @@ function executePrint(){
     headerEl.className = 'print-header';
     document.getElementById('view-students').prepend(headerEl);
   }
-  const turma  = document.getElementById('filterTurma').value  || 'Todas as turmas';
+  const turmaLabel = selectedTurmas.length === TURMAS.length
+    ? 'Todas as turmas'
+    : selectedTurmas.join(', ');
   const perfil = document.getElementById('filterPerfil').value || 'Todos os perfis';
   const encam  = document.getElementById('filterEncam').value  || 'Todos os encaminhamentos';
   const search = document.getElementById('searchInput').value  || '';
@@ -3331,8 +3406,8 @@ function executePrint(){
   headerEl.innerHTML = `
     <div style="margin-bottom:12px">
       <h2 style="font-size:15px;font-weight:700;margin-bottom:4px">Monitoramento Pedagógico — Turno Tarde 2026</h2>
-      <div style="font-size:10px;color:#666">E. M. Geraldo Teixeira da Costa · Impresso em ${now} · ${filtered.length} estudante${filtered.length!==1?'s':''}</div>
-      <div style="font-size:10px;color:#888;margin-top:3px">Filtros: ${turma} | ${perfil} | ${encam}${search?' | Busca: "'+search+'"':''}</div>
+      <div style="font-size:10px;color:#666">E. M. Geraldo Teixeira da Costa · Impresso em ${now} · ${printStudents.length} estudante${printStudents.length!==1?'s':''}</div>
+      <div style="font-size:10px;color:#888;margin-top:3px">Turmas: ${turmaLabel} | ${perfil} | ${encam}${search?' | Busca: "'+search+'"':''}</div>
       <div style="font-size:10px;color:#999;margin-top:2px">Colunas: ${colsLabel}</div>
       <div style="font-size:10px;color:#AAA;margin-top:6px;border-top:1px solid #eee;padding-top:6px">Coord. Pedagógico: Prof. Everton Corrêa Alves</div>
     </div>`;
@@ -3340,12 +3415,14 @@ function executePrint(){
   // Rebuild thead with only selected columns
   const thead = document.querySelector('#view-students thead tr');
   const savedThead = thead.innerHTML;
-  thead.innerHTML = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${c.label}</th>`).join('');
 
-  // Rebuild tbody with only selected columns, all rows (no pagination)
+  const colHeaders = PRINT_COLS.filter(c=>active[c.key]).map(c=>`<th>${c.label}</th>`).join('');
+
+  // Rebuild tbody grouped by turma, with page-break between turmas
   const tbody = document.getElementById('tableBody');
   const savedHTML = tbody.innerHTML;
-  tbody.innerHTML = filtered.map(x=>{
+
+  function buildRow(x){
     const cells = [];
     if(active.turma)  cells.push(`<td class="td-turma">${x.t}</td>`);
     if(active.nome)   cells.push(`<td class="td-nome">${x.n}</td>`);
@@ -3357,7 +3434,51 @@ function executePrint(){
     if(active.pip)    cells.push(`<td>${x.pip&&x.pip!=='N/A'?x.pip:'—'}</td>`);
     if(active.obs)    cells.push(`<td style="white-space:normal">${x.o||'—'}</td>`);
     return `<tr>${cells.join('')}</tr>`;
-  }).join('');
+  }
+
+  if(selectedTurmas.length <= 1){
+    // Sem agrupamento — tabela única
+    thead.innerHTML = colHeaders;
+    tbody.innerHTML = printStudents.map(buildRow).join('');
+  } else {
+    // Agrupado por turma: uma tabela por turma, com page-break entre elas
+    // Esconde a tabela principal e injeta wrapper de impressão
+    const tableWrap = document.querySelector('#view-students .table-wrap');
+    const savedDisplay = tableWrap.style.display;
+    tableWrap.style.display = 'none';
+
+    const printWrap = document.createElement('div');
+    printWrap.id = 'multiTurmaPrintWrap';
+    printWrap.style.display = 'none'; // visível apenas no print via @media print
+    document.getElementById('view-students').appendChild(printWrap);
+
+    printWrap.innerHTML = selectedTurmas.map((t, ti)=>{
+      const alunos = printStudents.filter(x=>x.t===t);
+      const rows = alunos.map(buildRow).join('');
+      const pageBreak = ti < selectedTurmas.length - 1
+        ? 'page-break-after:always;'
+        : '';
+      return `
+        <div style="${pageBreak}padding-bottom:8px">
+          <div style="font-size:11px;font-weight:700;margin-bottom:6px;padding:4px 0;border-bottom:2px solid #2A2A28">
+            Turma ${t} — ${alunos.length} estudante${alunos.length!==1?'s':''}
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:10px">
+            <thead><tr>${colHeaders}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    }).join('');
+
+    window.print();
+
+    // Restaura
+    printWrap.remove();
+    tableWrap.style.display = savedDisplay;
+    thead.innerHTML = savedThead;
+    tbody.innerHTML = savedHTML;
+    return;
+  }
 
   window.print();
 
@@ -4513,11 +4634,31 @@ function openMovModal(tipo){
       </button>
     </div>
     <div class="modal-body">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:12px">Colunas visíveis na impressão</div>
-      <div id="printColChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem"></div>
-      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
-        Os filtros ativos da tela serão aplicados. Apenas os <strong style="color:#555" id="printRowCount">—</strong> estudantes visíveis serão impressos.
+
+      <!-- Colunas -->
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Colunas visíveis na impressão</div>
+      <div id="printColChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem"></div>
+
+      <!-- Filtro de Turmas -->
+      <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Turmas a imprimir</div>
+      <div id="printTurmaFilter" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem"></div>
+
+      <!-- Lista de Alunos -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB">Alunos a imprimir</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="toggleAllPrintAlunos(true)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Todos</button>
+          <button onclick="toggleAllPrintAlunos(false)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Nenhum</button>
+        </div>
       </div>
+      <div id="printStudentList" style="max-height:180px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px 4px;margin-bottom:1.25rem;background:#FAFAF8"></div>
+
+      <!-- Resumo -->
+      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
+        Serão impressos <strong style="color:#555" id="printRowCount">—</strong> estudante(s) selecionados.
+        Quando múltiplas turmas forem selecionadas, cada turma iniciará em uma nova página.
+      </div>
+
       <div style="display:flex;justify-content:flex-end;gap:8px">
         <button class="btn-cancel" onclick="closePrintModalBtn()">Cancelar</button>
         <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
