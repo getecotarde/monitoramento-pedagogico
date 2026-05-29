@@ -294,6 +294,97 @@
   /* Hidden in screen, visible in print */
   .print-header { display: none; }
 
+  /* ── CARD PRINT MODAL: sempre claro ── */
+  #cardPrintModalOverlay .modal-box,
+  #cardPrintModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
+  #cardPrintModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #cardPrintModalOverlay .modal-sub    { color: #999 !important; }
+  #cardPrintModalOverlay .modal-close  { background: #F3F2EF !important; }
+  #cardPrintModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #cardPrintModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; }
+
+  /* ── WRAP DE IMPRESSÃO DOS CARDS (oculto na tela) ── */
+  #cardsPrintWrap { display: none !important; }
+
+  @media print {
+    body.printing-cards .topbar,
+    body.printing-cards .sidebar,
+    body.printing-cards .layout,
+    body.printing-cards .platform-footer,
+    body.printing-cards .modal-overlay,
+    body.printing-cards .login-overlay { display: none !important; }
+
+    body.printing-cards #cardsPrintWrap { display: block !important; }
+
+    body.printing-cards {
+      background: #fff !important;
+      color: #1A1916 !important;
+      margin: 0; padding: 0;
+    }
+
+    #cardsPrintWrap { padding: 0; margin: 0; }
+
+    .cards-print-header { margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1D9E75; }
+    .cards-print-header h2 { font-size: 16px; font-weight: 700; margin: 0 0 2px; color: #1A1916; }
+    .cards-print-header p  { font-size: 10px; color: #888; margin: 0; }
+
+    .cards-print-grid { display: grid; gap: 10px; }
+    .cards-print-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .cards-print-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .print-detail-card {
+      border: 1px solid #DDD; border-radius: 8px; overflow: hidden;
+      page-break-inside: avoid; break-inside: avoid; background: #fff;
+    }
+    .print-card-strip-at { height: 4px; background: #D85A30; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-card-strip-an { height: 4px; background: #BA7517; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-card-inner { padding: 10px 12px; }
+
+    .print-card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .print-card-avatar {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; letter-spacing: -.5px;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .print-avatar-at { background: #FAECE7 !important; color: #7A2E10 !important; }
+    .print-avatar-an { background: #FEF3DC !important; color: #7A4A08 !important; }
+
+    .print-card-nome  { font-size: 12px; font-weight: 700; color: #1A1916; line-height: 1.25; margin-bottom: 2px; text-transform: uppercase; }
+    .print-card-turma { font-size: 10px; color: #999; }
+
+    .print-card-chips {
+      display: flex; flex-wrap: wrap; gap: 4px;
+      padding-bottom: 8px; margin-bottom: 8px;
+      border-bottom: 1px solid #F0EFEB;
+    }
+    .print-card-chips .badge {
+      font-size: 9px !important; padding: 2px 6px !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+
+    .print-card-section-title {
+      font-size: 8px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
+    }
+    .print-card-rotina {
+      font-size: 10px; color: #555; line-height: 1.55;
+      background: #FAFAF8 !important; border-radius: 4px;
+      padding: 6px 8px; border-left: 3px solid #1D9E75;
+      white-space: normal; word-break: break-word;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .print-card-rotina-empty { font-size: 10px; color: #CCC; font-style: italic; padding: 4px 0; }
+    .print-card-obs {
+      font-size: 10px; color: #AAA; font-style: italic;
+      margin-top: 6px; padding-top: 6px;
+      border-top: 1px solid #F3F2EF;
+      white-space: normal; word-break: break-word;
+    }
+
+    @page { margin: 1cm; size: portrait; }
+  }
+
   html { font-size: 14px; }
   body {
     font-family: 'DM Sans', sans-serif;
@@ -1616,8 +1707,77 @@
         </div>
       </div>
       <span class="results-count" id="atCount"></span>
+      <button class="action-btn" onclick="openCardPrintModal()" title="Imprimir cards dos estudantes">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir cards
+      </button>
     </div>
     <div class="detail-grid" id="detailGrid"></div>
+  </div>
+
+  <!-- ═══ CARD PRINT MODAL ══════════════════════════════════════ -->
+  <div class="modal-overlay" id="cardPrintModalOverlay" onclick="closeCardPrintModal(event)" style="z-index:310">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-header">
+        <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </div>
+        <div style="flex:1">
+          <div class="modal-nome">Imprimir cards</div>
+          <div class="modal-sub">Atípicos e em análise</div>
+        </div>
+        <button class="modal-close" onclick="closeCardPrintModalBtn()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Layout da página</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">
+          <label id="cpLayout1" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid var(--verde);border-radius:8px;cursor:pointer;background:var(--verde-bg);transition:all .15s" onclick="selectCardLayout(1)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;width:56px">
+              <div style="background:#CCC;border-radius:3px;height:32px"></div>
+              <div style="background:#CCC;border-radius:3px;height:32px"></div>
+              <div style="background:#CCC;border-radius:3px;height:32px"></div>
+              <div style="background:#CCC;border-radius:3px;height:32px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:var(--verde-dark)">2 colunas</span>
+            <span style="font-size:10px;color:#999">~4–6 por página</span>
+          </label>
+          <label id="cpLayout2" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid #E8E7E3;border-radius:8px;cursor:pointer;background:#FAFAF8;transition:all .15s" onclick="selectCardLayout(2)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:60px">
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+              <div style="background:#CCC;border-radius:3px;height:22px"></div>
+            </div>
+            <span style="font-size:12px;font-weight:600;color:#555">3 colunas</span>
+            <span style="font-size:10px;color:#999">~9–12 por página</span>
+          </label>
+        </div>
+
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Cards a imprimir</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button onclick="toggleAllCardPrint(true)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Todos</button>
+          <button onclick="toggleAllCardPrint(false)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Nenhum</button>
+        </div>
+        <div id="cardPrintStudentList" style="max-height:200px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:4px;margin-bottom:1.25rem;background:#FAFAF8"></div>
+
+        <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
+          <strong style="color:#555" id="cardPrintCount">0</strong> card(s) serão impressos · os cards preenchem a página sem cortar texto.
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-cancel" onclick="closeCardPrintModalBtn()">Cancelar</button>
+          <button class="btn-save" onclick="executeCardPrint()" style="display:inline-flex;align-items:center;gap:6px">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ─── VIEW: METODOLOGIA ───────────────────────────────── -->
@@ -4642,11 +4802,151 @@ function openMovModal(tipo){
   document.getElementById('movModalOverlay').classList.add('open');
 }
 
+/* ════════════════════════════════════════════════════════════
+   CARD PRINT — modal e impressão dos cards de atípicos
+   ════════════════════════════════════════════════════════════ */
+let cardPrintLayout = 1; // 1 = 2 colunas, 2 = 3 colunas
+let cardPrintData   = []; // alunos disponíveis no modal
+
+function openCardPrintModal(){
+  // Pegar os alunos filtrados atuais da aba atípicos
+  const ft = document.getElementById('filterAtTurma').value;
+  const fp = document.getElementById('filterAtPerfil').value;
+  cardPrintData = S.filter(x => x.p !== 'TÍPICO');
+  if(ft) cardPrintData = cardPrintData.filter(x => x.t === ft);
+  if(fp) cardPrintData = cardPrintData.filter(x => x.p === fp);
+  cardPrintData = cardPrintData.filter(x => matchAEE(x.a, MS_STATE.AtAEE));
+  cardPrintData = cardPrintData.filter(x => matchPIP(x.pip, MS_STATE.AtPIP));
+
+  // Montar lista de estudantes
+  const list = document.getElementById('cardPrintStudentList');
+  list.innerHTML = cardPrintData.map((x, i) => {
+    const isAt = x.p === 'ATÍPICO';
+    return `<label style="display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;font-size:12px;border-radius:5px;transition:background .1s" onmouseenter="this.style.background='#F0EFEB'" onmouseleave="this.style.background=''">
+      <input type="checkbox" data-ci="${i}" checked style="width:14px;height:14px;accent-color:var(--verde);flex-shrink:0;cursor:pointer" onchange="updateCardPrintCount()">
+      <span style="flex:1;font-weight:600;color:#1A1916">${x.n}</span>
+      <span style="font-size:10px;color:#999">${x.t}</span>
+      <span style="font-size:10px;font-weight:600;color:${isAt?'#D85A30':'#BA7517'}">${isAt?'Atípico':'Em análise'}</span>
+    </label>`;
+  }).join('') || '<div style="padding:1rem;text-align:center;color:#BBB;font-size:13px">Nenhum estudante com os filtros atuais.</div>';
+
+  updateCardPrintCount();
+  document.getElementById('cardPrintModalOverlay').classList.add('open');
+}
+
+function updateCardPrintCount(){
+  const checked = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked').length;
+  document.getElementById('cardPrintCount').textContent = checked;
+}
+
+function toggleAllCardPrint(val){
+  document.querySelectorAll('#cardPrintStudentList input[type=checkbox]').forEach(c => c.checked = val);
+  updateCardPrintCount();
+}
+
+function selectCardLayout(n){
+  cardPrintLayout = n;
+  document.getElementById('cpLayout1').style.borderColor  = n===1 ? 'var(--verde)' : '#E8E7E3';
+  document.getElementById('cpLayout1').style.background   = n===1 ? 'var(--verde-bg)' : '#FAFAF8';
+  document.getElementById('cpLayout2').style.borderColor  = n===2 ? 'var(--verde)' : '#E8E7E3';
+  document.getElementById('cpLayout2').style.background   = n===2 ? 'var(--verde-bg)' : '#FAFAF8';
+  document.getElementById('cpLayout1').querySelector('span').style.color = n===1 ? 'var(--verde-dark)' : '#555';
+  document.getElementById('cpLayout2').querySelector('span').style.color = n===2 ? 'var(--verde-dark)' : '#555';
+}
+
+function closeCardPrintModalBtn(){
+  document.getElementById('cardPrintModalOverlay').classList.remove('open');
+}
+function closeCardPrintModal(e){
+  if(e.target === document.getElementById('cardPrintModalOverlay')) closeCardPrintModalBtn();
+}
+
+function executeCardPrint(){
+  // Coletar índices selecionados
+  const checks = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked');
+  const selected = Array.from(checks).map(c => cardPrintData[parseInt(c.getAttribute('data-ci'))]).filter(Boolean);
+  if(!selected.length){ alert('Selecione ao menos um estudante.'); return; }
+
+  const cols = cardPrintLayout === 2 ? 3 : 2;
+  const now  = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+
+  // Montar o HTML dos cards
+  const cardsHtml = selected.map(x => {
+    const isAt = x.p === 'ATÍPICO';
+    const hasAEE = x.a && x.a !== 'N/A';
+    const hasPIP = x.pip && x.pip !== 'N/A';
+
+    const aeeChip = hasAEE
+      ? (x.a === 'Avaliar AEE'
+          ? `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`
+          : `<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`)
+      : '';
+
+    const pipChip = hasPIP ? (()=>{
+      const v = x.pip;
+      if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`;
+      if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`;
+      return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${v}</span>`;
+    })() : '';
+
+    const rotina = x.r
+      ? `<div class="print-card-rotina">${x.r}</div>`
+      : `<div class="print-card-rotina-empty">Sem rotina registrada.</div>`;
+
+    const obs = x.o ? `<div class="print-card-obs">${x.o}</div>` : '';
+
+    return `<div class="print-detail-card">
+      <div class="${isAt?'print-card-strip-at':'print-card-strip-an'}"></div>
+      <div class="print-card-inner">
+        <div class="print-card-header">
+          <div class="print-card-avatar ${isAt?'print-avatar-at':'print-avatar-an'}">${initials(x.n)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="print-card-nome">${x.n}</div>
+            <div class="print-card-turma">${x.t} · ${x.s==='M'?'Masculino':'Feminino'}</div>
+          </div>
+        </div>
+        <div class="print-card-chips">
+          ${perfilBadge(x.p)}
+          ${encamBadge(x.e)}
+          ${aeeChip}
+          ${pipChip}
+        </div>
+        <div class="print-card-section-title">Rotina / Recomendações</div>
+        ${rotina}
+        ${obs}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Título do filtro
+  const ft = document.getElementById('filterAtTurma').value;
+  const fp = document.getElementById('filterAtPerfil').value;
+  let subtitulo = 'Atípicos e em análise';
+  if(ft) subtitulo += ` · Turma ${ft}`;
+  if(fp) subtitulo += ` · ${fp==='ATÍPICO'?'Somente atípicos':'Somente em análise'}`;
+
+  const wrap = document.getElementById('cardsPrintWrap');
+  wrap.innerHTML = `
+    <div class="cards-print-header">
+      <h2>Monitoramento Pedagógico — Turno Tarde 2026</h2>
+      <p>${subtitulo} · Impresso em ${now} · ${selected.length} estudante(s)</p>
+    </div>
+    <div class="cards-print-grid cols-${cols}">${cardsHtml}</div>`;
+
+  closeCardPrintModalBtn();
+  document.body.classList.add('printing-cards');
+  window.print();
+  setTimeout(()=>{ document.body.classList.remove('printing-cards'); }, 500);
+}
+
 </script>
 
 <footer class="platform-footer">
   E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026 &nbsp;·&nbsp; <strong>Coord. Pedagógico: Prof. Everton Corrêa Alves</strong>
 </footer>
+
+<!-- ═══ CARDS PRINT CONTAINER (oculto na tela, visível no print) ══ -->
+<div id="cardsPrintWrap"></div>
 
 <!-- ═══ PRINT OPTIONS MODAL ═══════════════════════════════ -->
 <div class="modal-overlay" id="printModalOverlay" onclick="closePrintModal(event)" style="z-index:300">
