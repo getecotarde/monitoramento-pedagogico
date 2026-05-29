@@ -312,7 +312,8 @@
     body.printing-cards .layout,
     body.printing-cards .platform-footer,
     body.printing-cards .modal-overlay,
-    body.printing-cards .login-overlay { display: none !important; }
+    body.printing-cards .login-overlay,
+    body.printing-cards footer { display: none !important; }
 
     body.printing-cards #cardsPrintWrap { display: block !important; }
 
@@ -324,65 +325,96 @@
 
     #cardsPrintWrap { padding: 0; margin: 0; }
 
-    .cards-print-header { margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1D9E75; }
-    .cards-print-header h2 { font-size: 16px; font-weight: 700; margin: 0 0 2px; color: #1A1916; }
-    .cards-print-header p  { font-size: 10px; color: #888; margin: 0; }
-
-    .cards-print-grid { display: grid; gap: 10px; }
-    .cards-print-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-    .cards-print-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
-
-    .print-detail-card {
-      border: 1px solid #DDD; border-radius: 8px; overflow: hidden;
-      page-break-inside: avoid; break-inside: avoid; background: #fff;
+    /* Cabeçalho da folha */
+    .cards-print-header {
+      margin-bottom: 8px; padding-bottom: 6px;
+      border-bottom: 2px solid #1D9E75;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
-    .print-card-strip-at { height: 4px; background: #D85A30; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-card-strip-an { height: 4px; background: #BA7517; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-card-inner { padding: 10px 12px; }
+    .cards-print-header h2 { font-size: 13px; font-weight: 700; margin: 0 0 2px; color: #1A1916; }
+    .cards-print-header p  { font-size: 9px; color: #888; margin: 0; }
 
-    .print-card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    /* Página de cards — ocupa toda a área disponível */
+    .cards-print-page {
+      display: grid;
+      width: 100%;
+      box-sizing: border-box;
+      gap: 8px;
+      /* altura e colunas/linhas definidas inline pelo JS */
+    }
+
+    /* Card individual */
+    .print-detail-card {
+      border: 1px solid #DDD;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      /* Nunca quebrar entre páginas */
+      page-break-inside: avoid;
+      break-inside: avoid;
+      min-height: 0; /* necessário para grid stretch */
+    }
+
+    .print-card-strip-at { height: 4px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-card-strip-an { height: 4px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .print-card-inner {
+      padding: 8px 10px;
+      display: flex; flex-direction: column;
+      flex: 1; min-height: 0;
+      overflow: hidden;
+    }
+
+    .print-card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
     .print-card-avatar {
-      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; letter-spacing: -.5px;
+      font-size: 11px; font-weight: 700; letter-spacing: -.5px;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .print-avatar-at { background: #FAECE7 !important; color: #7A2E10 !important; }
     .print-avatar-an { background: #FEF3DC !important; color: #7A4A08 !important; }
 
-    .print-card-nome  { font-size: 12px; font-weight: 700; color: #1A1916; line-height: 1.25; margin-bottom: 2px; text-transform: uppercase; }
-    .print-card-turma { font-size: 10px; color: #999; }
+    .print-card-nome  { font-size: 11px; font-weight: 700; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; }
+    .print-card-turma { font-size: 9px; color: #999; }
 
     .print-card-chips {
-      display: flex; flex-wrap: wrap; gap: 4px;
-      padding-bottom: 8px; margin-bottom: 8px;
+      display: flex; flex-wrap: wrap; gap: 3px;
+      padding-bottom: 6px; margin-bottom: 6px;
       border-bottom: 1px solid #F0EFEB;
+      flex-shrink: 0;
     }
     .print-card-chips .badge {
-      font-size: 9px !important; padding: 2px 6px !important;
+      font-size: 8px !important; padding: 1px 5px !important;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
 
     .print-card-section-title {
-      font-size: 8px; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
+      font-size: 7px; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #B8B7B0; margin-bottom: 3px;
+      flex-shrink: 0;
     }
     .print-card-rotina {
-      font-size: 10px; color: #555; line-height: 1.55;
-      background: #FAFAF8 !important; border-radius: 4px;
-      padding: 6px 8px; border-left: 3px solid #1D9E75;
+      font-size: 9px; color: #555; line-height: 1.5;
+      background: #FAFAF8 !important; border-radius: 3px;
+      padding: 5px 7px; border-left: 3px solid #1D9E75;
       white-space: normal; word-break: break-word;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      flex: 1; overflow: hidden;
     }
-    .print-card-rotina-empty { font-size: 10px; color: #CCC; font-style: italic; padding: 4px 0; }
+    .print-card-rotina-empty {
+      font-size: 9px; color: #CCC; font-style: italic; padding: 3px 0;
+      flex: 1;
+    }
     .print-card-obs {
-      font-size: 10px; color: #AAA; font-style: italic;
-      margin-top: 6px; padding-top: 6px;
+      font-size: 9px; color: #AAA; font-style: italic;
+      margin-top: 5px; padding-top: 5px;
       border-top: 1px solid #F3F2EF;
       white-space: normal; word-break: break-word;
+      flex-shrink: 0;
     }
-
-    @page { margin: 1cm; size: portrait; }
   }
 
   html { font-size: 14px; }
@@ -1717,7 +1749,7 @@
 
   <!-- ═══ CARD PRINT MODAL ══════════════════════════════════════ -->
   <div class="modal-overlay" id="cardPrintModalOverlay" onclick="closeCardPrintModal(event)" style="z-index:310">
-    <div class="modal-box" style="max-width:480px">
+    <div class="modal-box" style="max-width:500px">
       <div class="modal-header">
         <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -1732,41 +1764,38 @@
       </div>
       <div class="modal-body">
 
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Layout da página</div>
+        <!-- Orientação -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Orientação da página</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">
-          <label id="cpLayout1" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid var(--verde);border-radius:8px;cursor:pointer;background:var(--verde-bg);transition:all .15s" onclick="selectCardLayout(1)">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;width:56px">
-              <div style="background:#CCC;border-radius:3px;height:32px"></div>
-              <div style="background:#CCC;border-radius:3px;height:32px"></div>
-              <div style="background:#CCC;border-radius:3px;height:32px"></div>
-              <div style="background:#CCC;border-radius:3px;height:32px"></div>
-            </div>
-            <span style="font-size:12px;font-weight:600;color:var(--verde-dark)">2 colunas</span>
-            <span style="font-size:10px;color:#999">~4–6 por página</span>
+          <label id="cpOrient0" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 10px;border:2px solid var(--verde);border-radius:8px;cursor:pointer;background:var(--verde-bg);transition:all .15s" onclick="selectCardOrient('portrait')">
+            <div style="width:32px;height:44px;border:2px solid #AAA;border-radius:3px;background:#F3F2EF"></div>
+            <span style="font-size:12px;font-weight:600;color:var(--verde-dark)">Retrato</span>
           </label>
-          <label id="cpLayout2" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid #E8E7E3;border-radius:8px;cursor:pointer;background:#FAFAF8;transition:all .15s" onclick="selectCardLayout(2)">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:60px">
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-              <div style="background:#CCC;border-radius:3px;height:22px"></div>
-            </div>
-            <span style="font-size:12px;font-weight:600;color:#555">3 colunas</span>
-            <span style="font-size:10px;color:#999">~9–12 por página</span>
+          <label id="cpOrient1" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 10px;border:2px solid #E8E7E3;border-radius:8px;cursor:pointer;background:#FAFAF8;transition:all .15s" onclick="selectCardOrient('landscape')">
+            <div style="width:48px;height:34px;border:2px solid #AAA;border-radius:3px;background:#F3F2EF"></div>
+            <span style="font-size:12px;font-weight:600;color:#555">Paisagem</span>
           </label>
         </div>
 
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Cards a imprimir</div>
+        <!-- Cards por página -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:10px">Cards por página</div>
+        <div style="display:flex;gap:6px;margin-bottom:1.25rem" id="cpPerPageBtns">
+          <!-- gerado por JS -->
+        </div>
+
+        <!-- Preview do grid -->
+        <div id="cpGridPreview" style="display:flex;justify-content:center;margin-bottom:1.25rem"></div>
+
+        <!-- Lista de estudantes -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Cards a imprimir</div>
         <div style="display:flex;gap:6px;margin-bottom:8px">
-          <button onclick="toggleAllCardPrint(true)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Todos</button>
+          <button onclick="toggleAllCardPrint(true)"  style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Todos</button>
           <button onclick="toggleAllCardPrint(false)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Nenhum</button>
         </div>
-        <div id="cardPrintStudentList" style="max-height:200px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:4px;margin-bottom:1.25rem;background:#FAFAF8"></div>
+        <div id="cardPrintStudentList" style="max-height:180px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:4px;margin-bottom:1.25rem;background:#FAFAF8"></div>
 
         <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem">
-          <strong style="color:#555" id="cardPrintCount">0</strong> card(s) serão impressos · os cards preenchem a página sem cortar texto.
+          <strong style="color:#555" id="cardPrintCount">0</strong> card(s) · <span id="cpSummaryText">—</span>
         </div>
 
         <div style="display:flex;justify-content:flex-end;gap:8px">
@@ -4805,53 +4834,121 @@ function openMovModal(tipo){
 /* ════════════════════════════════════════════════════════════
    CARD PRINT — modal e impressão dos cards de atípicos
    ════════════════════════════════════════════════════════════ */
-let cardPrintLayout = 1; // 1 = 2 colunas, 2 = 3 colunas
-let cardPrintData   = []; // alunos disponíveis no modal
+let cardPrintLayout  = 4;          // N cards por página: 2,3,4,5,6
+let cardPrintOrient  = 'portrait'; // 'portrait' | 'landscape'
+let cardPrintData    = [];
+
+function cpPreset(){
+  const n = cardPrintLayout;
+  if(n===2) return {cols:1, rows:2};
+  if(n===3) return {cols:1, rows:3};
+  if(n===4) return {cols:2, rows:2};
+  if(n===5) return {cols: cardPrintOrient==='landscape'?3:2, rows: cardPrintOrient==='landscape'?2:3};
+  if(n===6) return {cols:3, rows:2};
+  return {cols:2, rows:2};
+}
 
 function openCardPrintModal(){
-  // Pegar os alunos filtrados atuais da aba atípicos
-  const ft = document.getElementById('filterAtTurma').value;
-  const fp = document.getElementById('filterAtPerfil').value;
-  cardPrintData = S.filter(x => x.p !== 'TÍPICO');
-  if(ft) cardPrintData = cardPrintData.filter(x => x.t === ft);
-  if(fp) cardPrintData = cardPrintData.filter(x => x.p === fp);
-  cardPrintData = cardPrintData.filter(x => matchAEE(x.a, MS_STATE.AtAEE));
-  cardPrintData = cardPrintData.filter(x => matchPIP(x.pip, MS_STATE.AtPIP));
+  const grid = document.getElementById('detailGrid');
+  const cards = grid.querySelectorAll('.detail-card');
+  cardPrintData = Array.from(cards).map(card => {
+    const match = card.getAttribute('onclick') && card.getAttribute('onclick').match(/openModal\((\d+)\)/);
+    return match ? S[parseInt(match[1])] : null;
+  }).filter(Boolean);
 
-  // Montar lista de estudantes
+  buildCpPerPageBtns();
+  buildCpPreview();
+  buildCpStudentList();
+  updateCardPrintCount();
+  document.getElementById('cardPrintModalOverlay').classList.add('open');
+}
+
+function buildCpPerPageBtns(){
+  const wrap = document.getElementById('cpPerPageBtns');
+  wrap.innerHTML = [2,3,4,5,6].map(n => {
+    const active = n === cardPrintLayout;
+    return `<button onclick="selectCardPerPage(${n})" id="cpPP${n}"
+      style="flex:1;padding:7px 0;border-radius:6px;border:2px solid ${active?'var(--verde)':'#E8E7E3'};
+      background:${active?'var(--verde-bg)':'#FAFAF8'};
+      font-size:13px;font-weight:${active?'700':'500'};
+      color:${active?'var(--verde-dark)':'#555'};
+      cursor:pointer;font-family:inherit;transition:all .12s">${n}</button>`;
+  }).join('');
+}
+
+function selectCardPerPage(n){
+  cardPrintLayout = n;
+  buildCpPerPageBtns();
+  buildCpPreview();
+  updateCardPrintSummary();
+}
+
+function selectCardOrient(o){
+  cardPrintOrient = o;
+  const isP = o === 'portrait';
+  const s0 = document.getElementById('cpOrient0');
+  const s1 = document.getElementById('cpOrient1');
+  s0.style.borderColor = isP ? 'var(--verde)' : '#E8E7E3';
+  s0.style.background  = isP ? 'var(--verde-bg)' : '#FAFAF8';
+  s1.style.borderColor = !isP ? 'var(--verde)' : '#E8E7E3';
+  s1.style.background  = !isP ? 'var(--verde-bg)' : '#FAFAF8';
+  s0.querySelectorAll('span')[0].style.color = isP ? 'var(--verde-dark)' : '#555';
+  s1.querySelectorAll('span')[0].style.color = !isP ? 'var(--verde-dark)' : '#555';
+  buildCpPreview();
+  updateCardPrintSummary();
+}
+
+function buildCpPreview(){
+  const {cols, rows} = cpPreset();
+  const isLand = cardPrintOrient === 'landscape';
+  const pw = isLand ? 80 : 56;
+  const ph = isLand ? 56 : 80;
+  const cells = Array.from({length: cols * rows}).map(() =>
+    `<div style="background:#CCC;border-radius:2px"></div>`).join('');
+  document.getElementById('cpGridPreview').innerHTML = `
+    <div style="width:${pw}px;height:${ph}px;border:2px solid #AAA;border-radius:4px;
+      padding:4px;box-sizing:border-box;background:#F3F2EF;
+      display:grid;grid-template-columns:repeat(${cols},1fr);
+      grid-template-rows:repeat(${rows},1fr);gap:2px">
+      ${cells}
+    </div>`;
+}
+
+function buildCpStudentList(){
   const list = document.getElementById('cardPrintStudentList');
   list.innerHTML = cardPrintData.map((x, i) => {
     const isAt = x.p === 'ATÍPICO';
-    return `<label style="display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;font-size:12px;border-radius:5px;transition:background .1s" onmouseenter="this.style.background='#F0EFEB'" onmouseleave="this.style.background=''">
-      <input type="checkbox" data-ci="${i}" checked style="width:14px;height:14px;accent-color:var(--verde);flex-shrink:0;cursor:pointer" onchange="updateCardPrintCount()">
+    return `<label style="display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;font-size:12px;border-radius:5px;transition:background .1s"
+      onmouseenter="this.style.background='#F0EFEB'" onmouseleave="this.style.background=''">
+      <input type="checkbox" data-ci="${i}" checked
+        style="width:14px;height:14px;accent-color:var(--verde);flex-shrink:0;cursor:pointer"
+        onchange="updateCardPrintCount()">
       <span style="flex:1;font-weight:600;color:#1A1916">${x.n}</span>
       <span style="font-size:10px;color:#999">${x.t}</span>
       <span style="font-size:10px;font-weight:600;color:${isAt?'#D85A30':'#BA7517'}">${isAt?'Atípico':'Em análise'}</span>
     </label>`;
   }).join('') || '<div style="padding:1rem;text-align:center;color:#BBB;font-size:13px">Nenhum estudante com os filtros atuais.</div>';
-
-  updateCardPrintCount();
-  document.getElementById('cardPrintModalOverlay').classList.add('open');
 }
 
 function updateCardPrintCount(){
-  const checked = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked').length;
-  document.getElementById('cardPrintCount').textContent = checked;
+  const n = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked').length;
+  document.getElementById('cardPrintCount').textContent = n;
+  updateCardPrintSummary();
+}
+
+function updateCardPrintSummary(){
+  const n = parseInt(document.getElementById('cardPrintCount').textContent) || 0;
+  const {cols, rows} = cpPreset();
+  const perPag = cols * rows;
+  const pages = Math.ceil(n / perPag) || 0;
+  const orient = cardPrintOrient === 'portrait' ? 'retrato' : 'paisagem';
+  document.getElementById('cpSummaryText').textContent =
+    `${cols}×${rows} por página · ${orient} · ~${pages} folha${pages!==1?'s':''}`;
 }
 
 function toggleAllCardPrint(val){
   document.querySelectorAll('#cardPrintStudentList input[type=checkbox]').forEach(c => c.checked = val);
   updateCardPrintCount();
-}
-
-function selectCardLayout(n){
-  cardPrintLayout = n;
-  document.getElementById('cpLayout1').style.borderColor  = n===1 ? 'var(--verde)' : '#E8E7E3';
-  document.getElementById('cpLayout1').style.background   = n===1 ? 'var(--verde-bg)' : '#FAFAF8';
-  document.getElementById('cpLayout2').style.borderColor  = n===2 ? 'var(--verde)' : '#E8E7E3';
-  document.getElementById('cpLayout2').style.background   = n===2 ? 'var(--verde-bg)' : '#FAFAF8';
-  document.getElementById('cpLayout1').querySelector('span').style.color = n===1 ? 'var(--verde-dark)' : '#555';
-  document.getElementById('cpLayout2').querySelector('span').style.color = n===2 ? 'var(--verde-dark)' : '#555';
 }
 
 function closeCardPrintModalBtn(){
@@ -4862,39 +4959,47 @@ function closeCardPrintModal(e){
 }
 
 function executeCardPrint(){
-  // Coletar índices selecionados
-  const checks = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked');
+  const checks  = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked');
   const selected = Array.from(checks).map(c => cardPrintData[parseInt(c.getAttribute('data-ci'))]).filter(Boolean);
   if(!selected.length){ alert('Selecione ao menos um estudante.'); return; }
 
-  const cols = cardPrintLayout === 2 ? 3 : 2;
-  const now  = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  const {cols, rows} = cpPreset();
+  const perPage = cols * rows;
+  const isLand  = cardPrintOrient === 'landscape';
+  const now     = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
 
-  // Montar o HTML dos cards
-  const cardsHtml = selected.map(x => {
+  // Filtros ativos
+  const ft = document.getElementById('filterAtTurma').value;
+  const fp = document.getElementById('filterAtPerfil').value;
+  let subtitulo = 'Atípicos e em análise';
+  if(ft) subtitulo += ` · Turma ${ft}`;
+  if(fp) subtitulo += ` · ${fp==='ATÍPICO'?'Somente atípicos':'Somente em análise'}`;
+  if(MS_STATE.AtAEE && MS_STATE.AtAEE.size) subtitulo += ` · AEE: ${[...MS_STATE.AtAEE].join(', ')}`;
+  if(MS_STATE.AtPIP && MS_STATE.AtPIP.size) subtitulo += ` · PIP: ${[...MS_STATE.AtPIP].join(', ')}`;
+
+  // Quebrar em páginas
+  const pages = [];
+  for(let i = 0; i < selected.length; i += perPage) pages.push(selected.slice(i, i + perPage));
+
+  function cardHtml(x){
     const isAt = x.p === 'ATÍPICO';
     const hasAEE = x.a && x.a !== 'N/A';
     const hasPIP = x.pip && x.pip !== 'N/A';
-
     const aeeChip = hasAEE
       ? (x.a === 'Avaliar AEE'
-          ? `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`
+          ? `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">&#x2691; Avaliar AEE</span>`
           : `<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`)
       : '';
-
     const pipChip = hasPIP ? (()=>{
       const v = x.pip;
-      if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`;
+      if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">&#x2691; Avaliar PIP</span>`;
       if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`;
-      return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${v}</span>`;
+      return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">&#x2713; ${v}</span>`;
     })() : '';
-
     const rotina = x.r
       ? `<div class="print-card-rotina">${x.r}</div>`
       : `<div class="print-card-rotina-empty">Sem rotina registrada.</div>`;
-
     const obs = x.o ? `<div class="print-card-obs">${x.o}</div>` : '';
-
     return `<div class="print-detail-card">
       <div class="${isAt?'print-card-strip-at':'print-card-strip-an'}"></div>
       <div class="print-card-inner">
@@ -4902,41 +5007,59 @@ function executeCardPrint(){
           <div class="print-card-avatar ${isAt?'print-avatar-at':'print-avatar-an'}">${initials(x.n)}</div>
           <div style="flex:1;min-width:0">
             <div class="print-card-nome">${x.n}</div>
-            <div class="print-card-turma">${x.t} · ${x.s==='M'?'Masculino':'Feminino'}</div>
+            <div class="print-card-turma">${x.t} &middot; ${x.s==='M'?'Masculino':'Feminino'}</div>
           </div>
         </div>
-        <div class="print-card-chips">
-          ${perfilBadge(x.p)}
-          ${encamBadge(x.e)}
-          ${aeeChip}
-          ${pipChip}
-        </div>
+        <div class="print-card-chips">${perfilBadge(x.p)}${encamBadge(x.e)}${aeeChip}${pipChip}</div>
         <div class="print-card-section-title">Rotina / Recomendações</div>
-        ${rotina}
-        ${obs}
+        ${rotina}${obs}
       </div>
     </div>`;
+  }
+
+  // Cada página = div com grid de altura fixa que ocupa exatamente 1 folha impressa.
+  // Margem de @page = 1cm cada lado. 100vh ~ altura da folha no preview do browser.
+  // Primeira página desconta o cabeçalho (~44px).
+  // page-break-after: always força nova folha após cada div.
+  const pagesHtml = pages.map((grp, pi) => {
+    const cells = [...grp.map(cardHtml)];
+    while(cells.length < perPage)
+      cells.push(`<div style="visibility:hidden;border:none"></div>`);
+    const hCalc = pi===0
+      ? `calc(100vh - 2.1cm - 52px)`
+      : `calc(100vh - 2.1cm)`;
+    return `<div style="
+      display:grid;
+      grid-template-columns:repeat(${cols},1fr);
+      grid-template-rows:repeat(${rows},1fr);
+      gap:8px;
+      width:100%;
+      height:${hCalc};
+      box-sizing:border-box;
+      page-break-after:always;
+      break-after:page;
+    ">${cells.join('')}</div>`;
   }).join('');
 
-  // Título do filtro
-  const ft = document.getElementById('filterAtTurma').value;
-  const fp = document.getElementById('filterAtPerfil').value;
-  let subtitulo = 'Atípicos e em análise';
-  if(ft) subtitulo += ` · Turma ${ft}`;
-  if(fp) subtitulo += ` · ${fp==='ATÍPICO'?'Somente atípicos':'Somente em análise'}`;
+  const header = `<div class="cards-print-header">
+    <h2>Monitoramento Pedagógico &mdash; Turno Tarde 2026</h2>
+    <p>${subtitulo} &middot; Impresso em ${now} &middot; ${selected.length} estudante(s) &middot; ${cols}&times;${rows} por p&aacute;gina</p>
+  </div>`;
 
-  const wrap = document.getElementById('cardsPrintWrap');
-  wrap.innerHTML = `
-    <div class="cards-print-header">
-      <h2>Monitoramento Pedagógico — Turno Tarde 2026</h2>
-      <p>${subtitulo} · Impresso em ${now} · ${selected.length} estudante(s)</p>
-    </div>
-    <div class="cards-print-grid cols-${cols}">${cardsHtml}</div>`;
-
+  document.getElementById('cardsPrintWrap').innerHTML = header + pagesHtml;
   closeCardPrintModalBtn();
+
+  // Injeta @page com orientação correta dinamicamente
+  let styleTag = document.getElementById('_cpPrintStyle');
+  if(!styleTag){ styleTag = document.createElement('style'); styleTag.id = '_cpPrintStyle'; document.head.appendChild(styleTag); }
+  styleTag.textContent = `@media print { @page { margin:1cm; size:${isLand?'landscape':'portrait'}; } }`;
+
   document.body.classList.add('printing-cards');
   window.print();
-  setTimeout(()=>{ document.body.classList.remove('printing-cards'); }, 500);
+  setTimeout(()=>{
+    document.body.classList.remove('printing-cards');
+    styleTag.textContent = '';
+  }, 800);
 }
 
 </script>
