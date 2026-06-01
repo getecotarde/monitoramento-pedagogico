@@ -4453,7 +4453,7 @@ async function submitEdit(){
     closeEditModalBtn();
     showToast('Edição registrada. A Coordenação Pedagógica será notificada.','amber');
   } else {
-    const dbField = { n:'nome', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
+    const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
     // Registra no histórico de desfazer/refazer
@@ -4528,7 +4528,7 @@ function renderPendingPanel(){
 async function approvePending(id){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
-  const dbField = { n:'nome', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
+  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
   await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
   // Atualiza S local
