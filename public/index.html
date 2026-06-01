@@ -2145,7 +2145,7 @@ document.addEventListener('keydown', e => {
    ROLES / PERMISSIONS
    ════════════════════════════════════════════════════════════ */
 const ROLES = {
-  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','p','e','a','pip','r','obs'], needsApproval: false },
+  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','p','e','a','pip','r','obs'], needsApproval: false },
   'coord-turno': { label:'Coord. de Turno',   cls:'role-coord-turno',canEdit: ['obs'],                          needsApproval: true  },
   'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','r'],                      needsApproval: true  },
   'aee':         { label:'AEE',                cls:'role-aee',        canEdit: ['a','r','obs'],                  needsApproval: true  },
@@ -2153,6 +2153,7 @@ const ROLES = {
 // Field metadata: label, type ('text'|'select'|'textarea'), options for selects
 const FIELD_META = {
   'n':   { label:'Nome do estudante',           type:'text'    },
+  's':   { label:'Sexo',                        type:'select',  options:['M','F'], optionLabels:{'M':'Masculino','F':'Feminino'} },
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
   'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar AEE','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
@@ -3100,7 +3101,7 @@ function renderModalContent(idx){
         <div class="modal-nome" style="display:flex;align-items:center;gap:6px">
           <span>${x.n}</span>${fieldEditBtn(idx,'n')}
         </div>
-        <div class="modal-sub">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}</div>
+        <div class="modal-sub" style="display:flex;align-items:center;gap:6px">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}${fieldEditBtn(idx,'s')}</div>
       </div>
       <button class="modal-close" onclick="closeModalBtn()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -3269,7 +3270,7 @@ function openEditFromModal(idx, field){
     fieldEl.style.cssText = 'width:100%;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;transition:border .15s;background:#fff';
     meta.options.forEach(opt=>{
       const o = document.createElement('option');
-      o.value = opt; o.textContent = opt;
+      o.value = opt; o.textContent = (meta.optionLabels && meta.optionLabels[opt]) ? meta.optionLabels[opt] : opt;
       if(opt === currentVal) o.selected = true;
       fieldEl.appendChild(o);
     });
