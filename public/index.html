@@ -1114,10 +1114,14 @@
   .fluxo-center span { color: var(--verde-dark); font-size: 12px; }
 
   /* ── PERFIL TABLE (Metodologia) ─────────────────── */
-  .perfil-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1rem; }
+  .perfil-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 1rem; table-layout: fixed; }
   .perfil-table th { text-align: left; padding: 8px 12px; background: #FAFAF8; border: var(--border); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #AAA; }
-  .perfil-table td { padding: 10px 12px; border: var(--border); color: #444; line-height: 1.6; vertical-align: top; }
+  .perfil-table td { padding: 10px 12px; border: var(--border); color: #444; line-height: 1.6; vertical-align: top; white-space: normal; word-break: break-word; overflow: visible; text-overflow: unset; }
   .perfil-table tr:hover td { background: #FAFAF8; }
+  .perfil-table td:first-child { width: 130px; }
+  .perfil-table td:nth-child(2) { width: auto; }
+  .perfil-table td:nth-child(3) { width: 30%; }
+  .perfil-table td:nth-child(4) { width: 25%; }
 
   /* ── ROLE-BASED VISIBILITY ──────────────────────────────── */
   .role-restricted { display: none !important; }
