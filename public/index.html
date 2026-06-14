@@ -1434,6 +1434,11 @@
   .notif-tag.aee { background: var(--roxo-bg); color: var(--roxo-dark); }
   .notif-tag.coord { background: var(--amber-bg); color: var(--amber-dark); }
   .notif-tag.aprovado { background: var(--verde-bg); color: var(--verde-dark); }
+  .notif-leitura {
+    font-size: 11px; margin-top: 6px; margin-bottom: 4px;
+  }
+  .notif-leitura.ok   { color: var(--verde-dark); }
+  .notif-leitura.pend { color: var(--amber-dark); }
   [data-theme="dark"] .pending-item.notif-only { background: rgba(43,127,212,.08) !important; }
   [data-theme="dark"] .pending-item.notif-aee  { background: rgba(107,101,204,.08) !important; }
   [data-theme="dark"] .pending-item.notif-aprovado { background: rgba(29,158,117,.08) !important; }
@@ -2322,6 +2327,9 @@ const ROLES = {
   'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','r'],                      needsApproval: true  },
   'aee':         { label:'AEE',                cls:'role-aee',        canEdit: ['a','r','obs'],                  needsApproval: true  },
 };
+// Perfis que devem confirmar leitura das notificações de alterações
+// aprovadas/realizadas pela Coordenação Pedagógica
+const ROLES_TO_TRACK = ['coord-turno','pip','aee'];
 // Field metadata: label, type ('text'|'select'|'textarea'), options for selects
 const FIELD_META = {
   'n':   { label:'Nome do estudante',           type:'text'    },
@@ -2472,6 +2480,27 @@ function getVisibleNotifications(){
     if(currentRole === 'coord-turno') return ['obs'].includes(ed.field);
     return false;
   });
+}
+
+// Registra que o perfil atual visualizou as notificações de alterações
+// aprovadas/realizadas pela Coord. Pedagógica, para que ela saiba quando
+// pode marcar a notificação como concluída com segurança.
+function marcarNotificacoesVisiveisComoLidas(){
+  if(!currentRole || currentRole === 'coord-ped') return; // coord não precisa "ler" o que ela mesma gerou
+  if(!ROLES_TO_TRACK.includes(currentRole)) return;
+  getVisibleNotifications().forEach(ed=>{
+    if(ed.status === 'aprovado' && !(ed.lidoPor||[]).includes(currentRole)){
+      marcarNotificacaoLida(ed.id);
+    }
+  });
+}
+
+async function marcarNotificacaoLida(id){
+  const ed = pendingEdits.find(x=>x.id===id);
+  if(!ed || ed.status !== 'aprovado') return;
+  if((ed.lidoPor||[]).includes(currentRole)) return;
+  ed.lidoPor = [...(ed.lidoPor||[]), currentRole];
+  await sbPatch('aprovacoes_pendentes', { lido_por: ed.lidoPor }, [`id=eq.${id}`]);
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -3564,6 +3593,7 @@ function submitEdit(){
 function openPendingPanel(){
   renderPendingPanel();
   document.getElementById('pendingPanelOverlay').classList.add('open');
+  marcarNotificacoesVisiveisComoLidas();
 }
 function closePendingPanelBtn(){
   document.getElementById('pendingPanelOverlay').classList.remove('open');
@@ -4636,7 +4666,7 @@ async function carregarMovimentacoes(){
 async function carregarPendentes(){
   const r = await fetch(`${SUPABASE_URL}/rest/v1/aprovacoes_pendentes?select=*,estudantes(nome)&order=created_at.asc`, { headers: sbHeaders() });
   const rows = await r.json();
-  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, status:x.status||'pendente', fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
+  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, status:x.status||'pendente', lidoPor:Array.isArray(x.lido_por)?x.lido_por:[], fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
   updatePendingBtn();
 }
 
@@ -4730,11 +4760,20 @@ function renderPendingPanel(){
       const mensagem = ed.role === 'coord-ped'
         ? 'Alteração realizada pela Coordenação Pedagógica.'
         : `Edição de ${ed.label} aprovada pela Coordenação Pedagógica.`;
-      const acaoCoord = isCoord
-        ? `<div class="pending-item-actions">
-             <button class="btn-dismiss" onclick="limparNotificacao(${ed.id})">✓ Marcar como lida</button>
-           </div>`
-        : '';
+
+      let leituraHtml = '';
+      let acaoCoord = '';
+      if(isCoord){
+        const lidoPor   = ed.lidoPor || [];
+        const pendentes = ROLES_TO_TRACK.filter(r=>!lidoPor.includes(r));
+        leituraHtml = pendentes.length === 0
+          ? `<div class="notif-leitura ok">✓ Visto por todos os perfis (${ROLES_TO_TRACK.map(r=>ROLES[r].label).join(', ')})</div>`
+          : `<div class="notif-leitura pend">Visto por: ${lidoPor.length ? lidoPor.map(r=>ROLES[r].label).join(', ') : '—'} · Ainda não viu: ${pendentes.map(r=>ROLES[r].label).join(', ')}</div>`;
+        acaoCoord = `<div class="pending-item-actions">
+             <button class="btn-dismiss" onclick="confirmarLimparNotificacao(${ed.id})">✓ Marcar como concluída</button>
+           </div>`;
+      }
+
       return `<div class="pending-item notif-aprovado" id="pend-${ed.id}">
         <div class="pending-item-header">
           <div class="pending-item-name">${ed.studentNome}</div>
@@ -4744,6 +4783,7 @@ function renderPendingPanel(){
         <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
         <div class="pending-item-new">${ed.newVal}</div>
         <div class="pending-item-meta">${mensagem} Às ${ed.ts}.</div>
+        ${leituraHtml}
         ${acaoCoord}
       </div>`;
     }
@@ -4820,6 +4860,20 @@ async function limparNotificacao(id){
   await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
   await carregarPendentes();
   renderPendingPanel();
+}
+
+// Antes de remover a notificação, avisa a Coord. Pedagógica caso ainda
+// existam perfis que não a visualizaram.
+function confirmarLimparNotificacao(id){
+  const ed = pendingEdits.find(x=>x.id===id);
+  if(!ed) return;
+  const lidoPor   = ed.lidoPor || [];
+  const pendentes = ROLES_TO_TRACK.filter(r=>!lidoPor.includes(r));
+  if(pendentes.length){
+    const nomes = pendentes.map(r=>ROLES[r].label).join(', ');
+    if(!confirm(`Esta notificação ainda não foi vista por: ${nomes}.\n\nMarcar como concluída mesmo assim?`)) return;
+  }
+  limparNotificacao(id);
 }
 
 /* ════════════════════════════════════════════════════════════
