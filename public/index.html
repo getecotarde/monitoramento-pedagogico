@@ -1514,7 +1514,7 @@
       Movimentações
       <span class="nav-badge" id="nb-mov">0</span>
     </button>
-    <button class="nav-item" onclick="abrirUsuarios(this)" id="navUsuarios">
+    <button class="nav-item" onclick="abrirUsuarios(this)" id="navUsuarios" style="display:none">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-1a4 4 0 0 0-3-3.87"/></svg>
       Usuários e acessos
     </button>
@@ -2359,8 +2359,9 @@ function applyRoleVisibility(role){
     const el = document.getElementById(id);
     if(el) el.classList.toggle('role-restricted', isRestricted);
   });
-  // Usuários e acessos: sempre visível, acesso controlado no clique
-  // (visibilidade gerenciada via abrirUsuarios())
+  // Usuários e acessos: só coord-ped (everton)
+  const navUsuarios = document.getElementById('navUsuarios');
+  if(navUsuarios) navUsuarios.style.display = (role === 'coord-ped') ? 'flex' : 'none';
 }
 
 function doLogout(){
