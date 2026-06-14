@@ -1651,15 +1651,19 @@
         <option value="ATÍPICO">Atípico</option>
         <option value="EM ANÁLISE">Em análise</option>
       </select>
-      <select id="filterEncam" onchange="applyFilters()">
-        <option value="">Todos os encaminhamentos</option>
-        <option value="PIP">PIP</option>
-        <option value="ADAPTAÇÃO">Adaptação</option>
-        <option value="PIP/ADAPTAÇÃO">PIP/Adaptação</option>
-        <option value="REFORÇO">Reforço</option>
-        <option value="AVALIAR">Avaliar</option>
-        <option value="REGULAR">Regular</option>
-      </select>
+      <!-- Encaminhamento multi-select -->
+      <div class="ms-wrap" id="msWrapEncam">
+        <div class="ms-trigger" id="msTriggerEncam" onclick="toggleMs('Encam')">
+          <span class="ms-trigger-label" id="msLabelEncam">Encaminhamento</span>
+          <span class="ms-count" id="msCountEncam" style="display:none"></span>
+          <span class="ms-trigger-arrow">▼</span>
+        </div>
+        <div class="ms-dropdown" id="msDropEncam">
+          <div id="msOptionsEncam"></div>
+          <hr class="ms-divider">
+          <button class="ms-clear" onclick="clearMs('Encam')">✕ Limpar seleção</button>
+        </div>
+      </div>
       <!-- AEE multi-select -->
       <div class="ms-wrap" id="msWrapAEE">
         <div class="ms-trigger" id="msTriggerAEE" onclick="toggleMs('AEE')">
@@ -3028,7 +3032,7 @@ function renderDashboard(){
    ════════════════════════════════════════════════════════════ */
 
 // State: which options are selected per filter key
-const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set() };
+const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set(), Encam: new Set() };
 
 // Config per filter key
 const MS_CONFIG = {
@@ -3036,6 +3040,7 @@ const MS_CONFIG = {
   PIP:   { label:'PIP/Pedagógico',    onchange: ()=>applyFilters() },
   AtAEE: { label:'AEE / Diagnóstico',  onchange: ()=>renderAtipicos() },
   AtPIP: { label:'PIP/Pedagógico',    onchange: ()=>renderAtipicos() },
+  Encam: { label:'Encaminhamento',     onchange: ()=>applyFilters() },
 };
 
 // Split compound diagnostic values like "DI/TDAH" → ["DI","TDAH"]
@@ -3069,9 +3074,22 @@ function getUniquePIPValues(){
   return [...all].sort((a,b)=>a.localeCompare(b,'pt-BR'));
 }
 
+// Collect all unique Encaminhamento values
+function getUniqueEncamValues(){
+  const fixed = ['PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR','REGULAR'];
+  const inData = new Set();
+  S.forEach(x=>{ const k = encamKey(x.e); if(k) inData.add(k); });
+  // return fixed order but only those present in data (plus any extras)
+  const result = fixed.filter(v=>inData.has(v));
+  inData.forEach(v=>{ if(!fixed.includes(v)) result.push(v); });
+  return result;
+}
+
 // Build options HTML for a given key
 function buildMsOptions(key){
-  const values = (key==='AEE'||key==='AtAEE') ? getUniqueAEEValues() : getUniquePIPValues();
+  const values = (key==='AEE'||key==='AtAEE') ? getUniqueAEEValues()
+               : (key==='PIP'||key==='AtPIP')  ? getUniquePIPValues()
+               : getUniqueEncamValues();
   const container = document.getElementById(`msOptions${key}`);
   if(!container) return;
   container.innerHTML = values.map(v=>`
@@ -3113,7 +3131,7 @@ function toggleMs(key){
   const drop = document.getElementById(`msDrop${key}`);
   const trigger = document.getElementById(`msTrigger${key}`);
   // Close all others
-  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>{
     if(k!==key){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
       document.getElementById(`msTrigger${k}`)?.classList.remove('active');
@@ -3134,7 +3152,7 @@ function clearMs(key){
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', e=>{
-  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>{
     const wrap = document.getElementById(`msWrap${k}`);
     if(wrap && !wrap.contains(e.target)){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
@@ -3181,13 +3199,12 @@ function applyFilters(){
   const q  = document.getElementById('searchInput').value.toLowerCase();
   const ft = document.getElementById('filterTurma').value;
   const fp = document.getElementById('filterPerfil').value;
-  const fe = document.getElementById('filterEncam').value;
 
   filtered = S.filter(x=>{
     if(q  && !x.n.toLowerCase().includes(q)) return false;
     if(ft && x.t !== ft) return false;
     if(fp && x.p !== fp) return false;
-    if(fe && encamKey(x.e) !== fe) return false;
+    if(MS_STATE.Encam.size>0 && !MS_STATE.Encam.has(encamKey(x.e))) return false;
     if(!matchAEE(x.a, MS_STATE.AEE)) return false;
     if(!matchPIP(x.pip, MS_STATE.PIP)) return false;
     return true;
@@ -5051,7 +5068,7 @@ async function init(){
   // Esconder overlay de loading do dashboard
   const dl = document.getElementById('dashboard-loading');
   if(dl) dl.style.display = 'none';
-  ['AEE','PIP','AtAEE','AtPIP'].forEach(k=>buildMsOptions(k));
+  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>buildMsOptions(k));
 
   iniciarRealtime();
 }
