@@ -1660,30 +1660,17 @@
         <option value="AVALIAR">Avaliar</option>
         <option value="REGULAR">Regular</option>
       </select>
-      <!-- AEE multi-select -->
-      <div class="ms-wrap" id="msWrapAEE">
-        <div class="ms-trigger" id="msTriggerAEE" onclick="toggleMs('AEE')">
-          <span class="ms-trigger-label" id="msLabelAEE">AEE / Diagnóstico</span>
-          <span class="ms-count" id="msCountAEE" style="display:none"></span>
+      <!-- Detalhamento (AEE / PIP) — opções dependem do Encaminhamento selecionado -->
+      <div class="ms-wrap" id="msWrapDetalhe">
+        <div class="ms-trigger" id="msTriggerDetalhe" onclick="toggleMs('Detalhe')">
+          <span class="ms-trigger-label" id="msLabelDetalhe">AEE / PIP</span>
+          <span class="ms-count" id="msCountDetalhe" style="display:none"></span>
           <span class="ms-trigger-arrow">▼</span>
         </div>
-        <div class="ms-dropdown" id="msDropAEE">
-          <div id="msOptionsAEE"></div>
+        <div class="ms-dropdown" id="msDropDetalhe">
+          <div id="msOptionsDetalhe"></div>
           <hr class="ms-divider">
-          <button class="ms-clear" onclick="clearMs('AEE')">✕ Limpar seleção</button>
-        </div>
-      </div>
-      <!-- PIP multi-select -->
-      <div class="ms-wrap" id="msWrapPIP">
-        <div class="ms-trigger" id="msTriggerPIP" onclick="toggleMs('PIP')">
-          <span class="ms-trigger-label" id="msLabelPIP">PIP/Pedagógico</span>
-          <span class="ms-count" id="msCountPIP" style="display:none"></span>
-          <span class="ms-trigger-arrow">▼</span>
-        </div>
-        <div class="ms-dropdown" id="msDropPIP">
-          <div id="msOptionsPIP"></div>
-          <hr class="ms-divider">
-          <button class="ms-clear" onclick="clearMs('PIP')">✕ Limpar seleção</button>
+          <button class="ms-clear" onclick="clearMs('Detalhe')">✕ Limpar seleção</button>
         </div>
       </div>
 
