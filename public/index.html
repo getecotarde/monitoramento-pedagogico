@@ -5808,7 +5808,7 @@ function executeCardPrint(){
 
   // Sort order
   const sortOrder = document.querySelector('input[name="cpSortOrder"]:checked')?.value || 'turma-encam-nome';
-  const encamOrder = ['PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR','REGULAR'];
+  const encamOrder = ['ADAPTAÇÃO','PIP/ADAPTAÇÃO','PIP','REFORÇO','AVALIAR','REGULAR'];
   selected.sort((a, b) => {
     if(sortOrder === 'turma-encam-nome'){
       return a.t.localeCompare(b.t,'pt-BR')
