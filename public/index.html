@@ -297,6 +297,92 @@
   /* Hidden in screen, visible in print */
   .print-header { display: none; }
 
+  /* ── PRINT: METODOLOGIA ─────────────────────────────── */
+  @media print {
+    body.printing-metodologia .topbar,
+    body.printing-metodologia .sidebar,
+    body.printing-metodologia .login-overlay,
+    body.printing-metodologia .modal-overlay,
+    body.printing-metodologia .edit-modal-overlay,
+    body.printing-metodologia .pending-panel-overlay,
+    body.printing-metodologia .met-no-print { display: none !important; }
+
+    body.printing-metodologia .layout { padding-top: 0 !important; }
+    body.printing-metodologia .main   { margin-left: 0 !important; max-width: 100% !important; padding: 0.75rem !important; }
+
+    /* Oculta todas as views exceto metodologia */
+    body.printing-metodologia .view              { display: none !important; }
+    body.printing-metodologia #view-metodologia  { display: block !important; }
+
+    /* Cabeçalho */
+    body.printing-metodologia .page-header h1 { font-size: 18px !important; margin-bottom: 4px; }
+    body.printing-metodologia .page-header p  { font-size: 11px !important; color: #888 !important; margin-bottom: 1rem; }
+
+    /* Cards e fluxo */
+    body.printing-metodologia .card,
+    body.printing-metodologia .fluxo-card {
+      box-shadow: none !important;
+      border: 1px solid #D0CFC8 !important;
+      border-radius: 6px !important;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-bottom: 1rem !important;
+    }
+
+    /* Fluxo de informações */
+    body.printing-metodologia .fluxo-row   { flex-wrap: wrap; gap: 6px; }
+    body.printing-metodologia .fluxo-node  {
+      background: #F8F8F6 !important;
+      border: 1px solid #D0CFC8 !important;
+      font-size: 10px !important;
+      padding: 8px 10px !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body.printing-metodologia .fluxo-arrow { font-size: 14px; color: #888 !important; }
+
+    /* Tabelas de perfis e encaminhamentos */
+    body.printing-metodologia .perfil-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 10px !important;
+    }
+    body.printing-metodologia .perfil-table thead th {
+      background: #2A2A28 !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      font-size: 9px !important;
+      padding: 6px 8px !important;
+      text-align: left;
+    }
+    body.printing-metodologia .perfil-table tbody td {
+      padding: 6px 8px !important;
+      border-bottom: 1px solid #E0E0DC !important;
+      vertical-align: top !important;
+      word-break: break-word !important;
+    }
+    body.printing-metodologia .perfil-table tbody tr:nth-child(even) td {
+      background: #F5F5F3 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body.printing-metodologia .perfil-table tbody tr { page-break-inside: avoid; }
+
+    /* Badges com cor */
+    body.printing-metodologia .badge {
+      font-size: 8px !important;
+      padding: 2px 6px !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Rodapé de escola */
+    body.printing-metodologia .platform-footer { display: block !important; }
+
+    @page { margin: 1.2cm 1cm; size: portrait; }
+  }
+
   /* ── CARD PRINT MODAL: sempre claro ── */
   #cardPrintModalOverlay .modal-box,
   #cardPrintModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
@@ -1762,6 +1848,19 @@
         <option value="EM ANÁLISE">Somente em análise</option>
       </select>
 
+      <!-- Encaminhamento multi-select (atipicos view) -->
+      <div class="ms-wrap" id="msWrapAtEncam">
+        <div class="ms-trigger" id="msTriggerAtEncam" onclick="toggleMs('AtEncam')">
+          <span class="ms-trigger-label" id="msLabelAtEncam">Encaminhamento</span>
+          <span class="ms-count" id="msCountAtEncam" style="display:none"></span>
+          <span class="ms-trigger-arrow">▼</span>
+        </div>
+        <div class="ms-dropdown" id="msDropAtEncam">
+          <div id="msOptionsAtEncam"></div>
+          <hr class="ms-divider">
+          <button class="ms-clear" onclick="clearMs('AtEncam')">✕ Limpar seleção</button>
+        </div>
+      </div>
       <!-- AEE multi-select (atipicos view) -->
       <div class="ms-wrap" id="msWrapAtAEE">
         <div class="ms-trigger" id="msTriggerAtAEE" onclick="toggleMs('AtAEE')">
@@ -1861,9 +1960,15 @@
 
   <!-- ─── VIEW: METODOLOGIA ───────────────────────────────── -->
   <div id="view-metodologia" class="view">
-    <div class="page-header">
-      <h1>Referência metodológica</h1>
-      <p>Estrutura, perfis e fluxo de informações do monitoramento pedagógico</p>
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h1>Referência metodológica</h1>
+        <p>Estrutura, perfis e fluxo de informações do monitoramento pedagógico</p>
+      </div>
+      <button class="action-btn met-no-print" onclick="printMetodologia()" title="Imprimir referência metodológica">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
     </div>
 
     <div class="fluxo-card">
@@ -3032,15 +3137,16 @@ function renderDashboard(){
    ════════════════════════════════════════════════════════════ */
 
 // State: which options are selected per filter key
-const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set(), Encam: new Set() };
+const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set(), Encam: new Set(), AtEncam: new Set() };
 
 // Config per filter key
 const MS_CONFIG = {
-  AEE:   { label:'AEE / Diagnóstico',  onchange: ()=>applyFilters() },
-  PIP:   { label:'PIP/Pedagógico',    onchange: ()=>applyFilters() },
-  AtAEE: { label:'AEE / Diagnóstico',  onchange: ()=>renderAtipicos() },
-  AtPIP: { label:'PIP/Pedagógico',    onchange: ()=>renderAtipicos() },
-  Encam: { label:'Encaminhamento',     onchange: ()=>applyFilters() },
+  AEE:     { label:'AEE / Diagnóstico',  onchange: ()=>applyFilters() },
+  PIP:     { label:'PIP/Pedagógico',     onchange: ()=>applyFilters() },
+  AtAEE:   { label:'AEE / Diagnóstico',  onchange: ()=>renderAtipicos() },
+  AtPIP:   { label:'PIP/Pedagógico',     onchange: ()=>renderAtipicos() },
+  Encam:   { label:'Encaminhamento',     onchange: ()=>applyFilters() },
+  AtEncam: { label:'Encaminhamento',     onchange: ()=>renderAtipicos() },
 };
 
 // Split compound diagnostic values like "DI/TDAH" → ["DI","TDAH"]
@@ -3089,8 +3195,7 @@ function getUniqueEncamValues(){
 function buildMsOptions(key){
   const values = (key==='AEE'||key==='AtAEE') ? getUniqueAEEValues()
                : (key==='PIP'||key==='AtPIP')  ? getUniquePIPValues()
-               : getUniqueEncamValues();
-  const container = document.getElementById(`msOptions${key}`);
+               : getUniqueEncamValues();  const container = document.getElementById(`msOptions${key}`);
   if(!container) return;
   container.innerHTML = values.map(v=>`
     <div class="ms-option">
@@ -3131,7 +3236,7 @@ function toggleMs(key){
   const drop = document.getElementById(`msDrop${key}`);
   const trigger = document.getElementById(`msTrigger${key}`);
   // Close all others
-  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>{
     if(k!==key){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
       document.getElementById(`msTrigger${k}`)?.classList.remove('active');
@@ -3152,7 +3257,7 @@ function clearMs(key){
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', e=>{
-  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>{
     const wrap = document.getElementById(`msWrap${k}`);
     if(wrap && !wrap.contains(e.target)){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
@@ -3270,6 +3375,7 @@ function renderAtipicos(){
   let data = S.filter(x=>x.p!=="TÍPICO");
   if(ft) data=data.filter(x=>x.t===ft);
   if(fp) data=data.filter(x=>x.p===fp);
+  if(MS_STATE.AtEncam.size>0) data=data.filter(x=>MS_STATE.AtEncam.has(encamKey(x.e)));
   data = data.filter(x=>matchAEE(x.a, MS_STATE.AtAEE));
   data = data.filter(x=>matchPIP(x.pip, MS_STATE.AtPIP));
   document.getElementById('atCount').textContent=`${data.length} estudante${data.length!==1?'s':''}`;
@@ -3899,6 +4005,13 @@ function updatePrintCount(){
 
 function closePrintModal(e){ if(e.target===e.currentTarget) closePrintModalBtn(); }
 function closePrintModalBtn(){ document.getElementById('printModalOverlay').classList.remove('open'); }
+
+function printMetodologia(){
+  // Temporarily set body class so @media print rules can target it
+  document.body.classList.add('printing-metodologia');
+  window.print();
+  setTimeout(()=> document.body.classList.remove('printing-metodologia'), 800);
+}
 
 function executePrint(){
   closePrintModalBtn();
@@ -5068,7 +5181,7 @@ async function init(){
   // Esconder overlay de loading do dashboard
   const dl = document.getElementById('dashboard-loading');
   if(dl) dl.style.display = 'none';
-  ['AEE','PIP','AtAEE','AtPIP','Encam'].forEach(k=>buildMsOptions(k));
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>buildMsOptions(k));
 
   iniciarRealtime();
 }
