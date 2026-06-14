@@ -1384,6 +1384,13 @@
     border-color: var(--coral-bg); transition: background .15s;
   }
   .btn-reject:hover { background: var(--coral-bg); }
+  .btn-edit-approve {
+    padding: 5px 12px; border: 1px solid var(--azul); border-radius: var(--radius-sm);
+    background: var(--azul-bg); color: var(--azul-dark); font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .btn-edit-approve:hover { background: #cce3f7; }
   .pending-empty {
     padding: 2rem; text-align: center; color: #BBB; font-size: 13px;
   }
@@ -2097,7 +2104,50 @@
 </div>
 
 
-<!-- ═══ EDIT MODAL ═════════════════════════════════════════════ -->
+<!-- ═══ MODAL: EDITAR ANTES DE APROVAR ═══════════════════════ -->
+<div class="edit-modal-overlay" id="approveEditOverlay" onclick="fecharApproveEdit(event)" style="z-index:500">
+  <div class="edit-modal-box" style="max-width:500px;width:95%">
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:var(--verde-bg);color:var(--verde-dark)">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="modal-nome" id="approveEditTitulo">Editar e aprovar</div>
+        <div class="modal-sub" id="approveEditSub">Reformule o texto antes de aprovar</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('approveEditOverlay').style.display='none'">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="approveEditPendingId">
+
+      <div style="margin-bottom:1rem">
+        <div style="font-size:11px;font-weight:600;color:#AAA;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Texto anterior</div>
+        <div id="approveEditOld" style="font-size:13px;color:#BBB;background:#F7F6F2;border-radius:6px;padding:8px 12px;text-decoration:line-through;min-height:32px"></div>
+      </div>
+
+      <div style="margin-bottom:1rem">
+        <div style="font-size:11px;font-weight:600;color:#AAA;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Proposta do colaborador</div>
+        <div id="approveEditProposed" style="font-size:13px;color:var(--verde-dark);background:var(--verde-bg);border-radius:6px;padding:8px 12px;min-height:32px"></div>
+      </div>
+
+      <div style="margin-bottom:1.5rem">
+        <div style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Texto final <span style="color:#D85A30">*</span></div>
+        <textarea id="approveEditFinal" rows="4"
+          style="width:100%;border:1px solid #E8E7E3;border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;outline:none;transition:border .15s;color:#1A1916;background:#fff"
+          onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='#E8E7E3'"></textarea>
+        <div style="font-size:11px;color:#AAA;margin-top:4px">Você pode usar a proposta acima, modificá-la ou reescrever.</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-cancel" onclick="document.getElementById('approveEditOverlay').style.display='none'">Cancelar</button>
+        <button class="btn-reject" onclick="rejectFromEditModal()" style="margin-right:auto">✗ Rejeitar</button>
+        <button class="btn-save" onclick="confirmarApproveEdit()">✓ Aprovar e salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="edit-modal-overlay" id="editModalOverlay" onclick="closeEditModal(event)">
   <div class="edit-modal-box">
     <div class="edit-modal-header">
@@ -3503,47 +3553,98 @@ function closePendingPanel(e){
 
 function renderPendingPanel(){
   const list = document.getElementById('pendingList');
+  const isCoord = currentRole === 'coord-ped';
   if(!pendingEdits.length){
     list.innerHTML=`<div class="pending-empty">Nenhuma edição pendente de aprovação.</div>`;
     return;
   }
-  list.innerHTML = pendingEdits.map(ed=>`
+  list.innerHTML = pendingEdits.map(ed=>{
+    const nome = ed.studentNome || (S.find(x=>x.id===ed.studentId)?.n) || '—';
+    const acoes = isCoord ? `
+      <div class="pending-item-actions">
+        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
+        <button class="btn-edit-approve" onclick="abrirApproveEdit(${ed.id})">✎ Editar e aprovar</button>
+        <button class="btn-reject" onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
+      </div>` : `
+      <div style="font-size:11px;color:#AAA;margin-top:4px">Aguardando aprovação da Coordenação Pedagógica.</div>`;
+    return `
     <div class="pending-item" id="pend-${ed.id}">
       <div class="pending-item-header">
-        <div class="pending-item-name">${S[ed.studentIdx].n}</div>
+        <div class="pending-item-name">${nome}</div>
         <span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>
       </div>
       <div class="pending-item-field">${ed.fieldLabel}</div>
       <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
       <div class="pending-item-new">${ed.newVal}</div>
       <div class="pending-item-meta">Enviado às ${ed.ts}</div>
-      <div class="pending-item-actions">
-        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
-        <button class="btn-reject"  onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
-      </div>
-    </div>
-  `).join('');
+      ${acoes}
+    </div>`;
+  }).join('');
 }
 
-function approvePending(id){
+async function approvePending(id, valorFinal){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
-  const x = S[ed.studentIdx];
-  if(ed.field==='obs') x.o = ed.newVal;
-  else                 x[ed.field] = ed.newVal;
-  pendingEdits = pendingEdits.filter(x=>x.id!==id);
-  updatePendingBtn();
+  const val = valorFinal !== undefined ? valorFinal : ed.newVal;
+
+  // Salva no estudante no Supabase
+  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
+  const { error } = await sbPatch('estudantes', { [dbField]: val }, [`id=eq.${ed.studentId}`]);
+  if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+
+  // Remove da tabela de pendentes no Supabase
+  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
+
+  // Atualiza array local S
+  const idx = S.findIndex(x=>x.id===ed.studentId);
+  if(idx>=0){ if(ed.field==='obs') S[idx].o=val; else S[idx][ed.field]=val; }
+
+  await carregarPendentes();
   renderPendingPanel();
   renderTable(); renderAtipicos(); renderDashboard();
   if(currentModalIdx !== null) renderModalContent(currentModalIdx);
   showToast('Edição aprovada e aplicada.', 'verde');
 }
 
-function rejectPending(id){
-  pendingEdits = pendingEdits.filter(x=>x.id!==id);
-  updatePendingBtn();
+async function rejectPending(id){
+  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
+  await carregarPendentes();
   renderPendingPanel();
   showToast('Edição rejeitada.', 'coral');
+}
+
+// Abre modal para editar o texto antes de aprovar
+function abrirApproveEdit(id){
+  const ed = pendingEdits.find(x=>x.id===id);
+  if(!ed) return;
+  const nome = ed.studentNome || (S.find(x=>x.id===ed.studentId)?.n) || '—';
+  document.getElementById('approveEditPendingId').value = id;
+  document.getElementById('approveEditTitulo').textContent = `Editar e aprovar — ${nome}`;
+  document.getElementById('approveEditSub').textContent = `Campo: ${ed.fieldLabel}`;
+  document.getElementById('approveEditOld').textContent = ed.oldVal || '(vazio)';
+  document.getElementById('approveEditProposed').textContent = ed.newVal;
+  document.getElementById('approveEditFinal').value = ed.newVal;
+  document.getElementById('approveEditOverlay').style.display = 'flex';
+  setTimeout(()=>document.getElementById('approveEditFinal').focus(), 80);
+}
+
+function fecharApproveEdit(e){
+  if(e && e.target !== document.getElementById('approveEditOverlay')) return;
+  document.getElementById('approveEditOverlay').style.display = 'none';
+}
+
+async function confirmarApproveEdit(){
+  const id = Number(document.getElementById('approveEditPendingId').value);
+  const val = document.getElementById('approveEditFinal').value.trim();
+  if(!val){ showToast('O texto final não pode ser vazio.','coral'); return; }
+  document.getElementById('approveEditOverlay').style.display = 'none';
+  await approvePending(id, val);
+}
+
+async function rejectFromEditModal(){
+  const id = Number(document.getElementById('approveEditPendingId').value);
+  document.getElementById('approveEditOverlay').style.display = 'none';
+  await rejectPending(id);
 }
 
 /* ════════════════════════════════════════════════════════════
