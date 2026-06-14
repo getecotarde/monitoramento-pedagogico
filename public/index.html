@@ -241,19 +241,17 @@
     col.col-pip    { width: 100px !important; }
     col.col-encam  { width: 90px !important; }
     col.col-rotina { width: auto !important; }
-    col.col-ocn    { width: 50px !important; }
-    col.col-ocs    { width: 13% !important; }
     col.col-obs    { width: 15% !important; }
 
     /* Mostrar colunas ocultas no mobile */
-    .col-rotina, .col-obs, .col-ocs, .th-rotina, .th-obs, .th-ocs { display: table-cell !important; }
+    .col-rotina, .col-obs, .th-rotina, .th-obs { display: table-cell !important; }
 
     .badge { font-size: 8px !important; padding: 2px 5px !important; }
     .td-turma { text-align: center !important; }
     .td-sexo, .td-pip { text-align: center !important; }
     .td-nome { white-space: normal !important; }
     .td-turma { font-size: 9px !important; }
-    .td-aee, .td-obs, .td-ocs, .td-rotina {
+    .td-aee, .td-obs, .td-rotina {
       font-size: 9px !important;
       white-space: normal !important;
       overflow: visible !important;
@@ -760,8 +758,8 @@
     }
 
     /* Ocultar colunas menos importantes na tabela */
-    .col-rotina, .col-obs, .col-ocs { display: none; }
-    .th-rotina, .th-obs, .th-ocs { display: none; }
+    .col-rotina, .col-obs { display: none; }
+    .th-rotina, .th-obs { display: none; }
 
     /* Login box */
     .login-box { width: 90vw !important; padding: 1.5rem !important; }
@@ -890,9 +888,7 @@
   col.col-pip     { width: 130px; }   /* SIM — LP/MAT etc. */
   col.col-encam   { width: 110px; }   /* "PIP/ADAPTAÇÃO" */
   col.col-rotina  { width: auto;  }   /* ocupa o resto */
-  col.col-ocn     { width: 70px;  }   /* nº de ocorrências */
-  col.col-ocs     { width: 14%;   }   /* síntese das ocorrências */
-  col.col-obs     { width: 14%;   }   /* observações secundárias */
+  col.col-obs     { width: 16%;   }   /* observações secundárias */
 
   thead th {
     background: #F4F3EF;
@@ -935,14 +931,6 @@
   }
   .td-sexo { text-align: center; }
   .td-pip  { text-align: left; font-size: 11px; }
-  .td-ocn  {
-    text-align: center; font-size: 12px; font-weight: 700; color: #555;
-  }
-  .td-ocn.has-oc { color: var(--amber-dark); }
-  .td-ocs {
-    color: #999; font-size: 11.5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
   .td-aee  {
     font-size: 12px; color: #555;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -950,11 +938,11 @@
   .td-encam { white-space: nowrap; }
   .td-obs {
     color: #999; font-size: 11.5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word;
   }
   .td-rotina {
     color: #666; font-size: 11.5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word;
   }
 
   /* Zebra suave em tela */
@@ -1660,17 +1648,30 @@
         <option value="AVALIAR">Avaliar</option>
         <option value="REGULAR">Regular</option>
       </select>
-      <!-- Detalhamento (AEE / PIP) — opções dependem do Encaminhamento selecionado -->
-      <div class="ms-wrap" id="msWrapDetalhe">
-        <div class="ms-trigger" id="msTriggerDetalhe" onclick="toggleMs('Detalhe')">
-          <span class="ms-trigger-label" id="msLabelDetalhe">AEE / PIP</span>
-          <span class="ms-count" id="msCountDetalhe" style="display:none"></span>
+      <!-- AEE multi-select -->
+      <div class="ms-wrap" id="msWrapAEE">
+        <div class="ms-trigger" id="msTriggerAEE" onclick="toggleMs('AEE')">
+          <span class="ms-trigger-label" id="msLabelAEE">AEE / Diagnóstico</span>
+          <span class="ms-count" id="msCountAEE" style="display:none"></span>
           <span class="ms-trigger-arrow">▼</span>
         </div>
-        <div class="ms-dropdown" id="msDropDetalhe">
-          <div id="msOptionsDetalhe"></div>
+        <div class="ms-dropdown" id="msDropAEE">
+          <div id="msOptionsAEE"></div>
           <hr class="ms-divider">
-          <button class="ms-clear" onclick="clearMs('Detalhe')">✕ Limpar seleção</button>
+          <button class="ms-clear" onclick="clearMs('AEE')">✕ Limpar seleção</button>
+        </div>
+      </div>
+      <!-- PIP multi-select -->
+      <div class="ms-wrap" id="msWrapPIP">
+        <div class="ms-trigger" id="msTriggerPIP" onclick="toggleMs('PIP')">
+          <span class="ms-trigger-label" id="msLabelPIP">PIP/Pedagógico</span>
+          <span class="ms-count" id="msCountPIP" style="display:none"></span>
+          <span class="ms-trigger-arrow">▼</span>
+        </div>
+        <div class="ms-dropdown" id="msDropPIP">
+          <div id="msOptionsPIP"></div>
+          <hr class="ms-divider">
+          <button class="ms-clear" onclick="clearMs('PIP')">✕ Limpar seleção</button>
         </div>
       </div>
 
@@ -1679,7 +1680,7 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Exportar CSV
       </button>
-      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar estudantes ou atualizar nº/síntese de ocorrências via CSV">
+      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar estudantes de arquivo CSV">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
         Importar CSV
       </button>
@@ -1705,8 +1706,6 @@
             <col class="col-rotina">
             <col class="col-aee">
             <col class="col-pip">
-            <col class="col-ocn">
-            <col class="col-ocs">
             <col class="col-obs">
           </colgroup>
           <thead>
@@ -1719,8 +1718,6 @@
               <th class="th-rotina col-rotina">Rotina / Recomendações</th>
               <th class="th-aee">AEE / Diagnóstico</th>
               <th class="th-pip">PIP</th>
-              <th class="th-ocn" title="Número de ocorrências registradas">Nº Ocorr.</th>
-              <th class="th-ocs col-ocs">Síntese das ocorrências</th>
               <th class="th-obs col-obs">Observações</th>
             </tr>
           </thead>
@@ -2325,15 +2322,15 @@ document.addEventListener('keydown', e => {
    ROLES / PERMISSIONS
    ════════════════════════════════════════════════════════════ */
 const ROLES = {
-  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','p','e','a','pip','r','ocn','ocs','obs'], needsApproval: false },
-  'coord-turno': { label:'Coord. de Turno',   cls:'role-coord-turno',canEdit: ['ocn','ocs','obs'],                          needsApproval: true  },
+  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','p','e','a','pip','r','obs'], needsApproval: false },
+  'coord-turno': { label:'Coord. de Turno',   cls:'role-coord-turno',canEdit: ['obs'],                          needsApproval: true  },
   'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','obs'],                    needsApproval: true  },
   'aee':         { label:'AEE',                cls:'role-aee',        canEdit: ['a','r','obs'],                  needsApproval: true  },
 };
 // Perfis que devem confirmar leitura das notificações de alterações
 // aprovadas/realizadas pela Coordenação Pedagógica
 const ROLES_TO_TRACK = ['coord-turno','pip','aee'];
-// Field metadata: label, type ('text'|'number'|'select'|'textarea'), options for selects
+// Field metadata: label, type ('text'|'select'|'textarea'), options for selects
 const FIELD_META = {
   'n':   { label:'Nome do estudante',           type:'text'    },
   's':   { label:'Sexo',                        type:'select',  options:['M','F'], optionLabels:{'M':'Masculino','F':'Feminino'} },
@@ -2342,8 +2339,6 @@ const FIELD_META = {
   'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar AEE','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
   'pip': { label:'PIP/Pedagógico', type:'select', options:['N/A','SIM','SIM — LP','SIM — MAT','SIM — LP/MAT','SIM — Reforço','Dispensado','Avaliar PIP'] },
   'r':   { label:'Rotina / Recomendações AEE',   type:'textarea'},
-  'ocn': { label:'Nº de Ocorrências',            type:'number'  },
-  'ocs': { label:'Síntese das Ocorrências',      type:'textarea'},
   'obs': { label:'Observações',                  type:'textarea'},
 };
 
@@ -2482,7 +2477,7 @@ function getVisibleNotifications(){
     if(currentRole === 'coord-ped') return true; // vê tudo
     if(currentRole === 'pip')       return ['pip','obs'].includes(ed.field); // campos do PIP
     if(currentRole === 'aee')       return ['a','r'].includes(ed.field);   // campos do AEE
-    if(currentRole === 'coord-turno') return ['obs','ocn','ocs'].includes(ed.field);
+    if(currentRole === 'coord-turno') return ['obs'].includes(ed.field);
     return false;
   });
 }
@@ -2857,13 +2852,6 @@ const S = [
   {t:"8ºX",n:"Yuri Ezequiel Magalhaes de Lima",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
 ];
 
-// Garante que os campos de ocorrências existam em todos os registros
-// (dados locais de fallback usados antes da sincronização com o Supabase)
-S.forEach(x=>{
-  if(x.ocn === undefined) x.ocn = 0;
-  if(x.ocs === undefined) x.ocs = '';
-});
-
 /* ════════════════════════════════════════════════════════════
    HELPERS
    ════════════════════════════════════════════════════════════ */
@@ -3191,7 +3179,7 @@ function renderTable(){
   const tbody = document.getElementById('tableBody');
 
   if(!slice.length){
-    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado.</td></tr>`;
   } else {
     tbody.innerHTML = slice.map((x,i)=>`
       <tr style="cursor:pointer" onclick="openModal(${S.indexOf(x)})">
@@ -3203,8 +3191,6 @@ function renderTable(){
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?(x.a==='Avaliar AEE'?'<span style="background:#FEF3DC;color:#BA7517;font-weight:600;font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap">⚑ Avaliar AEE</span>':x.a):'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${v}</span>`; })()}</td>
-        <td class="td-ocn ${x.ocn?'has-oc':''}">${x.ocn?x.ocn:'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-ocs col-ocs" title="${x.ocs||''}">${x.ocs||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
       </tr>
     `).join('');
@@ -3268,7 +3254,6 @@ function renderAtipicos(){
           ${encamBadge(x.e)}
           ${hasAEE?(x.a==='Avaliar AEE'?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`:`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`):''}
           ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${v}</span>`; })():''}
-          ${x.ocn?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚠ ${x.ocn} ocorrência${x.ocn>1?'s':''}</span>`:''}
         </div>
         <div style="margin-top:8px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Rotina / Recomendações</div>
@@ -3277,7 +3262,6 @@ function renderAtipicos(){
             :`<div class="detail-rotina" style="color:#CCC;font-style:italic">Sem rotina específica registrada.</div>`
           }
         </div>
-        ${x.ocs?`<div style="margin-top:8px"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Síntese das ocorrências</div><div class="detail-obs">${x.ocs.length>90?x.ocs.slice(0,90)+'…':x.ocs}</div></div>`:''}
         ${x.o?`<div style="margin-top:8px"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px">Observações</div><div class="detail-obs">${x.o.length>90?x.o.slice(0,90)+'…':x.o}</div></div>`:''}
       </div>
     </div>`;
@@ -3369,26 +3353,6 @@ function renderModalContent(idx){
       </div>
       <div class="modal-section">
         <div class="modal-section-title" style="display:flex;align-items:center;gap:6px">
-          Registro de ocorrências
-        </div>
-        <div class="modal-row">
-          <span class="modal-key">Nº de ocorrências</span>
-          <span class="modal-val" style="display:flex;align-items:center;gap:6px">
-            <span>${x.ocn ? x.ocn : '<span style="color:#CCC">0</span>'}</span>${fieldEditBtn(idx,'ocn')}
-          </span>
-        </div>
-        <div style="margin-top:8px">
-          <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#B8B7B0;margin-bottom:4px;display:flex;align-items:center;gap:6px">
-            Síntese das ocorrências ${fieldEditBtn(idx,'ocs')}
-          </div>
-          ${x.ocs
-            ?`<div class="modal-text">${x.ocs}</div>`
-            :`<div class="modal-text" style="color:#CCC;font-style:italic">Sem ocorrências registradas.</div>`
-          }
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-title" style="display:flex;align-items:center;gap:6px">
           Observações ${fieldEditBtn(idx,'obs')}
         </div>
         ${x.o
@@ -3404,7 +3368,7 @@ function openEditFromModal(idx, field){
   editTarget = { studentIdx: idx, field };
   const x = S[idx];
   const meta = FIELD_META[field];
-  const currentVal = field==='obs' ? (x.o||'') : (field==='ocn' ? (x.ocn ?? 0) : (x[field]||''));
+  const currentVal = field==='obs' ? (x.o||'') : (x[field]||'');
 
   document.getElementById('editModalTitle').textContent = `Editar: ${meta.label}`;
   document.getElementById('editModalSub').textContent   = x.n;
@@ -3525,16 +3489,6 @@ function openEditFromModal(idx, field){
     fieldEl.rows = 5;
     fieldEl.value = currentVal;
     fieldEl.style.cssText = 'width:100%;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;min-height:100px;outline:none;transition:border .15s';
-    fieldEl.addEventListener('focus', ()=>{ fieldEl.style.borderColor='var(--verde)'; });
-    fieldEl.addEventListener('blur',  ()=>{ fieldEl.style.borderColor='#E8E7E3'; });
-  } else if(meta.type === 'number'){
-    fieldEl = document.createElement('input');
-    fieldEl.type = 'number';
-    fieldEl.id = 'editModalText';
-    fieldEl.min = '0';
-    fieldEl.step = '1';
-    fieldEl.value = currentVal !== '' ? currentVal : '0';
-    fieldEl.style.cssText = 'width:100%;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;transition:border .15s';
     fieldEl.addEventListener('focus', ()=>{ fieldEl.style.borderColor='var(--verde)'; });
     fieldEl.addEventListener('blur',  ()=>{ fieldEl.style.borderColor='#E8E7E3'; });
   } else {
@@ -3685,7 +3639,7 @@ async function approvePending(id, valorFinal){
   const val = valorFinal !== undefined ? valorFinal : ed.newVal;
 
   // Salva no estudante no Supabase
-  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
+  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
   const { error } = await sbPatch('estudantes', { [dbField]: val }, [`id=eq.${ed.studentId}`]);
   if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
 
@@ -3772,7 +3726,7 @@ function showToast(msg, type='verde'){
    ════════════════════════════════════════════════════════════ */
 function exportCSV(){
   const rows = filtered;
-  const headers = ['Turma','Nome do Estudante','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Nº de Ocorrências','Síntese das Ocorrências','Observações'];
+  const headers = ['Turma','Nome do Estudante','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Observações'];
   const csvEscape = v => {
     const s = (v||'').replace(/"/g,'""');
     return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
@@ -3780,8 +3734,8 @@ function exportCSV(){
   const lines = [
     headers.join(','),
     ...rows.map(x => [
-      x.t, x.n, x.s==='M'?'Masculino':'Feminino', x.p, x.a||'', x.pip||'', x.e||'', x.r||'', x.ocn||0, x.ocs||'', x.o||''
-    ].map(v=>csvEscape(String(v??''))).join(','))
+      x.t, x.n, x.s==='M'?'Masculino':'Feminino', x.p, x.a||'', x.pip||'', x.e||'', x.r||'', x.o||''
+    ].map(csvEscape).join(','))
   ];
   const bom = '\uFEFF'; // UTF-8 BOM para compatibilidade com Excel
   const blob = new Blob([bom + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
@@ -3811,8 +3765,6 @@ const PRINT_COLS = [
   { key:'rotina', label:'Rotina / Recomendações', default:true  },
   { key:'aee',    label:'AEE / Diagnóstico',      default:true  },
   { key:'pip',    label:'PIP/Pedagógico',         default:true  },
-  { key:'ocn',    label:'Nº Ocorrências',         default:false },
-  { key:'ocs',    label:'Síntese das Ocorrências', default:false },
   { key:'obs',    label:'Observações',            default:false },
 ];
 
@@ -3891,7 +3843,7 @@ function executePrint(){
   const activeCols = PRINT_COLS.filter(c=>active[c.key]);
 
   // Larguras relativas por coluna
-  const colWidths = {turma:'5%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%'};
+  const colWidths = {turma:'5%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'20%',aee:'10%',pip:'8%',obs:'17%'};
 
   function buildRow(x, idx){
     const bg = idx%2===0 ? '#fff' : '#F7F6F2';
@@ -3905,8 +3857,6 @@ function executePrint(){
       else if(c.key==='rotina') val = x.r||'—';
       else if(c.key==='aee')    val = (x.a&&x.a!=='N/A')?x.a:'—';
       else if(c.key==='pip')    val = (x.pip&&x.pip!=='N/A')?x.pip:'—';
-      else if(c.key==='ocn')    val = x.ocn||'—';
-      else if(c.key==='ocs')    val = x.ocs||'—';
       else if(c.key==='obs')    val = x.o||'—';
       return `<td style="padding:5px 8px;border-bottom:1px solid #E2E1DC;vertical-align:top;word-break:break-word;white-space:normal;font-size:9.5px">${val}</td>`;
     }).join('') + '</tr>';
@@ -4045,7 +3995,7 @@ function handleCSVImport(evt){
   const file = evt.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = async e => {
+  reader.onload = e => {
     try {
       const text = e.target.result.replace(/^\uFEFF/,''); // remove BOM
       const lines = text.split(/\r?\n/).filter(l=>l.trim());
@@ -4060,47 +4010,21 @@ function handleCSVImport(evt){
         pip:   findCol(headers,['pip','atendimento pip']),
         encam: findCol(headers,['encaminhamento']),
         rotina:findCol(headers,['rotina / recomendações aee','rotina','recomendações aee','rotina / recomendacoes aee']),
-        ocn:   findCol(headers,['nº de ocorrências','nº ocorrências','numero de ocorrencias','num. ocorrências','ocorrências','ocorrencias','nº ocorr.','qtd ocorrências','quantidade de ocorrências']),
-        ocs:   findCol(headers,['síntese das ocorrências','sintese das ocorrencias','síntese','sintese','texto síntese das ocorrências','texto sintese das ocorrencias','resumo das ocorrências']),
         obs:   findCol(headers,['observações','observacoes','obs']),
       };
       if(colMap.nome === -1 || colMap.turma === -1){
         showToast('CSV precisa ter colunas "Turma" e "Nome do Estudante".','coral');
         return;
       }
-      let added = 0, updated = 0, skipped = 0;
-      const updatesParaSalvar = []; // {id, fields}
+      let added = 0, skipped = 0;
       for(let i=1;i<lines.length;i++){
         const cells = parseCSVRow(lines[i]);
         if(cells.every(c=>!c.trim())) continue;
         const nome = get(cells,colMap.nome);
         const turma = get(cells,colMap.turma);
         if(!nome||!turma){ skipped++; continue; }
-
-        const ocnRaw = colMap.ocn !== -1 ? get(cells,colMap.ocn) : '';
-        const ocsRaw = colMap.ocs !== -1 ? get(cells,colMap.ocs) : '';
-
-        // Estudante já cadastrado? Atualiza apenas nº/síntese de ocorrências
-        const existente = S.find(x=>x.n===nome&&x.t===turma);
-        if(existente){
-          let mudou = false;
-          const camposAtualizados = {};
-          if(ocnRaw !== ''){
-            const ocnNum = Math.max(0, parseInt(ocnRaw,10) || 0);
-            if(ocnNum !== (existente.ocn||0)){ existente.ocn = ocnNum; camposAtualizados.num_ocorrencias = ocnNum; mudou = true; }
-          }
-          if(ocsRaw !== '' && ocsRaw !== existente.ocs){
-            existente.ocs = ocsRaw; camposAtualizados.sintese_ocorrencias = ocsRaw; mudou = true;
-          }
-          if(mudou){
-            updated++;
-            if(existente.id !== undefined) updatesParaSalvar.push({ id: existente.id, fields: camposAtualizados });
-          } else {
-            skipped++;
-          }
-          continue;
-        }
-
+        // Avoid duplicates
+        if(S.find(x=>x.n===nome&&x.t===turma)){ skipped++; continue; }
         const sexoRaw = get(cells,colMap.sexo).toUpperCase();
         const perfilRaw = get(cells,colMap.perfil).toUpperCase();
         S.push({
@@ -4112,25 +4036,14 @@ function handleCSVImport(evt){
           pip: get(cells,colMap.pip)||'N/A',
           e: get(cells,colMap.encam)||'REGULAR',
           r: get(cells,colMap.rotina)||'',
-          ocn: ocnRaw !== '' ? Math.max(0, parseInt(ocnRaw,10) || 0) : 0,
-          ocs: ocsRaw || '',
           o: get(cells,colMap.obs)||'',
         });
         added++;
       }
-      // Salva atualizações de ocorrências no Supabase (estudantes já existentes)
-      for(const upd of updatesParaSalvar){
-        try { await sbPatch('estudantes', upd.fields, [`id=eq.${upd.id}`]); } catch(err){ /* mantém dado local mesmo se falhar */ }
-      }
       // Rebuild turma list
       rebuildTurmas();
       renderTable(); renderAtipicos(); renderDashboard();
-      if(currentModalIdx!==null) renderModalContent(currentModalIdx);
-      const partes = [];
-      if(added) partes.push(`${added} estudante${added!==1?'s':''} adicionado${added!==1?'s':''}`);
-      if(updated) partes.push(`${updated} registro${updated!==1?'s':''} de ocorrências atualizado${updated!==1?'s':''}`);
-      if(skipped) partes.push(`${skipped} linha${skipped!==1?'s':''} ignorada${skipped!==1?'s':''}`);
-      showToast(`CSV importado: ${partes.join(', ')||'nenhuma alteração'}.`, 'verde');
+      showToast(`CSV importado: ${added} estudante${added!==1?'s':''} adicionado${added!==1?'s':''}${skipped?' ('+skipped+' ignorado'+(skipped!==1?'s':'')+')':''}`, 'verde');
     } catch(err){
       showToast('Erro ao ler CSV: '+err.message,'coral');
     }
@@ -4726,7 +4639,7 @@ async function carregarEstudantes(){
       return; // mantém dados hardcoded em S
     }
     S.length = 0;
-    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO', a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', ocn:x.num_ocorrencias||0, ocs:x.sintese_ocorrencias||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
+    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO', a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
     // Recalcula TURMAS com base nos dados reais
     TURMAS.length = 0;
     [...new Set(S.filter(x=>!x._transferido).map(x=>x.t))].forEach(t=>TURMAS.push(t));
@@ -4783,15 +4696,13 @@ async function submitEdit(){
   if(el.getAttribute && el.getAttribute('data-type')==='multiselect'){
     const checked = Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
     newVal = checked.length === 0 ? 'N/A' : checked.join(', ');
-  } else if(el.type === 'number'){
-    newVal = Math.max(0, parseInt(el.value, 10) || 0);
   } else {
     newVal = el.value.trim();
   }
   const { studentIdx, field } = editTarget;
   const x = S[studentIdx];
   const meta = FIELD_META[field];
-  const oldVal = field==='obs' ? (x.o||'') : (field==='ocn' ? (x.ocn ?? 0) : (x[field]||''));
+  const oldVal = field==='obs' ? (x.o||'') : (x[field]||'');
   if(newVal===oldVal){ closeEditModalBtn(); return; }
   const needsApproval = ROLES[currentRole].needsApproval;
 
@@ -4803,7 +4714,7 @@ async function submitEdit(){
     closeEditModalBtn();
     showToast('Edição registrada. A Coordenação Pedagógica será notificada.','amber');
   } else {
-    const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[field];
+    const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
     // Registra notificação visível para todos os perfis: alteração feita
@@ -4917,7 +4828,7 @@ function renderPendingPanel(){
 async function approvePending(id){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
-  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
+  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
@@ -4925,7 +4836,7 @@ async function approvePending(id){
   // Atualiza S local
   const idx = S.findIndex(x=>x.id===ed.studentId);
   if(idx!==-1){
-    const oldV = ed.field==='obs' ? (S[idx].o||'') : (ed.field==='ocn' ? (S[idx].ocn ?? 0) : (S[idx][ed.field]||''));
+    const oldV = ed.field==='obs' ? (S[idx].o||'') : (S[idx][ed.field]||'');
     pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:ed.newVal, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
     if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal;
   }
