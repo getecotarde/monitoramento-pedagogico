@@ -4213,10 +4213,6 @@ function gerarRelatorio(){
 
   // Encaminhamento multi-select
   const encamCbs = [...document.querySelectorAll('.rel-encam-cb:checked')].map(cb=>cb.value);
-  // AEE multi-select
-  const aeeCbs = [...document.querySelectorAll('.rel-aee-cb:checked')].map(cb=>cb.value);
-  // PIP multi-select
-  const pipCbs = [...document.querySelectorAll('.rel-pip-cb:checked')].map(cb=>cb.value);
 
   // Filter by perfil
   let data;
@@ -4230,12 +4226,6 @@ function gerarRelatorio(){
 
   // Filter by encaminhamento (if any checked)
   if(encamCbs.length>0) data=data.filter(x=>encamCbs.includes(encamKey(x.e)));
-
-  // Filter by AEE/Diagnóstico (if any checked)
-  if(aeeCbs.length>0) data=data.filter(x=>aeeCbs.includes((x.a||'').trim()));
-
-  // Filter by PIP (if any checked)
-  if(pipCbs.length>0) data=data.filter(x=>pipCbs.includes((x.pip||'').trim()));
 
   if(!data.length){ showToast('Nenhum estudante encontrado com esses filtros.','amber'); return; }
 
@@ -4261,9 +4251,7 @@ function gerarRelatorio(){
     'TÍPICO':'Típicos'
   }[perfil]||perfil;
   const encamLabel = encamCbs.length>0 ? encamCbs.join(', ') : 'Todos os encaminhamentos';
-  const aeeLabel = aeeCbs.length>0 ? 'AEE: '+aeeCbs.join(', ') : null;
-  const pipLabel = pipCbs.length>0 ? 'PIP: '+pipCbs.join(', ') : null;
-  const filtroTexto = [turma||'Todas as turmas', perfilLabel, encamLabel, aeeLabel, pipLabel].filter(Boolean).join(' · ');
+  const filtroTexto = [turma||'Todas as turmas', perfilLabel, encamLabel].join(' · ');
 
   let html = `<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="UTF-8">
@@ -4344,6 +4332,7 @@ function gerarRelatorio(){
   const win=window.open('','_blank');
   win.document.write(html);
   win.document.close();
+  setTimeout(()=>win.print(),600);
   closeRelatorioModalBtn();
 }
 
@@ -4410,43 +4399,6 @@ function gerarRelatorio(){
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-encam-cb" value="REFORÇO"> Reforço</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-encam-cb" value="AVALIAR"> Avaliar</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-encam-cb" value="REGULAR"> Regular</label>
-        </div>
-      </div>
-
-      <!-- Filtro AEE/Diagnóstico -->
-      <div style="margin-bottom:1rem">
-        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:6px">AEE / Diagnóstico <span style="font-weight:400;color:#BBB">(deixe todos desmarcados para incluir todos)</span></label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#FAFAF8">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TEA"> TEA</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TEA/TDAH"> TEA/TDAH</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TDAH"> TDAH</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TDAH/TOD"> TDAH/TOD</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TDAH/TOD/M.UC/T.Alim."> TDAH/TOD/M.UC/T.Alim.</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TDAH e Outras"> TDAH e Outras</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="TDAH/Bx.Vis/Neuro"> TDAH/Bx.Vis/Neuro</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="DI"> DI</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="DI/TDAH"> DI/TDAH</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="DI/DI/Neuro"> DI/DI/Neuro</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="Bx.Visão"> Bx.Visão</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="SURDEZ"> SURDEZ</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-aee-cb" value="Avaliar AEE"> Avaliar AEE</label>
-        </div>
-      </div>
-
-      <!-- Filtro PIP -->
-      <div style="margin-bottom:1rem">
-        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:6px">PIP / Pedagógico <span style="font-weight:400;color:#BBB">(deixe todos desmarcados para incluir todos)</span></label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#FAFAF8">
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="SIM"> SIM</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="SIM — LP"> SIM — LP</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="SIM — MAT"> SIM — MAT</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="SIM — LP/MAT"> SIM — LP/MAT</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="SIM — Reforço"> SIM — Reforço</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="N/A"> N/A</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="N/A — LP"> N/A — LP</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="N/A — MAT"> N/A — MAT</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="N/A — LP/MAT"> N/A — LP/MAT</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="rel-pip-cb" value="N/A — Reforço"> N/A — Reforço</label>
         </div>
       </div>
 
