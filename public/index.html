@@ -1943,6 +1943,23 @@
         <!-- Preview do grid -->
         <div id="cpGridPreview" style="display:flex;justify-content:center;margin-bottom:1.25rem"></div>
 
+        <!-- Ordenação -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Ordem de impressão</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:7px 10px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+            <input type="radio" name="cpSortOrder" value="turma-encam-nome" checked style="accent-color:var(--verde);cursor:pointer">
+            <span>Turma · Encaminhamento · Nome</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:7px 10px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+            <input type="radio" name="cpSortOrder" value="encam-turma-nome" style="accent-color:var(--verde);cursor:pointer">
+            <span>Encaminhamento · Turma · Nome</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:7px 10px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+            <input type="radio" name="cpSortOrder" value="nome" style="accent-color:var(--verde);cursor:pointer">
+            <span>Nome do aluno (A → Z)</span>
+          </label>
+        </div>
+
         <!-- Lista de estudantes -->
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Cards a imprimir</div>
         <div style="display:flex;gap:6px;margin-bottom:8px">
@@ -5788,6 +5805,24 @@ function executeCardPrint(){
   const checks  = document.querySelectorAll('#cardPrintStudentList input[type=checkbox]:checked');
   const selected = Array.from(checks).map(c => cardPrintData[parseInt(c.getAttribute('data-ci'))]).filter(Boolean);
   if(!selected.length){ alert('Selecione ao menos um estudante.'); return; }
+
+  // Sort order
+  const sortOrder = document.querySelector('input[name="cpSortOrder"]:checked')?.value || 'turma-encam-nome';
+  const encamOrder = ['PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR','REGULAR'];
+  selected.sort((a, b) => {
+    if(sortOrder === 'turma-encam-nome'){
+      return a.t.localeCompare(b.t,'pt-BR')
+          || encamOrder.indexOf(encamKey(a.e)) - encamOrder.indexOf(encamKey(b.e))
+          || a.n.localeCompare(b.n,'pt-BR');
+    }
+    if(sortOrder === 'encam-turma-nome'){
+      return encamOrder.indexOf(encamKey(a.e)) - encamOrder.indexOf(encamKey(b.e))
+          || a.t.localeCompare(b.t,'pt-BR')
+          || a.n.localeCompare(b.n,'pt-BR');
+    }
+    // nome
+    return a.n.localeCompare(b.n,'pt-BR');
+  });
 
   const {cols, rows} = cpPreset();
   const perPage = cols * rows;
