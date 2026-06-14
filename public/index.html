@@ -1391,6 +1391,15 @@
     transition: background .15s;
   }
   .btn-edit-approve:hover { background: #cce3f7; }
+  .btn-dismiss {
+    padding: 5px 12px; border: var(--border); border-radius: var(--radius-sm);
+    background: #fff; color: #888; font-size: 12px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background .15s;
+  }
+  .btn-dismiss:hover { background: #F3F2EF; color: #555; }
+  [data-theme="dark"] .btn-dismiss { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #888 !important; }
+  [data-theme="dark"] .btn-dismiss:hover { background: #252523 !important; color: #F0EFE9 !important; }
   .pending-empty {
     padding: 2rem; text-align: center; color: #BBB; font-size: 13px;
   }
@@ -1409,6 +1418,13 @@
   .pending-item.notif-aee .pending-item-new {
     background: rgba(107,101,204,.12); color: var(--roxo-dark);
   }
+  .pending-item.notif-aprovado {
+    border-left: 3px solid var(--verde);
+    background: var(--verde-bg);
+  }
+  .pending-item.notif-aprovado .pending-item-new {
+    background: rgba(29,158,117,.12); color: var(--verde-dark);
+  }
   .notif-tag {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 10px; font-weight: 600; padding: 2px 7px;
@@ -1417,8 +1433,10 @@
   .notif-tag.pip { background: var(--azul-bg); color: var(--azul-dark); }
   .notif-tag.aee { background: var(--roxo-bg); color: var(--roxo-dark); }
   .notif-tag.coord { background: var(--amber-bg); color: var(--amber-dark); }
+  .notif-tag.aprovado { background: var(--verde-bg); color: var(--verde-dark); }
   [data-theme="dark"] .pending-item.notif-only { background: rgba(43,127,212,.08) !important; }
   [data-theme="dark"] .pending-item.notif-aee  { background: rgba(107,101,204,.08) !important; }
+  [data-theme="dark"] .pending-item.notif-aprovado { background: rgba(29,158,117,.08) !important; }
 </style>
 </head>
 <body>
@@ -2445,6 +2463,9 @@ function updatePendingBtn(){
 function getVisibleNotifications(){
   if(!currentRole) return [];
   return pendingEdits.filter(ed => {
+    // Alterações aprovadas e/ou realizadas pela Coordenação Pedagógica
+    // aparecem nas notificações de TODOS os perfis.
+    if(ed.status === 'aprovado') return true;
     if(currentRole === 'coord-ped') return true; // vê tudo
     if(currentRole === 'pip')       return ['pip','r'].includes(ed.field); // campos do PIP
     if(currentRole === 'aee')       return ['a','r'].includes(ed.field);   // campos do AEE
@@ -4615,7 +4636,7 @@ async function carregarMovimentacoes(){
 async function carregarPendentes(){
   const r = await fetch(`${SUPABASE_URL}/rest/v1/aprovacoes_pendentes?select=*,estudantes(nome)&order=created_at.asc`, { headers: sbHeaders() });
   const rows = await r.json();
-  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
+  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, status:x.status||'pendente', fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
   updatePendingBtn();
 }
 
@@ -4656,7 +4677,7 @@ async function submitEdit(){
   const needsApproval = ROLES[currentRole].needsApproval;
 
   if(needsApproval){
-    const { error } = await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label });
+    const { error } = await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'pendente' });
     if(error){ showToast('Erro ao enviar para aprovação.','coral'); return; }
     await carregarPendentes();
     renderPendingPanel();
@@ -4666,6 +4687,11 @@ async function submitEdit(){
     const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+    // Registra notificação visível para todos os perfis: alteração feita
+    // diretamente pela Coordenação Pedagógica
+    await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'aprovado' });
+    await carregarPendentes();
+    renderPendingPanel();
     // Registra no histórico de desfazer/refazer
     pushHistory({
       studentIdx,
@@ -4698,6 +4724,30 @@ function renderPendingPanel(){
   const isCoord = currentRole === 'coord-ped';
 
   list.innerHTML = visible.map(ed => {
+    // Alterações aprovadas e/ou realizadas pela Coordenação Pedagógica:
+    // notificação informativa para TODOS os perfis
+    if(ed.status === 'aprovado'){
+      const mensagem = ed.role === 'coord-ped'
+        ? 'Alteração realizada pela Coordenação Pedagógica.'
+        : `Edição de ${ed.label} aprovada pela Coordenação Pedagógica.`;
+      const acaoCoord = isCoord
+        ? `<div class="pending-item-actions">
+             <button class="btn-dismiss" onclick="limparNotificacao(${ed.id})">✓ Marcar como lida</button>
+           </div>`
+        : '';
+      return `<div class="pending-item notif-aprovado" id="pend-${ed.id}">
+        <div class="pending-item-header">
+          <div class="pending-item-name">${ed.studentNome}</div>
+          <span class="notif-tag aprovado">✓ Aprovado</span>
+        </div>
+        <div class="pending-item-field">${ed.fieldLabel}</div>
+        <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
+        <div class="pending-item-new">${ed.newVal}</div>
+        <div class="pending-item-meta">${mensagem} Às ${ed.ts}.</div>
+        ${acaoCoord}
+      </div>`;
+    }
+
     // Define aparência por tipo de destinatário
     const isPipField = ['pip','r'].includes(ed.field) && !['a'].includes(ed.field);
     const isAeeField = ['a'].includes(ed.field);
@@ -4740,7 +4790,9 @@ async function approvePending(id){
   if(!ed) return;
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
-  await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
+  // Mantém o registro, marcando como aprovado, para que a alteração
+  // apareça como notificação para todos os perfis
+  await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
   // Atualiza S local
   const idx = S.findIndex(x=>x.id===ed.studentId);
   if(idx!==-1){
@@ -4749,6 +4801,7 @@ async function approvePending(id){
     if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal;
   }
   await carregarPendentes();
+  renderPendingPanel();
   renderTable(); renderAtipicos(); renderDashboard();
   if(currentModalIdx!==null) renderModalContent(currentModalIdx);
   showToast('Edição aprovada e aplicada.','verde');
@@ -4759,6 +4812,14 @@ async function rejectPending(id){
   await carregarPendentes();
   renderPendingPanel();
   showToast('Edição rejeitada.','coral');
+}
+
+// Remove uma notificação já aprovada/aplicada (visível para todos os perfis),
+// liberando o painel de notificações. Apenas a Coord. Pedagógica pode limpar.
+async function limparNotificacao(id){
+  await sbDelete('aprovacoes_pendentes',[ `id=eq.${id}` ]);
+  await carregarPendentes();
+  renderPendingPanel();
 }
 
 /* ════════════════════════════════════════════════════════════
