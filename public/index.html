@@ -418,10 +418,11 @@
     .cards-print-header {
       margin-bottom: 8px; padding-bottom: 6px;
       border-bottom: 2px solid #1D9E75;
+      font-family: Arial, sans-serif;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
-    .cards-print-header h2 { font-size: 13px; font-weight: 700; margin: 0 0 2px; color: #1A1916; }
-    .cards-print-header p  { font-size: 9px; color: #888; margin: 0; }
+    .cards-print-header h2 { font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #1A1916; font-family: Arial, sans-serif; }
+    .cards-print-header p  { font-size: 10px; color: #888; margin: 0; font-family: Arial, sans-serif; }
 
     /* Página de cards — ocupa toda a área disponível */
     .cards-print-page {
@@ -440,68 +441,75 @@
       background: #fff;
       display: flex;
       flex-direction: column;
+      font-family: Arial, sans-serif;
       /* Nunca quebrar entre páginas */
       page-break-inside: avoid;
       break-inside: avoid;
       min-height: 0; /* necessário para grid stretch */
     }
 
-    .print-card-strip-at { height: 4px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-card-strip-an { height: 4px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-card-strip-at { height: 5px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-card-strip-an { height: 5px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     .print-card-inner {
-      padding: 8px 10px;
+      padding: 9px 11px;
       display: flex; flex-direction: column;
       flex: 1; min-height: 0;
       overflow: hidden;
+      font-family: Arial, sans-serif;
     }
 
-    .print-card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
+    .print-card-header { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 7px; flex-shrink: 0; }
     .print-card-avatar {
-      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; letter-spacing: -.5px;
+      font-size: 13px; font-weight: 700; letter-spacing: -.5px;
+      font-family: Arial, sans-serif;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .print-avatar-at { background: #FAECE7 !important; color: #7A2E10 !important; }
     .print-avatar-an { background: #FEF3DC !important; color: #7A4A08 !important; }
 
-    .print-card-nome  { font-size: 11px; font-weight: 700; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; }
-    .print-card-turma { font-size: 9px; color: #999; }
+    .print-card-nome  { font-size: 13px; font-weight: 700; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
+    .print-card-turma { font-size: 11px; color: #999; font-family: Arial, sans-serif; }
 
     .print-card-chips {
-      display: flex; flex-wrap: wrap; gap: 3px;
-      padding-bottom: 6px; margin-bottom: 6px;
+      display: flex; flex-wrap: wrap; gap: 4px;
+      padding-bottom: 7px; margin-bottom: 7px;
       border-bottom: 1px solid #F0EFEB;
       flex-shrink: 0;
     }
     .print-card-chips .badge {
-      font-size: 8px !important; padding: 1px 5px !important;
+      font-size: 10px !important; padding: 2px 7px !important;
+      font-family: Arial, sans-serif !important;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
 
     .print-card-section-title {
-      font-size: 7px; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; color: #B8B7B0; margin-bottom: 3px;
-      flex-shrink: 0;
+      font-size: 9px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
+      flex-shrink: 0; font-family: Arial, sans-serif;
     }
     .print-card-rotina {
-      font-size: 9px; color: #555; line-height: 1.5;
+      font-size: 11px; color: #444; line-height: 1.55;
       background: #FAFAF8 !important; border-radius: 3px;
-      padding: 5px 7px; border-left: 3px solid #1D9E75;
+      padding: 6px 8px; border-left: 3px solid #1D9E75;
       white-space: normal; word-break: break-word;
+      font-family: Arial, sans-serif;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
       flex: 1; overflow: hidden;
     }
     .print-card-rotina-empty {
-      font-size: 9px; color: #CCC; font-style: italic; padding: 3px 0;
+      font-size: 11px; color: #CCC; font-style: italic; padding: 3px 0;
+      font-family: Arial, sans-serif;
       flex: 1;
     }
     .print-card-obs {
-      font-size: 9px; color: #AAA; font-style: italic;
-      margin-top: 5px; padding-top: 5px;
+      font-size: 10px; color: #888; font-style: italic;
+      margin-top: 6px; padding-top: 6px;
       border-top: 1px solid #F3F2EF;
       white-space: normal; word-break: break-word;
+      font-family: Arial, sans-serif;
       flex-shrink: 0;
     }
   }
@@ -5794,6 +5802,7 @@ function executeCardPrint(){
   if(fp) subtitulo += ` · ${fp==='ATÍPICO'?'Somente atípicos':'Somente em análise'}`;
   if(MS_STATE.AtAEE && MS_STATE.AtAEE.size) subtitulo += ` · AEE: ${[...MS_STATE.AtAEE].join(', ')}`;
   if(MS_STATE.AtPIP && MS_STATE.AtPIP.size) subtitulo += ` · PIP: ${[...MS_STATE.AtPIP].join(', ')}`;
+  if(MS_STATE.AtEncam && MS_STATE.AtEncam.size) subtitulo += ` · Encam.: ${[...MS_STATE.AtEncam].join(', ')}`;
 
   // Quebrar em páginas
   const pages = [];
