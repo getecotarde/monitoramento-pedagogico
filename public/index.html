@@ -2324,7 +2324,7 @@ document.addEventListener('keydown', e => {
 const ROLES = {
   'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','p','e','a','pip','r','obs'], needsApproval: false },
   'coord-turno': { label:'Coord. de Turno',   cls:'role-coord-turno',canEdit: ['obs'],                          needsApproval: true  },
-  'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','r'],                      needsApproval: true  },
+  'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','obs'],                    needsApproval: true  },
   'aee':         { label:'AEE',                cls:'role-aee',        canEdit: ['a','r','obs'],                  needsApproval: true  },
 };
 // Perfis que devem confirmar leitura das notificações de alterações
@@ -2475,7 +2475,7 @@ function getVisibleNotifications(){
     // aparecem nas notificações de TODOS os perfis.
     if(ed.status === 'aprovado') return true;
     if(currentRole === 'coord-ped') return true; // vê tudo
-    if(currentRole === 'pip')       return ['pip','r'].includes(ed.field); // campos do PIP
+    if(currentRole === 'pip')       return ['pip','obs'].includes(ed.field); // campos do PIP
     if(currentRole === 'aee')       return ['a','r'].includes(ed.field);   // campos do AEE
     if(currentRole === 'coord-turno') return ['obs'].includes(ed.field);
     return false;
