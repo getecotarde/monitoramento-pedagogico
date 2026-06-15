@@ -3078,6 +3078,7 @@ function renderDashboard(){
   const reforco  = S.filter(x=>encamKey(x.e)==="REFORÇO").length;
   const avaliarPIP = S.filter(x=>x.pip==="Avaliar PIP").length;
   const avaliarAEE = S.filter(x=>x.a==="Avaliar AEE").length;
+  const semAvaliacaoPIPAEE = S.filter(x=>x.p==="EM ANÁLISE" && x.pip==="N/A" && x.a==="N/A").length;
   const masc     = S.filter(x=>x.s==="M").length;
 
   const statsGrid=document.getElementById('statsGrid'); if(!statsGrid) return;
@@ -3101,6 +3102,7 @@ function renderDashboard(){
       <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
       <div class="stat-num">${analise}</div>
       <div class="stat-label">Em análise</div>
+      ${semAvaliacaoPIPAEE>0?`<div class="stat-sub">${semAvaliacaoPIPAEE} sem avaliação de PIP e AEE</div>`:''}
     </div>
     <div class="stat-card">
       <div class="stat-icon azul"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
