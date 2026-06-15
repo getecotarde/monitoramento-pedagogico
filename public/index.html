@@ -4099,7 +4099,7 @@ function executePrint(){
 
   function buildTable(students, titulo, subtitulo){
     const colgroup = activeCols.map(c=>`<col style="width:${colWidths[c.key]||'auto'}">`).join('');
-    const thead = activeCols.map(c=>`<th style="background:#1A3A2A;color:#fff;padding:7px 8px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;border:none">${c.label}</th>`).join('');
+    const thead = activeCols.map(c=>`<th style="background:#F2F2EF;color:#1A1916;padding:6px 8px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;border:none;border-bottom:1.5px solid #1A1916">${c.label}</th>`).join('');
     const rows  = students.map((x,i)=>buildRow(x,i)).join('');
     return `
       <div class="turma-block">
@@ -4120,8 +4120,7 @@ function executePrint(){
   selectedTurmas.forEach((t, ti)=>{
     const alunos = printStudents.filter(x=>x.t===t);
     const bloco = buildTable(alunos, `Turma ${t}`, `${alunos.length} estudante${alunos.length!==1?'s':''}`);
-    const pb = ti < selectedTurmas.length-1 ? '<div class="page-break"></div>' : '';
-    bodyContent += bloco + pb;
+    bodyContent += bloco;
   });
 
   const html = `<!DOCTYPE html>
@@ -4136,31 +4135,30 @@ function executePrint(){
   body{font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#1A1916;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
   /* ── Cabeçalho do documento ── */
-  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:3px solid #0F6E56;padding-bottom:10px;margin-bottom:18px}
-  .doc-title{font-size:15px;font-weight:700;color:#0F6E56;margin-bottom:3px}
+  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1A1916;padding-bottom:10px;margin-bottom:18px}
+  .doc-title{font-size:15px;font-weight:700;color:#1A1916;margin-bottom:3px}
   .doc-sub{font-size:9px;color:#666;line-height:1.6}
-  .doc-badge{background:#E1F5EE;border:1px solid #9FD9C3;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#0F6E56;line-height:1.7;white-space:nowrap}
-  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#0A4F3C}
+  .doc-badge{background:#fff;border:1px solid #999;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#333;line-height:1.7;white-space:nowrap}
+  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1A1916}
 
   /* ── Bloco de turma ── */
   .turma-block{margin-bottom:20px}
-  .turma-header{display:flex;align-items:baseline;gap:10px;background:#0F6E56;color:#fff;padding:7px 10px;border-radius:4px 4px 0 0}
+  .turma-header{display:flex;align-items:baseline;gap:10px;background:#fff;color:#1A1916;padding:6px 10px;border:1px solid #1A1916;border-bottom-width:2px}
   .turma-title{font-size:11px;font-weight:700;letter-spacing:.02em}
-  .turma-sub{font-size:9px;opacity:.75}
+  .turma-sub{font-size:9px;color:#666;opacity:1}
 
   /* ── Tabela ── */
   table{width:100%;border-collapse:collapse;table-layout:fixed}
-  thead tr th{border-right:1px solid rgba(255,255,255,.15)}
+  thead tr th{border-right:1px solid #ccc}
   thead tr th:last-child{border-right:none}
   tbody tr td{border-right:1px solid #ECEAE4}
   tbody tr td:last-child{border-right:none}
-  tbody tr:last-child td{border-bottom:2px solid #0F6E56}
+  tbody tr:last-child td{border-bottom:2px solid #1A1916}
 
   /* ── Rodapé ── */
   .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
 
   /* ── Quebra de página ── */
-  .page-break{page-break-after:always;break-after:page;height:0;display:block}
   .turma-block{page-break-inside:avoid;break-inside:avoid}
   /* se o bloco for muito grande, permitir quebrar dentro mas nunca separar header da tabela */
   .turma-header{page-break-after:avoid;break-after:avoid}
