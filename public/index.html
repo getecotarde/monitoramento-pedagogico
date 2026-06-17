@@ -5877,6 +5877,10 @@ function executeCardPrint(){
       ? `<div class="print-card-rotina">${x.r}</div>`
       : `<div class="print-card-rotina-empty">Sem rotina registrada.</div>`;
     const obs = x.o ? `<div class="print-card-obs">${x.o}</div>` : '';
+    const ocnChip = x.ocn ? `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">&#x26A0; ${x.ocn} ocorr&ecirc;ncia${x.ocn>1?'s':''}</span>` : '';
+    const ocsBlock = x.ocs
+      ? `<div class="print-card-section-title" style="margin-top:6px">S&iacute;ntese das Ocorr&ecirc;ncias</div><div class="print-card-obs" style="color:#7A4A08">${x.ocs}</div>`
+      : '';
     return `<div class="print-detail-card">
       <div class="${isAt?'print-card-strip-at':'print-card-strip-an'}"></div>
       <div class="print-card-inner">
@@ -5887,9 +5891,9 @@ function executeCardPrint(){
             <div class="print-card-turma">${x.t} &middot; ${x.s==='M'?'Masculino':'Feminino'}</div>
           </div>
         </div>
-        <div class="print-card-chips">${perfilBadge(x.p)}${encamBadge(x.e)}${aeeChip}${pipChip}</div>
+        <div class="print-card-chips">${perfilBadge(x.p)}${encamBadge(x.e)}${aeeChip}${pipChip}${ocnChip}</div>
         <div class="print-card-section-title">Rotina / Recomendações</div>
-        ${rotina}${obs}
+        ${rotina}${ocsBlock}${obs}
       </div>
     </div>`;
   }
