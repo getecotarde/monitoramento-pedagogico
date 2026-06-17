@@ -448,23 +448,32 @@
       min-height: 0; /* necessário para grid stretch */
     }
 
+    /* Escala tipográfica por nº de cards/página — definida via classe no wrapper.
+       Rotina, obs e síntese recebem um fator extra para crescerem mais que o resto. */
+    #cardsPrintWrap { --cp-f: 1; --cp-fb: 1; } /* fator base e fator "body text" (maior) */
+    #cardsPrintWrap.cp-n2 { --cp-f: 1.85; --cp-fb: 2.25; }
+    #cardsPrintWrap.cp-n3 { --cp-f: 1.55; --cp-fb: 1.85; }
+    #cardsPrintWrap.cp-n4 { --cp-f: 1.25; --cp-fb: 1.4;  }
+    #cardsPrintWrap.cp-n5 { --cp-f: 1.05; --cp-fb: 1.15; }
+    #cardsPrintWrap.cp-n6 { --cp-f: 0.92; --cp-fb: 0.95; }
+
     .print-card-strip-at { height: 2px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .print-card-strip-an { height: 2px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .print-card-strip-ti { height: 2px; flex-shrink:0; background: #1D9E75 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
     .print-card-inner {
-      padding: 9px 11px;
+      padding: calc(9px * var(--cp-f)) calc(11px * var(--cp-f));
       display: flex; flex-direction: column;
       flex: 1; min-height: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
 
-    .print-card-header { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 7px; flex-shrink: 0; }
+    .print-card-header { display: flex; align-items: flex-start; gap: calc(9px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f)); flex-shrink: 0; }
     .print-card-avatar {
-      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      width: calc(36px * var(--cp-f)); height: calc(36px * var(--cp-f)); border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; letter-spacing: -.5px;
+      font-size: calc(13px * var(--cp-f)); font-weight: 700; letter-spacing: -.5px;
       font-family: Arial, sans-serif;
       background: #fff !important;
       border: 1.5px solid currentColor;
@@ -475,17 +484,17 @@
     .print-avatar-an { color: #8C5B0E !important; }
     .print-avatar-ti { color: #0F6E56 !important; }
 
-    .print-card-nome  { font-size: 13px; font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
-    .print-card-turma { font-size: 11px; color: #999; font-family: Arial, sans-serif; }
+    .print-card-nome  { font-size: calc(13px * var(--cp-f)); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
+    .print-card-turma { font-size: calc(11px * var(--cp-f)); color: #999; font-family: Arial, sans-serif; }
 
     .print-card-chips {
       display: flex; flex-wrap: wrap; gap: 4px;
-      padding-bottom: 7px; margin-bottom: 7px;
+      padding-bottom: calc(7px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f));
       border-bottom: 1px solid #F0EFEB;
       flex-shrink: 0;
     }
     .print-card-chips .badge {
-      font-size: 10px !important; padding: 2px 7px !important;
+      font-size: calc(10px * var(--cp-f)) !important; padding: calc(2px * var(--cp-f)) calc(7px * var(--cp-f)) !important;
       font-family: Arial, sans-serif !important;
       background: #fff !important;
       border: 1px solid currentColor !important;
@@ -494,26 +503,26 @@
     }
 
     .print-card-section-title {
-      font-size: 9px; font-weight: 700; letter-spacing: .06em;
+      font-size: calc(9px * var(--cp-f)); font-weight: 700; letter-spacing: .06em;
       text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
       flex-shrink: 0; font-family: Arial, sans-serif;
     }
     .print-card-rotina {
-      font-size: 11px; color: #444; line-height: 1.55;
+      font-size: calc(11px * var(--cp-fb)); color: #444; line-height: 1.5;
       background: #FAFAF8 !important; border-radius: 3px;
-      padding: 6px 8px; border-left: 2px solid #1D9E75;
+      padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #1D9E75;
       white-space: normal; word-break: break-word;
       font-family: Arial, sans-serif;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
       flex: 1; overflow: hidden;
     }
     .print-card-rotina-empty {
-      font-size: 11px; color: #CCC; font-style: italic; padding: 3px 0;
+      font-size: calc(11px * var(--cp-fb)); color: #CCC; font-style: italic; padding: 3px 0;
       font-family: Arial, sans-serif;
       flex: 1;
     }
     .print-card-obs {
-      font-size: 10px; color: #888; font-style: italic;
+      font-size: calc(10px * var(--cp-fb)); color: #888; font-style: italic;
       margin-top: 6px; padding-top: 6px;
       border-top: 1px solid #F3F2EF;
       white-space: normal; word-break: break-word;
@@ -5949,6 +5958,7 @@ function executeCardPrint(){
   </div>`;
 
   document.getElementById('cardsPrintWrap').innerHTML = header + pagesHtml;
+  document.getElementById('cardsPrintWrap').className = `cp-n${cardPrintLayout}`;
   closeCardPrintModalBtn();
 
   // Injeta @page com orientação correta dinamicamente
