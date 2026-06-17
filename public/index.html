@@ -3047,13 +3047,22 @@ const PIP_DISC_MAP = { 'LP':'Língua Portuguesa', 'MAT':'Matemática', 'Reforço
 function pipLabel(v){
   if(!v || v==='N/A') return '';
   if(v==='Dispensado' || v==='Avaliar PIP') return v;
+  // "N/A — Reforço": não é PIP formal, é apenas indicação de reforço.
+  const mNA = v.match(/^N\/A\s*(?:—|-)?\s*(.*)$/i);
+  if(mNA){
+    const extra = (mNA[1]||'').trim();
+    return extra ? (PIP_DISC_MAP[extra] || extra) : '';
+  }
   const m = v.match(/^SIM\s*(?:—|-)?\s*(.*)$/i);
   if(!m) return v;
   const discs = (m[1]||'').trim();
   if(!discs) return 'PIP';
   const partes = discs.split('/').map(d=>d.trim()).filter(Boolean)
     .map(d => PIP_DISC_MAP[d] || d);
-  return partes.length ? `PIP — ${partes.join(', ')}` : 'PIP';
+  if(!partes.length) return 'PIP';
+  // "Reforço" sozinho não é uma disciplina formal do PIP — exibe sem o prefixo "PIP —".
+  if(partes.length === 1 && partes[0] === 'Reforço') return 'Reforço';
+  return `PIP — ${partes.join(', ')}`;
 }
 const perfilBadge = p => {
   if(p==="ATÍPICO")   return `<span class="badge b-atipico">Atípico</span>`;
