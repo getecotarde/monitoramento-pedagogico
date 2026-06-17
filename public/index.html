@@ -3041,6 +3041,20 @@ S.forEach(x=>{
    HELPERS
    ════════════════════════════════════════════════════════════ */
 const TURMAS = [...new Set(S.map(x=>x.t))];
+// Converte o valor cru do campo PIP ("SIM — LP/MAT", "SIM — Reforço" etc.)
+// em um texto legível com o(s) nome(s) completo(s) da(s) disciplina(s).
+const PIP_DISC_MAP = { 'LP':'Língua Portuguesa', 'MAT':'Matemática', 'Reforço':'Reforço' };
+function pipLabel(v){
+  if(!v || v==='N/A') return '';
+  if(v==='Dispensado' || v==='Avaliar PIP') return v;
+  const m = v.match(/^SIM\s*(?:—|-)?\s*(.*)$/i);
+  if(!m) return v;
+  const discs = (m[1]||'').trim();
+  if(!discs) return 'PIP';
+  const partes = discs.split('/').map(d=>d.trim()).filter(Boolean)
+    .map(d => PIP_DISC_MAP[d] || d);
+  return partes.length ? `PIP — ${partes.join(', ')}` : 'PIP';
+}
 const perfilBadge = p => {
   if(p==="ATÍPICO")   return `<span class="badge b-atipico">Atípico</span>`;
   if(p==="EM ANÁLISE")return `<span class="badge b-analise">Em análise</span>`;
@@ -3400,7 +3414,7 @@ function renderTable(){
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?(x.a==='Avaliar AEE'?'<span style="background:#FEF3DC;color:#BA7517;font-weight:600;font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap">⚑ Avaliar AEE</span>':x.a):'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${v}</span>`; })()}</td>
+        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${pipLabel(v)}</span>`; })()}</td>
         <td class="td-ocn ${x.ocn?'has-oc':''}">${x.ocn?x.ocn:'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-ocs col-ocs" title="${x.ocs||''}">${x.ocs||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
@@ -3469,7 +3483,7 @@ function renderAtipicos(){
           ${perfilBadge(x.p)}
           ${encamBadge(x.e)}
           ${hasAEE?(x.a==='Avaliar AEE'?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`:`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`):''}
-          ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${v}</span>`; })():''}
+          ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${pipLabel(v)}</span>`; })():''}
           ${x.ocn?`<span class="badge" style="background:#D8392E;color:#fff;font-weight:600">⚠ ${x.ocn} advertência${x.ocn>1?'s':''}</span>`:''}
         </div>
         <div style="margin-top:8px">
@@ -3556,7 +3570,7 @@ function renderModalContent(idx){
         <div class="modal-row">
           <span class="modal-key">PIP/Pedagógico</span>
           <span class="modal-val" style="display:flex;align-items:center;gap:6px">
-            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#1D9E75">Dispensado</span>'; if(v==='Avaliar PIP') return '<span style="color:#BA7517">⚑ Avaliar PIP</span>'; return `<span style="color:#2B7FD4">✓ ${v}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
+            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#1D9E75">Dispensado</span>'; if(v==='Avaliar PIP') return '<span style="color:#BA7517">⚑ Avaliar PIP</span>'; return `<span style="color:#2B7FD4">✓ ${pipLabel(v)}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
           </span>
         </div>
       </div>
@@ -4113,7 +4127,7 @@ function executePrint(){
       else if(c.key==='encam')  val = encamKey(x.e);
       else if(c.key==='rotina') val = x.r||'—';
       else if(c.key==='aee')    val = (x.a&&x.a!=='N/A')?x.a:'—';
-      else if(c.key==='pip')    val = (x.pip&&x.pip!=='N/A')?x.pip:'—';
+      else if(c.key==='pip')    val = (x.pip&&x.pip!=='N/A')?pipLabel(x.pip):'—';
       else if(c.key==='ocn')    val = x.ocn||'—';
       else if(c.key==='ocs')    val = x.ocs||'—';
       else if(c.key==='obs')    val = x.o||'—';
@@ -4520,7 +4534,7 @@ function gerarRelatorio(){
         html+=`<div class="campo-label">AEE / Diagnóstico</div><div class="campo-val">${x.a}</div>`;
       }
       if(incPIP&&x.pip&&x.pip!=='N/A'){
-        html+=`<div class="campo-label">PIP/Pedagógico</div><div class="campo-val">${x.pip}</div>`;
+        html+=`<div class="campo-label">PIP/Pedagógico</div><div class="campo-val">${pipLabel(x.pip)}</div>`;
       }
       if(incRoteiro&&x.r){
         html+=`<div class="campo-label">Roteiro / Recomendações AEE</div><div class="campo-val">${x.r}</div>`;
@@ -5901,7 +5915,7 @@ function executeCardPrint(){
       const v = x.pip;
       if(v==='Avaliar PIP') return `<span class="badge" style="background:#fff;border:1px solid #BA7517;color:#BA7517;font-weight:600">&#x2691; Avaliar PIP</span>`;
       if(v==='Dispensado') return `<span class="badge" style="background:#fff;border:1px solid #0F6E56;color:#0F6E56;font-weight:600">Dispensado</span>`;
-      return `<span class="badge" style="background:#fff;border:1px solid #154F8A;color:#154F8A;font-weight:600">&#x2713; ${v}</span>`;
+      return `<span class="badge" style="background:#fff;border:1px solid #154F8A;color:#154F8A;font-weight:600">&#x2713; ${pipLabel(v)}</span>`;
     })() : '';
     const rotina = x.r
       ? `<div class="print-card-rotina">${x.r}</div>`
