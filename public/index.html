@@ -1099,6 +1099,11 @@
   .b-regular   { background: var(--verde-bg);  color: var(--verde-dark); }
   .b-m         { background: var(--azul-bg);   color: var(--azul-dark);  }
   .b-f         { background: #FBEAF0;           color: #72243E;           }
+  /* relatórios escolares — status */
+  .b-rel-pendente  { background: var(--amber-bg); color: var(--amber-dark); }
+  .b-rel-andamento { background: var(--azul-bg);  color: var(--azul-dark);  }
+  .b-rel-concluido { background: var(--verde-bg); color: var(--verde-dark); }
+  .b-rel-atrasado  { background: var(--coral-bg); color: var(--coral-dark); }
 
   /* ── DETAIL PANEL (atípicos) ─────────────────── */
   .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
@@ -1667,6 +1672,11 @@
       Movimentações
       <span class="nav-badge" id="nb-mov">0</span>
     </button>
+    <button class="nav-item" onclick="showView('relescolares', this)" id="navRelEscolares">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="12" y2="11"/></svg>
+      Rel. Escolares
+      <span class="nav-badge" id="nb-rel" style="display:none">—</span>
+    </button>
     <button class="nav-item" onclick="abrirUsuarios(this)" id="navUsuarios" style="display:none">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-1a4 4 0 0 0-3-3.87"/></svg>
       Usuários e acessos
@@ -2190,6 +2200,60 @@
           </thead>
           <tbody id="movTableBody">
             <tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação registrada ainda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: RELATÓRIOS ESCOLARES ─────────────────────────────────── -->
+  <div id="view-relescolares" class="view">
+    <div class="page-header">
+      <h1>Relatórios Escolares</h1>
+      <p>Registro de solicitações de relatórios escolares, motivos e prazos de entrega — geração de ficha para preenchimento pelos professores</p>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button class="btn-save" onclick="openRelEscolarModal()" style="display:inline-flex;align-items:center;gap:6px;background:var(--roxo)">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Nova solicitação de relatório
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar" style="margin-bottom:1rem">
+      <select id="relEscolarFilterStatus" onchange="renderRelEscolaresLog()">
+        <option value="">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="andamento">Em andamento</option>
+        <option value="concluido">Concluído</option>
+      </select>
+      <select id="relEscolarFilterTurma" onchange="renderRelEscolaresLog()">
+        <option value="">Todas as turmas</option>
+      </select>
+      <span class="results-count" id="relEscolarCount"></span>
+    </div>
+
+    <!-- Log table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Solicitado em</th>
+              <th>Estudante</th>
+              <th>Turma</th>
+              <th>Motivo</th>
+              <th>Solicitante</th>
+              <th>Previsão de entrega</th>
+              <th>Status</th>
+              <th>Registrado por</th>
+              <th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="relEscolarTableBody">
+            <tr><td colspan="9" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação registrada ainda.</td></tr>
           </tbody>
         </table>
       </div>
@@ -4657,6 +4721,64 @@ function gerarRelatorio(){
   </div>
 </div>
 
+<!-- ═══ RELATÓRIO ESCOLAR — NOVA SOLICITAÇÃO MODAL ═══════════ -->
+<div class="modal-overlay" id="relEscolarModalOverlay" onclick="closeRelEscolarModal(event)">
+  <div class="modal-box" id="relEscolarModalBox" style="max-width:600px">
+    <div class="modal-header" style="position:sticky;top:0;background:#fff;z-index:1;border-bottom:1px solid #E8E7E3;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:12px">
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:700">Nova solicitação de relatório escolar</div>
+        <div style="font-size:12px;color:#999">Registre o pedido e gere a ficha de relato para os professores</div>
+      </div>
+      <button class="modal-close" onclick="closeRelEscolarModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:1.25rem 1.5rem" id="relEscolarModalBody">
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Estudante *</label>
+        <select id="relEscEstudante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" onchange="autoFillTurmaRelEsc()">
+          <option value="">— selecione o estudante —</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma</label>
+          <input type="text" id="relEscTurma" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;background:#FAFAF8" readonly>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Solicitante</label>
+          <input type="text" id="relEscSolicitante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Ex: Família, Conselho Tutelar, Direção">
+        </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo da solicitação *</label>
+        <textarea id="relEscMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical" placeholder="Ex: Solicitação da família para acompanhamento médico, pedido do Conselho Tutelar, etc."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data da solicitação *</label>
+          <input type="date" id="relEscDataSolicitacao" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Previsão de entrega *</label>
+          <input type="date" id="relEscDataPrevisao" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">
+        </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Observações</label>
+        <textarea id="relEscObs" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea>
+      </div>
+      <div style="background:#EEEDFE;border-radius:6px;padding:10px 12px;font-size:12px;color:#3C3489;margin-bottom:1rem">
+        Após registrar, use o botão <strong>"Ficha p/ professores"</strong> na tabela para gerar um documento pronto para impressão, com um espaço de preenchimento por disciplina.
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-cancel" onclick="closeRelEscolarModalBtn()">Cancelar</button>
+        <button class="btn-save" onclick="submitRelEscolar()" style="background:var(--roxo)">Registrar solicitação</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ════════════════════════════════════════════════════════════
    SUPABASE — configuração
@@ -4726,7 +4848,7 @@ async function sbDelete(table, filters){
    INDICADOR DE SINCRONIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 let _syncWsConnected = 0; // conta WebSockets conectados
-let _syncTotal = 3;       // total esperado (estudantes, movimentacoes, aprovacoes)
+let _syncTotal = 4;       // total esperado (estudantes, movimentacoes, rel_escolares, aprovacoes)
 let _syncFlashTimer = null;
 
 function syncSetStatus(state, label){
@@ -4980,6 +5102,274 @@ async function carregarMovimentacoes(){
   if(nbMov) nbMov.textContent = movLog.length;
 }
 
+/* ════════════════════════════════════════════════════════════
+   RELATÓRIOS ESCOLARES — solicitações e ficha para professores
+   ════════════════════════════════════════════════════════════ */
+let relEscolaresLog = [];
+
+// Lista padrão de disciplinas — ajuste aqui conforme a grade da escola
+const DISCIPLINAS_PADRAO = [
+  'Língua Portuguesa','Matemática','Ciências','História','Geografia',
+  'Inglês','Arte','Educação Física','Ensino Religioso'
+];
+
+function openRelEscolarModal(){
+  if(!currentRole){ alert('Você precisa estar logado para registrar solicitações de relatório.'); return; }
+  const sel = document.getElementById('relEscEstudante');
+  const allStudents = S.map((x,i)=>x._transferido?'':`<option value="${i}">${x.n} (${x.t})</option>`).join('');
+  sel.innerHTML = `<option value="">— selecione o estudante —</option>${allStudents}`;
+  document.getElementById('relEscTurma').value='';
+  document.getElementById('relEscSolicitante').value='';
+  document.getElementById('relEscMotivo').value='';
+  document.getElementById('relEscObs').value='';
+  document.getElementById('relEscDataSolicitacao').value = new Date().toISOString().slice(0,10);
+  document.getElementById('relEscDataPrevisao').value='';
+  document.getElementById('relEscolarModalOverlay').classList.add('open');
+}
+function autoFillTurmaRelEsc(){
+  const sel = document.getElementById('relEscEstudante');
+  const idx = sel.value;
+  const est = (idx !== '') ? S[parseInt(idx)] : null;
+  document.getElementById('relEscTurma').value = est ? est.t : '';
+}
+function closeRelEscolarModal(e){ if(e.target===document.getElementById('relEscolarModalOverlay')) closeRelEscolarModalBtn(); }
+function closeRelEscolarModalBtn(){ document.getElementById('relEscolarModalOverlay').classList.remove('open'); }
+
+async function submitRelEscolar(){
+  const estIdx = document.getElementById('relEscEstudante').value;
+  const turma  = document.getElementById('relEscTurma').value;
+  const solicitante = document.getElementById('relEscSolicitante').value.trim();
+  const motivo = document.getElementById('relEscMotivo').value.trim();
+  const dataSolicitacao = document.getElementById('relEscDataSolicitacao').value;
+  const dataPrevisao = document.getElementById('relEscDataPrevisao').value;
+  const obs = document.getElementById('relEscObs').value.trim();
+
+  if(estIdx===''||estIdx===null){ alert('Selecione o estudante.'); return; }
+  if(!motivo){ alert('Informe o motivo da solicitação.'); return; }
+  if(!dataSolicitacao){ alert('Informe a data da solicitação.'); return; }
+  if(!dataPrevisao){ alert('Informe a previsão de entrega.'); return; }
+
+  const est = S[parseInt(estIdx)];
+  if(!est){ alert('Estudante não encontrado.'); return; }
+
+  const row = {
+    aluno_nome: est.n, turma, motivo, solicitante: solicitante||'—',
+    data_solicitacao: dataSolicitacao, data_previsao: dataPrevisao,
+    status: 'pendente', observacoes: obs, registrado_por: ROLES[currentRole].label
+  };
+
+  try {
+    await sbPost('rel_escolares', row);
+  } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
+  relEscolaresLog.unshift({ _local:true, ...row });
+
+  try { await carregarRelEscolares(); } catch(e){ renderRelEscolaresLog(); }
+  showMovNotification(`Solicitação de relatório de ${est.n} registrada.`,'azul');
+  closeRelEscolarModalBtn();
+}
+
+function relEscStatusLabel(status){
+  return { pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído' }[status] || 'Pendente';
+}
+function relEscStatusClass(item){
+  if(item.status==='concluido') return 'b-rel-concluido';
+  if(item.status==='andamento') return 'b-rel-andamento';
+  // pendente — verifica se está atrasado
+  if(item.data_previsao){
+    const hoje = new Date().toISOString().slice(0,10);
+    if(item.data_previsao < hoje) return 'b-rel-atrasado';
+  }
+  return 'b-rel-pendente';
+}
+
+async function atualizarStatusRelEscolar(idx, novoStatus){
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  item.status = novoStatus;
+  try {
+    if(item.id) await sbPatch('rel_escolares', { status: novoStatus }, [`id=eq.${item.id}`]);
+  } catch(e){ console.warn('Supabase indisponível, atualizando apenas localmente.', e); }
+  renderRelEscolaresLog();
+}
+
+async function excluirRelEscolar(idx){
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  if(!confirm(`Excluir a solicitação de relatório de ${item.aluno_nome}?`)) return;
+  try {
+    if(item.id) await sbDelete('rel_escolares', [`id=eq.${item.id}`]);
+  } catch(e){ console.warn('Supabase indisponível, removendo apenas localmente.', e); }
+  relEscolaresLog.splice(idx,1);
+  renderRelEscolaresLog();
+}
+
+function renderRelEscolaresLog(){
+  const tbody = document.getElementById('relEscolarTableBody');
+  if(!tbody) return;
+  const statusF = document.getElementById('relEscolarFilterStatus')?.value||'';
+  const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
+  let data = relEscolaresLog.filter(m=>{
+    if(statusF && m.status!==statusF) return false;
+    if(turmaF && m.turma!==turmaF) return false;
+    return true;
+  });
+  const countEl = document.getElementById('relEscolarCount');
+  if(countEl) countEl.textContent = `${data.length} solicitação${data.length!==1?'ões':''}`;
+
+  const nbRel = document.getElementById('nb-rel');
+  if(nbRel){
+    const pendentes = relEscolaresLog.filter(m=>m.status!=='concluido').length;
+    nbRel.style.display = pendentes ? '' : 'none';
+    nbRel.textContent = pendentes;
+  }
+
+  if(!data.length){
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(m=>{
+    const idx = relEscolaresLog.indexOf(m);
+    const fmt = d => d ? new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+    const cls = relEscStatusClass(m);
+    return `<tr>
+      <td style="white-space:nowrap;color:#888;font-size:12px">${fmt(m.data_solicitacao)}</td>
+      <td class="td-nome">${m.aluno_nome}</td>
+      <td class="td-turma">${m.turma||'—'}</td>
+      <td class="td-obs" title="${m.motivo||''}">${m.motivo||'<span style="color:#CCC">—</span>'}</td>
+      <td style="font-size:12px;color:#888">${m.solicitante||'—'}</td>
+      <td style="white-space:nowrap;font-size:12px">${fmt(m.data_previsao)}</td>
+      <td>
+        <select onchange="atualizarStatusRelEscolar(${idx}, this.value)" style="font-size:11px;padding:3px 6px;border-radius:20px;border:none;font-weight:500;cursor:pointer" class="badge ${cls}">
+          <option value="pendente" ${m.status==='pendente'?'selected':''}>Pendente</option>
+          <option value="andamento" ${m.status==='andamento'?'selected':''}>Em andamento</option>
+          <option value="concluido" ${m.status==='concluido'?'selected':''}>Concluído</option>
+        </select>
+      </td>
+      <td style="font-size:12px;color:#888">${m.registrado_por||'—'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button onclick="gerarDocumentoProfessores(${idx})" title="Gerar ficha para professores" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 8px;cursor:pointer;color:#3C3489;margin-right:4px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </button>
+        <button onclick="excluirRelEscolar(${idx})" title="Excluir" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 8px;cursor:pointer;color:#D85A30">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="vertical-align:middle"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function carregarRelEscolares(){
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rel_escolares?select=*&order=created_at.desc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if (r.ok && Array.isArray(rows)) relEscolaresLog = rows;
+  } catch(err) {
+    console.error('Erro ao carregar rel_escolares:', err);
+  }
+  renderRelEscolaresLog();
+}
+
+function gerarDocumentoProfessores(idx){
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const fmt = d => d ? new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+
+  let html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<title>Ficha de Relato do Professor — ${item.aluno_nome}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Georgia',serif; font-size:11pt; color:#1a1a1a; background:#fff; line-height:1.5; }
+  .rel-header { border-bottom:2px solid #6B65CC; padding-bottom:12px; margin-bottom:18px; }
+  .rel-title { font-size:15pt; font-weight:700; color:#3C3489; margin-bottom:4px; }
+  .rel-sub { font-size:10pt; color:#666; }
+  .rel-meta { font-size:9pt; color:#999; margin-top:3px; }
+  .info-box { background:#F7F6FE; border-left:3px solid #6B65CC; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:18px; font-size:10pt; }
+  .info-box div { margin-bottom:3px; }
+  .info-box b { color:#3C3489; }
+  .instrucoes { background:#FEF3DC; border-left:3px solid #BA7517; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:22px; font-size:9.5pt; color:#7A4A08; }
+  .disc-page { page-break-after:always; padding-top:6px; }
+  .disc-page:last-of-type { page-break-after:auto; }
+  .disc-title { font-size:13pt; font-weight:700; color:#3C3489; border-left:4px solid #6B65CC; padding:6px 10px; border-radius:0 4px 4px 0; margin-bottom:14px; background:#F7F6FE; }
+  .campo-label { font-size:9pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.04em; margin-top:10px; margin-bottom:3px; }
+  .campo-orientacao { font-size:8.5pt; font-style:italic; color:#888; margin-bottom:5px; line-height:1.35; }
+  .linha-preencher { border-bottom:1px solid #999; height:26px; }
+  .assinatura-row { display:flex; gap:24px; margin-top:26px; }
+  .assinatura-item { flex:1; }
+  .assinatura-linha { border-bottom:1px solid #333; margin-top:26px; margin-bottom:4px; }
+  .assinatura-label { font-size:9pt; color:#888; }
+  .rodape { margin-top:16px; border-top:1px solid #E8E7E3; padding-top:8px; font-size:8pt; color:#AAA; text-align:center; }
+  @media print {
+    body { font-size:10pt; }
+    @page { margin:1.5cm; }
+  }
+</style>
+</head><body>`;
+
+  DISCIPLINAS_PADRAO.forEach((disc, i)=>{
+    html += `<div class="disc-page">
+      <div class="rel-header">
+        <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
+        <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
+        <div class="rel-meta">Gerado em ${now}</div>
+      </div>
+      <div class="info-box">
+        <div><b>Estudante:</b> ${item.aluno_nome}</div>
+        <div><b>Turma:</b> ${item.turma||'—'}</div>
+        <div><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
+        <div><b>Solicitante:</b> ${item.solicitante||'—'}</div>
+        <div><b>Previsão de entrega à Coordenação:</b> ${fmt(item.data_previsao)}</div>
+      </div>
+      <div class="instrucoes">
+        Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, todos os itens solicitados sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
+      </div>
+      <div class="disc-title">Disciplina: ${disc}</div>
+
+      <div class="campo-label">Professor(a) responsável</div>
+      <div class="linha-preencher"></div>
+
+      <div class="campo-label">1. Desempenho, comportamento e participação</div>
+      <div class="campo-orientacao">Descreva de forma objetiva o desempenho acadêmico, o comportamento em sala de aula e a participação do(a) aluno(a) nas atividades propostas nesta disciplina, indicando as principais dificuldades observadas, se houver.</div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+
+      <div class="campo-label">2. Estratégias desenvolvidas diante das dificuldades apresentadas</div>
+      <div class="campo-orientacao">Relate as estratégias pedagógicas já adotadas em sala de aula para lidar com as dificuldades apresentadas pelo(a) aluno(a) (ex.: atividades adaptadas, atendimento individualizado, mudança de posicionamento, apoio de material diferenciado, entre outras) e os resultados observados até o momento.</div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+
+      <div class="campo-label">3. Recomendações / encaminhamentos sugeridos</div>
+      <div class="campo-orientacao">Indique, de forma objetiva, sugestões de encaminhamento, apoio pedagógico ou intervenção que considera necessárias para os próximos passos do(a) aluno(a).</div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+
+      <div class="assinatura-row">
+        <div class="assinatura-item">
+          <div class="assinatura-linha"></div>
+          <div class="assinatura-label">Assinatura do(a) professor(a)</div>
+        </div>
+        <div class="assinatura-item">
+          <div class="assinatura-linha"></div>
+          <div class="assinatura-label">Data</div>
+        </div>
+      </div>
+      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Página ${i+1} de ${DISCIPLINAS_PADRAO.length}</div>
+    </div>`;
+  });
+
+  html += `</body></html>`;
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(),600);
+}
+
 async function carregarPendentes(){
   const r = await fetch(`${SUPABASE_URL}/rest/v1/aprovacoes_pendentes?select=*,estudantes(nome)&order=created_at.asc`, { headers: sbHeaders() });
   const rows = await r.json();
@@ -4994,7 +5384,7 @@ function refreshAllViews(){
   const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
   const nav=document.getElementById('turmaSideNav'); nav.innerHTML='';
   allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
-  ['filterTurma','filterAtTurma','relTurma','movFilterTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; const cur=sel.value; while(sel.options.length>1)sel.remove(1); allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); sel.value=cur; });
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; const cur=sel.value; while(sel.options.length>1)sel.remove(1); allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); sel.value=cur; });
   const active=S.filter(x=>!x._transferido);
   document.getElementById('nb-total').textContent=active.length;
   document.getElementById('nb-stud').textContent=active.length;
@@ -5206,6 +5596,9 @@ function iniciarRealtime(){
   sbRealtime('movimentacoes', async ()=>{
     await carregarMovimentacoes();
   });
+  sbRealtime('rel_escolares', async ()=>{
+    await carregarRelEscolares();
+  });
   sbRealtime('aprovacoes_pendentes', async ()=>{
     await carregarPendentes();
     renderPendingPanel();
@@ -5237,6 +5630,7 @@ async function init(){
 
   await carregarEstudantes();
   await carregarMovimentacoes();
+  await carregarRelEscolares();
 
   // Recalcular TURMAS com os dados reais (pode diferir dos hardcoded)
   const active = S.filter(x=>!x._transferido);
@@ -5251,7 +5645,7 @@ async function init(){
   allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
 
   // Turma selects — limpa antes de popular para evitar duplicatas
-  ['filterTurma','filterAtTurma','relTurma','movFilterTurma'].forEach(id=>{
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel)return;
     while(sel.options.length>1) sel.remove(1);
     allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
