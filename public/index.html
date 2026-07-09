@@ -392,6 +392,15 @@
   #cardPrintModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
   #cardPrintModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; }
 
+  #fichaProfDiscModalOverlay .modal-box,
+  #fichaProfDiscModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
+  #fichaProfDiscModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #fichaProfDiscModalOverlay .modal-sub    { color: #999 !important; }
+  #fichaProfDiscModalOverlay .modal-close  { background: #F3F2EF !important; }
+  #fichaProfDiscModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #fichaProfDiscModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
+  #fichaProfDiscModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; border-color: #E8E7E3 !important; }
+
   /* ── WRAP DE IMPRESSÃO DOS CARDS (oculto na tela) ── */
   #cardsPrintWrap { display: none !important; }
 
@@ -5177,7 +5186,7 @@ let relEscolaresLog = [];
 // Lista padrão de disciplinas — ajuste aqui conforme a grade da escola
 const DISCIPLINAS_PADRAO = [
   'Língua Portuguesa','Matemática','Ciências','História','Geografia',
-  'Inglês','Arte','Educação Física','Ensino Religioso'
+  'Inglês','Arte','Educação Física'
 ];
 
 let relEscEditIdx = null;
@@ -5456,9 +5465,49 @@ async function carregarRelEscolares(){
   renderRelEscolaresLog();
 }
 
+let fichaProfDiscIdx = null;
+
 function gerarDocumentoProfessores(idx){
   const item = relEscolaresLog[idx];
   if(!item) return;
+  fichaProfDiscIdx = idx;
+
+  const list = document.getElementById('fichaProfDiscList');
+  if(list){
+    list.innerHTML = DISCIPLINAS_PADRAO.map(d=>`
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #E8E7E3;border-radius:6px;background:#FAFAF8;font-size:12.5px;cursor:pointer">
+        <input type="checkbox" value="${d}" checked style="cursor:pointer">${d}
+      </label>`).join('');
+  }
+  const sub = document.getElementById('fichaProfDiscSub');
+  if(sub) sub.textContent = `${item.aluno_nome}${item.turma?' · '+item.turma:''}`;
+  updateFichaProfDiscCount();
+  document.getElementById('fichaProfDiscModalOverlay').classList.add('open');
+}
+
+function toggleAllFichaProfDisc(check){
+  document.querySelectorAll('#fichaProfDiscList input[type=checkbox]').forEach(c=>c.checked=check);
+  updateFichaProfDiscCount();
+}
+
+function updateFichaProfDiscCount(){
+  const total = document.querySelectorAll('#fichaProfDiscList input[type=checkbox]').length;
+  const checked = document.querySelectorAll('#fichaProfDiscList input[type=checkbox]:checked').length;
+  const el = document.getElementById('fichaProfDiscCount');
+  if(el) el.textContent = `${checked} de ${total} disciplina${total!==1?'s':''} selecionada${checked!==1?'s':''}`;
+}
+
+function closeFichaProfDiscModal(e){ if(!e || e.target===e.currentTarget) fecharFichaProfDiscModalBtn(); }
+function fecharFichaProfDiscModalBtn(){ document.getElementById('fichaProfDiscModalOverlay').classList.remove('open'); }
+
+function executarGeracaoFichaProfessores(){
+  const idx = fichaProfDiscIdx;
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  const discSelecionadas = Array.from(document.querySelectorAll('#fichaProfDiscList input[type=checkbox]:checked')).map(c=>c.value);
+  if(!discSelecionadas.length){ alert('Selecione ao menos uma disciplina.'); return; }
+  fecharFichaProfDiscModalBtn();
+
   const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   const fmt = d => d ? new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
 
@@ -5471,7 +5520,9 @@ function gerarDocumentoProfessores(idx){
   .rel-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; border-bottom:2px solid #6B65CC; padding-bottom:5px; margin-bottom:8px; }
   .rel-title { font-size:12.5pt; font-weight:700; color:#3C3489; }
   .rel-sub { font-size:8.5pt; color:#666; }
-  .rel-meta { font-size:8pt; color:#999; white-space:nowrap; }
+  .rel-meta { font-size:8pt; color:#999; white-space:nowrap; text-align:right; }
+  .rel-coord { font-size:7.5pt; color:#888; margin-top:2px; line-height:1.4; text-align:right; }
+  .rel-coord b { color:#555; font-weight:700; }
   .info-box { background:#F7F6FE; border-left:3px solid #6B65CC; border-radius:0 6px 6px 0; padding:6px 12px; margin-bottom:8px; font-size:9pt; }
   .info-grid { display:grid; grid-template-columns:2fr 1fr; gap:1px 16px; }
   .info-full { grid-column:1 / -1; margin-top:2px; }
@@ -5498,14 +5549,16 @@ function gerarDocumentoProfessores(idx){
 </style>
 </head><body>`;
 
-  DISCIPLINAS_PADRAO.forEach((disc, i)=>{
+  discSelecionadas.forEach((disc, i)=>{
     html += `<div class="disc-page">
       <div class="rel-header">
         <div>
           <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
           <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
         </div>
-        <div class="rel-meta">Gerado em ${now}</div>
+        <div class="rel-meta">Gerado em ${now}
+          <div class="rel-coord"><b>Coord. Pedagógico:</b> Everton Correa Alves<br><b>Coord. Geral:</b> Leila Maria G. B. Cardoso</div>
+        </div>
       </div>
       <div class="info-box">
         <div class="info-grid">
@@ -5559,7 +5612,7 @@ function gerarDocumentoProfessores(idx){
           <div class="assinatura-label">Data</div>
         </div>
       </div>
-      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Página ${i+1} de ${DISCIPLINAS_PADRAO.length}</div>
+      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Página ${i+1} de ${discSelecionadas.length}</div>
     </div>`;
   });
 
@@ -6701,6 +6754,45 @@ function executeCardPrint(){
         <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
           Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="fichaProfDiscModalOverlay" onclick="closeFichaProfDiscModal(event)" style="z-index:320">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:#EEEDFE;color:#3C3489">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="modal-nome">Disciplinas da ficha</div>
+        <div class="modal-sub" id="fichaProfDiscSub">Selecione as disciplinas a imprimir</div>
+      </div>
+      <button class="modal-close" onclick="fecharFichaProfDiscModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB">Disciplinas</div>
+        <div style="display:flex;gap:6px">
+          <button onclick="toggleAllFichaProfDisc(true)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Todas</button>
+          <button onclick="toggleAllFichaProfDisc(false)" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Nenhuma</button>
+        </div>
+      </div>
+      <div id="fichaProfDiscList" onchange="updateFichaProfDiscCount()" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem"></div>
+
+      <div style="background:#F3F2EF;border-radius:8px;padding:10px 14px;font-size:12px;color:#888;margin-bottom:1.5rem" id="fichaProfDiscCount">
+        —
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px">
+        <button class="btn-cancel" onclick="fecharFichaProfDiscModalBtn()">Cancelar</button>
+        <button class="btn-save" onclick="executarGeracaoFichaProfessores()" style="display:inline-flex;align-items:center;gap:6px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
+          Gerar e imprimir
         </button>
       </div>
     </div>
