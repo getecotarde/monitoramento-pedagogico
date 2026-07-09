@@ -5467,29 +5467,33 @@ function gerarDocumentoProfessores(idx){
 <title>Ficha de Relato do Professor — ${item.aluno_nome}</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Georgia',serif; font-size:11pt; color:#1a1a1a; background:#fff; line-height:1.5; }
-  .rel-header { border-bottom:2px solid #6B65CC; padding-bottom:12px; margin-bottom:18px; }
-  .rel-title { font-size:15pt; font-weight:700; color:#3C3489; margin-bottom:4px; }
-  .rel-sub { font-size:10pt; color:#666; }
-  .rel-meta { font-size:9pt; color:#999; margin-top:3px; }
-  .info-box { background:#F7F6FE; border-left:3px solid #6B65CC; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:18px; font-size:10pt; }
-  .info-box div { margin-bottom:3px; }
+  body { font-family:'Georgia',serif; font-size:10.5pt; color:#1a1a1a; background:#fff; line-height:1.25; }
+  .rel-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; border-bottom:2px solid #6B65CC; padding-bottom:5px; margin-bottom:8px; }
+  .rel-title { font-size:12.5pt; font-weight:700; color:#3C3489; }
+  .rel-sub { font-size:8.5pt; color:#666; }
+  .rel-meta { font-size:8pt; color:#999; white-space:nowrap; }
+  .info-box { background:#F7F6FE; border-left:3px solid #6B65CC; border-radius:0 6px 6px 0; padding:6px 12px; margin-bottom:8px; font-size:9pt; }
+  .info-grid { display:grid; grid-template-columns:2fr 1fr; gap:1px 16px; }
+  .info-full { grid-column:1 / -1; margin-top:2px; }
   .info-box b { color:#3C3489; }
-  .instrucoes { background:#FEF3DC; border-left:3px solid #BA7517; border-radius:0 6px 6px 0; padding:10px 14px; margin-bottom:22px; font-size:9.5pt; color:#7A4A08; }
-  .disc-page { page-break-after:always; padding-top:6px; }
+  .instrucoes { background:#FEF3DC; border-left:3px solid #BA7517; border-radius:0 6px 6px 0; padding:6px 10px; margin-bottom:8px; font-size:8pt; color:#7A4A08; line-height:1.3; }
+  .disc-page { page-break-after:always; padding-top:4px; }
   .disc-page:last-of-type { page-break-after:auto; }
-  .disc-title { font-size:13pt; font-weight:700; color:#3C3489; border-left:4px solid #6B65CC; padding:6px 10px; border-radius:0 4px 4px 0; margin-bottom:14px; background:#F7F6FE; }
-  .campo-label { font-size:9pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.04em; margin-top:10px; margin-bottom:3px; }
-  .campo-orientacao { font-size:8.5pt; font-style:italic; color:#888; margin-bottom:5px; line-height:1.35; }
-  .linha-preencher { border-bottom:1px solid #999; height:26px; }
-  .assinatura-row { display:flex; gap:24px; margin-top:26px; }
+  .disc-header { display:flex; align-items:center; gap:16px; margin-bottom:8px; }
+  .disc-title { font-size:11.5pt; font-weight:700; color:#3C3489; border-left:4px solid #6B65CC; padding:4px 10px; border-radius:0 4px 4px 0; background:#F7F6FE; white-space:nowrap; }
+  .prof-linha { flex:1; display:flex; align-items:baseline; gap:8px; font-size:8.5pt; color:#555; }
+  .prof-linha .linha-preencher-inline { flex:1; height:1em; border-bottom:1px solid #999; }
+  .campo-label { font-size:8.5pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.03em; margin-top:6px; margin-bottom:1px; }
+  .campo-orientacao { font-size:7.8pt; font-style:italic; color:#888; margin-bottom:3px; line-height:1.2; }
+  .linha-preencher { border-bottom:1px solid #999; height:20px; }
+  .assinatura-row { display:flex; gap:24px; margin-top:12px; }
   .assinatura-item { flex:1; }
-  .assinatura-linha { border-bottom:1px solid #333; margin-top:26px; margin-bottom:4px; }
-  .assinatura-label { font-size:9pt; color:#888; }
-  .rodape { margin-top:16px; border-top:1px solid #E8E7E3; padding-top:8px; font-size:8pt; color:#AAA; text-align:center; }
+  .assinatura-linha { border-bottom:1px solid #333; margin-top:16px; margin-bottom:3px; }
+  .assinatura-label { font-size:8.5pt; color:#888; }
+  .rodape { margin-top:8px; border-top:1px solid #E8E7E3; padding-top:4px; font-size:7.5pt; color:#AAA; text-align:center; }
   @media print {
     body { font-size:10pt; }
-    @page { margin:1.5cm; }
+    @page { margin:1.2cm; }
   }
 </style>
 </head><body>`;
@@ -5497,27 +5501,33 @@ function gerarDocumentoProfessores(idx){
   DISCIPLINAS_PADRAO.forEach((disc, i)=>{
     html += `<div class="disc-page">
       <div class="rel-header">
-        <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
-        <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
+        <div>
+          <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
+          <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
+        </div>
         <div class="rel-meta">Gerado em ${now}</div>
       </div>
       <div class="info-box">
-        <div><b>Estudante:</b> ${item.aluno_nome}</div>
-        <div><b>Turma:</b> ${item.turma||'—'}</div>
-        <div><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
-        <div><b>Solicitante:</b> ${item.solicitante||'—'}</div>
-        <div><b>Previsão de entrega à Coordenação:</b> ${fmt(item.data_previsao)}</div>
+        <div class="info-grid">
+          <div><b>Estudante:</b> ${item.aluno_nome}</div>
+          <div><b>Turma:</b> ${item.turma||'—'}</div>
+          <div><b>Solicitante:</b> ${item.solicitante||'—'}</div>
+          <div><b>Previsão de entrega:</b> ${fmt(item.data_previsao)}</div>
+        </div>
+        <div class="info-full"><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
       </div>
       <div class="instrucoes">
         Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, todos os itens solicitados sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
       </div>
-      <div class="disc-title">Disciplina: ${disc}</div>
-
-      <div class="campo-label">Professor(a) responsável</div>
-      <div class="linha-preencher"></div>
+      <div class="disc-header">
+        <div class="disc-title">Disciplina: ${disc}</div>
+        <div class="prof-linha"><span>Professor(a) responsável:</span><span class="linha-preencher-inline"></span></div>
+      </div>
 
       <div class="campo-label">1. Desempenho, comportamento e participação</div>
       <div class="campo-orientacao">Descreva de forma objetiva o desempenho acadêmico, o comportamento em sala de aula e a participação do(a) aluno(a) nas atividades propostas nesta disciplina, indicando as principais dificuldades observadas, se houver.</div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
@@ -5529,9 +5539,13 @@ function gerarDocumentoProfessores(idx){
       <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
 
       <div class="campo-label">3. Recomendações / encaminhamentos sugeridos</div>
       <div class="campo-orientacao">Indique, de forma objetiva, sugestões de encaminhamento, apoio pedagógico ou intervenção que considera necessárias para os próximos passos do(a) aluno(a).</div>
+      <div class="linha-preencher"></div>
+      <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
       <div class="linha-preencher"></div>
 
