@@ -5521,8 +5521,6 @@ function executarGeracaoFichaProfessores(){
   .rel-title { font-size:12.5pt; font-weight:700; color:#3C3489; }
   .rel-sub { font-size:8.5pt; color:#666; }
   .rel-meta { font-size:8pt; color:#999; white-space:nowrap; text-align:right; }
-  .rel-coord { font-size:7.5pt; color:#888; margin-top:2px; line-height:1.4; text-align:right; }
-  .rel-coord b { color:#555; font-weight:700; }
   .info-box { background:#F7F6FE; border-left:3px solid #6B65CC; border-radius:0 6px 6px 0; padding:6px 12px; margin-bottom:8px; font-size:9pt; }
   .info-grid { display:grid; grid-template-columns:2fr 1fr; gap:1px 16px; }
   .info-full { grid-column:1 / -1; margin-top:2px; }
@@ -5556,9 +5554,7 @@ function executarGeracaoFichaProfessores(){
           <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
           <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
         </div>
-        <div class="rel-meta">Gerado em ${now}
-          <div class="rel-coord"><b>Coord. Pedagógico:</b> Everton Correa Alves<br><b>Coord. Geral:</b> Leila Maria G. B. Cardoso</div>
-        </div>
+        <div class="rel-meta">Gerado em ${now}</div>
       </div>
       <div class="info-box">
         <div class="info-grid">
@@ -5612,16 +5608,19 @@ function executarGeracaoFichaProfessores(){
           <div class="assinatura-label">Data</div>
         </div>
       </div>
-      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Prof. Everton Corrêa Alves · Página ${i+1} de ${discSelecionadas.length}</div>
+      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso · Página ${i+1} de ${discSelecionadas.length}</div>
     </div>`;
   });
 
+  html += `<script>
+  window.onload = function(){ window.print(); };
+  window.onafterprint = function(){ window.close(); };
+<\/script>`;
   html += `</body></html>`;
 
   const win = window.open('','_blank');
   win.document.write(html);
   win.document.close();
-  setTimeout(()=>win.print(),600);
 }
 
 async function carregarPendentes(){
