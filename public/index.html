@@ -2254,12 +2254,13 @@
               <th>Solicitante</th>
               <th>Previsão de entrega</th>
               <th>Status</th>
+              <th>Link</th>
               <th>Registrado por</th>
               <th style="text-align:right">Ações</th>
             </tr>
           </thead>
           <tbody id="relEscolarTableBody">
-            <tr><td colspan="9" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação registrada ainda.</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação registrada ainda.</td></tr>
           </tbody>
         </table>
       </div>
@@ -4770,6 +4771,28 @@ function gerarRelatorio(){
           <input type="date" id="relEscDataPrevisao" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">
         </div>
       </div>
+      <div style="background:#FEF3DC;border-radius:6px;padding:10px 12px;font-size:12px;color:#7A4A08;margin-bottom:1rem">
+        Já foi concluída em outro momento? Marque o status como <strong>Concluído</strong> abaixo e informe a data — não é necessário esperar o prazo para registrar solicitações antigas.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Status</label>
+          <select id="relEscStatus" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" onchange="toggleRelEscConcluidoFields()">
+            <option value="pendente">Pendente</option>
+            <option value="andamento">Em andamento</option>
+            <option value="concluido">Concluído</option>
+          </select>
+        </div>
+        <div id="relEscDataConclusaoWrap" style="display:none">
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data de conclusão</label>
+          <input type="date" id="relEscDataConclusao" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">
+        </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Link do relatório pronto</label>
+        <input type="url" id="relEscLink" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="https://...">
+        <div style="font-size:11px;color:#AAA;margin-top:4px">Cole o link do documento já pronto (Drive, PDF, etc). Ele poderá ser aberto dentro do próprio sistema.</div>
+      </div>
       <div style="margin-bottom:1rem">
         <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Observações</label>
         <textarea id="relEscObs" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea>
@@ -4782,6 +4805,20 @@ function gerarRelatorio(){
         <button class="btn-save" onclick="submitRelEscolar()" style="background:var(--roxo)">Registrar solicitação</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ═══ RELATÓRIO ESCOLAR — VISUALIZAÇÃO DO LINK (janela interna) ═══ -->
+<div class="modal-overlay" id="relatorioLinkModalOverlay" onclick="fecharRelatorioLinkModal(event)">
+  <div class="modal-box" style="max-width:900px;width:92vw;height:85vh;display:flex;flex-direction:column;padding:0">
+    <div class="modal-header" style="border-bottom:1px solid #E8E7E3;padding:1rem 1.25rem;display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <div style="flex:1;font-size:15px;font-weight:700" id="relatorioLinkModalTitle">Relatório</div>
+      <a id="relatorioLinkAbrirNova" href="#" target="_blank" rel="noopener" title="Abrir em nova aba" style="font-size:12px;color:#888;text-decoration:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 9px">↗ Nova aba</a>
+      <button class="modal-close" onclick="fecharRelatorioLinkModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <iframe id="relatorioLinkIframe" src="about:blank" style="flex:1;width:100%;border:none;background:#fff"></iframe>
   </div>
 </div>
 
@@ -5152,7 +5189,19 @@ function openRelEscolarModal(){
   document.getElementById('relEscObs').value='';
   document.getElementById('relEscDataSolicitacao').value = new Date().toISOString().slice(0,10);
   document.getElementById('relEscDataPrevisao').value='';
+  document.getElementById('relEscStatus').value='pendente';
+  document.getElementById('relEscDataConclusao').value='';
+  document.getElementById('relEscLink').value='';
+  toggleRelEscConcluidoFields();
   document.getElementById('relEscolarModalOverlay').classList.add('open');
+}
+function toggleRelEscConcluidoFields(){
+  const status = document.getElementById('relEscStatus').value;
+  const wrap = document.getElementById('relEscDataConclusaoWrap');
+  wrap.style.display = status==='concluido' ? '' : 'none';
+  if(status==='concluido' && !document.getElementById('relEscDataConclusao').value){
+    document.getElementById('relEscDataConclusao').value = new Date().toISOString().slice(0,10);
+  }
 }
 function autoFillTurmaRelEsc(){
   const sel = document.getElementById('relEscEstudante');
@@ -5171,11 +5220,15 @@ async function submitRelEscolar(){
   const dataSolicitacao = document.getElementById('relEscDataSolicitacao').value;
   const dataPrevisao = document.getElementById('relEscDataPrevisao').value;
   const obs = document.getElementById('relEscObs').value.trim();
+  const status = document.getElementById('relEscStatus').value;
+  const dataConclusao = document.getElementById('relEscDataConclusao').value;
+  const link = document.getElementById('relEscLink').value.trim();
 
   if(estIdx===''||estIdx===null){ alert('Selecione o estudante.'); return; }
   if(!motivo){ alert('Informe o motivo da solicitação.'); return; }
   if(!dataSolicitacao){ alert('Informe a data da solicitação.'); return; }
   if(!dataPrevisao){ alert('Informe a previsão de entrega.'); return; }
+  if(status==='concluido' && !dataConclusao){ alert('Informe a data de conclusão.'); return; }
 
   const est = S[parseInt(estIdx)];
   if(!est){ alert('Estudante não encontrado.'); return; }
@@ -5183,7 +5236,8 @@ async function submitRelEscolar(){
   const row = {
     aluno_nome: est.n, turma, motivo, solicitante: solicitante||'—',
     data_solicitacao: dataSolicitacao, data_previsao: dataPrevisao,
-    status: 'pendente', observacoes: obs, registrado_por: ROLES[currentRole].label
+    status, data_conclusao: dataConclusao||null, link_relatorio: link||null,
+    observacoes: obs, registrado_por: ROLES[currentRole].label
   };
 
   try {
@@ -5192,8 +5246,35 @@ async function submitRelEscolar(){
   relEscolaresLog.unshift({ _local:true, ...row });
 
   try { await carregarRelEscolares(); } catch(e){ renderRelEscolaresLog(); }
-  showMovNotification(`Solicitação de relatório de ${est.n} registrada.`,'azul');
+  showMovNotification(status==='concluido' ? `Solicitação de relatório de ${est.n} registrada como concluída.` : `Solicitação de relatório de ${est.n} registrada.`,'azul');
   closeRelEscolarModalBtn();
+}
+
+async function definirLinkRelEscolar(idx){
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  const novoLink = prompt('Cole o link do relatório pronto:', item.link_relatorio||'');
+  if(novoLink===null) return; // cancelou
+  const link = novoLink.trim();
+  item.link_relatorio = link||null;
+  try {
+    if(item.id) await sbPatch('rel_escolares', { link_relatorio: link||null }, [`id=eq.${item.id}`]);
+  } catch(e){ console.warn('Supabase indisponível, atualizando apenas localmente.', e); }
+  renderRelEscolaresLog();
+}
+
+function abrirRelatorioLink(idx){
+  const item = relEscolaresLog[idx];
+  if(!item || !item.link_relatorio) return;
+  document.getElementById('relatorioLinkModalTitle').textContent = `Relatório — ${item.aluno_nome}`;
+  document.getElementById('relatorioLinkIframe').src = item.link_relatorio;
+  document.getElementById('relatorioLinkAbrirNova').href = item.link_relatorio;
+  document.getElementById('relatorioLinkModalOverlay').classList.add('open');
+}
+function fecharRelatorioLinkModal(e){ if(!e || e.target===document.getElementById('relatorioLinkModalOverlay')) fecharRelatorioLinkModalBtn(); }
+function fecharRelatorioLinkModalBtn(){
+  document.getElementById('relatorioLinkModalOverlay').classList.remove('open');
+  document.getElementById('relatorioLinkIframe').src = 'about:blank';
 }
 
 function relEscStatusLabel(status){
@@ -5252,7 +5333,7 @@ function renderRelEscolaresLog(){
   }
 
   if(!data.length){
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(m=>{
@@ -5272,6 +5353,14 @@ function renderRelEscolaresLog(){
           <option value="andamento" ${m.status==='andamento'?'selected':''}>Em andamento</option>
           <option value="concluido" ${m.status==='concluido'?'selected':''}>Concluído</option>
         </select>
+      </td>
+      <td style="white-space:nowrap">
+        ${m.link_relatorio
+          ? `<button onclick="abrirRelatorioLink(${idx})" title="Ver relatório" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:4px 8px;cursor:pointer;color:#0F6E56;font-size:11px;display:inline-flex;align-items:center;gap:4px">
+               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver
+             </button>
+             <button onclick="definirLinkRelEscolar(${idx})" title="Editar link" style="background:none;border:none;cursor:pointer;color:#AAA;padding:4px;font-size:11px">✎</button>`
+          : `<button onclick="definirLinkRelEscolar(${idx})" title="Adicionar link do relatório" style="background:none;border:1px dashed #E8E7E3;border-radius:6px;padding:4px 8px;cursor:pointer;color:#888;font-size:11px">+ link</button>`}
       </td>
       <td style="font-size:12px;color:#888">${m.registrado_por||'—'}</td>
       <td style="text-align:right;white-space:nowrap">
