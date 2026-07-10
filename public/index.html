@@ -404,6 +404,15 @@
   /* ── WRAP DE IMPRESSÃO DOS CARDS (oculto na tela) ── */
   #cardsPrintWrap { display: none !important; }
 
+  /* Classe usada só durante o cálculo de ajuste de fonte (JS): renderiza
+     o wrapper fora da tela (mesmo estilo do print) para medir alturas
+     reais antes de abrir o diálogo de impressão. */
+  #cardsPrintWrap.cp-measuring {
+    display: block !important;
+    position: fixed; top: 0; left: -99999px;
+    background: #fff;
+  }
+
   @media print {
     body.printing-cards .topbar,
     body.printing-cards .sidebar,
@@ -420,128 +429,135 @@
       color: #1A1916 !important;
       margin: 0; padding: 0;
     }
-
-    #cardsPrintWrap { padding: 0; margin: 0; }
-
-    /* Cabeçalho da folha */
-    .cards-print-header {
-      margin-bottom: 8px; padding-bottom: 6px;
-      border-bottom: 2px solid #1D9E75;
-      font-family: Arial, sans-serif;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    }
-    .cards-print-header h2 { font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #1A1916; font-family: Arial, sans-serif; }
-    .cards-print-header p  { font-size: 10px; color: #888; margin: 0; font-family: Arial, sans-serif; }
-
-    /* Página de cards — ocupa toda a área disponível */
-    .cards-print-page {
-      display: grid;
-      width: 100%;
-      box-sizing: border-box;
-      gap: 8px;
-      /* altura e colunas/linhas definidas inline pelo JS */
-    }
-
-    /* Card individual */
-    .print-detail-card {
-      border: 1px solid #DDD;
-      border-radius: 6px;
-      overflow: hidden;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      font-family: Arial, sans-serif;
-      /* Nunca quebrar entre páginas */
-      page-break-inside: avoid;
-      break-inside: avoid;
-      min-height: 0; /* necessário para grid stretch */
-    }
-
-    /* Escala tipográfica por nº de cards/página — definida via classe no wrapper.
-       Rotina, obs e síntese recebem um fator extra para crescerem mais que o resto. */
-    #cardsPrintWrap { --cp-f: 1; --cp-fb: 1; } /* fator base e fator "body text" (maior) */
-    #cardsPrintWrap.cp-n2 { --cp-f: 1.85; --cp-fb: 2.25; }
-    #cardsPrintWrap.cp-n3 { --cp-f: 1.55; --cp-fb: 1.85; }
-    #cardsPrintWrap.cp-n4 { --cp-f: 1.25; --cp-fb: 1.4;  }
-    #cardsPrintWrap.cp-n5 { --cp-f: 1.05; --cp-fb: 1.15; }
-    #cardsPrintWrap.cp-n6 { --cp-f: 0.92; --cp-fb: 0.95; }
-
-    .print-card-strip-at { height: 2px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-card-strip-an { height: 2px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-card-strip-ti { height: 2px; flex-shrink:0; background: #1D9E75 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-    .print-card-inner {
-      padding: calc(9px * var(--cp-f)) calc(11px * var(--cp-f));
-      display: flex; flex-direction: column;
-      flex: 1; min-height: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
-
-    .print-card-header { display: flex; align-items: flex-start; gap: calc(9px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f)); flex-shrink: 0; }
-    .print-card-avatar {
-      width: calc(36px * var(--cp-f)); height: calc(36px * var(--cp-f)); border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: calc(13px * var(--cp-f)); font-weight: 700; letter-spacing: -.5px;
-      font-family: Arial, sans-serif;
-      background: #fff !important;
-      border: 1.5px solid currentColor;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    }
-    .print-avatar-at { color: #B5491F !important; }
-    .print-avatar-an { color: #8C5B0E !important; }
-    .print-avatar-ti { color: #0F6E56 !important; }
-
-    .print-card-nome  { font-size: calc(13px * var(--cp-f)); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
-    .print-card-turma { font-size: calc(11px * var(--cp-f)); color: #999; font-family: Arial, sans-serif; }
-
-    .print-card-chips {
-      display: flex; flex-wrap: wrap; gap: 4px;
-      padding-bottom: calc(7px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f));
-      border-bottom: 1px solid #F0EFEB;
-      flex-shrink: 0;
-    }
-    .print-card-chips .badge {
-      font-size: calc(10px * var(--cp-f)) !important; padding: calc(2px * var(--cp-f)) calc(7px * var(--cp-f)) !important;
-      font-family: Arial, sans-serif !important;
-      background: #fff !important;
-      border: 1px solid currentColor !important;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    }
-
-    .print-card-section-title {
-      font-size: calc(9px * var(--cp-f)); font-weight: 700; letter-spacing: .06em;
-      text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
-      flex-shrink: 0; font-family: Arial, sans-serif;
-    }
-    .print-card-rotina {
-      font-size: calc(11px * var(--cp-fb)); color: #444; line-height: 1.5;
-      background: #FAFAF8 !important; border-radius: 3px;
-      padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #1D9E75;
-      white-space: normal; word-break: break-word;
-      font-family: Arial, sans-serif;
-      -webkit-print-color-adjust: exact; print-color-adjust: exact;
-      /* Tamanho natural (sem flex:1 nem overflow próprio): o encaixe é
-         feito via JS (fitPrintCards), que reduz --cp-fb até o conteúdo
-         do card caber, evitando texto cortado. */
-      flex-shrink: 0;
-    }
-    .print-card-rotina-empty {
-      font-size: calc(11px * var(--cp-fb)); color: #CCC; font-style: italic; padding: 3px 0;
-      font-family: Arial, sans-serif;
-      flex-shrink: 0;
-    }
-    .print-card-obs {
-      font-size: calc(10px * var(--cp-fb)); color: #888; font-style: italic;
-      margin-top: 6px; padding-top: 6px;
-      border-top: 1px solid #F3F2EF;
-      white-space: normal; word-break: break-word;
-      font-family: Arial, sans-serif;
-      flex-shrink: 0;
-    }
   }
+
+  /* ── ESTILOS DOS CARDS DE IMPRESSÃO ──────────────────────────
+     Ficam fora do @media print de propósito: assim o mesmo CSS vale
+     tanto na medição fora da tela (.cp-measuring) quanto na impressão
+     real, garantindo que a fonte calculada bata certo nas duas horas. */
+  #cardsPrintWrap { padding: 0; margin: 0; }
+
+  /* Cabeçalho da folha */
+  .cards-print-header {
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 2px solid #1D9E75;
+    font-family: Arial, sans-serif;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .cards-print-header h2 { font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #1A1916; font-family: Arial, sans-serif; }
+  .cards-print-header p  { font-size: 10px; color: #888; margin: 0; font-family: Arial, sans-serif; }
+
+  /* Página de cards — ocupa toda a área disponível */
+  .cards-print-page {
+    display: grid;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 8px;
+    /* altura e colunas/linhas definidas inline pelo JS */
+  }
+
+  /* Card individual */
+  .print-detail-card {
+    border: 1px solid #DDD;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    /* Nunca quebrar entre páginas */
+    page-break-inside: avoid;
+    break-inside: avoid;
+    min-height: 0; /* necessário para grid stretch */
+  }
+
+  /* Escala tipográfica por nº de cards/página — definida via classe no wrapper.
+     Rotina, obs e síntese recebem um fator extra para crescerem mais que o resto.
+     O JS (fitPrintCards) ainda reduz --cp-fb por card individualmente quando
+     o texto daquele aluno é maior que o espaço disponível. */
+  #cardsPrintWrap { --cp-f: 1; --cp-fb: 1; } /* fator base e fator "body text" (maior) */
+  #cardsPrintWrap.cp-n2 { --cp-f: 1.85; --cp-fb: 2.25; }
+  #cardsPrintWrap.cp-n3 { --cp-f: 1.55; --cp-fb: 1.85; }
+  #cardsPrintWrap.cp-n4 { --cp-f: 1.25; --cp-fb: 1.4;  }
+  #cardsPrintWrap.cp-n5 { --cp-f: 1.05; --cp-fb: 1.15; }
+  #cardsPrintWrap.cp-n6 { --cp-f: 0.92; --cp-fb: 0.95; }
+
+  .print-card-strip-at { height: 2px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-card-strip-an { height: 2px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-card-strip-ti { height: 2px; flex-shrink:0; background: #1D9E75 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .print-card-inner {
+    padding: calc(9px * var(--cp-f)) calc(11px * var(--cp-f));
+    display: flex; flex-direction: column;
+    flex: 1; min-height: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+
+  .print-card-header { display: flex; align-items: flex-start; gap: calc(9px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f)); flex-shrink: 0; }
+  .print-card-avatar {
+    width: calc(36px * var(--cp-f)); height: calc(36px * var(--cp-f)); border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: calc(13px * var(--cp-f)); font-weight: 700; letter-spacing: -.5px;
+    font-family: Arial, sans-serif;
+    background: #fff !important;
+    border: 1.5px solid currentColor;
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .print-avatar-at { color: #B5491F !important; }
+  .print-avatar-an { color: #8C5B0E !important; }
+  .print-avatar-ti { color: #0F6E56 !important; }
+
+  .print-card-nome  { font-size: calc(13px * var(--cp-f)); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
+  .print-card-turma { font-size: calc(11px * var(--cp-f)); color: #999; font-family: Arial, sans-serif; }
+
+  .print-card-chips {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding-bottom: calc(7px * var(--cp-f)); margin-bottom: calc(7px * var(--cp-f));
+    border-bottom: 1px solid #F0EFEB;
+    flex-shrink: 0;
+  }
+  .print-card-chips .badge {
+    font-size: calc(10px * var(--cp-f)) !important; padding: calc(2px * var(--cp-f)) calc(7px * var(--cp-f)) !important;
+    font-family: Arial, sans-serif !important;
+    background: #fff !important;
+    border: 1px solid currentColor !important;
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .print-card-section-title {
+    font-size: calc(9px * var(--cp-f)); font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: #B8B7B0; margin-bottom: 4px;
+    flex-shrink: 0; font-family: Arial, sans-serif;
+  }
+  .print-card-rotina {
+    font-size: calc(11px * var(--cp-fb)); color: #444; line-height: 1.5;
+    background: #FAFAF8 !important; border-radius: 3px;
+    padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #1D9E75;
+    white-space: normal; word-break: break-word;
+    font-family: Arial, sans-serif;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    /* Tamanho natural (sem flex:1 nem overflow próprio): o encaixe é
+       feito via JS (fitPrintCards), que reduz --cp-fb até o conteúdo
+       do card caber, evitando texto cortado. */
+    flex-shrink: 0;
+  }
+  .print-card-rotina-empty {
+    font-size: calc(11px * var(--cp-fb)); color: #CCC; font-style: italic; padding: 3px 0;
+    font-family: Arial, sans-serif;
+    flex-shrink: 0;
+  }
+  .print-card-obs {
+    font-size: calc(10px * var(--cp-fb)); color: #888; font-style: italic;
+    margin-top: 6px; padding-top: 6px;
+    border-top: 1px solid #F3F2EF;
+    white-space: normal; word-break: break-word;
+    font-family: Arial, sans-serif;
+    flex-shrink: 0;
+  }
+
 
   html { font-size: 14px; }
   body {
@@ -6660,16 +6676,19 @@ function executeCardPrint(){
   }
 
   // Cada página = div com grid de altura fixa que ocupa exatamente 1 folha impressa.
-  // Margem de @page = 1cm cada lado. 100vh ~ altura da folha no preview do browser.
-  // Primeira página desconta o cabeçalho (~44px).
+  // Altura calculada em cm (papel A4, margem de @page = 1cm cada lado) — unidade
+  // absoluta, então o valor é o mesmo tanto na medição fora da tela quanto na
+  // impressão real, permitindo calcular o encaixe do texto com precisão.
+  // Primeira página desconta o cabeçalho (~52px).
   // page-break-after: always força nova folha após cada div.
+  const PAGE_H_CM = isLand ? 19 : 27.7; // A4 menos margens de 1cm em cada lado
   const pagesHtml = pages.map((grp, pi) => {
     const cells = [...grp.map(cardHtml)];
     while(cells.length < perPage)
       cells.push(`<div style="visibility:hidden;border:none"></div>`);
     const hCalc = pi===0
-      ? `calc(100vh - 2.1cm - 52px)`
-      : `calc(100vh - 2.1cm)`;
+      ? `calc(${PAGE_H_CM}cm - 52px)`
+      : `calc(${PAGE_H_CM}cm)`;
     return `<div style="
       display:grid;
       grid-template-columns:repeat(${cols},1fr);
@@ -6688,14 +6707,22 @@ function executeCardPrint(){
     <p>${subtitulo} &middot; Impresso em ${now} &middot; ${selected.length} estudante(s) &middot; ${cols}&times;${rows} por p&aacute;gina</p>
   </div>`;
 
-  document.getElementById('cardsPrintWrap').innerHTML = header + pagesHtml;
-  document.getElementById('cardsPrintWrap').className = `cp-n${cardPrintLayout}`;
+  const wrapEl = document.getElementById('cardsPrintWrap');
+  wrapEl.innerHTML = header + pagesHtml;
+  wrapEl.className = `cp-n${cardPrintLayout}`;
   closeCardPrintModalBtn();
 
   // Injeta @page com orientação correta dinamicamente
   let styleTag = document.getElementById('_cpPrintStyle');
   if(!styleTag){ styleTag = document.createElement('style'); styleTag.id = '_cpPrintStyle'; document.head.appendChild(styleTag); }
   styleTag.textContent = `@media print { @page { margin:1cm; size:${isLand?'landscape':'portrait'}; } }`;
+
+  // 1) Mede e ajusta a fonte de cada card fora da tela (usando o mesmo CSS
+  //    e as mesmas dimensões em cm que valerão na impressão), ANTES de
+  //    chamar window.print() — evita depender de timing de @media print.
+  wrapEl.classList.add('cp-measuring');
+  fitPrintCards();
+  wrapEl.classList.remove('cp-measuring');
 
   document.body.classList.add('printing-cards');
   window.print();
@@ -6708,11 +6735,12 @@ function executeCardPrint(){
 /* ── AJUSTE AUTOMÁTICO DO TEXTO DOS CARDS NA IMPRESSÃO ──────────
    Reduz a fonte da rotina/observações/síntese, card a card, até o
    conteúdo caber no espaço disponível — evitando o corte de texto.
-   Roda em "beforeprint" (momento em que o navegador já aplicou o
-   @media print e recalculou o layout de impressão). */
+   Roda ANTES de window.print() (com o wrapper visível fora da tela,
+   usando as mesmas dimensões em cm da folha impressa) e novamente em
+   "beforeprint" como conferência extra. */
 function fitPrintCards(){
   const wrap = document.getElementById('cardsPrintWrap');
-  if(!wrap || !document.body.classList.contains('printing-cards')) return;
+  if(!wrap) return;
   const cards = wrap.querySelectorAll('.print-detail-card');
   cards.forEach(card => {
     const inner = card.querySelector('.print-card-inner');
@@ -6721,10 +6749,10 @@ function fitPrintCards(){
     card.style.removeProperty('--cp-fb');
     const baseFb = parseFloat(getComputedStyle(card).getPropertyValue('--cp-fb')) || 1;
     let scale = baseFb;
-    const minScale = baseFb * 0.5; // nunca fica menor que 50% do tamanho padrão da página
+    const minScale = baseFb * 0.4; // nunca fica menor que 40% do tamanho padrão da página
     let guard = 0;
-    while(inner.scrollHeight > inner.clientHeight + 1 && scale > minScale && guard < 30){
-      scale = scale * 0.95;
+    while(inner.scrollHeight > inner.clientHeight + 1 && scale > minScale && guard < 40){
+      scale = scale * 0.96;
       card.style.setProperty('--cp-fb', scale.toFixed(3));
       guard++;
     }
