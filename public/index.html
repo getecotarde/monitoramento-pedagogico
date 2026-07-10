@@ -523,12 +523,15 @@
       white-space: normal; word-break: break-word;
       font-family: Arial, sans-serif;
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
-      flex: 1; overflow: hidden;
+      /* Tamanho natural (sem flex:1 nem overflow próprio): o encaixe é
+         feito via JS (fitPrintCards), que reduz --cp-fb até o conteúdo
+         do card caber, evitando texto cortado. */
+      flex-shrink: 0;
     }
     .print-card-rotina-empty {
       font-size: calc(11px * var(--cp-fb)); color: #CCC; font-style: italic; padding: 3px 0;
       font-family: Arial, sans-serif;
-      flex: 1;
+      flex-shrink: 0;
     }
     .print-card-obs {
       font-size: calc(10px * var(--cp-fb)); color: #888; font-style: italic;
@@ -6697,6 +6700,33 @@ function executeCardPrint(){
     styleTag.textContent = '';
   }, 800);
 }
+
+/* ── AJUSTE AUTOMÁTICO DO TEXTO DOS CARDS NA IMPRESSÃO ──────────
+   Reduz a fonte da rotina/observações/síntese, card a card, até o
+   conteúdo caber no espaço disponível — evitando o corte de texto.
+   Roda em "beforeprint" (momento em que o navegador já aplicou o
+   @media print e recalculou o layout de impressão). */
+function fitPrintCards(){
+  const wrap = document.getElementById('cardsPrintWrap');
+  if(!wrap || !document.body.classList.contains('printing-cards')) return;
+  const cards = wrap.querySelectorAll('.print-detail-card');
+  cards.forEach(card => {
+    const inner = card.querySelector('.print-card-inner');
+    if(!inner) return;
+    // parte do zero: remove qualquer ajuste de uma impressão anterior
+    card.style.removeProperty('--cp-fb');
+    const baseFb = parseFloat(getComputedStyle(card).getPropertyValue('--cp-fb')) || 1;
+    let scale = baseFb;
+    const minScale = baseFb * 0.5; // nunca fica menor que 50% do tamanho padrão da página
+    let guard = 0;
+    while(inner.scrollHeight > inner.clientHeight + 1 && scale > minScale && guard < 30){
+      scale = scale * 0.95;
+      card.style.setProperty('--cp-fb', scale.toFixed(3));
+      guard++;
+    }
+  });
+}
+window.addEventListener('beforeprint', fitPrintCards);
 
 </script>
 
