@@ -474,7 +474,10 @@
   /* Escala tipográfica por nº de cards/página — definida via classe no wrapper.
      Rotina, obs e síntese recebem um fator extra para crescerem mais que o resto.
      O JS (fitPrintCards) ainda reduz --cp-fb por card individualmente quando
-     o texto daquele aluno é maior que o espaço disponível. */
+     o texto daquele aluno é maior que o espaço disponível.
+     Os textos principais (nome, rotina, observações) usam clamp() para nunca
+     ficarem menores que 10px (ilegível) nem maiores que 14px (estoura o card
+     e corta o conteúdo), independente do tamanho/layout do card. */
   #cardsPrintWrap { --cp-f: 1; --cp-fb: 1; } /* fator base e fator "body text" (maior) */
   #cardsPrintWrap.cp-n2 { --cp-f: 1.85; --cp-fb: 2.25; }
   #cardsPrintWrap.cp-n3 { --cp-f: 1.55; --cp-fb: 1.85; }
@@ -509,8 +512,8 @@
   .print-avatar-an { color: #8C5B0E !important; }
   .print-avatar-ti { color: #0F6E56 !important; }
 
-  .print-card-nome  { font-size: calc(13px * var(--cp-f)); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
-  .print-card-turma { font-size: calc(11px * var(--cp-f)); color: #999; font-family: Arial, sans-serif; }
+  .print-card-nome  { font-size: clamp(10px, calc(13px * var(--cp-f)), 14px); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
+  .print-card-turma { font-size: clamp(10px, calc(11px * var(--cp-f)), 12px); color: #999; font-family: Arial, sans-serif; }
 
   .print-card-chips {
     display: flex; flex-wrap: wrap; gap: 4px;
@@ -533,7 +536,7 @@
     flex-shrink: 0; font-family: Arial, sans-serif;
   }
   .print-card-rotina {
-    font-size: calc(11px * var(--cp-fb)); color: #444; line-height: 1.5;
+    font-size: clamp(10px, calc(11px * var(--cp-fb)), 14px); color: #444; line-height: 1.5;
     background: #FAFAF8 !important; border-radius: 3px;
     padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #1D9E75;
     white-space: normal; word-break: break-word;
@@ -545,12 +548,12 @@
     flex-shrink: 0;
   }
   .print-card-rotina-empty {
-    font-size: calc(11px * var(--cp-fb)); color: #CCC; font-style: italic; padding: 3px 0;
+    font-size: clamp(10px, calc(11px * var(--cp-fb)), 14px); color: #CCC; font-style: italic; padding: 3px 0;
     font-family: Arial, sans-serif;
     flex-shrink: 0;
   }
   .print-card-obs {
-    font-size: calc(10px * var(--cp-fb)); color: #888; font-style: italic;
+    font-size: clamp(10px, calc(10px * var(--cp-fb)), 14px); color: #888; font-style: italic;
     margin-top: 6px; padding-top: 6px;
     border-top: 1px solid #F3F2EF;
     white-space: normal; word-break: break-word;
