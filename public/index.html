@@ -5579,29 +5579,63 @@ function executarGeracaoFichaProfessores(){
   .info-full { grid-column:1 / -1; margin-top:2px; }
   .info-box b { color:#3C3489; }
   .instrucoes { background:#FEF3DC; border-left:3px solid #BA7517; border-radius:0 6px 6px 0; padding:6px 10px; margin-bottom:8px; font-size:8pt; color:#7A4A08; line-height:1.3; }
-  .disc-page { page-break-after:always; padding-top:4px; }
-  .disc-page:last-of-type { page-break-after:auto; }
-  .disc-header { display:flex; align-items:center; gap:16px; margin-bottom:8px; }
+  .disc-page-pair { page-break-after:always; padding-top:4px; }
+  .disc-page-pair:last-of-type { page-break-after:auto; }
+  .disc-columns { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; margin-top:4px; }
+  .disc-col { min-width:0; }
+  .disc-col:first-child { border-right:1px dashed #CCC; padding-right:18px; }
+  .disc-col:last-child { padding-left:0; }
+  .disc-header { display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
   .disc-title { font-size:11.5pt; font-weight:700; color:#3C3489; border-left:4px solid #6B65CC; padding:4px 10px; border-radius:0 4px 4px 0; background:#F7F6FE; white-space:nowrap; }
-  .prof-linha { flex:1; display:flex; align-items:baseline; gap:8px; font-size:8.5pt; color:#555; }
+  .prof-linha { flex:1; display:flex; align-items:baseline; gap:8px; font-size:8.5pt; color:#555; min-width:140px; }
   .prof-linha .linha-preencher-inline { flex:1; height:1em; border-bottom:1px solid #999; }
   .campo-label { font-size:8.5pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.03em; margin-top:6px; margin-bottom:1px; }
-  .campo-orientacao { font-size:7.8pt; font-style:italic; color:#888; margin-bottom:3px; line-height:1.2; }
-  .linha-preencher { border-bottom:1px solid #999; height:20px; }
-  .assinatura-row { display:flex; gap:24px; margin-top:12px; }
+  .campo-orientacao { font-size:7.8pt; font-style:italic; color:#888; margin-bottom:3px; line-height:1.25; }
+  .linha-preencher { border-bottom:1px solid #999; height:18px; }
+  .assinatura-row { display:flex; gap:16px; margin-top:10px; }
   .assinatura-item { flex:1; }
-  .assinatura-linha { border-bottom:1px solid #333; margin-top:16px; margin-bottom:3px; }
-  .assinatura-label { font-size:8.5pt; color:#888; }
+  .assinatura-linha { border-bottom:1px solid #333; margin-top:14px; margin-bottom:3px; }
+  .assinatura-label { font-size:8pt; color:#888; }
   .rodape { margin-top:8px; border-top:1px solid #E8E7E3; padding-top:4px; font-size:7.5pt; color:#AAA; text-align:center; }
   @media print {
     body { font-size:10pt; }
-    @page { margin:1.2cm; }
+    @page { margin:1.2cm; size:landscape; }
   }
 </style>
 </head><body>`;
 
-  discSelecionadas.forEach((disc, i)=>{
-    html += `<div class="disc-page">
+  const ORIENTACAO_UNIFICADA = 'Descreva de forma objetiva o desempenho acadêmico, o comportamento em sala de aula e a participação do(a) aluno(a) nas atividades propostas nesta disciplina, indicando as principais dificuldades observadas, se houver. Em seguida, relate as estratégias pedagógicas já adotadas para lidar com essas dificuldades (ex.: atividades adaptadas, atendimento individualizado, mudança de posicionamento, apoio de material diferenciado, entre outras) e os resultados observados até o momento. Por fim, indique, de forma objetiva, sugestões de encaminhamento, apoio pedagógico ou intervenção que considera necessárias para os próximos passos do(a) aluno(a).';
+
+  function colunaDisciplina(disc){
+    return `<div class="disc-col">
+      <div class="disc-header">
+        <div class="disc-title">Disciplina: ${disc}</div>
+        <div class="prof-linha"><span>Professor(a) responsável:</span><span class="linha-preencher-inline"></span></div>
+      </div>
+
+      <div class="campo-label">Orientação para o relato</div>
+      <div class="campo-orientacao">${ORIENTACAO_UNIFICADA}</div>
+
+      <div class="campo-label">Relato do(a) professor(a)</div>
+      ${Array(10).fill('<div class="linha-preencher"></div>').join('\n      ')}
+
+      <div class="assinatura-row">
+        <div class="assinatura-item">
+          <div class="assinatura-linha"></div>
+          <div class="assinatura-label">Assinatura do(a) professor(a)</div>
+        </div>
+        <div class="assinatura-item">
+          <div class="assinatura-linha"></div>
+          <div class="assinatura-label">Data</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const totalPaginas = Math.ceil(discSelecionadas.length / 2);
+  for(let i = 0; i < discSelecionadas.length; i += 2){
+    const par = discSelecionadas.slice(i, i+2);
+    html += `<div class="disc-page-pair">
       <div class="rel-header">
         <div>
           <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
@@ -5619,51 +5653,14 @@ function executarGeracaoFichaProfessores(){
         <div class="info-full"><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
       </div>
       <div class="instrucoes">
-        Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, todos os itens solicitados sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
+        Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, o relato solicitado sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
       </div>
-      <div class="disc-header">
-        <div class="disc-title">Disciplina: ${disc}</div>
-        <div class="prof-linha"><span>Professor(a) responsável:</span><span class="linha-preencher-inline"></span></div>
+      <div class="disc-columns">
+        ${par.map(colunaDisciplina).join('')}
       </div>
-
-      <div class="campo-label">1. Desempenho, comportamento e participação</div>
-      <div class="campo-orientacao">Descreva de forma objetiva o desempenho acadêmico, o comportamento em sala de aula e a participação do(a) aluno(a) nas atividades propostas nesta disciplina, indicando as principais dificuldades observadas, se houver.</div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-
-      <div class="campo-label">2. Estratégias desenvolvidas diante das dificuldades apresentadas</div>
-      <div class="campo-orientacao">Relate as estratégias pedagógicas já adotadas em sala de aula para lidar com as dificuldades apresentadas pelo(a) aluno(a) (ex.: atividades adaptadas, atendimento individualizado, mudança de posicionamento, apoio de material diferenciado, entre outras) e os resultados observados até o momento.</div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-
-      <div class="campo-label">3. Recomendações / encaminhamentos sugeridos</div>
-      <div class="campo-orientacao">Indique, de forma objetiva, sugestões de encaminhamento, apoio pedagógico ou intervenção que considera necessárias para os próximos passos do(a) aluno(a).</div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-      <div class="linha-preencher"></div>
-
-      <div class="assinatura-row">
-        <div class="assinatura-item">
-          <div class="assinatura-linha"></div>
-          <div class="assinatura-label">Assinatura do(a) professor(a)</div>
-        </div>
-        <div class="assinatura-item">
-          <div class="assinatura-linha"></div>
-          <div class="assinatura-label">Data</div>
-        </div>
-      </div>
-      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso · Página ${i+1} de ${discSelecionadas.length}</div>
+      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso · Página ${(i/2)+1} de ${totalPaginas}</div>
     </div>`;
-  });
+  }
 
   html += `<script>
   window.onload = function(){ window.print(); };
