@@ -5604,9 +5604,9 @@ function executarGeracaoFichaProfessores(){
 </style>
 </head><body>`;
 
-  const ORIENTACAO_UNIFICADA = 'Descreva de forma objetiva o desempenho acadêmico, o comportamento em sala de aula e a participação do(a) aluno(a) nas atividades propostas nesta disciplina, indicando as principais dificuldades observadas, se houver. Em seguida, relate as estratégias pedagógicas já adotadas para lidar com essas dificuldades (ex.: atividades adaptadas, atendimento individualizado, mudança de posicionamento, apoio de material diferenciado, entre outras) e os resultados observados até o momento. Por fim, indique, de forma objetiva, sugestões de encaminhamento, apoio pedagógico ou intervenção que considera necessárias para os próximos passos do(a) aluno(a).';
+  const ORIENTACAO_UNIFICADA = 'Descreva o desempenho, comportamento e participação do(a) aluno(a) nesta disciplina, as estratégias já adotadas diante das dificuldades observadas e os resultados obtidos, e indique sugestões de encaminhamento ou apoio pedagógico para os próximos passos.';
 
-  function colunaDisciplina(disc){
+  function colunaDisciplina(disc, pagina, totalPaginas){
     return `<div class="disc-col">
       <div class="rel-header">
         <div>
@@ -5649,17 +5649,18 @@ function executarGeracaoFichaProfessores(){
           <div class="assinatura-label">Data</div>
         </div>
       </div>
+      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso · Página ${pagina} de ${totalPaginas}</div>
     </div>`;
   }
 
   const totalPaginas = Math.ceil(discSelecionadas.length / 2);
   for(let i = 0; i < discSelecionadas.length; i += 2){
     const par = discSelecionadas.slice(i, i+2);
+    const pagina = (i/2)+1;
     html += `<div class="disc-page-pair">
       <div class="disc-columns">
-        ${par.map(colunaDisciplina).join('')}
+        ${par.map(disc => colunaDisciplina(disc, pagina, totalPaginas)).join('')}
       </div>
-      <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso · Página ${(i/2)+1} de ${totalPaginas}</div>
     </div>`;
   }
 
