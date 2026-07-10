@@ -5570,7 +5570,7 @@ function executarGeracaoFichaProfessores(){
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Georgia',serif; font-size:10.5pt; color:#1a1a1a; background:#fff; line-height:1.25; }
-  .rel-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; border-bottom:2px solid #6B65CC; padding-bottom:5px; margin-bottom:8px; }
+  .rel-header { display:flex; align-items:baseline; justify-content:space-between; gap:10px; border-bottom:2px solid #6B65CC; padding-bottom:5px; margin-bottom:8px; flex-wrap:wrap; }
   .rel-title { font-size:12.5pt; font-weight:700; color:#3C3489; }
   .rel-sub { font-size:8.5pt; color:#666; }
   .rel-meta { font-size:8pt; color:#999; white-space:nowrap; text-align:right; }
@@ -5608,6 +5608,26 @@ function executarGeracaoFichaProfessores(){
 
   function colunaDisciplina(disc){
     return `<div class="disc-col">
+      <div class="rel-header">
+        <div>
+          <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
+          <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
+        </div>
+        <div class="rel-meta">Gerado em ${now}</div>
+      </div>
+      <div class="info-box">
+        <div class="info-grid">
+          <div><b>Estudante:</b> ${item.aluno_nome}</div>
+          <div><b>Turma:</b> ${item.turma||'—'}</div>
+          <div><b>Solicitante:</b> ${item.solicitante||'—'}</div>
+          <div><b>Previsão de entrega:</b> ${fmt(item.data_previsao)}</div>
+        </div>
+        <div class="info-full"><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
+      </div>
+      <div class="instrucoes">
+        Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, o relato solicitado sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
+      </div>
+
       <div class="disc-header">
         <div class="disc-title">Disciplina: ${disc}</div>
         <div class="prof-linha"><span>Professor(a) responsável:</span><span class="linha-preencher-inline"></span></div>
@@ -5636,25 +5656,6 @@ function executarGeracaoFichaProfessores(){
   for(let i = 0; i < discSelecionadas.length; i += 2){
     const par = discSelecionadas.slice(i, i+2);
     html += `<div class="disc-page-pair">
-      <div class="rel-header">
-        <div>
-          <div class="rel-title">Ficha de Relato do Professor — Relatório Escolar</div>
-          <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
-        </div>
-        <div class="rel-meta">Gerado em ${now}</div>
-      </div>
-      <div class="info-box">
-        <div class="info-grid">
-          <div><b>Estudante:</b> ${item.aluno_nome}</div>
-          <div><b>Turma:</b> ${item.turma||'—'}</div>
-          <div><b>Solicitante:</b> ${item.solicitante||'—'}</div>
-          <div><b>Previsão de entrega:</b> ${fmt(item.data_previsao)}</div>
-        </div>
-        <div class="info-full"><b>Motivo da solicitação:</b> ${item.motivo||'—'}</div>
-      </div>
-      <div class="instrucoes">
-        Prezado(a) professor(a), preencha abaixo, de forma clara e objetiva, o relato solicitado sobre o(a) estudante nesta disciplina e devolva esta ficha à Coordenação Pedagógica até a data de previsão de entrega informada acima.
-      </div>
       <div class="disc-columns">
         ${par.map(colunaDisciplina).join('')}
       </div>
