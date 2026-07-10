@@ -2260,6 +2260,10 @@
 
     <!-- Filters -->
     <div class="filters-bar" style="margin-bottom:1rem">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="relEscolarSearch" placeholder="Buscar por nome, turma, solicitante…" oninput="renderRelEscolaresLog()">
+      </div>
       <select id="relEscolarFilterStatus" onchange="renderRelEscolaresLog()">
         <option value="">Todos os status</option>
         <option value="pendente">Pendente</option>
@@ -2275,7 +2279,19 @@
     <!-- Log table -->
     <div class="table-wrap">
       <div class="table-scroll">
-        <table>
+        <table class="rel-esc-table" style="min-width:1180px">
+          <colgroup>
+            <col style="width:100px">
+            <col style="width:17%">
+            <col style="width:66px">
+            <col style="width:19%">
+            <col style="width:13%">
+            <col style="width:110px">
+            <col style="width:132px">
+            <col style="width:96px">
+            <col style="width:13%">
+            <col style="width:112px">
+          </colgroup>
           <thead>
             <tr>
               <th>Solicitado em</th>
@@ -5421,10 +5437,20 @@ function renderRelEscolaresLog(){
   if(!tbody) return;
   const statusF = document.getElementById('relEscolarFilterStatus')?.value||'';
   const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
+  const searchF = (document.getElementById('relEscolarSearch')?.value||'').trim().toLowerCase();
   let data = relEscolaresLog.filter(m=>{
     if(statusF && m.status!==statusF) return false;
     if(turmaF && m.turma!==turmaF) return false;
+    if(searchF){
+      const hay = `${m.aluno_nome||''} ${m.turma||''} ${m.solicitante||''} ${m.motivo||''} ${m.registrado_por||''}`.toLowerCase();
+      if(!hay.includes(searchF)) return false;
+    }
     return true;
+  });
+  data = data.slice().sort((a,b)=>{
+    const da = new Date(a.data_solicitacao||0).getTime();
+    const db = new Date(b.data_solicitacao||0).getTime();
+    return db - da;
   });
   const countEl = document.getElementById('relEscolarCount');
   if(countEl) countEl.textContent = `${data.length} solicitação${data.length!==1?'ões':''}`;
@@ -5437,7 +5463,7 @@ function renderRelEscolaresLog(){
   }
 
   if(!data.length){
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF||searchF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(m=>{
@@ -5446,7 +5472,7 @@ function renderRelEscolaresLog(){
     const cls = relEscStatusClass(m);
     return `<tr>
       <td style="white-space:nowrap;color:#888;font-size:12px">${fmt(m.data_solicitacao)}</td>
-      <td class="td-nome">${m.aluno_nome}</td>
+      <td class="td-nome" title="${m.aluno_nome||''}">${m.aluno_nome}</td>
       <td class="td-turma">${m.turma||'—'}</td>
       <td class="td-obs" title="${m.motivo||''}">${m.motivo||'<span style="color:#CCC">—</span>'}</td>
       <td style="font-size:12px;color:#888">${m.solicitante||'—'}</td>
