@@ -493,7 +493,6 @@
     padding: calc(9px * var(--cp-f)) calc(11px * var(--cp-f));
     display: flex; flex-direction: column;
     flex: 1; min-height: 0;
-    overflow: hidden;
     font-family: Arial, sans-serif;
   }
 
@@ -6644,8 +6643,7 @@ function executeCardPrint(){
     return a.n.localeCompare(b.n,'pt-BR');
   });
 
-  const {cols, rows} = cpPreset();
-  const perPage = cols * rows;
+  const {cols} = cpPreset();
   const isLand  = cardPrintOrient === 'landscape';
   const now     = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
 
@@ -6658,10 +6656,6 @@ function executeCardPrint(){
   if(MS_STATE.AtAEE && MS_STATE.AtAEE.size) subtitulo += ` · AEE: ${[...MS_STATE.AtAEE].join(', ')}`;
   if(MS_STATE.AtPIP && MS_STATE.AtPIP.size) subtitulo += ` · PIP: ${[...MS_STATE.AtPIP].join(', ')}`;
   if(MS_STATE.AtEncam && MS_STATE.AtEncam.size) subtitulo += ` · Encam.: ${[...MS_STATE.AtEncam].join(', ')}`;
-
-  // Quebrar em páginas
-  const pages = [];
-  for(let i = 0; i < selected.length; i += perPage) pages.push(selected.slice(i, i + perPage));
 
   function cardHtml(x){
     const isAt = x.p === 'ATÍPICO';
@@ -6704,40 +6698,28 @@ function executeCardPrint(){
     </div>`;
   }
 
-  // Cada página = div com grid de altura fixa que ocupa exatamente 1 folha impressa.
-  // Altura calculada em cm (papel A4, margem de @page = 1cm cada lado) — unidade
-  // absoluta, então o valor é o mesmo tanto na medição fora da tela quanto na
-  // impressão real, permitindo calcular o encaixe do texto com precisão.
-  // Primeira página desconta o cabeçalho (~52px).
-  // page-break-after: always força nova folha após cada div.
-  const PAGE_H_CM = isLand ? 19 : 27.7; // A4 menos margens de 1cm em cada lado
-  const pagesHtml = pages.map((grp, pi) => {
-    const cells = [...grp.map(cardHtml)];
-    while(cells.length < perPage)
-      cells.push(`<div style="visibility:hidden;border:none"></div>`);
-    const hCalc = pi===0
-      ? `calc(${PAGE_H_CM}cm - 52px)`
-      : `calc(${PAGE_H_CM}cm)`;
-    return `<div style="
-      display:grid;
-      grid-template-columns:repeat(${cols},1fr);
-      grid-template-rows:repeat(${rows},1fr);
-      gap:8px;
-      width:100%;
-      height:${hCalc};
-      box-sizing:border-box;
-      page-break-after:always;
-      break-after:page;
-    ">${cells.join('')}</div>`;
-  }).join('');
+  // Grade única e contínua: cada card cresce conforme o tamanho do seu
+  // próprio texto (sem altura fixa por página), e o navegador quebra a
+  // folha automaticamente entre linhas quando necessário. Isso garante
+  // que nenhum texto (rotina, síntese de advertências, observações)
+  // seja cortado, mesmo que o card fique maior que o previsto.
+  const cellsHtml = selected.map(cardHtml).join('');
+  const gridHtml = `<div style="
+    display:grid;
+    grid-template-columns:repeat(${cols},1fr);
+    grid-auto-rows:auto;
+    gap:10px;
+    width:100%;
+    box-sizing:border-box;
+  ">${cellsHtml}</div>`;
 
   const header = `<div class="cards-print-header">
     <h2>Monitoramento Pedagógico &mdash; Turno Tarde 2026</h2>
-    <p>${subtitulo} &middot; Impresso em ${now} &middot; ${selected.length} estudante(s) &middot; ${cols}&times;${rows} por p&aacute;gina</p>
+    <p>${subtitulo} &middot; Impresso em ${now} &middot; ${selected.length} estudante(s) &middot; ${cols} coluna${cols>1?'s':''} por p&aacute;gina</p>
   </div>`;
 
   const wrapEl = document.getElementById('cardsPrintWrap');
-  wrapEl.innerHTML = header + pagesHtml;
+  wrapEl.innerHTML = header + gridHtml;
   wrapEl.className = `cp-n${cardPrintLayout}`;
   closeCardPrintModalBtn();
 
