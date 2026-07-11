@@ -2362,6 +2362,10 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Gerenciar itens do controle
       </button>
+      <button class="action-btn" onclick="printMateriaisGrid()" style="display:inline-flex;align-items:center;gap:6px">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
     </div>
 
     <!-- Filters -->
@@ -6072,11 +6076,11 @@ function calcMaterialProgress(aluno){
   return { recebidos, total, pct, porCategoria };
 }
 
-function renderMateriaisStats(){
+function renderMateriaisStats(alunos){
   const grid = document.getElementById('materiaisStatsGrid');
   if(!grid) return;
-  const active = S.filter(x=>!x._transferido);
-  if(!active.length){ grid.innerHTML=''; return; }
+  const active = alunos || S.filter(x=>!x._transferido);
+  if(!active.length){ grid.innerHTML='<div style="font-size:12px;color:#BBB;padding:.5rem 0">Nenhum estudante encontrado.</div>'; return; }
   let somaPct = 0, completos = 0;
   const porCategoriaTotal = {}; Object.keys(MATERIAL_CATEGORIAS).forEach(c=>porCategoriaTotal[c]={recebidos:0,total:0});
   active.forEach(al=>{
@@ -6102,13 +6106,8 @@ function renderMateriaisStats(){
     </div>`).join('');
 }
 
-function renderMateriaisTable(){
-  const tbody = document.getElementById('materiaisTableBody');
-  const thead = document.getElementById('materiaisThead');
-  if(!tbody || !thead) return;
-  renderMateriaisStats();
-  const nbMat = document.getElementById('nb-mat');
-  if(nbMat) nbMat.style.display='none';
+// Retorna { rows:[{al,prog,situacao}], todos, turmaF } aplicando os filtros atuais da tela
+function getMateriaisFilteredRows(){
   const search = (document.getElementById('materiaisSearch')?.value||'').toLowerCase().trim();
   const turmaF = document.getElementById('materiaisFilterTurma')?.value||'';
   const statusF = document.getElementById('materiaisFilterStatus')?.value||'';
@@ -6117,13 +6116,26 @@ function renderMateriaisTable(){
   if(search) data = data.filter(x=>x.n.toLowerCase().includes(search));
   const rows = data.map(al=>{ const prog = calcMaterialProgress(al); let situacao = prog.recebidos===0?'pendente':(prog.recebidos===prog.total?'completo':'parcial'); return { al, prog, situacao }; })
     .filter(r=> !statusF || r.situacao===statusF );
-  // Ordena por turma e nome para leitura mais natural em lista
   rows.sort((a,b)=> a.al.t===b.al.t ? a.al.n.localeCompare(b.al.n,'pt-BR') : a.al.t.localeCompare(b.al.t,'pt-BR'));
+  return { rows, todos: todosItensMateriais(), turmaF };
+}
+
+function renderMateriaisTable(){
+  const tbody = document.getElementById('materiaisTableBody');
+  const thead = document.getElementById('materiaisThead');
+  if(!tbody || !thead) return;
+  const nbMat = document.getElementById('nb-mat');
+  if(nbMat) nbMat.style.display='none';
+
+  const { rows, todos, turmaF } = getMateriaisFilteredRows();
+
+  // Cards de resumo: refletem o filtro de turma selecionado (não o de busca/situação)
+  const statsBase = turmaF ? S.filter(x=>!x._transferido && x.t===turmaF) : S.filter(x=>!x._transferido);
+  renderMateriaisStats(statsBase);
 
   const cnt = document.getElementById('materiaisCount');
   if(cnt) cnt.textContent = `${rows.length} estudante${rows.length!==1?'s':''}`;
 
-  const todos = todosItensMateriais(); // [{categoria,nome}]
   const totalCols = 2 + todos.length + 1; // turma + nome + itens + progresso
 
   // ── Cabeçalho dinâmico: 1ª linha = categorias (colspan), 2ª linha = itens ──
@@ -6190,7 +6202,75 @@ async function onMaterialGridCheck(checkbox){
       progCell.innerHTML = `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;min-width:50px;height:6px;background:#F0EFEA;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--verde-dark)"></div></div><span style="font-size:11px;color:#999;white-space:nowrap">${prog.recebidos}/${prog.total}</span></div><div style="margin-top:3px">${situacaoBadge[situacao]}</div>`;
     }
   }
-  renderMateriaisStats();
+  const turmaF = document.getElementById('materiaisFilterTurma')?.value||'';
+  const statsBase = turmaF ? S.filter(x=>!x._transferido && x.t===turmaF) : S.filter(x=>!x._transferido);
+  renderMateriaisStats(statsBase);
+}
+
+function printMateriaisGrid(){
+  const { rows, todos, turmaF } = getMateriaisFilteredRows();
+  if(!rows.length){ alert('Não há estudantes para imprimir com os filtros atuais.'); return; }
+
+  const now = new Date().toLocaleDateString('pt-BR');
+  const subtitulo = turmaF ? `Turma ${turmaF}` : 'Todas as turmas (turno tarde)';
+
+  // Cabeçalho de grupos (categorias) + itens, igual à tela
+  const gruposHtml = Object.keys(MATERIAL_CATEGORIAS).map(cat=>{
+    const itens = materiaisItens[cat];
+    if(!itens.length) return '';
+    return `<th colspan="${itens.length}">${MATERIAL_CATEGORIAS[cat].label}</th>`;
+  }).join('');
+  const itensHtml = todos.map(it=>`<th class="item-th">${it.nome}</th>`).join('');
+
+  const linhasHtml = rows.map(({al,prog})=>{
+    const cels = todos.map(it=>{
+      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+      const ok = entry && entry.status==='recebido';
+      return `<td class="chk-cell">${ok?'☑':'☐'}</td>`;
+    }).join('');
+    return `<tr><td class="turma-cell">${al.t}</td><td class="nome-cell">${al.n}</td>${cels}<td class="prog-cell">${prog.recebidos}/${prog.total}</td></tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Controle de Materiais — ${subtitulo}</title>
+<style>
+  * { box-sizing:border-box; }
+  body { font-family:'DM Sans','Arial',sans-serif; margin:0; padding:24px; color:#1A1916; }
+  .doc-title { font-size:16px; font-weight:700; margin-bottom:2px; }
+  .doc-sub   { font-size:12px; color:#777; margin-bottom:14px; }
+  table { border-collapse:collapse; width:100%; font-size:10px; table-layout:auto; }
+  th, td { border:1px solid #D8D6CF; padding:5px 6px; text-align:center; }
+  thead th { background:#F0EFEA; font-weight:700; font-size:9px; text-transform:uppercase; letter-spacing:.03em; color:#555; }
+  .nome-cell, .turma-cell { text-align:left; white-space:nowrap; }
+  .nome-cell { min-width:150px; }
+  .item-th { writing-mode: vertical-rl; transform: rotate(180deg); white-space:nowrap; height:90px; font-size:9px; }
+  .chk-cell { font-size:13px; }
+  .prog-cell { font-weight:700; white-space:nowrap; }
+  tbody tr:nth-child(even) { background:#FAFAF8; }
+  .doc-footer { margin-top:18px; font-size:9px; color:#999; display:flex; justify-content:space-between; }
+  @page { size:landscape; margin:1.2cm; }
+  @media print { thead { display:table-header-group; } tr { page-break-inside:avoid; } }
+</style>
+</head><body>
+  <div class="doc-title">Controle de Recebimento de Materiais</div>
+  <div class="doc-sub">${subtitulo} · ${rows.length} estudante${rows.length!==1?'s':''} · Gerado em ${now}</div>
+  <table>
+    <thead>
+      <tr><th rowspan="2">Turma</th><th rowspan="2">Nome do estudante</th>${gruposHtml}<th rowspan="2">Progr.</th></tr>
+      <tr>${itensHtml}</tr>
+    </thead>
+    <tbody>${linhasHtml}</tbody>
+  </table>
+  <div class="doc-footer">
+    <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
+    <span>Coord. Pedagógico: Prof. Everton Corrêa Alves</span>
+  </div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+
+  const win = window.open('','_blank','width=1200,height=800');
+  win.document.write(html);
+  win.document.close();
 }
 
 function openMaterialFichaModal(idx){
