@@ -1151,11 +1151,10 @@
   .b-regular   { background: var(--verde-bg);  color: var(--verde-dark); }
   .b-m         { background: var(--azul-bg);   color: var(--azul-dark);  }
   .b-f         { background: #FBEAF0;           color: #72243E;           }
-  /* relatórios escolares — status */
-  .b-rel-pendente  { background: var(--amber-bg); color: var(--amber-dark); }
-  .b-rel-andamento { background: var(--azul-bg);  color: var(--azul-dark);  }
-  .b-rel-concluido { background: var(--verde-bg); color: var(--verde-dark); }
-  .b-rel-atrasado  { background: var(--coral-bg); color: var(--coral-dark); }
+  /* relatórios escolares — status (calculado automaticamente pelo prazo) */
+  .b-rel-andamento { background: var(--amber-bg); color: var(--amber-dark); } /* dentro do prazo — laranja */
+  .b-rel-concluido { background: var(--verde-bg); color: var(--verde-dark); } /* concluído — verde */
+  .b-rel-atrasado  { background: var(--coral-bg); color: var(--coral-dark); } /* fora do prazo — vermelho */
 
   /* ── DETAIL PANEL (atípicos) ─────────────────── */
   .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
@@ -5518,26 +5517,38 @@ function fecharRelatorioLinkModalBtn(){
   document.getElementById('relatorioLinkIframe').src = 'about:blank';
 }
 
-function relEscStatusLabel(status){
-  return { pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído' }[status] || 'Pendente';
+// Fora do prazo = data de previsão já passou e a solicitação ainda não foi concluída.
+function relEscEstaAtrasado(item){
+  if(!item.data_previsao) return false;
+  const hoje = new Date().toISOString().slice(0,10);
+  return item.data_previsao < hoje;
+}
+// Status efetivo: sempre calculado a partir do prazo, exceto quando marcado manualmente como concluído.
+// 'pendente'  = fora do prazo (vermelho)
+// 'andamento' = dentro do prazo (laranja)
+// 'concluido' = marcado manualmente (verde)
+function relEscEfetivo(item){
+  if(item.status==='concluido') return 'concluido';
+  return relEscEstaAtrasado(item) ? 'pendente' : 'andamento';
+}
+function relEscStatusLabel(item){
+  return { pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído' }[relEscEfetivo(item)];
 }
 function relEscStatusClass(item){
-  if(item.status==='concluido') return 'b-rel-concluido';
-  if(item.status==='andamento') return 'b-rel-andamento';
-  // pendente — verifica se está atrasado
-  if(item.data_previsao){
-    const hoje = new Date().toISOString().slice(0,10);
-    if(item.data_previsao < hoje) return 'b-rel-atrasado';
-  }
-  return 'b-rel-pendente';
+  const ef = relEscEfetivo(item);
+  if(ef==='concluido') return 'b-rel-concluido';
+  if(ef==='pendente') return 'b-rel-atrasado';
+  return 'b-rel-andamento';
 }
 
 async function atualizarStatusRelEscolar(idx, novoStatus){
   const item = relEscolaresLog[idx];
   if(!item) return;
-  item.status = novoStatus;
+  // 'reabrir' devolve a solicitação ao estado automático (Pendente/Em andamento conforme o prazo).
+  const statusSalvo = novoStatus==='reabrir' ? (relEscEstaAtrasado(item) ? 'pendente' : 'andamento') : novoStatus;
+  item.status = statusSalvo;
   try {
-    if(item.id) await sbPatch('rel_escolares', { status: novoStatus }, [`id=eq.${item.id}`]);
+    if(item.id) await sbPatch('rel_escolares', { status: statusSalvo }, [`id=eq.${item.id}`]);
   } catch(e){ console.warn('Supabase indisponível, atualizando apenas localmente.', e); }
   renderRelEscolaresLog();
 }
@@ -5567,9 +5578,9 @@ function renderRelEscolarStats(){
   if(!grid) return;
   const statusAtivo = document.getElementById('relEscolarFilterStatus')?.value||'';
   const total = relEscolaresLog.length;
-  const pendente = relEscolaresLog.filter(m=>m.status==='pendente').length;
-  const andamento = relEscolaresLog.filter(m=>m.status==='andamento').length;
-  const concluido = relEscolaresLog.filter(m=>m.status==='concluido').length;
+  const pendente = relEscolaresLog.filter(m=>relEscEfetivo(m)==='pendente').length;
+  const andamento = relEscolaresLog.filter(m=>relEscEfetivo(m)==='andamento').length;
+  const concluido = relEscolaresLog.filter(m=>relEscEfetivo(m)==='concluido').length;
   const ativoCls = v => `stat-card clickable${statusAtivo===v?' active':''}`;
   grid.innerHTML = `
     <div class="${ativoCls('')}" onclick="filtrarRelEscolarPorStatus('')">
@@ -5602,7 +5613,7 @@ function renderRelEscolaresLog(){
   const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
   const searchF = (document.getElementById('relEscolarSearch')?.value||'').trim().toLowerCase();
   let data = relEscolaresLog.filter(m=>{
-    if(statusF && m.status!==statusF) return false;
+    if(statusF && relEscEfetivo(m)!==statusF) return false;
     if(turmaF && m.turma!==turmaF) return false;
     if(searchF){
       const hay = `${m.aluno_nome||''} ${m.turma||''} ${m.solicitante||''} ${m.motivo||''} ${m.registrado_por||''}`.toLowerCase();
@@ -5633,6 +5644,7 @@ function renderRelEscolaresLog(){
     const idx = relEscolaresLog.indexOf(m);
     const fmt = d => d ? new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
     const cls = relEscStatusClass(m);
+    const ef = relEscEfetivo(m);
     return `<tr>
       <td style="white-space:nowrap;color:#888;font-size:12px">${fmt(m.data_solicitacao)}</td>
       <td class="td-nome" title="${m.aluno_nome||''}">${m.aluno_nome}</td>
@@ -5641,10 +5653,10 @@ function renderRelEscolaresLog(){
       <td style="font-size:12px;color:#888">${m.solicitante||'—'}</td>
       <td style="white-space:nowrap;font-size:12px">${fmt(m.data_previsao)}</td>
       <td>
-        <select onchange="atualizarStatusRelEscolar(${idx}, this.value)" style="font-size:11px;padding:3px 6px;border-radius:20px;border:none;font-weight:500;cursor:pointer" class="badge ${cls}">
-          <option value="pendente" ${m.status==='pendente'?'selected':''}>Pendente</option>
-          <option value="andamento" ${m.status==='andamento'?'selected':''}>Em andamento</option>
-          <option value="concluido" ${m.status==='concluido'?'selected':''}>Concluído</option>
+        <select onchange="atualizarStatusRelEscolar(${idx}, this.value)" title="Pendente/Em andamento são calculados automaticamente pelo prazo — use este menu apenas para marcar como Concluído ou reabrir" style="font-size:11px;padding:3px 6px;border-radius:20px;border:none;font-weight:500;cursor:pointer" class="badge ${cls}">
+          ${ef==='concluido'
+            ? `<option value="concluido" selected>Concluído</option><option value="reabrir">↺ Reabrir</option>`
+            : `<option value="${ef}" selected>${ef==='pendente'?'Pendente':'Em andamento'}</option><option value="concluido">Concluído</option>`}
         </select>
       </td>
       <td style="white-space:nowrap">
@@ -5676,7 +5688,7 @@ function gerarResumoRelEscolares(){
   const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
   const searchF = (document.getElementById('relEscolarSearch')?.value||'').trim().toLowerCase();
   let data = relEscolaresLog.filter(m=>{
-    if(statusF && m.status!==statusF) return false;
+    if(statusF && relEscEfetivo(m)!==statusF) return false;
     if(turmaF && m.turma!==turmaF) return false;
     if(searchF){
       const hay = `${m.aluno_nome||''} ${m.turma||''} ${m.solicitante||''} ${m.motivo||''} ${m.registrado_por||''}`.toLowerCase();
@@ -5700,7 +5712,7 @@ function gerarResumoRelEscolares(){
   if(searchF) filtrosTxt.push(`Busca: "${searchF}"`);
 
   const secoesHtml = grupos.map(g=>{
-    const itens = data.filter(m=>m.status===g.key).slice().sort((a,b)=> new Date(b.data_solicitacao||0) - new Date(a.data_solicitacao||0));
+    const itens = data.filter(m=>relEscEfetivo(m)===g.key).slice().sort((a,b)=> new Date(b.data_solicitacao||0) - new Date(a.data_solicitacao||0));
     if(!itens.length) return '';
     const linhas = itens.map(m=>`<tr>
       <td>${m.aluno_nome||'—'}</td>
@@ -5724,9 +5736,9 @@ function gerarResumoRelEscolares(){
   }).join('');
 
   const total = data.length;
-  const pendente = data.filter(m=>m.status==='pendente').length;
-  const andamento = data.filter(m=>m.status==='andamento').length;
-  const concluido = data.filter(m=>m.status==='concluido').length;
+  const pendente = data.filter(m=>relEscEfetivo(m)==='pendente').length;
+  const andamento = data.filter(m=>relEscEfetivo(m)==='andamento').length;
+  const concluido = data.filter(m=>relEscEfetivo(m)==='concluido').length;
 
   const html = `<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="UTF-8">
