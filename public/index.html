@@ -1712,6 +1712,11 @@
       Rel. Escolares
       <span class="nav-badge" id="nb-rel" style="display:none">—</span>
     </button>
+    <button class="nav-item" onclick="showView('materiais', this)" id="navMateriais">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+      Materiais
+      <span class="nav-badge" id="nb-mat" style="display:none">—</span>
+    </button>
     <button class="nav-item" onclick="abrirUsuarios(this)" id="navUsuarios" style="display:none">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-1a4 4 0 0 0-3-3.87"/></svg>
       Usuários e acessos
@@ -2318,6 +2323,63 @@
           </thead>
           <tbody id="relEscolarTableBody">
             <tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação registrada ainda.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: MATERIAIS (livros, kit escolar, uniforme) ─────────────────────────────────── -->
+  <div id="view-materiais" class="view">
+    <div class="page-header">
+      <h1>Recebimento de Materiais</h1>
+      <p>Controle de entrega de livros didáticos por disciplina, kit escolar (materialidade) e uniforme, por aluno e turma</p>
+    </div>
+
+    <!-- Resumo -->
+    <div class="stats-grid stats-grid-narrow" id="materiaisStatsGrid"></div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button class="action-btn" onclick="abrirGerenciarItensMateriais()" style="display:inline-flex;align-items:center;gap:6px">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Gerenciar itens do controle
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar" style="margin-bottom:1rem">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="materiaisSearch" placeholder="Buscar por nome…" oninput="renderMateriaisTable()">
+      </div>
+      <select id="materiaisFilterTurma" onchange="renderMateriaisTable()"><option value="">Todas as turmas</option></select>
+      <select id="materiaisFilterStatus" onchange="renderMateriaisTable()">
+        <option value="">Todas as situações</option>
+        <option value="completo">Completo</option>
+        <option value="parcial">Parcial</option>
+        <option value="pendente">Pendente (nada recebido)</option>
+      </select>
+      <span class="results-count" id="materiaisCount"></span>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Turma</th>
+              <th>Nome do estudante</th>
+              <th>Livros didáticos</th>
+              <th>Kit escolar</th>
+              <th>Uniforme</th>
+              <th>Progresso</th>
+              <th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="materiaisTableBody">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Carregando…</td></tr>
           </tbody>
         </table>
       </div>
@@ -4887,6 +4949,43 @@ function gerarRelatorio(){
   </div>
 </div>
 
+<!-- ═══ MATERIAIS — FICHA DO ALUNO (checklist) ═══════════════════ -->
+<div class="modal-overlay" id="materialFichaModalOverlay" onclick="closeMaterialFichaModal(event)" style="z-index:250">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-avatar" id="materialFichaAvatar" style="background:var(--verde-bg);color:var(--verde-dark)">—</div>
+      <div style="flex:1">
+        <div class="modal-nome" id="materialFichaNome">—</div>
+        <div class="modal-sub" id="materialFichaSub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeMaterialFichaModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="materialFichaBody">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MATERIAIS — GERENCIAR ITENS DO CONTROLE ═══════════════════ -->
+<div class="modal-overlay" id="materialItensModalOverlay" onclick="closeMaterialItensModal(event)" style="z-index:260">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <div style="flex:1">
+        <div class="modal-nome">Gerenciar itens do controle</div>
+        <div class="modal-sub">Livros, kit escolar, uniforme e itens personalizados</div>
+      </div>
+      <button class="modal-close" onclick="closeMaterialItensModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="materialItensBody">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+</div>
+
 <script>
 /* ════════════════════════════════════════════════════════════
    SUPABASE — configuração
@@ -4956,7 +5055,7 @@ async function sbDelete(table, filters){
    INDICADOR DE SINCRONIZAÇÃO
    ════════════════════════════════════════════════════════════ */
 let _syncWsConnected = 0; // conta WebSockets conectados
-let _syncTotal = 4;       // total esperado (estudantes, movimentacoes, rel_escolares, aprovacoes)
+let _syncTotal = 6;       // total esperado (estudantes, movimentacoes, rel_escolares, aprovacoes, materiais_recebimento, materiais_itens)
 let _syncFlashTimer = null;
 
 function syncSetStatus(state, label){
@@ -5856,13 +5955,371 @@ function refreshAllViews(){
   const allTurmas=[...new Set(S.filter(x=>!x._transferido).map(x=>x.t))];
   const nav=document.getElementById('turmaSideNav'); nav.innerHTML='';
   allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
-  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; const cur=sel.value; while(sel.options.length>1)sel.remove(1); allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); sel.value=cur; });
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma','materiaisFilterTurma'].forEach(id=>{ const sel=document.getElementById(id); if(!sel)return; const cur=sel.value; while(sel.options.length>1)sel.remove(1); allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); }); sel.value=cur; });
   const active=S.filter(x=>!x._transferido);
   document.getElementById('nb-total').textContent=active.length;
   document.getElementById('nb-stud').textContent=active.length;
   document.getElementById('nb-at').textContent=active.filter(x=>x.p!=='TÍPICO').length;
   renderDashboard(); renderTable(); renderAtipicos();
   filtered=[...active];
+  if(typeof renderMateriaisTable==='function') renderMateriaisTable();
+}
+
+/* ════════════════════════════════════════════════════════════
+   MATERIAIS — recebimento de livros didáticos, kit escolar (materialidade)
+   e uniforme, por aluno/turma. Ficha por aluno com checklist de itens.
+   ════════════════════════════════════════════════════════════ */
+
+// Categorias fixas do controle
+const MATERIAL_CATEGORIAS = {
+  livro:    { label:'Livros didáticos', color:'azul'  },
+  kit:      { label:'Kit escolar (materialidade)', color:'verde' },
+  uniforme: { label:'Uniforme', color:'roxo'  },
+  outro:    { label:'Outros itens', color:'coral' }
+};
+
+// Itens de cada categoria — carregados do Supabase; se a tabela estiver vazia,
+// semeamos com os padrões abaixo (disciplinas já usadas em Rel. Escolares + kit/uniforme).
+let materiaisItens = { livro:[], kit:[], uniforme:[], outro:[] }; // cada item: {id, nome}
+const MATERIAIS_ITENS_PADRAO = {
+  livro:    DISCIPLINAS_PADRAO.slice(),
+  kit:      ['Kit escolar'],
+  uniforme: ['Uniforme'],
+  outro:    []
+};
+
+let materiaisLog = []; // linhas da tabela materiais_recebimento: {id, aluno_id, aluno_nome, turma, item_categoria, item_nome, status, data_recebimento}
+let materialFichaAlunoIdx = null; // índice do aluno em S cuja ficha está aberta
+
+async function carregarMateriaisItens(){
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/materiais_itens?select=*&order=ordem.asc,id.asc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if(r.ok && Array.isArray(rows)){
+      if(rows.length === 0){
+        // Semeia os itens padrão uma única vez
+        const seed = [];
+        let ordem = 0;
+        Object.keys(MATERIAIS_ITENS_PADRAO).forEach(cat=>{
+          MATERIAIS_ITENS_PADRAO[cat].forEach(nome=>{ seed.push({ categoria:cat, nome, ordem:ordem++ }); });
+        });
+        try {
+          const { data:inserted } = await sbPost('materiais_itens', seed);
+          if(Array.isArray(inserted)) preencherMateriaisItens(inserted);
+        } catch(e){ console.warn('Não foi possível semear materiais_itens no Supabase; usando padrão local.', e); preencherMateriaisItensLocal(); }
+      } else {
+        preencherMateriaisItens(rows);
+      }
+    } else {
+      preencherMateriaisItensLocal();
+    }
+  } catch(e){
+    console.warn('Erro ao carregar materiais_itens; usando padrão local.', e);
+    preencherMateriaisItensLocal();
+  }
+}
+function preencherMateriaisItens(rows){
+  materiaisItens = { livro:[], kit:[], uniforme:[], outro:[] };
+  rows.forEach(x=>{ if(materiaisItens[x.categoria]) materiaisItens[x.categoria].push({ id:x.id, nome:x.nome }); });
+}
+function preencherMateriaisItensLocal(){
+  materiaisItens = { livro:[], kit:[], uniforme:[], outro:[] };
+  Object.keys(MATERIAIS_ITENS_PADRAO).forEach(cat=>{
+    MATERIAIS_ITENS_PADRAO[cat].forEach((nome,i)=>{ materiaisItens[cat].push({ id:`local-${cat}-${i}`, nome }); });
+  });
+}
+
+async function carregarMateriaisRecebimento(){
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/materiais_recebimento?select=*`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if(r.ok && Array.isArray(rows)) materiaisLog = rows;
+  } catch(e){ console.warn('Erro ao carregar materiais_recebimento:', e); }
+}
+
+// Retorna todos os itens (das 4 categorias) em uma lista única [{categoria,nome}]
+function todosItensMateriais(){
+  const out = [];
+  Object.keys(materiaisItens).forEach(cat=>{ materiaisItens[cat].forEach(it=>out.push({ categoria:cat, nome:it.nome })); });
+  return out;
+}
+
+function getMaterialEntry(alunoId, itemNome){
+  return materiaisLog.find(m=> String(m.aluno_id)===String(alunoId) && m.item_nome===itemNome );
+}
+
+// Calcula progresso de um aluno: {recebidos, total, pct, porCategoria:{cat:{recebidos,total}}}
+function calcMaterialProgress(aluno){
+  const todos = todosItensMateriais();
+  const total = todos.length;
+  let recebidos = 0;
+  const porCategoria = {};
+  Object.keys(MATERIAL_CATEGORIAS).forEach(cat=>{ porCategoria[cat] = { recebidos:0, total:0 }; });
+  todos.forEach(it=>{
+    porCategoria[it.categoria].total++;
+    const entry = getMaterialEntry(aluno.id ?? aluno.n, it.nome);
+    if(entry && entry.status === 'recebido'){ recebidos++; porCategoria[it.categoria].recebidos++; }
+  });
+  const pct = total ? Math.round((recebidos/total)*100) : 0;
+  return { recebidos, total, pct, porCategoria };
+}
+
+function renderMateriaisStats(){
+  const grid = document.getElementById('materiaisStatsGrid');
+  if(!grid) return;
+  const active = S.filter(x=>!x._transferido);
+  if(!active.length){ grid.innerHTML=''; return; }
+  let somaPct = 0, completos = 0;
+  const porCategoriaTotal = {}; Object.keys(MATERIAL_CATEGORIAS).forEach(c=>porCategoriaTotal[c]={recebidos:0,total:0});
+  active.forEach(al=>{
+    const prog = calcMaterialProgress(al);
+    somaPct += prog.pct;
+    if(prog.total>0 && prog.recebidos===prog.total) completos++;
+    Object.keys(MATERIAL_CATEGORIAS).forEach(c=>{ porCategoriaTotal[c].recebidos += prog.porCategoria[c].recebidos; porCategoriaTotal[c].total += prog.porCategoria[c].total; });
+  });
+  const mediaPct = Math.round(somaPct/active.length);
+  const cards = [
+    { label:'Progresso médio geral', value: mediaPct+'%', color:'verde' },
+    { label:'Fichas completas', value: completos+' de '+active.length, color:'roxo' },
+  ];
+  Object.keys(MATERIAL_CATEGORIAS).forEach(c=>{
+    const t = porCategoriaTotal[c];
+    const pct = t.total ? Math.round((t.recebidos/t.total)*100) : 0;
+    cards.push({ label: MATERIAL_CATEGORIAS[c].label, value: pct+'%', color: MATERIAL_CATEGORIAS[c].color });
+  });
+  grid.innerHTML = cards.map(c=>`
+    <div class="stat-card">
+      <div style="font-size:11px;color:#999;margin-bottom:6px">${c.label}</div>
+      <div style="font-size:22px;font-weight:700;color:var(--${c.color}-dark,#333)">${c.value}</div>
+    </div>`).join('');
+}
+
+function renderMateriaisTable(){
+  const tbody = document.getElementById('materiaisTableBody');
+  if(!tbody) return;
+  renderMateriaisStats();
+  const nbMat = document.getElementById('nb-mat');
+  const search = (document.getElementById('materiaisSearch')?.value||'').toLowerCase().trim();
+  const turmaF = document.getElementById('materiaisFilterTurma')?.value||'';
+  const statusF = document.getElementById('materiaisFilterStatus')?.value||'';
+  let data = S.filter(x=>!x._transferido);
+  if(nbMat) nbMat.style.display='none';
+  if(turmaF) data = data.filter(x=>x.t===turmaF);
+  if(search) data = data.filter(x=>x.n.toLowerCase().includes(search));
+  const rows = data.map(al=>{ const prog = calcMaterialProgress(al); let situacao = prog.recebidos===0?'pendente':(prog.recebidos===prog.total?'completo':'parcial'); return { al, prog, situacao }; })
+    .filter(r=> !statusF || r.situacao===statusF );
+
+  const cnt = document.getElementById('materiaisCount');
+  if(cnt) cnt.textContent = `${rows.length} estudante${rows.length!==1?'s':''}`;
+
+  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado com os filtros selecionados.</td></tr>`; return; }
+
+  const miniBar = (rec,tot,cor)=>{
+    const pct = tot? Math.round((rec/tot)*100) : 0;
+    return `<div style="display:flex;align-items:center;gap:6px">
+      <div style="flex:1;min-width:50px;height:6px;background:#F0EFEA;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--${cor})"></div></div>
+      <span style="font-size:11px;color:#999;white-space:nowrap">${rec}/${tot}</span>
+    </div>`;
+  };
+  const situacaoBadge = { completo:'<span class="badge b-tipico">Completo</span>', parcial:'<span class="badge b-analise">Parcial</span>', pendente:'<span class="badge b-atipico">Pendente</span>' };
+
+  tbody.innerHTML = rows.map(({al,prog,situacao})=>{
+    const idxReal = S.indexOf(al);
+    return `<tr>
+      <td class="td-turma">${al.t}</td>
+      <td class="td-nome">${al.n}</td>
+      <td style="min-width:110px">${miniBar(prog.porCategoria.livro.recebidos, prog.porCategoria.livro.total, 'azul')}</td>
+      <td style="min-width:90px">${miniBar(prog.porCategoria.kit.recebidos, prog.porCategoria.kit.total, 'verde')}</td>
+      <td style="min-width:90px">${miniBar(prog.porCategoria.uniforme.recebidos, prog.porCategoria.uniforme.total, 'roxo')}</td>
+      <td style="min-width:130px">${miniBar(prog.recebidos, prog.total, 'verde-dark')} <div style="margin-top:3px">${situacaoBadge[situacao]}</div></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="action-btn" style="padding:5px 10px;font-size:12px" onclick="openMaterialFichaModal(${idxReal})">Abrir ficha</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openMaterialFichaModal(idx){
+  materialFichaAlunoIdx = idx;
+  const al = S[idx];
+  if(!al) return;
+  document.getElementById('materialFichaAvatar').textContent = initials(al.n);
+  document.getElementById('materialFichaNome').textContent = al.n;
+  document.getElementById('materialFichaSub').textContent = `${al.t} · Recebimento de materiais`;
+  renderMaterialFichaBody();
+  document.getElementById('materialFichaModalOverlay').classList.add('open');
+}
+function closeMaterialFichaModal(e){ if(e.target===document.getElementById('materialFichaModalOverlay')) closeMaterialFichaModalBtn(); }
+function closeMaterialFichaModalBtn(){ document.getElementById('materialFichaModalOverlay').classList.remove('open'); materialFichaAlunoIdx=null; renderMateriaisTable(); }
+
+function renderMaterialFichaBody(){
+  const al = S[materialFichaAlunoIdx];
+  if(!al) return;
+  const body = document.getElementById('materialFichaBody');
+  const hoje = new Date().toISOString().slice(0,10);
+  const secaoHtml = (cat)=>{
+    const itens = materiaisItens[cat];
+    if(!itens.length) return '';
+    const meta = MATERIAL_CATEGORIAS[cat];
+    const linhas = itens.map(it=>{
+      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+      const recebido = entry && entry.status==='recebido';
+      const dataVal = (entry && entry.data_recebimento) ? entry.data_recebimento : hoje;
+      const safeId = `mf_${cat}_${it.id}`.replace(/[^a-zA-Z0-9_]/g,'');
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F3F2EF">
+        <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;font-size:13px;color:#333">
+          <input type="checkbox" id="chk_${safeId}" ${recebido?'checked':''} onchange="toggleMaterialItem(${materialFichaAlunoIdx},'${cat}','${it.nome.replace(/'/g,"\\'")}', this.checked, '${safeId}')" style="width:16px;height:16px">
+          ${it.nome}
+        </label>
+        <input type="date" id="date_${safeId}" value="${dataVal}" ${recebido?'':'disabled'} onchange="updateMaterialItemDate(${materialFichaAlunoIdx},'${cat}','${it.nome.replace(/'/g,"\\'")}', this.value)" style="padding:5px 8px;border:1px solid #E8E7E3;border-radius:6px;font-size:12px;font-family:inherit;outline:none;width:140px">
+      </div>`;
+    }).join('');
+    return `<div class="modal-section">
+      <div class="modal-section-title" style="color:var(--${meta.color}-dark,#999)">${meta.label}</div>
+      ${linhas}
+    </div>`;
+  };
+
+  const addItemForm = `
+    <div class="modal-section">
+      <div class="modal-section-title">Adicionar item personalizado</div>
+      <div style="display:flex;gap:8px">
+        <select id="novoItemCategoria" style="padding:7px 8px;border:1px solid #E8E7E3;border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+          ${Object.keys(MATERIAL_CATEGORIAS).map(c=>`<option value="${c}">${MATERIAL_CATEGORIAS[c].label}</option>`).join('')}
+        </select>
+        <input type="text" id="novoItemNome" placeholder="Nome do item (ex: Agenda escolar)" style="flex:1;padding:7px 8px;border:1px solid #E8E7E3;border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+        <button class="action-btn" style="padding:7px 12px;font-size:12px" onclick="adicionarItemMaterialInline()">+ Adicionar</button>
+      </div>
+    </div>`;
+
+  const prog = calcMaterialProgress(al);
+  const resumo = `<div style="background:#FAFAF8;border-radius:8px;padding:10px 12px;margin-bottom:1rem;font-size:13px;color:#555;display:flex;justify-content:space-between;align-items:center">
+    <span>Progresso da ficha</span><strong>${prog.recebidos} de ${prog.total} itens recebidos (${prog.pct}%)</strong>
+  </div>`;
+
+  body.innerHTML = resumo
+    + secaoHtml('livro') + secaoHtml('kit') + secaoHtml('uniforme') + secaoHtml('outro')
+    + addItemForm
+    + `<div style="display:flex;justify-content:flex-end;margin-top:.5rem"><button class="btn-cancel" onclick="closeMaterialFichaModalBtn()">Fechar</button></div>`;
+}
+
+async function toggleMaterialItem(idx, categoria, itemNome, checked, safeId){
+  const al = S[idx];
+  if(!al) return;
+  const dateInput = document.getElementById(`date_${safeId}`);
+  if(dateInput) dateInput.disabled = !checked;
+  const dataVal = dateInput?.value || new Date().toISOString().slice(0,10);
+  await salvarMaterialItem(al, categoria, itemNome, checked?'recebido':'pendente', dataVal);
+  renderMaterialFichaBody();
+  renderMateriaisTable();
+}
+async function updateMaterialItemDate(idx, categoria, itemNome, novaData){
+  const al = S[idx];
+  if(!al) return;
+  await salvarMaterialItem(al, categoria, itemNome, 'recebido', novaData);
+}
+
+async function salvarMaterialItem(al, categoria, itemNome, status, dataRecebimento){
+  const alunoId = al.id ?? al.n;
+  const existente = getMaterialEntry(alunoId, itemNome);
+  const payload = { aluno_id: al.id ?? null, aluno_nome: al.n, turma: al.t, item_categoria: categoria, item_nome: itemNome, status, data_recebimento: status==='recebido' ? dataRecebimento : null };
+  try {
+    if(existente && existente.id && al.id){
+      const { data } = await sbPatch('materiais_recebimento', payload, [ `id=eq.${existente.id}` ]);
+      if(Array.isArray(data) && data[0]) Object.assign(existente, data[0]);
+    } else if(al.id) {
+      const { data } = await sbPost('materiais_recebimento', payload);
+      if(Array.isArray(data) && data[0]) {
+        if(existente) Object.assign(existente, data[0]); else materiaisLog.push(data[0]);
+      }
+    } else {
+      // Aluno ainda não sincronizado (sem id) — mantém apenas localmente
+      if(existente) Object.assign(existente, payload); else materiaisLog.push({ ...payload, id:`local-${Date.now()}` });
+    }
+  } catch(e){
+    console.warn('Erro ao salvar item de material; mantendo alteração local.', e);
+    if(existente) Object.assign(existente, payload); else materiaisLog.push({ ...payload, id:`local-${Date.now()}` });
+  }
+}
+
+async function adicionarItemMaterialInline(){
+  const cat = document.getElementById('novoItemCategoria').value;
+  const nomeInput = document.getElementById('novoItemNome');
+  const nome = nomeInput.value.trim();
+  if(!nome){ alert('Informe o nome do item.'); return; }
+  if(materiaisItens[cat].some(it=>it.nome.toLowerCase()===nome.toLowerCase())){ alert('Este item já existe nesta categoria.'); return; }
+  const ordem = todosItensMateriais().length;
+  let novoId = `local-${cat}-${Date.now()}`;
+  try {
+    const { data } = await sbPost('materiais_itens', { categoria:cat, nome, ordem });
+    if(Array.isArray(data) && data[0]) novoId = data[0].id;
+  } catch(e){ console.warn('Não foi possível salvar novo item no Supabase; mantendo apenas localmente.', e); }
+  materiaisItens[cat].push({ id:novoId, nome });
+  nomeInput.value = '';
+  renderMaterialFichaBody();
+  renderMateriaisTable();
+  renderMaterialItensBody();
+}
+
+/* ── Gerenciar itens (modal separado, fora da ficha) ─────────── */
+function abrirGerenciarItensMateriais(){
+  renderMaterialItensBody();
+  document.getElementById('materialItensModalOverlay').classList.add('open');
+}
+function closeMaterialItensModal(e){ if(e.target===document.getElementById('materialItensModalOverlay')) closeMaterialItensModalBtn(); }
+function closeMaterialItensModalBtn(){ document.getElementById('materialItensModalOverlay').classList.remove('open'); }
+
+function renderMaterialItensBody(){
+  const body = document.getElementById('materialItensBody');
+  if(!body) return;
+  const listaCategoria = (cat)=>{
+    const meta = MATERIAL_CATEGORIAS[cat];
+    const itens = materiaisItens[cat];
+    return `<div class="modal-section">
+      <div class="modal-section-title" style="color:var(--${meta.color}-dark,#999)">${meta.label} (${itens.length})</div>
+      ${itens.map(it=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;color:#444">
+        <span>${it.nome}</span>
+        <button title="Remover item (não apaga registros já lançados)" onclick="removerItemMaterial('${cat}','${String(it.id)}')" style="background:none;border:none;color:#BBB;cursor:pointer;font-size:14px">✕</button>
+      </div>`).join('') || '<div style="font-size:12px;color:#BBB">Nenhum item cadastrado.</div>'}
+    </div>`;
+  };
+  body.innerHTML = Object.keys(MATERIAL_CATEGORIAS).map(listaCategoria).join('')
+    + `<div style="margin-top:.5rem">
+        <div class="modal-section-title">Adicionar novo item</div>
+        <div style="display:flex;gap:8px">
+          <select id="giCategoria" style="padding:7px 8px;border:1px solid #E8E7E3;border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+            ${Object.keys(MATERIAL_CATEGORIAS).map(c=>`<option value="${c}">${MATERIAL_CATEGORIAS[c].label}</option>`).join('')}
+          </select>
+          <input type="text" id="giNome" placeholder="Nome do item" style="flex:1;padding:7px 8px;border:1px solid #E8E7E3;border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+          <button class="btn-save" style="padding:7px 12px;font-size:12px" onclick="adicionarItemMaterialGerenciar()">+ Adicionar</button>
+        </div>
+       </div>`;
+}
+async function adicionarItemMaterialGerenciar(){
+  const cat = document.getElementById('giCategoria').value;
+  const nomeInput = document.getElementById('giNome');
+  const nome = nomeInput.value.trim();
+  if(!nome){ alert('Informe o nome do item.'); return; }
+  if(materiaisItens[cat].some(it=>it.nome.toLowerCase()===nome.toLowerCase())){ alert('Este item já existe nesta categoria.'); return; }
+  const ordem = todosItensMateriais().length;
+  let novoId = `local-${cat}-${Date.now()}`;
+  try {
+    const { data } = await sbPost('materiais_itens', { categoria:cat, nome, ordem });
+    if(Array.isArray(data) && data[0]) novoId = data[0].id;
+  } catch(e){ console.warn('Não foi possível salvar novo item no Supabase; mantendo apenas localmente.', e); }
+  materiaisItens[cat].push({ id:novoId, nome });
+  nomeInput.value = '';
+  renderMaterialItensBody();
+  renderMateriaisTable();
+}
+async function removerItemMaterial(cat, id){
+  if(!confirm('Remover este item da lista de controle? Os registros de recebimento já lançados para este item permanecem no histórico, mas ele deixará de aparecer nas fichas.')) return;
+  materiaisItens[cat] = materiaisItens[cat].filter(it=>String(it.id)!==String(id));
+  if(!String(id).startsWith('local-')){
+    try { await sbDelete('materiais_itens', [ `id=eq.${id}` ]); } catch(e){ console.warn('Erro ao remover item no Supabase:', e); }
+  }
+  renderMaterialItensBody();
+  renderMateriaisTable();
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -6071,6 +6528,14 @@ function iniciarRealtime(){
   sbRealtime('rel_escolares', async ()=>{
     await carregarRelEscolares();
   });
+  sbRealtime('materiais_recebimento', async ()=>{
+    await carregarMateriaisRecebimento();
+    renderMateriaisTable();
+  });
+  sbRealtime('materiais_itens', async ()=>{
+    await carregarMateriaisItens();
+    renderMateriaisTable();
+  });
   sbRealtime('aprovacoes_pendentes', async ()=>{
     await carregarPendentes();
     renderPendingPanel();
@@ -6103,6 +6568,8 @@ async function init(){
   await carregarEstudantes();
   await carregarMovimentacoes();
   await carregarRelEscolares();
+  await carregarMateriaisItens();
+  await carregarMateriaisRecebimento();
 
   // Recalcular TURMAS com os dados reais (pode diferir dos hardcoded)
   const active = S.filter(x=>!x._transferido);
@@ -6117,7 +6584,7 @@ async function init(){
   allTurmas.forEach(t=>{ const btn=document.createElement('button'); const ano=parseInt(t); const dotClass=ano===6?'ano-6':ano===7?'ano-7':ano>=8?'ano-8':''; btn.className='turma-nav'; btn.innerHTML=`<span class="turma-dot ${dotClass}"></span>${t}`; btn.onclick=()=>{ filterByTurma(t); }; nav.appendChild(btn); });
 
   // Turma selects — limpa antes de popular para evitar duplicatas
-  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma'].forEach(id=>{
+  ['filterTurma','filterAtTurma','relTurma','movFilterTurma','relEscolarFilterTurma','materiaisFilterTurma'].forEach(id=>{
     const sel=document.getElementById(id); if(!sel)return;
     while(sel.options.length>1) sel.remove(1);
     allTurmas.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
@@ -6130,7 +6597,7 @@ async function init(){
 
   // Inicializar filtros e renderizar
   filtered = [...active];
-  renderDashboard(); renderTable(); renderAtipicos();
+  renderDashboard(); renderTable(); renderAtipicos(); renderMateriaisTable();
   // Esconder overlay de loading do dashboard
   const dl = document.getElementById('dashboard-loading');
   if(dl) dl.style.display = 'none';
@@ -6183,6 +6650,7 @@ function showView(id, btn){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   if(id === 'usuarios') carregarUsuarios();
+  if(id === 'materiais') renderMateriaisTable();
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
     const sidebar = document.querySelector('.sidebar');
