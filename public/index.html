@@ -1059,6 +1059,23 @@
   /* Cabeçalhos centrados para colunas curtas */
   thead th.th-pip { text-align: left; }
 
+  /* ── MATERIAIS — grade de checkboxes por turma ── */
+  table.materiais-grid { table-layout: auto; min-width: 100%; width: max-content; }
+  table.materiais-grid thead th { text-align: center; white-space: normal; line-height: 1.25; padding: 8px 6px; vertical-align: bottom; }
+  table.materiais-grid thead tr.materiais-grupo-row th { font-size: 9.5px; letter-spacing: .06em; padding: 6px; }
+  table.materiais-grid thead th.materiais-th-nome,
+  table.materiais-grid tbody td.materiais-td-nome {
+    text-align: left; position: sticky; left: 0; background: #F4F3EF; z-index: 3;
+    box-shadow: 2px 0 4px rgba(0,0,0,.04);
+  }
+  table.materiais-grid tbody td.materiais-td-nome { background: #fff; z-index: 1; white-space: nowrap; }
+  table.materiais-grid tbody tr:hover td.materiais-td-nome { background: #FAFAF8; }
+  table.materiais-grid th.materiais-th-item { min-width: 76px; max-width: 100px; }
+  table.materiais-grid td.materiais-td-check { text-align: center; padding: 8px 4px; }
+  table.materiais-grid td.materiais-td-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--verde); }
+  table.materiais-grid td.materiais-td-progress { min-width: 130px; white-space: normal; }
+  table.materiais-grid th.materiais-th-turma, table.materiais-grid td.materiais-td-turma { min-width: 60px; }
+
   tbody td {
     padding: 10px 12px;
     border-bottom: 1px solid #F5F4F0;
@@ -2362,24 +2379,15 @@
       </select>
       <span class="results-count" id="materiaisCount"></span>
     </div>
+    <div style="font-size:12px;color:#AAA;margin:-.5rem 0 .8rem">💡 Selecione uma turma para marcar direto na tabela. Clique nas caixinhas para registrar o recebimento (data de hoje é aplicada automaticamente).</div>
 
     <!-- Table -->
     <div class="table-wrap">
       <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Turma</th>
-              <th>Nome do estudante</th>
-              <th>Livros didáticos</th>
-              <th>Kit escolar</th>
-              <th>Uniforme</th>
-              <th>Progresso</th>
-              <th style="text-align:right">Ações</th>
-            </tr>
-          </thead>
+        <table id="materiaisGridTable" class="materiais-grid">
+          <thead id="materiaisThead"></thead>
           <tbody id="materiaisTableBody">
-            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Carregando…</td></tr>
+            <tr><td style="text-align:center;padding:2rem;color:#BBB">Carregando…</td></tr>
           </tbody>
         </table>
       </div>
@@ -6096,23 +6104,43 @@ function renderMateriaisStats(){
 
 function renderMateriaisTable(){
   const tbody = document.getElementById('materiaisTableBody');
-  if(!tbody) return;
+  const thead = document.getElementById('materiaisThead');
+  if(!tbody || !thead) return;
   renderMateriaisStats();
   const nbMat = document.getElementById('nb-mat');
+  if(nbMat) nbMat.style.display='none';
   const search = (document.getElementById('materiaisSearch')?.value||'').toLowerCase().trim();
   const turmaF = document.getElementById('materiaisFilterTurma')?.value||'';
   const statusF = document.getElementById('materiaisFilterStatus')?.value||'';
   let data = S.filter(x=>!x._transferido);
-  if(nbMat) nbMat.style.display='none';
   if(turmaF) data = data.filter(x=>x.t===turmaF);
   if(search) data = data.filter(x=>x.n.toLowerCase().includes(search));
   const rows = data.map(al=>{ const prog = calcMaterialProgress(al); let situacao = prog.recebidos===0?'pendente':(prog.recebidos===prog.total?'completo':'parcial'); return { al, prog, situacao }; })
     .filter(r=> !statusF || r.situacao===statusF );
+  // Ordena por turma e nome para leitura mais natural em lista
+  rows.sort((a,b)=> a.al.t===b.al.t ? a.al.n.localeCompare(b.al.n,'pt-BR') : a.al.t.localeCompare(b.al.t,'pt-BR'));
 
   const cnt = document.getElementById('materiaisCount');
   if(cnt) cnt.textContent = `${rows.length} estudante${rows.length!==1?'s':''}`;
 
-  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado com os filtros selecionados.</td></tr>`; return; }
+  const todos = todosItensMateriais(); // [{categoria,nome}]
+  const totalCols = 2 + todos.length + 1; // turma + nome + itens + progresso
+
+  // ── Cabeçalho dinâmico: 1ª linha = categorias (colspan), 2ª linha = itens ──
+  const grupoRow = ['<tr class="materiais-grupo-row"><th class="materiais-th-turma" rowspan="2">Turma</th><th class="materiais-th-nome" rowspan="2">Nome do estudante</th>'];
+  Object.keys(MATERIAL_CATEGORIAS).forEach(cat=>{
+    const itens = materiaisItens[cat];
+    if(!itens.length) return;
+    const meta = MATERIAL_CATEGORIAS[cat];
+    grupoRow.push(`<th colspan="${itens.length}" style="background:var(--${meta.color}-bg);color:var(--${meta.color}-dark)">${meta.label}</th>`);
+  });
+  grupoRow.push('<th rowspan="2">Progresso</th></tr>');
+  const itemRow = ['<tr>'];
+  todos.forEach(it=>{ itemRow.push(`<th class="materiais-th-item" title="${it.nome}">${it.nome}</th>`); });
+  itemRow.push('</tr>');
+  thead.innerHTML = grupoRow.join('') + itemRow.join('');
+
+  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="${totalCols}" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado com os filtros selecionados.</td></tr>`; return; }
 
   const miniBar = (rec,tot,cor)=>{
     const pct = tot? Math.round((rec/tot)*100) : 0;
@@ -6125,18 +6153,44 @@ function renderMateriaisTable(){
 
   tbody.innerHTML = rows.map(({al,prog,situacao})=>{
     const idxReal = S.indexOf(al);
+    const cells = todos.map(it=>{
+      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+      const checked = entry && entry.status==='recebido';
+      return `<td class="materiais-td-check"><input type="checkbox" ${checked?'checked':''} data-idx="${idxReal}" data-cat="${it.categoria}" data-item="${encodeURIComponent(it.nome)}" title="${it.nome}${checked && entry.data_recebimento ? ' — recebido em '+new Date(entry.data_recebimento+'T12:00:00').toLocaleDateString('pt-BR') : ''}" onchange="onMaterialGridCheck(this)"></td>`;
+    }).join('');
     return `<tr>
       <td class="td-turma">${al.t}</td>
-      <td class="td-nome">${al.n}</td>
-      <td style="min-width:110px">${miniBar(prog.porCategoria.livro.recebidos, prog.porCategoria.livro.total, 'azul')}</td>
-      <td style="min-width:90px">${miniBar(prog.porCategoria.kit.recebidos, prog.porCategoria.kit.total, 'verde')}</td>
-      <td style="min-width:90px">${miniBar(prog.porCategoria.uniforme.recebidos, prog.porCategoria.uniforme.total, 'roxo')}</td>
-      <td style="min-width:130px">${miniBar(prog.recebidos, prog.total, 'verde-dark')} <div style="margin-top:3px">${situacaoBadge[situacao]}</div></td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="action-btn" style="padding:5px 10px;font-size:12px" onclick="openMaterialFichaModal(${idxReal})">Abrir ficha</button>
-      </td>
+      <td class="materiais-td-nome">${al.n} <button onclick="openMaterialFichaModal(${idxReal})" title="Abrir ficha detalhada (ajustar datas, adicionar itens)" style="background:none;border:none;cursor:pointer;color:#BBB;font-size:12px;vertical-align:middle;padding:0 2px">✎</button></td>
+      ${cells}
+      <td class="materiais-td-progress">${miniBar(prog.recebidos, prog.total, 'verde-dark')} <div style="margin-top:3px">${situacaoBadge[situacao]}</div></td>
     </tr>`;
   }).join('');
+}
+
+async function onMaterialGridCheck(checkbox){
+  const idx = parseInt(checkbox.dataset.idx);
+  const cat = checkbox.dataset.cat;
+  const itemNome = decodeURIComponent(checkbox.dataset.item);
+  const al = S[idx];
+  if(!al) return;
+  checkbox.disabled = true;
+  const checked = checkbox.checked;
+  const hoje = new Date().toISOString().slice(0,10);
+  await salvarMaterialItem(al, cat, itemNome, checked?'recebido':'pendente', hoje);
+  checkbox.disabled = false;
+  // Atualiza apenas a linha de progresso do aluno e o resumo, sem re-renderizar a tabela toda
+  const tr = checkbox.closest('tr');
+  if(tr){
+    const prog = calcMaterialProgress(al);
+    const progCell = tr.querySelector('.materiais-td-progress');
+    if(progCell){
+      const pct = prog.total? Math.round((prog.recebidos/prog.total)*100) : 0;
+      const situacao = prog.recebidos===0?'pendente':(prog.recebidos===prog.total?'completo':'parcial');
+      const situacaoBadge = { completo:'<span class="badge b-tipico">Completo</span>', parcial:'<span class="badge b-analise">Parcial</span>', pendente:'<span class="badge b-atipico">Pendente</span>' };
+      progCell.innerHTML = `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;min-width:50px;height:6px;background:#F0EFEA;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--verde-dark)"></div></div><span style="font-size:11px;color:#999;white-space:nowrap">${prog.recebidos}/${prog.total}</span></div><div style="margin-top:3px">${situacaoBadge[situacao]}</div>`;
+    }
+  }
+  renderMateriaisStats();
 }
 
 function openMaterialFichaModal(idx){
