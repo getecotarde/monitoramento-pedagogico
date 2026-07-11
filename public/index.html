@@ -937,6 +937,10 @@
     transition: box-shadow .2s, transform .2s;
   }
   .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.09); transform: translateY(-1px); }
+  .stats-grid-narrow { grid-template-columns: repeat(auto-fit, minmax(120px, 150px)); justify-content: start; }
+  .stat-card.clickable { cursor: pointer; user-select: none; }
+  .stat-card.clickable:hover { border-color: var(--roxo); }
+  .stat-card.clickable.active { border-color: var(--roxo); box-shadow: 0 0 0 2px var(--roxo-bg), 0 4px 16px rgba(0,0,0,.09); }
   .stat-icon {
     width: 32px; height: 32px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
@@ -2250,7 +2254,7 @@
     </div>
 
     <!-- Resumo por situação -->
-    <div class="stats-grid" id="relEscolarStatsGrid"></div>
+    <div class="stats-grid stats-grid-narrow" id="relEscolarStatsGrid"></div>
 
     <!-- Action buttons -->
     <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap">
@@ -5438,30 +5442,41 @@ async function excluirRelEscolar(idx){
   renderRelEscolaresLog();
 }
 
+function filtrarRelEscolarPorStatus(status){
+  const sel = document.getElementById('relEscolarFilterStatus');
+  if(!sel) return;
+  // Clicar no mesmo card novamente remove o filtro (alterna)
+  sel.value = (sel.value === status) ? '' : status;
+  renderRelEscolaresLog();
+  document.getElementById('relEscolarTableBody')?.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
 function renderRelEscolarStats(){
   const grid = document.getElementById('relEscolarStatsGrid');
   if(!grid) return;
+  const statusAtivo = document.getElementById('relEscolarFilterStatus')?.value||'';
   const total = relEscolaresLog.length;
   const pendente = relEscolaresLog.filter(m=>m.status==='pendente').length;
   const andamento = relEscolaresLog.filter(m=>m.status==='andamento').length;
   const concluido = relEscolaresLog.filter(m=>m.status==='concluido').length;
+  const ativoCls = v => `stat-card clickable${statusAtivo===v?' active':''}`;
   grid.innerHTML = `
-    <div class="stat-card">
+    <div class="${ativoCls('')}" onclick="filtrarRelEscolarPorStatus('')">
       <div class="stat-icon roxo"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
       <div class="stat-num">${total}</div>
       <div class="stat-label">Total de solicitações</div>
     </div>
-    <div class="stat-card">
+    <div class="${ativoCls('pendente')}" onclick="filtrarRelEscolarPorStatus('pendente')">
       <div class="stat-icon coral"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <div class="stat-num">${pendente}</div>
       <div class="stat-label">Pendentes</div>
     </div>
-    <div class="stat-card">
+    <div class="${ativoCls('andamento')}" onclick="filtrarRelEscolarPorStatus('andamento')">
       <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></div>
       <div class="stat-num">${andamento}</div>
       <div class="stat-label">Em andamento</div>
     </div>
-    <div class="stat-card">
+    <div class="${ativoCls('concluido')}" onclick="filtrarRelEscolarPorStatus('concluido')">
       <div class="stat-icon verde"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
       <div class="stat-num">${concluido}</div>
       <div class="stat-label">Concluídas</div>
