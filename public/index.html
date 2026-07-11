@@ -2295,12 +2295,18 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="relEscolarSearch" placeholder="Buscar por nome, turma, solicitante…" oninput="renderRelEscolaresLog()">
       </div>
-      <select id="relEscolarFilterStatus" onchange="renderRelEscolaresLog()">
-        <option value="">Todos os status</option>
-        <option value="pendente">Pendente</option>
-        <option value="andamento">Em andamento</option>
-        <option value="concluido">Concluído</option>
-      </select>
+      <div class="ms-wrap" id="msWrapRelStatus">
+        <div class="ms-trigger" id="msTriggerRelStatus" onclick="toggleMs('RelStatus')">
+          <span class="ms-trigger-label" id="msLabelRelStatus">Todos os status</span>
+          <span class="ms-count" id="msCountRelStatus" style="display:none"></span>
+          <span class="ms-trigger-arrow">▼</span>
+        </div>
+        <div class="ms-dropdown" id="msDropRelStatus">
+          <div id="msOptionsRelStatus"></div>
+          <hr class="ms-divider">
+          <button class="ms-clear" onclick="clearMs('RelStatus')">✕ Limpar seleção</button>
+        </div>
+      </div>
       <select id="relEscolarFilterTurma" onchange="renderRelEscolaresLog()">
         <option value="">Todas as turmas</option>
       </select>
@@ -3424,7 +3430,7 @@ function renderDashboard(){
    ════════════════════════════════════════════════════════════ */
 
 // State: which options are selected per filter key
-const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set(), Encam: new Set(), AtEncam: new Set() };
+const MS_STATE = { AEE: new Set(), PIP: new Set(), AtAEE: new Set(), AtPIP: new Set(), Encam: new Set(), AtEncam: new Set(), RelStatus: new Set() };
 
 // Config per filter key
 const MS_CONFIG = {
@@ -3434,6 +3440,7 @@ const MS_CONFIG = {
   AtPIP:   { label:'PIP/Pedagógico',     onchange: ()=>renderAtipicos() },
   Encam:   { label:'Encaminhamento',     onchange: ()=>applyFilters() },
   AtEncam: { label:'Encaminhamento',     onchange: ()=>renderAtipicos() },
+  RelStatus: { label:'Todos os status', onchange: ()=>renderRelEscolaresLog() },
 };
 
 // Split compound diagnostic values like "DI/TDAH" → ["DI","TDAH"]
@@ -3478,12 +3485,29 @@ function getUniqueEncamValues(){
   return result;
 }
 
+// Fixed display labels for options whose value !== display text (e.g. status keys)
+const MS_FIXED_LABELS = {
+  RelStatus: { pendente:'Pendente', andamento:'Em andamento', concluido:'Concluído' }
+};
+
 // Build options HTML for a given key
 function buildMsOptions(key){
+  const container = document.getElementById(`msOptions${key}`);
+  if(!container) return;
+  if(MS_FIXED_LABELS[key]){
+    const map = MS_FIXED_LABELS[key];
+    container.innerHTML = Object.keys(map).map(v=>`
+      <div class="ms-option">
+        <input type="checkbox" id="ms_${key}_${v}" value="${v}"
+          onchange="toggleMsOption('${key}','${v}',this.checked)">
+        <label for="ms_${key}_${v}">${map[v]}</label>
+      </div>
+    `).join('');
+    return;
+  }
   const values = (key==='AEE'||key==='AtAEE') ? getUniqueAEEValues()
                : (key==='PIP'||key==='AtPIP')  ? getUniquePIPValues()
-               : getUniqueEncamValues();  const container = document.getElementById(`msOptions${key}`);
-  if(!container) return;
+               : getUniqueEncamValues();
   container.innerHTML = values.map(v=>`
     <div class="ms-option">
       <input type="checkbox" id="ms_${key}_${CSS.escape(v)}" value="${v}"
@@ -3512,7 +3536,8 @@ function updateMsTrigger(key){
     count.style.display='none';
   } else {
     const arr = [...sel];
-    label.textContent = arr.length===1 ? arr[0] : `${arr.length} selecionados`;
+    const dispLabel = v => MS_FIXED_LABELS[key] ? (MS_FIXED_LABELS[key][v]||v) : v;
+    label.textContent = arr.length===1 ? dispLabel(arr[0]) : `${arr.length} selecionados`;
     trigger.classList.add('has-selection');
     count.textContent = arr.length;
     count.style.display='';
@@ -3523,7 +3548,7 @@ function toggleMs(key){
   const drop = document.getElementById(`msDrop${key}`);
   const trigger = document.getElementById(`msTrigger${key}`);
   // Close all others
-  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam','RelStatus'].forEach(k=>{
     if(k!==key){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
       document.getElementById(`msTrigger${k}`)?.classList.remove('active');
@@ -3544,7 +3569,7 @@ function clearMs(key){
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', e=>{
-  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>{
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam','RelStatus'].forEach(k=>{
     const wrap = document.getElementById(`msWrap${k}`);
     if(wrap && !wrap.contains(e.target)){
       document.getElementById(`msDrop${k}`)?.classList.remove('open');
@@ -5565,10 +5590,18 @@ async function excluirRelEscolar(idx){
 }
 
 function filtrarRelEscolarPorStatus(status){
-  const sel = document.getElementById('relEscolarFilterStatus');
-  if(!sel) return;
-  // Clicar no mesmo card novamente remove o filtro (alterna)
-  sel.value = (sel.value === status) ? '' : status;
+  if(!status){
+    // Card "Total": limpa toda a seleção
+    MS_STATE.RelStatus.clear();
+  } else if(MS_STATE.RelStatus.has(status)){
+    MS_STATE.RelStatus.delete(status);
+  } else {
+    MS_STATE.RelStatus.add(status);
+  }
+  document.querySelectorAll(`#msOptionsRelStatus input[type=checkbox]`).forEach(cb=>{
+    cb.checked = MS_STATE.RelStatus.has(cb.value);
+  });
+  updateMsTrigger('RelStatus');
   renderRelEscolaresLog();
   document.getElementById('relEscolarTableBody')?.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
@@ -5576,12 +5609,12 @@ function filtrarRelEscolarPorStatus(status){
 function renderRelEscolarStats(){
   const grid = document.getElementById('relEscolarStatsGrid');
   if(!grid) return;
-  const statusAtivo = document.getElementById('relEscolarFilterStatus')?.value||'';
+  const statusAtivo = MS_STATE.RelStatus;
   const total = relEscolaresLog.length;
   const pendente = relEscolaresLog.filter(m=>relEscEfetivo(m)==='pendente').length;
   const andamento = relEscolaresLog.filter(m=>relEscEfetivo(m)==='andamento').length;
   const concluido = relEscolaresLog.filter(m=>relEscEfetivo(m)==='concluido').length;
-  const ativoCls = v => `stat-card clickable${statusAtivo===v?' active':''}`;
+  const ativoCls = v => `stat-card clickable${(v===''?statusAtivo.size===0:statusAtivo.has(v))?' active':''}`;
   grid.innerHTML = `
     <div class="${ativoCls('')}" onclick="filtrarRelEscolarPorStatus('')">
       <div class="stat-icon roxo"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
@@ -5605,15 +5638,16 @@ function renderRelEscolarStats(){
     </div>`;
 }
 
+
 function renderRelEscolaresLog(){
   renderRelEscolarStats();
   const tbody = document.getElementById('relEscolarTableBody');
   if(!tbody) return;
-  const statusF = document.getElementById('relEscolarFilterStatus')?.value||'';
+  const statusF = MS_STATE.RelStatus;
   const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
   const searchF = (document.getElementById('relEscolarSearch')?.value||'').trim().toLowerCase();
   let data = relEscolaresLog.filter(m=>{
-    if(statusF && relEscEfetivo(m)!==statusF) return false;
+    if(statusF.size && !statusF.has(relEscEfetivo(m))) return false;
     if(turmaF && m.turma!==turmaF) return false;
     if(searchF){
       const hay = `${m.aluno_nome||''} ${m.turma||''} ${m.solicitante||''} ${m.motivo||''} ${m.registrado_por||''}`.toLowerCase();
@@ -5637,7 +5671,7 @@ function renderRelEscolaresLog(){
   }
 
   if(!data.length){
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF||turmaF||searchF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação${statusF.size||turmaF||searchF?' com os filtros selecionados':' registrada ainda'}.</td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(m=>{
@@ -5684,11 +5718,11 @@ function renderRelEscolaresLog(){
 }
 
 function gerarResumoRelEscolares(){
-  const statusF = document.getElementById('relEscolarFilterStatus')?.value||'';
+  const statusF = MS_STATE.RelStatus;
   const turmaF  = document.getElementById('relEscolarFilterTurma')?.value||'';
   const searchF = (document.getElementById('relEscolarSearch')?.value||'').trim().toLowerCase();
   let data = relEscolaresLog.filter(m=>{
-    if(statusF && relEscEfetivo(m)!==statusF) return false;
+    if(statusF.size && !statusF.has(relEscEfetivo(m))) return false;
     if(turmaF && m.turma!==turmaF) return false;
     if(searchF){
       const hay = `${m.aluno_nome||''} ${m.turma||''} ${m.solicitante||''} ${m.motivo||''} ${m.registrado_por||''}`.toLowerCase();
@@ -5707,7 +5741,7 @@ function gerarResumoRelEscolares(){
   ];
 
   let filtrosTxt = [];
-  if(statusF) filtrosTxt.push(`Status: ${grupos.find(g=>g.key===statusF)?.label||statusF}`);
+  if(statusF.size) filtrosTxt.push(`Status: ${[...statusF].map(k=>grupos.find(g=>g.key===k)?.label||k).join(', ')}`);
   if(turmaF) filtrosTxt.push(`Turma: ${turmaF}`);
   if(searchF) filtrosTxt.push(`Busca: "${searchF}"`);
 
@@ -6747,7 +6781,7 @@ async function init(){
   // Esconder overlay de loading do dashboard
   const dl = document.getElementById('dashboard-loading');
   if(dl) dl.style.display = 'none';
-  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam'].forEach(k=>buildMsOptions(k));
+  ['AEE','PIP','AtAEE','AtPIP','Encam','AtEncam','RelStatus'].forEach(k=>buildMsOptions(k));
 
   iniciarRealtime();
 }
