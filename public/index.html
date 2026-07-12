@@ -6031,7 +6031,7 @@ function refreshAllViews(){
 // Categorias fixas do controle
 const MATERIAL_CATEGORIAS = {
   livro:    { label:'Livros didáticos', color:'azul'  },
-  kit:      { label:'Kit escolar (materialidade)', color:'verde' },
+  kit:      { label:'Kit escolar', color:'verde' },
   uniforme: { label:'Uniforme', color:'roxo'  },
   outro:    { label:'Outros itens', color:'coral' }
 };
@@ -6268,13 +6268,38 @@ function printMateriaisGrid(){
   }).join('');
   const itensHtml = todos.map(it=>`<th class="item-th">${it.nome}</th>`).join('');
 
-  const linhasHtml = rows.map(({al,prog})=>{
-    const cels = todos.map(it=>{
-      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
-      const ok = entry && entry.status==='recebido';
-      return `<td class="chk-cell">${ok?'☑':'☐'}</td>`;
+  // Agrupa as linhas por turma — uma tabela (folha) por turma
+  const porTurma = new Map();
+  rows.forEach(r=>{
+    const t = r.al.t || '—';
+    if(!porTurma.has(t)) porTurma.set(t, []);
+    porTurma.get(t).push(r);
+  });
+
+  const paginasHtml = [...porTurma.entries()].map(([turma, turmaRows], i)=>{
+    const linhasHtml = turmaRows.map(({al,prog})=>{
+      const cels = todos.map(it=>{
+        const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+        const ok = entry && entry.status==='recebido';
+        return `<td class="chk-cell">${ok?'☑':'☐'}</td>`;
+      }).join('');
+      return `<tr><td class="nome-cell">${al.n}</td>${cels}<td class="prog-cell">${prog.recebidos}/${prog.total}</td></tr>`;
     }).join('');
-    return `<tr><td class="turma-cell">${al.t}</td><td class="nome-cell">${al.n}</td>${cels}<td class="prog-cell">${prog.recebidos}/${prog.total}</td></tr>`;
+    return `<section class="turma-page"${i>0?' style="page-break-before:always"':''}>
+      <div class="doc-title">Controle de Recebimento de Materiais</div>
+      <div class="doc-sub">Turma ${turma} · ${turmaRows.length} estudante${turmaRows.length!==1?'s':''} · Gerado em ${now}</div>
+      <table>
+        <thead>
+          <tr><th rowspan="2">Nome do estudante</th>${gruposHtml}<th rowspan="2">Progr.</th></tr>
+          <tr>${itensHtml}</tr>
+        </thead>
+        <tbody>${linhasHtml}</tbody>
+      </table>
+      <div class="doc-footer">
+        <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
+        <span>Coord. Pedagógico: Prof. Everton Corrêa Alves</span>
+      </div>
+    </section>`;
   }).join('');
 
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -6287,30 +6312,19 @@ function printMateriaisGrid(){
   table { border-collapse:collapse; width:100%; font-size:10px; table-layout:auto; }
   th, td { border:1px solid #D8D6CF; padding:5px 6px; text-align:center; }
   thead th { background:#F0EFEA; font-weight:700; font-size:9px; text-transform:uppercase; letter-spacing:.03em; color:#555; }
-  .nome-cell, .turma-cell { text-align:left; white-space:nowrap; }
-  .nome-cell { min-width:150px; }
-  .item-th { writing-mode: vertical-rl; transform: rotate(180deg); white-space:nowrap; height:90px; font-size:9px; }
+  thead tr:first-child th { max-width:120px; white-space:normal; word-break:break-word; }
+  .nome-cell { text-align:left; white-space:nowrap; min-width:150px; }
+  .item-th { writing-mode: vertical-rl; transform: rotate(180deg); white-space:nowrap; height:118px; font-size:9px; padding:4px 3px; }
   .chk-cell { font-size:13px; }
   .prog-cell { font-weight:700; white-space:nowrap; }
   tbody tr:nth-child(even) { background:#FAFAF8; }
   .doc-footer { margin-top:18px; font-size:9px; color:#999; display:flex; justify-content:space-between; }
+  .turma-page { break-inside: avoid; }
   @page { size:landscape; margin:1.2cm; }
   @media print { thead { display:table-header-group; } tr { page-break-inside:avoid; } }
 </style>
 </head><body>
-  <div class="doc-title">Controle de Recebimento de Materiais</div>
-  <div class="doc-sub">${subtitulo} · ${rows.length} estudante${rows.length!==1?'s':''} · Gerado em ${now}</div>
-  <table>
-    <thead>
-      <tr><th rowspan="2">Turma</th><th rowspan="2">Nome do estudante</th>${gruposHtml}<th rowspan="2">Progr.</th></tr>
-      <tr>${itensHtml}</tr>
-    </thead>
-    <tbody>${linhasHtml}</tbody>
-  </table>
-  <div class="doc-footer">
-    <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
-    <span>Coord. Pedagógico: Prof. Everton Corrêa Alves</span>
-  </div>
+  ${paginasHtml}
 <script>window.onload=function(){window.print();}<\/script>
 </body></html>`;
 
