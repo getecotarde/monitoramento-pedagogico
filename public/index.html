@@ -7,6 +7,8 @@
 <title>Monitoramento Pedagógico — Turno Tarde 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Google Identity Services — usado apenas pelo botão "Exportar para o Google Drive" -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1676,6 +1678,10 @@
   <div class="topbar-right">
 
     <span class="topbar-badge">Fev–Dez 2026</span>
+    <button class="theme-toggle" id="btnExportDrive" onclick="exportarDadosGoogleDrive()" title="Exportar todos os dados do sistema para uma pasta no Google Drive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="btnExportDriveLabel" style="margin-left:4px">Exportar (Drive)</span>
+    </button>
     <button class="pending-btn hidden" id="pendingBtn" onclick="openPendingPanel()">
       <span class="pending-dot" id="pendingDot"></span>
       <span id="pendingLabel">Notificações</span>
@@ -5029,6 +5035,150 @@ function gerarRelatorio(){
 const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
 
+/* ════════════════════════════════════════════════════════════
+   EXPORTAÇÃO DE DADOS — Google Drive
+   ════════════════════════════════════════════════════════════
+   Como configurar (uma única vez):
+   1) No Google Cloud Console, crie um projeto e ative a "Google Drive API".
+   2) Em "Credenciais", crie um "ID do cliente OAuth" do tipo "Aplicativo da Web".
+   3) Em "Origens JavaScript autorizadas", adicione o domínio onde este
+      sistema roda (ex.: https://monitoramento-pedagogico.vercel.app).
+   4) Cole o Client ID gerado na constante GOOGLE_CLIENT_ID abaixo.
+   5) Abra no navegador a pasta do Google Drive para onde os backups devem
+      ir. O ID da pasta é o trecho final da URL, depois de "/folders/":
+      https://drive.google.com/drive/folders/ESTE_TRECHO_AQUI
+      Cole esse trecho na constante GDRIVE_FOLDER_ID abaixo.
+
+   Sobre permissões: como a pasta de destino é uma pasta que já existe
+   (não uma que o app cria), é necessário o escopo "drive" (acesso de
+   leitura/escrita a todo o Drive de quem clicar em "Exportar"), e não o
+   escopo restrito "drive.file". Por isso, ao autorizar, o Google mostra
+   uma tela pedindo permissão de acesso ao Drive — isso é esperado.
+   Só use esse botão com uma conta Google que você confia e que já tenha
+   acesso de edição à pasta escolhida.
+   ════════════════════════════════════════════════════════════ */
+const GOOGLE_CLIENT_ID = '17833419106-a54df0j6de08lsu8dsgfuev33894tdcd.apps.googleusercontent.com';
+const GDRIVE_FOLDER_ID = '1l5jZ3JA-3oYjbr8_R6JKN2Mi1675gNyZ';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+
+let gdriveTokenClient = null;
+let gdriveAccessToken = null;
+
+function gdriveGarantirTokenClient(){
+  if(gdriveTokenClient) return true;
+  if(!window.google || !google.accounts || !google.accounts.oauth2){
+    alert('O serviço do Google ainda está carregando. Aguarde alguns segundos e tente novamente.');
+    return false;
+  }
+  if(!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('SEU_CLIENT_ID')){
+    alert('Exportação para o Google Drive ainda não foi configurada.\n\nPeça para quem administra o sistema definir GOOGLE_CLIENT_ID no código (veja instruções nos comentários acima desta função).');
+    return false;
+  }
+  if(!GDRIVE_FOLDER_ID || GDRIVE_FOLDER_ID.includes('SUA_PASTA')){
+    alert('A pasta de destino no Google Drive ainda não foi configurada.\n\nPeça para quem administra o sistema definir GDRIVE_FOLDER_ID no código (veja instruções nos comentários acima desta função).');
+    return false;
+  }
+  gdriveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GDRIVE_SCOPE,
+    callback: () => {} // definido dinamicamente a cada chamada
+  });
+  return true;
+}
+
+function gdriveObterToken(forcarConsentimento){
+  return new Promise((resolve, reject) => {
+    if(!gdriveGarantirTokenClient()){ reject(new Error('token-client-indisponivel')); return; }
+    gdriveTokenClient.callback = (resp) => {
+      if(resp.error){ reject(resp); return; }
+      gdriveAccessToken = resp.access_token;
+      resolve(resp.access_token);
+    };
+    gdriveTokenClient.requestAccessToken({ prompt: forcarConsentimento ? 'consent' : '' });
+  });
+}
+
+// Confirma que a pasta configurada existe e está acessível antes de enviar o backup
+async function gdriveValidarPastaExport(token){
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${GDRIVE_FOLDER_ID}?fields=id,name,mimeType,trashed`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const dados = await res.json();
+  if(!res.ok) throw new Error(dados.error?.message || 'Não foi possível acessar a pasta configurada no Google Drive. Confira o GDRIVE_FOLDER_ID e se a conta usada tem acesso a ela.');
+  if(dados.mimeType !== 'application/vnd.google-apps.folder' || dados.trashed) throw new Error('O ID configurado em GDRIVE_FOLDER_ID não aponta para uma pasta válida (ou ela está na lixeira).');
+  return dados;
+}
+
+// Reúne todos os dados relevantes que hoje vivem em memória no sistema
+function gdriveMontarSnapshotCompleto(){
+  return {
+    exportado_em: new Date().toISOString(),
+    sistema: 'monitoramento-pedagogico',
+    alunos: S,
+    turmas: TURMAS,
+    movimentacoes: (typeof movLog !== 'undefined') ? movLog : [],
+    materiais_itens: (typeof materiaisItens !== 'undefined') ? materiaisItens : {},
+    materiais_recebimento: (typeof materiaisRecebimento !== 'undefined') ? materiaisRecebimento : undefined,
+    pendencias_aprovacao: (typeof pendingEdits !== 'undefined') ? pendingEdits : []
+  };
+}
+
+async function gdriveEnviarArquivo(token, folderId, nomeArquivo, objeto){
+  const metadata = { name: nomeArquivo, parents: [folderId], mimeType: 'application/json' };
+  const boundary = 'monitpedag-' + Date.now();
+  const delimiter = `\r\n--${boundary}\r\n`;
+  const closeDelim = `\r\n--${boundary}--`;
+  const body =
+    delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) +
+    delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(objeto, null, 2) +
+    closeDelim;
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body
+  });
+  const dados = await res.json();
+  if(!res.ok) throw new Error(dados.error?.message || 'Falha ao enviar o arquivo para o Google Drive.');
+  return dados;
+}
+
+async function gdriveExecutarExportacao(token){
+  await gdriveValidarPastaExport(token);
+  const snapshot = gdriveMontarSnapshotCompleto();
+  const nomeArquivo = `monitoramento-pedagogico_backup_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  return gdriveEnviarArquivo(token, GDRIVE_FOLDER_ID, nomeArquivo, snapshot);
+}
+
+async function exportarDadosGoogleDrive(){
+  const btn = document.getElementById('btnExportDrive');
+  const label = document.getElementById('btnExportDriveLabel');
+  const textoOriginal = label ? label.textContent : '';
+  try {
+    if(btn){ btn.disabled = true; }
+    if(label){ label.textContent = 'Exportando…'; }
+
+    let resultado;
+    try {
+      const token = gdriveAccessToken || await gdriveObterToken(true);
+      resultado = await gdriveExecutarExportacao(token);
+    } catch(erroComToken){
+      // token pode ter expirado ou ter sido revogado — tenta uma única vez pedindo novo consentimento
+      gdriveAccessToken = null;
+      const novoToken = await gdriveObterToken(true);
+      resultado = await gdriveExecutarExportacao(novoToken);
+    }
+
+    showMovNotification('Backup exportado para a pasta configurada no Google Drive.', 'verde');
+    if(resultado?.webViewLink) console.log('Backup disponível em:', resultado.webViewLink);
+  } catch(err){
+    console.error('Erro ao exportar dados para o Google Drive:', err);
+    alert('Não foi possível concluir a exportação para o Google Drive.\n\nDetalhes: ' + (err.message || err));
+  } finally {
+    if(btn){ btn.disabled = false; }
+    if(label){ label.textContent = textoOriginal || 'Exportar (Drive)'; }
+  }
+}
+
 // Cliente Supabase simplificado via fetch
 const sb = {
   async from(table){ return new SBQuery(table); }
@@ -5329,6 +5479,14 @@ function renderMovLog(){
 /* ════════════════════════════════════════════════════════════
    CARREGAR DADOS DO SUPABASE
    ════════════════════════════════════════════════════════════ */
+// Normaliza nomes para comparação (maiúsculas, sem acento, sem espaços duplicados)
+// — usado só para casar o registro fixo do código com o registro do Supabase.
+function normalizarNomeAluno(nome){
+  return (nome||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+    .trim().replace(/\s+/g,' ').toUpperCase();
+}
+
 async function carregarEstudantes(){
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=*&order=turma.asc,nome.asc`, { headers: sbHeaders() });
@@ -5342,15 +5500,66 @@ async function carregarEstudantes(){
       syncSetStatus('error', 'Sem acesso');
       return; // mantém dados hardcoded em S
     }
+
+    // ── MERGE em vez de sobrescrita ──────────────────────────────────
+    // Antes, o array local S era zerado e recriado só com o que vinha do
+    // Supabase. Se algum aluno existisse apenas no "seed" fixo do código
+    // (ex.: cadastro inicial que nunca foi migrado para o banco), ele
+    // desaparecia de TODAS as telas assim que a sincronização acontecia
+    // — foi o que aconteceu com a Eloa Rubi Mendes de Souza.
+    // Agora: os alunos que já existem no Supabase são atualizados com os
+    // dados do banco (fonte oficial), e os alunos que só existem no seed
+    // local (ainda sem `id` do Supabase) são preservados na lista, além
+    // de serem automaticamente enviados ao banco para deixarem de ser
+    // "órfãos" — assim o próximo carregamento já os traz do Supabase.
+    const doSupabase = rows.map(x=>({
+      id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO',
+      a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'',
+      ocn:x.num_ocorrencias||0, ocs:x.sintese_ocorrencias||'', o:x.obs||'',
+      _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula
+    }));
+    const nomesNoSupabase = new Set(doSupabase.map(x=>normalizarNomeAluno(x.n)));
+
+    // Alunos que só existem localmente (sem id do Supabase e sem nome
+    // correspondente no banco) — preservamos e tentamos migrar.
+    const somenteLocais = S.filter(x=>!x.id && !nomesNoSupabase.has(normalizarNomeAluno(x.n)));
+
     S.length = 0;
-    rows.forEach(x=>{ S.push({ id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO', a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'', ocn:x.num_ocorrencias||0, ocs:x.sintese_ocorrencias||'', o:x.obs||'', _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula }); });
-    // Recalcula TURMAS com base nos dados reais
+    doSupabase.forEach(x=>S.push(x));
+    somenteLocais.forEach(x=>S.push(x));
+
+    // Recalcula TURMAS com base nos dados reais (Supabase + locais preservados)
     TURMAS.length = 0;
     [...new Set(S.filter(x=>!x._transferido).map(x=>x.t))].forEach(t=>TURMAS.push(t));
+
+    if(somenteLocais.length){
+      console.warn(`[AVISO] ${somenteLocais.length} aluno(s) existiam só no cadastro fixo do código e foram preservados nesta sessão. Migrando para o Supabase para não se perderem:`, somenteLocais.map(x=>x.n));
+      migrarAlunosOrfaosParaSupabase(somenteLocais);
+    }
   } catch(err) {
     console.error('Erro ao carregar estudantes do Supabase:', err);
     syncSetStatus('error', 'Sem conexão');
     // Mantém dados locais hardcoded em S
+  }
+}
+
+// Envia ao Supabase, um a um, os alunos que só existiam no array fixo do
+// código (sem id), para que passem a ser a fonte oficial e nunca mais
+// desapareçam de nenhuma tela após a sincronização.
+async function migrarAlunosOrfaosParaSupabase(alunos){
+  for(const aluno of alunos){
+    try {
+      const { data } = await sbPost('estudantes', {
+        turma: aluno.t, nome: aluno.n, sexo: aluno.s, perfil: aluno.p,
+        aee: aluno.a, pip: aluno.pip, encam: aluno.e, rotina: aluno.r,
+        num_ocorrencias: aluno.ocn||0, sintese_ocorrencias: aluno.ocs||'',
+        obs: aluno.o, transferido: !!aluno._transferido, nova_matricula: !!aluno._novaMatricula
+      });
+      const novo = data?.[0];
+      if(novo){ aluno.id = novo.id; }
+    } catch(e){
+      console.warn(`Não foi possível migrar "${aluno.n}" para o Supabase agora. Ele continua visível localmente nesta sessão.`, e);
+    }
   }
 }
 
