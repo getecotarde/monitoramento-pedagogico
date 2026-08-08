@@ -2303,10 +2303,11 @@
               <th>Turma destino</th>
               <th>Motivo / Observação</th>
               <th>Registrado por</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="movTableBody">
-            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação registrada ainda.</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação registrada ainda.</td></tr>
           </tbody>
         </table>
       </div>
@@ -5570,7 +5571,7 @@ function renderMovLog(){
   let data = movLog.filter(m=>{ if(tipo&&m.tipo!==tipo)return false; if(turma&&m.turma_de!==turma&&m.turma_ate!==turma)return false; return true; });
   const movCount=document.getElementById('movCount');
   if(movCount) movCount.textContent=`${data.length} registro${data.length!==1?'s':''}`;
-  if(!data.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação${tipo||turma?' com os filtros selecionados':' registrada ainda.'}.</td></tr>`; return; }
+  if(!data.length){ tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação${tipo||turma?' com os filtros selecionados':' registrada ainda.'}.</td></tr>`; return; }
   tbody.innerHTML=data.map(m=>{
     const [label,cls]=MOV_TIPO_LABEL[m.tipo]||['—',''];
     const dataISO = m.data ? (m.data.length>10 ? m.data.slice(0,10) : m.data) : '';
@@ -5583,6 +5584,7 @@ function renderMovLog(){
       <td class="td-turma mov-td-edit"><select class="mov-edit-select" onchange="salvarCampoMov(${m._cid},'turma_ate',this.value)">${movTurmaOptions(m.turma_ate)}</select></td>
       <td class="td-obs mov-td-edit"><input class="mov-edit-input" type="text" value="${escAttr(m.motivo||'')}" placeholder="—" onchange="salvarCampoMov(${m._cid},'motivo',this.value)"></td>
       <td style="font-size:12px;color:#888">${m.registrado_por||''}</td>
+      <td><button class="action-btn" title="Excluir movimentação" onclick="excluirMovimentacao(${m._cid})" style="padding:5px 8px;color:#D85A30;border-color:#F0D8CC"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button></td>
     </tr>`;
   }).join('');
   // pisca em verde a célula que acabou de ser salva, se houver
@@ -5604,6 +5606,12 @@ async function salvarCampoMov(cid, campo, novoValor){
   const valorAntigo = registro[campo] ?? '';
   const valorNormalizado = campo==='turma_de'||campo==='turma_ate' ? (novoValor==='—'?'—':novoValor) : novoValor;
   if(valorNormalizado===valorAntigo){ return; } // nada mudou, não precisa salvar
+
+  // A movimentação não guarda o ID do aluno — o vínculo com o cadastro em
+  // Estudantes é feito pelo nome que constava no registro até agora.
+  const nomeParaBuscar = campo==='nome_aluno' ? valorAntigo : registro.nome_aluno;
+  const est = S.find(x=>x.n===nomeParaBuscar);
+
   registro[campo]=valorNormalizado;
   _movLastSaved={cid,field:campo};
   if(registro.id){
@@ -5614,7 +5622,103 @@ async function salvarCampoMov(cid, campo, novoValor){
       showMovNotification('Não foi possível salvar no servidor. A alteração ficou só local.','coral');
     }
   }
+
+  // ── Propaga a edição para o cadastro do aluno em Estudantes, quando fizer sentido ──
+  if(est){
+    if(campo==='nome_aluno'){
+      const nomeAntigo = est.n;
+      est.n = valorNormalizado;
+      if(est.id){
+        try{ await sbPatch('estudantes', { nome:valorNormalizado }, [`id=eq.${est.id}`]); }
+        catch(e){ console.warn('Não foi possível atualizar o nome em Estudantes.', e); }
+      }
+      await sincronizarNomeAlunoEmOutrasAbas(est.id, nomeAntigo, valorNormalizado);
+    } else if(campo==='turma_ate' && ['remanejamento','matricula','atualizacao'].includes(registro.tipo) && valorNormalizado!=='—'){
+      est.t = valorNormalizado;
+      if(est.id){
+        try{ await sbPatch('estudantes', { turma:valorNormalizado }, [`id=eq.${est.id}`]); }
+        catch(e){ console.warn('Não foi possível atualizar a turma em Estudantes.', e); }
+      }
+    } else if(campo==='data' && registro.tipo==='transferencia' && est.id){
+      try{ await sbPatch('estudantes', { data_transferencia:valorNormalizado }, [`id=eq.${est.id}`]); }
+      catch(e){ console.warn('Não foi possível atualizar a data de transferência em Estudantes.', e); }
+    } else if(campo==='data' && registro.tipo==='matricula' && est.id){
+      try{ await sbPatch('estudantes', { data_matricula:valorNormalizado }, [`id=eq.${est.id}`]); }
+      catch(e){ console.warn('Não foi possível atualizar a data de matrícula em Estudantes.', e); }
+    }
+    renderTable(); renderAtipicos(); renderDashboard();
+    if(currentModalIdx!==null) renderModalContent(currentModalIdx);
+  }
+
   renderMovLog();
+}
+
+/* ════════════════════════════════════════════════════════════
+   EXCLUIR MOVIMENTAÇÃO
+   Ao excluir, pergunta se o efeito já aplicado ao cadastro do aluno
+   (transferido, turma alterada, ou o próprio cadastro criado pela
+   matrícula) também deve ser desfeito, ou se apenas o histórico deve
+   ser removido, mantendo o cadastro do aluno como está.
+   ════════════════════════════════════════════════════════════ */
+function descricaoEfeitoMov(registro){
+  switch(registro.tipo){
+    case 'transferencia': return 'o aluno volta a aparecer como ativo (deixa de estar marcado como transferido).';
+    case 'remanejamento':  return `a turma do aluno volta a ser "${registro.turma_de==='—'?'(a anterior)':registro.turma_de}".`;
+    case 'matricula':      return 'o cadastro do aluno criado por esta matrícula é removido de Estudantes.';
+    case 'atualizacao':    return 'o cadastro do aluno incluído por este registro é removido de Estudantes.';
+    default: return 'nenhuma alteração adicional será feita no cadastro do aluno.';
+  }
+}
+
+async function desfazerEfeitoMovimentacao(registro){
+  const est = S.find(x=>x.n===registro.nome_aluno);
+  if(!est) return;
+  if(registro.tipo==='transferencia'){
+    est._transferido=false;
+    if(est.id){
+      try{ await sbPatch('estudantes', { transferido:false, data_transferencia:null }, [`id=eq.${est.id}`]); }
+      catch(e){ console.warn('Não foi possível reverter a transferência em Estudantes.', e); }
+    }
+  } else if(registro.tipo==='remanejamento'){
+    if(registro.turma_de && registro.turma_de!=='—'){
+      est.t = registro.turma_de;
+      if(est.id){
+        try{ await sbPatch('estudantes', { turma:registro.turma_de }, [`id=eq.${est.id}`]); }
+        catch(e){ console.warn('Não foi possível reverter a turma em Estudantes.', e); }
+      }
+    }
+  } else if(registro.tipo==='matricula' || registro.tipo==='atualizacao'){
+    const idx = S.indexOf(est);
+    if(idx>=0) S.splice(idx,1);
+    if(est.id){
+      try{ await sbDelete('estudantes', [`id=eq.${est.id}`]); }
+      catch(e){ console.warn('Não foi possível remover o cadastro do aluno em Estudantes.', e); }
+    }
+  }
+}
+
+async function excluirMovimentacao(cid){
+  const registro = movLog.find(m=>m._cid===cid);
+  if(!registro) return;
+  if(!currentRole || (currentRole!=='coord-ped' && currentRole!=='coord-turno')){
+    alert('Apenas Coordenadores podem excluir movimentações.'); return;
+  }
+  const [labelTipo] = MOV_TIPO_LABEL[registro.tipo] || ['Movimentação'];
+  if(!confirm(`Excluir o registro de "${labelTipo}" de ${registro.nome_aluno}?\n\nEsta ação não pode ser desfeita.`)) return;
+
+  const desfazer = confirm(`Deseja também desfazer o efeito desta movimentação no cadastro do aluno?\n\nSe confirmar: ${descricaoEfeitoMov(registro)}\n\nOK = desfazer também no cadastro\nCancelar = excluir só do histórico, mantendo o cadastro como está`);
+
+  if(desfazer) await desfazerEfeitoMovimentacao(registro);
+
+  if(registro.id){
+    try{ await sbDelete('movimentacoes', [`id=eq.${registro.id}`]); }
+    catch(e){ console.warn('Não foi possível excluir a movimentação no Supabase.', e); }
+  }
+  movLog = movLog.filter(m=>m._cid!==cid);
+  renderMovLog();
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx!==null) renderModalContent(currentModalIdx);
+  showMovNotification('Movimentação excluída.', 'coral');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -6867,6 +6971,38 @@ async function removerItemMaterial(cat, id){
 }
 
 /* ════════════════════════════════════════════════════════════
+   SINCRONIZA NOME DO ALUNO NAS OUTRAS ABAS
+   As abas de Materiais e Relatórios Escolares guardam uma cópia
+   (snapshot) do nome do aluno no momento em que o registro foi
+   criado, em vez de sempre buscar o nome atual da tabela de
+   estudantes — por isso, ao editar o nome, essas telas continuavam
+   mostrando o nome antigo. Esta função propaga o nome novo para
+   esses registros também (no banco e nas listas já carregadas).
+   ════════════════════════════════════════════════════════════ */
+async function sincronizarNomeAlunoEmOutrasAbas(studentId, oldName, newName){
+  if(!newName || newName===oldName) return;
+
+  // Materiais — cada registro tem aluno_id, então dá pra vincular com segurança
+  if(studentId){
+    try {
+      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_id=eq.${studentId}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais.', e); }
+    materiaisLog.forEach(m=>{ if(String(m.aluno_id)===String(studentId)) m.aluno_nome=newName; });
+  }
+
+  // Relatórios Escolares — não guarda aluno_id, então casa pelo nome antigo
+  if(oldName){
+    try {
+      await sbPatch('rel_escolares', { aluno_nome:newName }, [`aluno_nome=eq.${encodeURIComponent(oldName)}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Relatórios Escolares.', e); }
+    relEscolaresLog.forEach(r=>{ if(r.aluno_nome===oldName) r.aluno_nome=newName; });
+  }
+
+  if(typeof renderMateriaisTable === 'function') renderMateriaisTable();
+  if(typeof renderRelEscolaresLog === 'function') renderRelEscolaresLog();
+}
+
+/* ════════════════════════════════════════════════════════════
    SUBMIT EDIT — agora salva no Supabase
    ════════════════════════════════════════════════════════════ */
 async function submitEdit(){
@@ -6899,6 +7035,7 @@ async function submitEdit(){
     const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+    if(field==='n') await sincronizarNomeAlunoEmOutrasAbas(x.id, oldVal, newVal);
     // Registra notificação visível para todos os perfis: alteração feita
     // diretamente pela Coordenação Pedagógica
     await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'aprovado' });
@@ -7012,6 +7149,7 @@ async function approvePending(id){
   if(!ed) return;
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
+  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, ed.newVal);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
   await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
