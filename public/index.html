@@ -1459,6 +1459,24 @@
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
   .pending-btn.hidden { display: none; }
 
+  /* ── EXPORTAR PARA O GOOGLE DRIVE (topbar) ────── */
+  .export-drive-btn {
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 20px; padding: 5px 12px; font-size: 11px;
+    font-weight: 600; color: rgba(255,255,255,.85); cursor: pointer;
+    display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif; transition: all .15s; flex-shrink: 0;
+  }
+  .export-drive-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
+  .export-drive-btn:disabled { opacity: .55; cursor: default; }
+  .export-drive-btn svg { flex-shrink: 0; }
+  [data-theme="dark"] .export-drive-btn { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); color: rgba(255,255,255,.7); }
+  [data-theme="dark"] .export-drive-btn:hover { background: rgba(255,255,255,.16); color: #fff; }
+  @media (max-width: 900px) {
+    .export-drive-btn-label { display: none; }
+    .export-drive-btn { padding: 5px 8px; }
+  }
+
   /* ── EDITABLE CELLS ───────────────────────────── */
   .editable-cell {
     position: relative; cursor: pointer;
@@ -1678,9 +1696,9 @@
   <div class="topbar-right">
 
     <span class="topbar-badge">Fev–Dez 2026</span>
-    <button class="theme-toggle" id="btnExportDrive" onclick="exportarDadosGoogleDrive()" title="Exportar todos os dados do sistema para uma pasta no Google Drive">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span id="btnExportDriveLabel" style="margin-left:4px">Exportar (Drive)</span>
+    <button class="export-drive-btn" id="btnExportDrive" onclick="exportarDadosGoogleDrive()" title="Exportar todos os dados do sistema para uma pasta no Google Drive">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="export-drive-btn-label" id="btnExportDriveLabel">Exportar (Drive)</span>
     </button>
     <button class="pending-btn hidden" id="pendingBtn" onclick="openPendingPanel()">
       <span class="pending-dot" id="pendingDot"></span>
