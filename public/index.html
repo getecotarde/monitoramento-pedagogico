@@ -1128,6 +1128,24 @@
 
   /* Zebra suave em tela */
   tbody tr:nth-child(even) td { background: #FAFAF9; }
+
+  /* ── Edição inline (Movimentações) ─────────────────── */
+  .mov-edit-input, .mov-edit-select {
+    width: 100%; box-sizing: border-box;
+    border: 1px solid transparent; background: transparent;
+    font: inherit; color: inherit; text-transform: inherit;
+    padding: 4px 6px; border-radius: 6px; cursor: text;
+    transition: background .12s, border-color .12s;
+  }
+  .mov-edit-select { cursor: pointer; }
+  .mov-edit-input:hover, .mov-edit-select:hover { background: #F1F0EA; }
+  .mov-edit-input:focus, .mov-edit-select:focus {
+    outline: none; background: #fff; border-color: var(--azul-dark, #2B7FD4);
+    box-shadow: 0 0 0 2px rgba(43,127,212,.15);
+  }
+  .mov-cell-saved { background: var(--verde-bg) !important; transition: background .8s ease; }
+  .mov-cell-saved.mov-cell-fade { background: transparent !important; }
+  td.mov-td-edit { padding: 2px 4px !important; }
   tbody tr:nth-child(even):hover td { background: #F3F2EF; }
 
   /* ── BADGES ─────────────────────────────────── */
@@ -5481,17 +5499,73 @@ function showMovNotification(msg,color){
   setTimeout(()=>n.remove(),3500);
 }
 
+const MOV_TIPO_LABEL={ transferencia:['Transferência','b-transferencia'], remanejamento:['Remanejamento','b-remanejamento'], matricula:['Nova matrícula','b-matricula'], atualizacao:['Atualização de cadastro','b-atualizacao'] };
+let _movCidSeq=1;
+let _movLastSaved=null; // {cid, field} — usado pra piscar a célula recém-salva
+
+function escAttr(s){ return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function movTurmaOptions(valorAtual){
+  const opts=['—', ...TURMAS];
+  if(valorAtual && !opts.includes(valorAtual)) opts.push(valorAtual);
+  return opts.map(t=>`<option value="${escAttr(t)}" ${t===(valorAtual||'—')?'selected':''}>${escAttr(t)}</option>`).join('');
+}
+
 function renderMovLog(){
   const tbody=document.getElementById('movTableBody');
   if(!tbody) return; // elementos do painel ainda não existem no DOM
   const tipo  = document.getElementById('movFilterTipo')?.value||'';
   const turma = document.getElementById('movFilterTurma')?.value||'';
+  // garante um _cid estável em cada registro, mesmo os que vieram do Supabase sem ele
+  movLog.forEach(m=>{ if(m._cid==null) m._cid=_movCidSeq++; });
   let data = movLog.filter(m=>{ if(tipo&&m.tipo!==tipo)return false; if(turma&&m.turma_de!==turma&&m.turma_ate!==turma)return false; return true; });
   const movCount=document.getElementById('movCount');
   if(movCount) movCount.textContent=`${data.length} registro${data.length!==1?'s':''}`;
-  const tipoLabel={ transferencia:['Transferência','b-transferencia'], remanejamento:['Remanejamento','b-remanejamento'], matricula:['Nova matrícula','b-matricula'], atualizacao:['Atualização de cadastro','b-atualizacao'] };
   if(!data.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação${tipo||turma?' com os filtros selecionados':' registrada ainda.'}.</td></tr>`; return; }
-  tbody.innerHTML=data.map(m=>{ const [label,cls]=tipoLabel[m.tipo]||['—','']; const dataFmt=m.data?new Date(m.data.length>10?m.data:m.data+'T12:00:00').toLocaleDateString('pt-BR'):'—'; return `<tr><td style="white-space:nowrap;color:#888;font-size:12px">${dataFmt}</td><td><span class="badge ${cls}">${label}</span></td><td class="td-nome">${m.nome_aluno}</td><td class="td-turma">${m.turma_de}</td><td class="td-turma">${m.turma_ate}</td><td class="td-obs" title="${m.motivo}">${m.motivo||'<span style="color:#CCC">—</span>'}</td><td style="font-size:12px;color:#888">${m.registrado_por}</td></tr>`; }).join('');
+  tbody.innerHTML=data.map(m=>{
+    const [label,cls]=MOV_TIPO_LABEL[m.tipo]||['—',''];
+    const dataISO = m.data ? (m.data.length>10 ? m.data.slice(0,10) : m.data) : '';
+    const tipoOpts = Object.entries(MOV_TIPO_LABEL).map(([k,[lbl]])=>`<option value="${k}" ${k===m.tipo?'selected':''}>${lbl}</option>`).join('');
+    return `<tr data-cid="${m._cid}">
+      <td class="mov-td-edit" style="white-space:nowrap"><input class="mov-edit-input" type="date" value="${escAttr(dataISO)}" style="color:#888;font-size:12px" onchange="salvarCampoMov(${m._cid},'data',this.value)"></td>
+      <td class="mov-td-edit"><select class="mov-edit-select badge ${cls}" onchange="salvarCampoMov(${m._cid},'tipo',this.value)">${tipoOpts}</select></td>
+      <td class="td-nome mov-td-edit"><input class="mov-edit-input" type="text" value="${escAttr(m.nome_aluno)}" style="font-weight:700;text-transform:uppercase" onchange="salvarCampoMov(${m._cid},'nome_aluno',this.value)"></td>
+      <td class="td-turma mov-td-edit"><select class="mov-edit-select" onchange="salvarCampoMov(${m._cid},'turma_de',this.value)">${movTurmaOptions(m.turma_de)}</select></td>
+      <td class="td-turma mov-td-edit"><select class="mov-edit-select" onchange="salvarCampoMov(${m._cid},'turma_ate',this.value)">${movTurmaOptions(m.turma_ate)}</select></td>
+      <td class="td-obs mov-td-edit"><input class="mov-edit-input" type="text" value="${escAttr(m.motivo||'')}" placeholder="—" onchange="salvarCampoMov(${m._cid},'motivo',this.value)"></td>
+      <td style="font-size:12px;color:#888">${m.registrado_por||''}</td>
+    </tr>`;
+  }).join('');
+  // pisca em verde a célula que acabou de ser salva, se houver
+  if(_movLastSaved){
+    const tr=tbody.querySelector(`tr[data-cid="${_movLastSaved.cid}"]`);
+    const td=tr?.querySelector(`[onchange*="'${_movLastSaved.field}'"]`)?.closest('td');
+    if(td){
+      td.classList.add('mov-cell-saved');
+      requestAnimationFrame(()=>setTimeout(()=>td.classList.add('mov-cell-fade'),50));
+      setTimeout(()=>td.classList.remove('mov-cell-saved','mov-cell-fade'),900);
+    }
+    _movLastSaved=null;
+  }
+}
+
+async function salvarCampoMov(cid, campo, novoValor){
+  const registro = movLog.find(m=>m._cid===cid);
+  if(!registro) return;
+  const valorAntigo = registro[campo] ?? '';
+  const valorNormalizado = campo==='turma_de'||campo==='turma_ate' ? (novoValor==='—'?'—':novoValor) : novoValor;
+  if(valorNormalizado===valorAntigo){ return; } // nada mudou, não precisa salvar
+  registro[campo]=valorNormalizado;
+  _movLastSaved={cid,field:campo};
+  if(registro.id){
+    try{
+      await sbPatch('movimentacoes', { [campo]: valorNormalizado }, [`id=eq.${registro.id}`]);
+    }catch(e){
+      console.warn(`Não foi possível salvar o campo "${campo}" da movimentação no Supabase.`, e);
+      showMovNotification('Não foi possível salvar no servidor. A alteração ficou só local.','coral');
+    }
+  }
+  renderMovLog();
 }
 
 /* ════════════════════════════════════════════════════════════
