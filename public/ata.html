@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATA – Conselho de Classe | GETECO | 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap');
+
+:root {
+  --ink:    #0f1923;
+  --ink-2:  #3d4f5e;
+  --ink-3:  #8a9baa;
+  --surface:#f6f8fa;
+  --white:  #ffffff;
+  --border: #e2e8ef;
+  --border-strong: #c8d3dc;
+
+  --blue:   #1b4f8a;
+  --blue-lt:#e8f0f9;
+  --blue-mid:#2c6dbf;
+
+  --teal:   #0d7d6e;
+  --teal-lt:#e6f4f2;
+
+  --amber:  #b45309;
+  --amber-lt:#fef3e2;
+
+  --red:    #991b1b;
+  --red-lt: #fde8e8;
+
+  --violet: #5b21b6;
+  --violet-lt:#ede9fe;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ──────────── HEADER ──────────── */
+.app-header {
+  background: var(--blue);
+  color: #fff;
+  padding: 0 36px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  width: 38px;
+  height: 38px;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: #fff;
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #fff;
+}
+
+.logo-sub {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: .6;
+  letter-spacing: .02em;
+  margin-top: 1px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,.18);
+  flex-shrink: 0;
+}
+
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-meta {
+  font-size: 11px;
+  color: rgba(255,255,255,.5);
+  margin-top: 1px;
+}
+
+.header-badge {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.8);
+  letter-spacing: .04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ──────────── NAV ──────────── */
+.nav-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 36px;
+  display: flex;
+  gap: 2px;
+  position: sticky;
+  top: 64px;
+  z-index: 200;
+}
+
+.nav-btn {
+  padding: 0 16px;
+  height: 48px;
+  border: none;
+  background: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.nav-btn .nav-icon { font-size: 14px; }
+
+.nav-btn:hover { color: var(--blue); }
+
+.nav-btn.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+  font-weight: 600;
+}
+
+/* ──────────── CONTAINER ──────────── */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* ──────────── VIEWS ──────────── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ──────────── PAGE HEADER ──────────── */
+.page-intro {
+  margin-bottom: 28px;
+}
+
+.page-intro h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -.3px;
+}
+
+.page-intro p {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+/* ──────────── CARDS ──────────── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.card-icon.blue   { background: var(--blue-lt); }
+.card-icon.teal   { background: var(--teal-lt); }
+.card-icon.amber  { background: var(--amber-lt); }
+.card-icon.red    { background: var(--red-lt); }
+.card-icon.violet { background: var(--violet-lt); }
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+/* ──────────── SECTION LABEL ──────────── */
+.section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ──────────── FORM ──────────── */
+.field { margin-bottom: 14px; }
+
+label, .field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+  letter-spacing: .01em;
+}
+
+.required-star { color: #e53e3e; margin-left: 2px; }
+
+input[type=text],
+input[type=date],
+textarea,
+select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color .15s, box-shadow .15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type=text]:focus,
+input[type=date]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--blue-mid);
+  box-shadow: 0 0 0 3px rgba(44,109,191,.12);
+}
+
+input[readonly] {
+  background: var(--surface);
+  color: var(--ink-3);
+  cursor: default;
+}
+
+textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a9baa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.field-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.field-row .field { flex: 1; min-width: 140px; }
+
+.hint {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* ──────────── TURMA GRID ──────────── */
+.turma-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.turma-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.turma-card:hover {
+  border-color: var(--blue-mid);
+  background: var(--blue-lt);
+}
+
+.turma-card.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(27,79,138,.25);
+}
+
+.turma-card .tc-name { font-size: 12px; font-weight: 700; }
+.turma-card .tc-count { font-size: 10px; opacity: .65; margin-top: 3px; }
+
+/* ──────────── MULTISELECT ──────────── */
+.multiselect-wrap { position: relative; }
+
+.multiselect-input {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.multiselect-input:focus-within,
+.multiselect-input:hover {
+  border-color: var(--blue-mid);
+}
+
+.ms-placeholder {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.tag {
+  background: var(--blue-lt);
+  color: var(--blue);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tag .rm {
+  cursor: pointer;
+  opacity: .5;
+  font-size: 11px;
+  transition: opacity .1s;
+}
+.tag .rm:hover { opacity: 1; }
+
+.ms-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 400;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ms-dropdown.open { display: flex; }
+
+.ms-search {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ms-search input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+
+.ms-list { overflow-y: auto; max-height: 200px; }
+
+.ms-item {
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: background .1s;
+  color: var(--ink);
+}
+
+.ms-item:hover { background: var(--surface); }
+.ms-item.selected { background: var(--blue-lt); color: var(--blue); }
+
+.ms-item input[type=checkbox] {
+  width: 14px; height: 14px;
+  accent-color: var(--blue);
+  flex-shrink: 0;
+}
+
+/* ──────────── CHECKBOXES ──────────── */
+.check-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 13px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: all .15s;
+}
+
+.check-item:hover {
+  background: var(--blue-lt);
+  border-color: var(--blue-mid);
+  color: var(--blue);
+}
+
+.check-item input[type=checkbox] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--blue);
+}
+
+.check-item input[type=checkbox]:checked + span {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* ──────────── BUTTONS ──────────── */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(27,79,138,.3);
+}
+.btn-primary:hover { background: #153f70; box-shadow: 0 3px 10px rgba(27,79,138,.35); }
+
+.btn-success {
+  background: var(--teal);
+  color: #fff;
+}
+.btn-success:hover { background: #0a6358; }
+
+.btn-accent {
+  background: var(--amber);
+  color: #fff;
+}
+.btn-accent:hover { background: #92400e; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--ink-2);
+  border: 1.5px solid var(--border-strong);
+}
+.btn-outline:hover { background: var(--surface); border-color: var(--blue-mid); color: var(--blue); }
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--border); }
+
+/* ──────────── BADGES ──────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.badge-blue   { background: var(--blue-lt);   color: var(--blue); }
+.badge-green  { background: var(--teal-lt);   color: var(--teal); }
+.badge-red    { background: var(--red-lt);    color: var(--red); }
+.badge-org    { background: var(--amber-lt);  color: var(--amber); }
+.badge-violet { background: var(--violet-lt); color: var(--violet); }
+
+/* ──────────── DATA TABLE ──────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table thead th {
+  background: var(--surface);
+  color: var(--ink-2);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1.5px solid var(--border-strong);
+}
+
+.data-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:hover td { background: var(--surface); }
+
+/* ──────────── STAT CARDS ──────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-card .sv {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--blue);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card .sl {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 5px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* ──────────── PREVIEW BOX ──────────── */
+.preview-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  min-height: 500px;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.65;
+  box-shadow: var(--shadow);
+}
+
+.preview-box .ph {
+  font-style: italic;
+  color: var(--ink-3);
+  text-align: center;
+  padding: 80px 0;
+}
+
+.preview-box table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.preview-box table td,
+.preview-box table th {
+  border: 1px solid #c8d3dc;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.preview-box table th { background: #f0f4f8; font-weight: 600; }
+
+.preview-box h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  margin: 16px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.preview-box .school-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.preview-box .school-header h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: .02em;
+}
+
+.preview-box .school-header p {
+  font-size: 12px;
+  color: var(--ink-2);
+  margin-top: 3px;
+}
+
+.preview-box .sign-row {
+  display: flex;
+  gap: 32px;
+  margin-top: 48px;
+}
+
+.preview-box .sign-line {
+  flex: 1;
+  border-top: 1.5px solid var(--ink);
+  padding-top: 6px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+/* ──────────── TOAST ──────────── */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .25s, transform .25s;
+  z-index: 999;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ──────────── DIVIDER ──────────── */
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* ──────────── PRINT ──────────── */
+@media print {
+  .app-header, .nav-bar, .btn-row, .no-print { display: none !important; }
+  .container { padding: 0; max-width: 100%; }
+  .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+  .preview-box { border: none; padding: 0; }
+}
+
+/* ──────────── RESPONSIVE ──────────── */
+@media(max-width:640px) {
+  .app-header { padding: 0 16px; }
+  .nav-bar { padding: 0 16px; overflow-x: auto; }
+  .container { padding: 20px 14px 48px; }
+  .card { padding: 18px 16px; }
+  .field-row { flex-direction: column; gap: 0; }
+  .preview-box { padding: 20px 16px; }
+  .header-divider, .header-badge { display: none; }
+}
+
+/* ──────────── MODO EMBUTIDO (aberto dentro de uma aba da Plataforma de Monitoramento) ──────────── */
+/* Some o cabeçalho e o topo do nav-bar duplicam a marca/identidade já mostrada pelo app que
+   está exibindo esta página dentro de um iframe — assim a Ata ocupa a tela inteira sem repetição. */
+html.embedded .app-header { display: none; }
+html.embedded .nav-bar { top: 0; }
+html.embedded body { background: var(--surface); }
+</style>
+</head>
+<body>
+
+<script>
+  // Detecta se esta página está sendo exibida dentro de um iframe (ex.: aba "Ata do
+  // Conselho" da Plataforma de Monitoramento) e ajusta o layout para não duplicar cabeçalho.
+  if (window.self !== window.top) document.documentElement.classList.add('embedded');
+</script>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="app-header">
+  <div class="header-brand">
+    <div class="logo-mark">G</div>
+    <div>
+      <div class="logo-text">GETECO</div>
+      <div class="logo-sub">E. M. Geraldo Teixeira da Costa</div>
+    </div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-info">
+    <div class="header-title">Sistema de Conselho de Classe — 2026</div>
+    <div class="header-meta">Coordenação Pedagógica: Everton Correa Alves</div>
+  </div>
+  <div class="header-badge">1º TRIMESTRE</div>
+</header>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="nav-bar" id="navBar">
+  <button class="nav-btn active" onclick="showView('preenchimento')">
+    <span class="nav-icon">✏️</span> Preenchimento
+  </button>
+  <button class="nav-btn" onclick="showView('preview')">
+    <span class="nav-icon">📄</span> Pré-visualização
+  </button>
+  <button class="nav-btn" onclick="showView('geral')">
+    <span class="nav-icon">📊</span> Painel Geral
+  </button>
+</nav>
+
+<!-- ═══════════════ CONTAINER ═══════════════ -->
+<div class="container">
+
+  <!-- ════════ VIEW: PREENCHIMENTO ════════ -->
+  <div class="view active" id="view-preenchimento">
+
+    <div class="page-intro">
+      <h2>Ficha de Conselho de Classe</h2>
+      <p>Preencha os dados da turma e salve ao final do formulário.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">📋</div>
+        <div>
+          <div class="card-title">Identificação da Ficha</div>
+          <div class="card-subtitle">Dados básicos do conselho</div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Data do Conselho <span class="required-star">*</span></label>
+          <input type="date" id="f-data" />
+        </div>
+        <div class="field">
+          <label>Professor(a) Referência <span class="required-star">*</span></label>
+          <input type="text" id="f-professor" placeholder="Nome completo" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Turma <span class="required-star">*</span></label>
+          <select id="f-turma" onchange="onTurmaChange()">
+            <option value="">— Selecione a turma —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Meninos</label>
+          <input type="text" id="f-meninos" readonly placeholder="—" />
+        </div>
+        <div class="field">
+          <label>Meninas</label>
+          <input type="text" id="f-meninas" readonly placeholder="—" />
+        </div>
+        <div class="field">
+          <label>Total</label>
+          <input type="text" id="f-total" readonly placeholder="—" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon teal">🎓</div>
+        <div>
+          <div class="card-title">Perfil e Observações da Turma</div>
+          <div class="card-subtitle">Comportamento, envolvimento e clima geral</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Descrição geral do perfil da turma</label>
+        <textarea id="f-perfil" placeholder="Descreva o perfil geral da turma, comportamento, envolvimento, clima..." style="min-height:100px"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon violet">🔄</div>
+        <div>
+          <div class="card-title">Indicações para Remanejamento</div>
+          <div class="card-subtitle">Se houver</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aluno(s) indicado(s)</label>
+        <div class="multiselect-wrap" id="ms-remanejamento-wrap">
+          <div class="multiselect-input" id="ms-remanejamento" onclick="toggleDropdown('remanejamento')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-remanejamento">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('remanejamento',this.value)"></div>
+            <div class="ms-list" id="list-remanejamento"></div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Origem e destino / justificativa</label>
+        <textarea id="f-remanejamento-obs" placeholder="Ex.: Ana Souza — de 7ºA para 7ºB (mudança de horário familiar)"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon amber">⚠️</div>
+        <div>
+          <div class="card-title">Alunos com Aproveitamento Abaixo do Esperado</div>
+          <div class="card-subtitle">Independente de nota — alunos que demoram ou não realizam as atividades propostas</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aluno(s) indicado(s)</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-baixo" onclick="toggleDropdown('baixo')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-baixo">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('baixo',this.value)"></div>
+            <div class="ms-list" id="list-baixo"></div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Observações complementares</label>
+        <textarea id="f-baixo-obs" placeholder="Descreva dificuldades observadas..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon red">🚨</div>
+        <div>
+          <div class="card-title">Alunos com Problemas Disciplinares</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aluno(s) indicado(s)</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-disciplina" onclick="toggleDropdown('disciplina')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-disciplina">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('disciplina',this.value)"></div>
+            <div class="ms-list" id="list-disciplina"></div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Observações complementares</label>
+        <textarea id="f-disciplina-obs" placeholder="Descreva os problemas disciplinares..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon teal">⭐</div>
+        <div>
+          <div class="card-title">Alunos Destaque</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aluno(s) indicado(s)</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-destaque" onclick="toggleDropdown('destaque')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-destaque">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('destaque',this.value)"></div>
+            <div class="ms-list" id="list-destaque"></div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Motivo do destaque</label>
+        <textarea id="f-destaque-obs" placeholder="Ex.: rendimento acadêmico, participação, liderança positiva..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">🗂️</div>
+        <div>
+          <div class="card-title">Projetos para o 3º Trimestre</div>
+          <div class="card-subtitle">Projetos por disciplina ou interdisciplinares</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Descrição dos projetos</label>
+        <textarea id="f-projetos" placeholder="Descreva os projetos previstos (feira de ciências, semana da leitura, olimpíadas de matemática, etc.)"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon amber">🛠️</div>
+        <div>
+          <div class="card-title">Ações Desenvolvidas para Minimizar Dificuldades</div>
+        </div>
+      </div>
+      <div class="field">
+        <textarea id="f-acoes" placeholder="Descreva as ações já desenvolvidas..." style="min-height:90px"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon violet">📌</div>
+        <div>
+          <div class="card-title">Encaminhamentos ou Ações Sugeridas</div>
+        </div>
+      </div>
+
+      <div class="section-label">Tipo de encaminhamento</div>
+      <div class="check-group" id="encaminhamentos-group">
+        <label class="check-item">
+          <input type="checkbox" value="ped_individual"> <span>Acompanhamento pedagógico individual</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="familia"> <span>Acompanhamento familiar mais frequente</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="medico"> <span>Avaliação médica / psicológica</span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" value="outros_enc"> <span>Outros</span>
+        </label>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Alunos para acompanhamento pedagógico individual</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-ped" onclick="toggleDropdown('ped')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-ped">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('ped',this.value)"></div>
+            <div class="ms-list" id="list-ped"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Alunos para conversa com a família</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-familia" onclick="toggleDropdown('familia')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-familia">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('familia',this.value)"></div>
+            <div class="ms-list" id="list-familia"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Alunos para avaliação médica / psicológica</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-medico" onclick="toggleDropdown('medico')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-medico">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('medico',this.value)"></div>
+            <div class="ms-list" id="list-medico"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Outros encaminhamentos</label>
+        <textarea id="f-outros-enc" placeholder="Descreva outros encaminhamentos sugeridos..."></textarea>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="salvarFicha()">💾 Salvar Ficha</button>
+      <button class="btn btn-success" onclick="showView('preview')">👁️ Pré-visualizar</button>
+      <button class="btn btn-outline" onclick="limparFormulario()">🗑️ Limpar</button>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: PREVIEW ════════ -->
+  <div class="view" id="view-preview">
+
+    <div class="page-intro">
+      <h2>Pré-visualização e Exportação</h2>
+      <p>Revise a ficha antes de imprimir ou salvar como PDF.</p>
+    </div>
+
+    <div class="card no-print">
+      <div class="field-row" style="align-items:flex-end">
+        <div class="field" style="margin-bottom:0">
+          <label>Turma para visualizar</label>
+          <select id="prev-turma-sel" onchange="renderPreview()">
+            <option value="geral">📊 Resumo Geral — Todas as Turmas</option>
+          </select>
+        </div>
+        <div style="flex-shrink:0; padding-bottom:0">
+          <div class="btn-row" style="margin-top:0">
+            <button class="btn btn-primary" onclick="renderPreview()">🔄 Atualizar</button>
+            <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir / PDF</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:10px">Para salvar como PDF: use "Imprimir → Salvar como PDF" no seu navegador.</p>
+    </div>
+
+    <div class="preview-box" id="preview-content">
+      <p class="ph">Selecione uma turma acima ou salve uma ficha para visualizar aqui.</p>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW: PAINEL GERAL ════════ -->
+  <div class="view" id="view-geral">
+
+    <div class="page-intro">
+      <h2>Painel Geral</h2>
+      <p>Visão consolidada de todas as turmas com fichas salvas.</p>
+    </div>
+
+    <div class="stat-grid" id="stat-grid"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">📋</div>
+        <div>
+          <div class="card-title">Fichas Salvas por Turma</div>
+        </div>
+      </div>
+      <div id="fichas-salvas-table">
+        <p class="hint">Nenhuma ficha salva ainda. Preencha e salve fichas na aba Preenchimento.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon violet">📌</div>
+        <div>
+          <div class="card-title">Encaminhamentos Consolidados</div>
+        </div>
+      </div>
+      <div id="encaminhamentos-geral">
+        <p class="hint">Salve fichas para ver o consolidado.</p>
+      </div>
+    </div>
+
+    <div class="btn-row no-print">
+      <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir Painel</button>
+      <button class="btn btn-outline" onclick="exportarTudo()">⬇️ Exportar JSON</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ========================== DADOS (turmas e alunos vêm ao vivo da Plataforma de Monitoramento) ==========================
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+
+// Antes esta lista de turmas e alunos ficava fixa no código (hardcoded).
+// Agora ela é montada dinamicamente a partir da tabela "estudantes" da
+// Plataforma de Monitoramento — a mesma base usada no Diário de Classe —
+// então basta manter os cadastros atualizados lá para a Ata já refletir aqui.
+let TURMAS = {};
+
+async function carregarTurmasDaPlataforma(){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=turma,nome,sexo,transferido&order=turma.asc,nome.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+  });
+  const rows = await r.json();
+  if(!r.ok || !Array.isArray(rows)) throw new Error('Resposta inválida da Plataforma de Monitoramento');
+  const turmas = {};
+  rows.filter(x => !x.transferido).forEach(x => {
+    if(!turmas[x.turma]) turmas[x.turma] = { total:0, meninos:0, meninas:0, alunos:[] };
+    turmas[x.turma].total++;
+    if(x.sexo === 'M') turmas[x.turma].meninos++;
+    else if(x.sexo === 'F') turmas[x.turma].meninas++;
+    turmas[x.turma].alunos.push(x.nome);
+  });
+  TURMAS = turmas;
+}
+
+let fichas = {};
+let selectedAlunos = {};
+const MS_KEYS = ['remanejamento','baixo','disciplina','destaque','ped','familia','medico'];
+
+// ========================== INIT ==========================
+async function init() {
+  const sel = document.getElementById('f-turma');
+  const prevSel = document.getElementById('prev-turma-sel');
+  try {
+    await carregarTurmasDaPlataforma();
+  } catch(e) {
+    console.error('Erro ao carregar turmas/alunos da Plataforma de Monitoramento:', e);
+    showToast('⚠️ Não foi possível carregar turmas e alunos da Plataforma de Monitoramento.');
+  }
+  Object.keys(TURMAS).forEach(t => {
+    sel.innerHTML += `<option value="${t}">${t} (${TURMAS[t].total} alunos)</option>`;
+    prevSel.innerHTML += `<option value="${t}">${t}</option>`;
+  });
+  MS_KEYS.forEach(k => { selectedAlunos[k] = []; });
+  updateGeralStats();
+}
+
+// ========================== TURMA CHANGE ==========================
+function onTurmaChange() {
+  const t = document.getElementById('f-turma').value;
+  if (!t) return;
+  const d = TURMAS[t];
+  document.getElementById('f-meninos').value = d.meninos;
+  document.getElementById('f-meninas').value = d.meninas;
+  document.getElementById('f-total').value   = d.total;
+  MS_KEYS.forEach(k => {
+    selectedAlunos[k] = [];
+    renderTags(k);
+    buildList(k, d.alunos);
+  });
+  if (fichas[t]) loadFicha(t);
+  else limparCampos();
+}
+
+// ========================== MULTISELECT ==========================
+function buildList(key, alunos) {
+  const list = document.getElementById(`list-${key}`);
+  list.innerHTML = '';
+  alunos.forEach(nome => {
+    const div = document.createElement('div');
+    div.className = 'ms-item';
+    div.dataset.nome = nome;
+    div.innerHTML = `<input type="checkbox" id="chk-${key}-${nome.replace(/\s/g,'_')}"> <span>${nome}</span>`;
+    div.onclick = (e) => { if (e.target.tagName !== 'INPUT') div.querySelector('input').click(); };
+    div.querySelector('input').addEventListener('change', function() {
+      toggleAluno(key, nome, this.checked);
+      div.classList.toggle('selected', this.checked);
+    });
+    list.appendChild(div);
+  });
+}
+
+function toggleAluno(key, nome, add) {
+  if (add && !selectedAlunos[key].includes(nome)) selectedAlunos[key].push(nome);
+  if (!add) selectedAlunos[key] = selectedAlunos[key].filter(n => n !== nome);
+  renderTags(key);
+}
+
+function renderTags(key) {
+  const box = document.getElementById(`ms-${key}`);
+  box.innerHTML = '';
+  if (selectedAlunos[key].length === 0) {
+    box.innerHTML = '<span class="ms-placeholder">Clique para selecionar alunos...</span>';
+    return;
+  }
+  selectedAlunos[key].forEach(nome => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${nome} <span class="rm" onclick="event.stopPropagation();toggleAluno('${key}','${nome}',false);uncheckItem('${key}','${nome}')">✕</span>`;
+    box.appendChild(tag);
+  });
+}
+
+function uncheckItem(key, nome) {
+  const chk = document.getElementById(`chk-${key}-${nome.replace(/\s/g,'_')}`);
+  if (chk) { chk.checked = false; chk.closest('.ms-item').classList.remove('selected'); }
+}
+
+function toggleDropdown(key) {
+  const dd = document.getElementById(`dd-${key}`);
+  const allDDs = document.querySelectorAll('.ms-dropdown');
+  allDDs.forEach(d => { if (d !== dd) d.classList.remove('open'); });
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) dd.querySelector('input[type=text]').focus();
+}
+
+function filterDropdown(key, q) {
+  const items = document.querySelectorAll(`#list-${key} .ms-item`);
+  const lq = q.toLowerCase();
+  items.forEach(it => {
+    it.style.display = it.dataset.nome.toLowerCase().includes(lq) ? '' : 'none';
+  });
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.multiselect-wrap')) {
+    document.querySelectorAll('.ms-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// ========================== SAVE / LOAD ==========================
+function salvarFicha() {
+  const t = document.getElementById('f-turma').value;
+  if (!t) { showToast('⚠️ Selecione uma turma antes de salvar!'); return; }
+  fichas[t] = {
+    turma: t,
+    data:  document.getElementById('f-data').value,
+    professor: document.getElementById('f-professor').value,
+    meninos: TURMAS[t].meninos,
+    meninas: TURMAS[t].meninas,
+    total:   TURMAS[t].total,
+    perfil:  document.getElementById('f-perfil').value,
+    remanejamento: { alunos: [...selectedAlunos.remanejamento], obs: document.getElementById('f-remanejamento-obs').value },
+    baixo:         { alunos: [...selectedAlunos.baixo],         obs: document.getElementById('f-baixo-obs').value },
+    disciplina:    { alunos: [...selectedAlunos.disciplina],    obs: document.getElementById('f-disciplina-obs').value },
+    destaque:      { alunos: [...selectedAlunos.destaque],      obs: document.getElementById('f-destaque-obs').value },
+    projetos:    document.getElementById('f-projetos').value,
+    acoes:       document.getElementById('f-acoes').value,
+    enc: {
+      checks: [...document.querySelectorAll('#encaminhamentos-group input:checked')].map(c=>c.value),
+      ped:    { alunos: [...selectedAlunos.ped] },
+      familia:{ alunos: [...selectedAlunos.familia] },
+      medico: { alunos: [...selectedAlunos.medico] },
+      outros: document.getElementById('f-outros-enc').value
+    }
+  };
+  updateGeralStats();
+  updatePrevSel();
+  showToast(`✅ Ficha da turma ${t} salva!`);
+}
+
+function loadFicha(t) {
+  const f = fichas[t];
+  document.getElementById('f-data').value      = f.data || '';
+  document.getElementById('f-professor').value = f.professor || '';
+  document.getElementById('f-perfil').value    = f.perfil || '';
+  document.getElementById('f-remanejamento-obs').value = f.remanejamento.obs || '';
+  document.getElementById('f-baixo-obs').value         = f.baixo.obs || '';
+  document.getElementById('f-disciplina-obs').value    = f.disciplina.obs || '';
+  document.getElementById('f-destaque-obs').value      = f.destaque.obs || '';
+  document.getElementById('f-projetos').value = f.projetos || '';
+  document.getElementById('f-acoes').value    = f.acoes || '';
+  document.getElementById('f-outros-enc').value = f.enc.outros || '';
+  const msMap = {remanejamento: f.remanejamento.alunos, baixo: f.baixo.alunos,
+    disciplina: f.disciplina.alunos, destaque: f.destaque.alunos,
+    ped: f.enc.ped.alunos, familia: f.enc.familia.alunos, medico: f.enc.medico.alunos};
+  MS_KEYS.forEach(k => {
+    selectedAlunos[k] = [...(msMap[k]||[])];
+    renderTags(k);
+    (msMap[k]||[]).forEach(nome => {
+      const chk = document.getElementById(`chk-${k}-${nome.replace(/\s/g,'_')}`);
+      if (chk) { chk.checked = true; chk.closest('.ms-item').classList.add('selected'); }
+    });
+  });
+  document.querySelectorAll('#encaminhamentos-group input').forEach(c => {
+    c.checked = f.enc.checks.includes(c.value);
+  });
+}
+
+function limparCampos() {
+  ['f-data','f-professor','f-perfil','f-remanejamento-obs','f-baixo-obs','f-disciplina-obs',
+   'f-destaque-obs','f-projetos','f-acoes','f-outros-enc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  MS_KEYS.forEach(k => { selectedAlunos[k] = []; renderTags(k); });
+  document.querySelectorAll('#encaminhamentos-group input').forEach(c => c.checked = false);
+}
+
+function limparFormulario() {
+  limparCampos();
+  document.getElementById('f-turma').value = '';
+  document.getElementById('f-meninos').value = '';
+  document.getElementById('f-meninas').value = '';
+  document.getElementById('f-total').value   = '';
+  showToast('Formulário limpo.');
+}
+
+// ========================== PREVIEW ==========================
+function renderPreview() {
+  const val = document.getElementById('prev-turma-sel').value;
+  const box = document.getElementById('preview-content');
+  if (val === 'geral') { box.innerHTML = renderGeralHTML(); return; }
+  if (!fichas[val]) {
+    box.innerHTML = `<p class="ph">Ficha da turma <strong>${val}</strong> ainda não foi salva.</p>`;
+    return;
+  }
+  box.innerHTML = renderFichaHTML(fichas[val]);
+}
+
+function renderFichaHTML(f) {
+  const formatAlunos = arr => arr.length ? arr.map((a,i)=>`${i+1}. ${a}`).join('<br>') : '<em>Nenhum indicado</em>';
+  const fmtDate = d => d ? new Date(d+'T00:00').toLocaleDateString('pt-BR') : '___/___/___';
+  const encLabels = {ped_individual:'Acompanhamento pedagógico individual',familia:'Acompanhamento familiar mais frequente',medico:'Avaliação médica / psicológica',outros_enc:'Outros'};
+  return `
+  <div class="school-header">
+    <h2>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA</h2>
+    <p><strong>CONSELHO DE CLASSE — 1º TRIMESTRE 2026</strong></p>
+    <p>Coordenação Pedagógica: Everton Correa Alves</p>
+  </div>
+  <table>
+    <tr>
+      <td><strong>Data:</strong> ${fmtDate(f.data)}</td>
+      <td><strong>Professor Referência:</strong> ${f.professor || '______________________'}</td>
+      <td><strong>Turma:</strong> ${f.turma}</td>
+    </tr>
+    <tr>
+      <td><strong>Meninos:</strong> ${f.meninos}</td>
+      <td><strong>Meninas:</strong> ${f.meninas}</td>
+      <td><strong>Total:</strong> ${f.total}</td>
+    </tr>
+  </table>
+  <h3>PERFIL DA TURMA</h3>
+  <p>${f.perfil || '<em>Não preenchido</em>'}</p>
+  <h3>INDICAÇÕES PARA REMANEJAMENTO</h3>
+  ${formatAlunos(f.remanejamento.alunos)}
+  ${f.remanejamento.obs ? `<br><em>Obs: ${f.remanejamento.obs}</em>` : ''}
+  <h3>ALUNOS COM APROVEITAMENTO ABAIXO DO ESPERADO</h3>
+  ${formatAlunos(f.baixo.alunos)}
+  ${f.baixo.obs ? `<br><em>Obs: ${f.baixo.obs}</em>` : ''}
+  <h3>ALUNOS COM PROBLEMAS DISCIPLINARES</h3>
+  ${formatAlunos(f.disciplina.alunos)}
+  ${f.disciplina.obs ? `<br><em>Obs: ${f.disciplina.obs}</em>` : ''}
+  <h3>ALUNOS DESTAQUE</h3>
+  ${formatAlunos(f.destaque.alunos)}
+  ${f.destaque.obs ? `<br><em>Obs: ${f.destaque.obs}</em>` : ''}
+  <h3>PROJETOS PARA O 3º TRIMESTRE</h3>
+  <p>${f.projetos || '<em>Não preenchido</em>'}</p>
+  <h3>AÇÕES DESENVOLVIDAS PARA MINIMIZAR DIFICULDADES</h3>
+  <p>${f.acoes || '<em>Não preenchido</em>'}</p>
+  <h3>ENCAMINHAMENTOS SUGERIDOS</h3>
+  <p><strong>Tipos:</strong> ${f.enc.checks.map(c=>encLabels[c]||c).join(' | ') || 'Nenhum selecionado'}</p>
+  ${f.enc.ped.alunos.length ? `<p><strong>Acomp. pedagógico individual:</strong><br>${formatAlunos(f.enc.ped.alunos)}</p>` : ''}
+  ${f.enc.familia.alunos.length ? `<p><strong>Conversa com família:</strong><br>${formatAlunos(f.enc.familia.alunos)}</p>` : ''}
+  ${f.enc.medico.alunos.length ? `<p><strong>Avaliação médica/psicológica:</strong><br>${formatAlunos(f.enc.medico.alunos)}</p>` : ''}
+  ${f.enc.outros ? `<p><strong>Outros:</strong> ${f.enc.outros}</p>` : ''}
+  <div class="sign-row">
+    <div class="sign-line">Professor Referência<br><br>${f.professor || '______________________________'}</div>
+    <div class="sign-line">Coordenação Pedagógica<br><br>Everton Correa Alves</div>
+    <div class="sign-line">Direção<br><br>______________________________</div>
+  </div>`;
+}
+
+function renderGeralHTML() {
+  const saved = Object.values(fichas);
+  if (!saved.length) return '<p class="ph">Nenhuma ficha salva ainda.</p>';
+  let rows = saved.map(f => `
+    <tr>
+      <td><strong>${f.turma}</strong></td>
+      <td>${f.professor || '—'}</td>
+      <td style="text-align:center">${f.total}</td>
+      <td style="text-align:center">${f.baixo.alunos.length}</td>
+      <td style="text-align:center">${f.disciplina.alunos.length}</td>
+      <td style="text-align:center">${f.destaque.alunos.length}</td>
+      <td style="text-align:center">${f.remanejamento.alunos.length}</td>
+    </tr>`).join('');
+  const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
+  const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
+  const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
+  const totRemanj = saved.reduce((s,f)=>s+f.remanejamento.alunos.length,0);
+  return `
+  <div class="school-header">
+    <h2>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA</h2>
+    <p><strong>RESUMO GERAL — CONSELHO DE CLASSE — 1º TRIMESTRE 2026</strong></p>
+    <p>Coordenação: Everton Correa Alves &nbsp;|&nbsp; Turmas com ficha salva: ${saved.length}</p>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Turma</th><th>Prof. Referência</th><th>Total</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Remanejamento</th></tr>
+    </thead>
+    <tbody>
+      ${rows}
+      <tr style="background:#f0f4f8;font-weight:bold">
+        <td colspan="3">TOTAL</td>
+        <td style="text-align:center">${totBaixo}</td>
+        <td style="text-align:center">${totDisc}</td>
+        <td style="text-align:center">${totDest}</td>
+        <td style="text-align:center">${totRemanj}</td>
+      </tr>
+    </tbody>
+  </table>`;
+}
+
+function updatePrevSel() {
+  const sel = document.getElementById('prev-turma-sel');
+  const existing = [...sel.options].map(o=>o.value);
+  Object.keys(fichas).forEach(t => {
+    if (!existing.includes(t)) sel.innerHTML += `<option value="${t}">${t} ✓</option>`;
+    else {
+      const opt = sel.querySelector(`option[value="${t}"]`);
+      if (opt && !opt.text.includes('✓')) opt.text += ' ✓';
+    }
+  });
+}
+
+// ========================== PAINEL GERAL ==========================
+function updateGeralStats() {
+  const saved = Object.values(fichas);
+  const totalAlunos = Object.values(TURMAS).reduce((s,t)=>s+t.total,0);
+  const totalFichas = saved.length;
+  const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
+  const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
+  const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
+  const totRemanj = saved.reduce((s,f)=>s+f.remanejamento.alunos.length,0);
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card"><div class="sv">${Object.keys(TURMAS).length}</div><div class="sl">Turmas Cadastradas</div></div>
+    <div class="stat-card"><div class="sv">${totalAlunos}</div><div class="sl">Total de Alunos</div></div>
+    <div class="stat-card"><div class="sv">${totalFichas}</div><div class="sl">Fichas Salvas</div></div>
+    <div class="stat-card"><div class="sv" style="color:#991b1b">${totBaixo}</div><div class="sl">Baixo Aproveitamento</div></div>
+    <div class="stat-card"><div class="sv" style="color:#b45309">${totDisc}</div><div class="sl">Prob. Disciplinares</div></div>
+    <div class="stat-card"><div class="sv" style="color:#0d7d6e">${totDest}</div><div class="sl">Alunos Destaque</div></div>
+    <div class="stat-card"><div class="sv" style="color:#5b21b6">${totRemanj}</div><div class="sl">Remanejamentos</div></div>
+  `;
+
+  if (saved.length === 0) {
+    document.getElementById('fichas-salvas-table').innerHTML = '<p class="hint">Nenhuma ficha salva ainda.</p>';
+    document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Salve fichas para ver o consolidado.</p>';
+    return;
+  }
+
+  let rows = saved.map(f => `
+    <tr>
+      <td><strong>${f.turma}</strong></td>
+      <td>${f.professor||'—'}</td>
+      <td>${f.data ? new Date(f.data+'T00:00').toLocaleDateString('pt-BR') : '—'}</td>
+      <td style="text-align:center"><span class="badge badge-red">${f.baixo.alunos.length}</span></td>
+      <td style="text-align:center"><span class="badge badge-org">${f.disciplina.alunos.length}</span></td>
+      <td style="text-align:center"><span class="badge badge-green">${f.destaque.alunos.length}</span></td>
+      <td>
+        <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px" onclick="editarFicha('${f.turma}')">✏️ Editar</button>
+        <button class="btn btn-primary" style="padding:5px 10px;font-size:12px" onclick="previewTurma('${f.turma}')">👁️ Ver</button>
+      </td>
+    </tr>`).join('');
+
+  document.getElementById('fichas-salvas-table').innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Turma</th><th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Ações</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  const encMap = {'ped_individual':[],'familia':[],'medico':[]};
+  saved.forEach(f => {
+    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:a, turma:f.turma}));
+    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:a, turma:f.turma}));
+    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:a, turma:f.turma}));
+  });
+
+  const encTitles = {ped_individual:'🎓 Acompanhamento Pedagógico Individual', familia:'👨‍👩‍👧 Conversa com Família', medico:'🏥 Avaliação Médica / Psicológica'};
+  let encHTML = '';
+  Object.entries(encMap).forEach(([key,list]) => {
+    if (!list.length) return;
+    const rows = list.map(({aluno,turma}) => `<tr><td>${aluno}</td><td><span class="badge badge-blue">${turma}</span></td></tr>`).join('');
+    encHTML += `
+      <p style="font-size:13px;font-weight:600;color:var(--blue);margin:16px 0 8px">${encTitles[key]} <span class="badge badge-blue">${list.length}</span></p>
+      <table class="data-table"><thead><tr><th>Aluno</th><th>Turma</th></tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  document.getElementById('encaminhamentos-geral').innerHTML = encHTML || '<p class="hint">Nenhum encaminhamento registrado.</p>';
+}
+
+function editarFicha(t) {
+  document.getElementById('f-turma').value = t;
+  onTurmaChange();
+  showView('preenchimento');
+}
+
+function previewTurma(t) {
+  document.getElementById('prev-turma-sel').value = t;
+  renderPreview();
+  showView('preview');
+}
+
+// ========================== EXPORT ==========================
+function exportarTudo() {
+  const json = JSON.stringify(fichas, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = 'conselho_classe_geteco_2026.json'; a.click();
+  showToast('📥 Dados exportados!');
+}
+
+// ========================== NAVIGATION ==========================
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${id}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => {
+    const ids = ['preenchimento','preview','geral'];
+    b.classList.toggle('active', ids[i] === id);
+  });
+  if (id === 'preview') renderPreview();
+  if (id === 'geral') updateGeralStats();
+}
+
+// ========================== TOAST ==========================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
