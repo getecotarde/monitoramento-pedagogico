@@ -1779,6 +1779,11 @@
       Materiais
       <span class="nav-badge" id="nb-mat" style="display:none">—</span>
     </button>
+    <button class="nav-item" onclick="showView('alertas', this)" id="navAlertas">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Alertas
+      <span class="nav-badge" id="nb-alertas" style="display:none">—</span>
+    </button>
     <button class="nav-item" onclick="abrirUsuarios(this)" id="navUsuarios" style="display:none">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-1a4 4 0 0 0-3-3.87"/></svg>
       Usuários e acessos
@@ -2463,6 +2468,56 @@
             <tr><td style="text-align:center;padding:2rem;color:#BBB">Carregando…</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: ALERTAS ─────────────────────────────────── -->
+  <div id="view-alertas" class="view">
+    <div class="page-header">
+      <h1>Alertas</h1>
+      <p>Situações que pedem atenção: desequilíbrio de gênero nas turmas e alunos com recebimento de materiais incompleto.</p>
+    </div>
+
+    <div class="stats-grid stats-grid-narrow" id="alertasStatsGrid"></div>
+
+    <div class="detail-card" style="margin-bottom:1.5rem">
+      <div class="detail-card-inner">
+        <h2 style="font-size:15px;font-weight:700;margin-bottom:.9rem;display:flex;align-items:center;gap:8px">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="16" height="16"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+          Desequilíbrio de gênero por turma
+        </h2>
+        <div id="alertasGeneroWrap"></div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="detail-card-inner">
+        <h2 style="font-size:15px;font-weight:700;margin-bottom:.9rem;display:flex;align-items:center;gap:8px">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="16" height="16"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+          Materiais incompletos
+        </h2>
+        <div class="filters-bar" style="margin-bottom:1rem">
+          <select id="alertasMatFilterTurma" onchange="renderAlertas()"><option value="">Todas as turmas</option></select>
+          <span class="results-count" id="alertasMatCount"></span>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#FAFAF8;border-bottom:1px solid #ECEAE4">Turma</th>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#FAFAF8;border-bottom:1px solid #ECEAE4">Nome do estudante</th>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#FAFAF8;border-bottom:1px solid #ECEAE4">Progresso</th>
+                  <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#FAFAF8;border-bottom:1px solid #ECEAE4">Situação</th>
+                </tr>
+              </thead>
+              <tbody id="alertasMatTableBody">
+                <tr><td colspan="4" style="text-align:center;padding:2rem;color:#BBB">Carregando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -3385,22 +3440,25 @@ function filterByTurma(t){
    DASHBOARD
    ════════════════════════════════════════════════════════════ */
 function renderDashboard(){
-  const tipico   = S.filter(x=>x.p==="TÍPICO").length;
-  const atipico  = S.filter(x=>x.p==="ATÍPICO").length;
-  const analise  = S.filter(x=>x.p==="EM ANÁLISE").length;
-  const comPIP   = S.filter(x=>x.pip && /^SIM/i.test(x.pip.trim())).length;
-  const adaptacao= S.filter(x=>encamKey(x.e)==="ADAPTAÇÃO").length;
-  const reforco  = S.filter(x=>encamKey(x.e)==="REFORÇO").length;
-  const avaliarPIP = S.filter(x=>x.pip==="Avaliar PIP").length;
-  const avaliarAEE = S.filter(x=>x.a==="Avaliar AEE").length;
-  const semAvaliacaoPIPAEE = S.filter(x=>x.p==="EM ANÁLISE" && x.pip==="N/A" && x.a==="N/A").length;
-  const masc     = S.filter(x=>x.s==="M").length;
+  // Apenas alunos efetivamente matriculados entram nas contagens do painel
+  // (movimentações como transferência retiram o aluno da contagem oficial).
+  const ativos = S.filter(x=>!x._transferido);
+  const tipico   = ativos.filter(x=>x.p==="TÍPICO").length;
+  const atipico  = ativos.filter(x=>x.p==="ATÍPICO").length;
+  const analise  = ativos.filter(x=>x.p==="EM ANÁLISE").length;
+  const comPIP   = ativos.filter(x=>x.pip && /^SIM/i.test(x.pip.trim())).length;
+  const adaptacao= ativos.filter(x=>encamKey(x.e)==="ADAPTAÇÃO").length;
+  const reforco  = ativos.filter(x=>encamKey(x.e)==="REFORÇO").length;
+  const avaliarPIP = ativos.filter(x=>x.pip==="Avaliar PIP").length;
+  const avaliarAEE = ativos.filter(x=>x.a==="Avaliar AEE").length;
+  const semAvaliacaoPIPAEE = ativos.filter(x=>x.p==="EM ANÁLISE" && x.pip==="N/A" && x.a==="N/A").length;
+  const masc     = ativos.filter(x=>x.s==="M").length;
 
   const statsGrid=document.getElementById('statsGrid'); if(!statsGrid) return;
   statsGrid.innerHTML=`
     <div class="stat-card">
       <div class="stat-icon cinza"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="stat-num">${S.length}</div>
+      <div class="stat-num">${ativos.length}</div>
       <div class="stat-label">Estudantes matriculados</div>
     </div>
     <div class="stat-card">
@@ -3455,7 +3513,7 @@ function renderDashboard(){
   // Encaminhamento chart
   const encKeys=["PIP","ADAPTAÇÃO","PIP/ADAPTAÇÃO","REFORÇO","AVALIAR","REGULAR"];
   const encColors={"PIP":"#2B7FD4","ADAPTAÇÃO":"#6B65CC","PIP/ADAPTAÇÃO":"#9C8FE0","REFORÇO":"#1D9E75","AVALIAR":"#BA7517","REGULAR":"#888780"};
-  const encData = encKeys.map(k=>({label:k, val:S.filter(x=>encamKey(x.e)===k).length, color:encColors[k]})).filter(x=>x.val>0);
+  const encData = encKeys.map(k=>({label:k, val:ativos.filter(x=>encamKey(x.e)===k).length, color:encColors[k]})).filter(x=>x.val>0);
   const maxE = Math.max(1, ...encData.map(x=>x.val));
   document.getElementById('chartEncam').innerHTML = encData.map(d=>`
     <div class="horiz-bar">
@@ -3466,7 +3524,7 @@ function renderDashboard(){
 
   // Turma cards
   document.getElementById('turmaCards').innerHTML = TURMAS.map(t=>{
-    const st = S.filter(x=>x.t===t);
+    const st = ativos.filter(x=>x.t===t);
     const nTip= st.filter(x=>x.p==="TÍPICO").length;
     const nAt = st.filter(x=>x.p==="ATÍPICO").length;
     const nAn = st.filter(x=>x.p==="EM ANÁLISE").length;
@@ -4739,9 +4797,10 @@ function rebuildTurmas(){
     TURMAS.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
     if(TURMAS.includes(cur)) sel.value=cur;
   });
-  document.getElementById('nb-total').textContent=S.length;
-  document.getElementById('nb-stud').textContent=S.length;
-  document.getElementById('nb-at').textContent=S.filter(x=>x.p!=="TÍPICO").length;
+  const ativosNb = S.filter(x=>!x._transferido);
+  document.getElementById('nb-total').textContent=ativosNb.length;
+  document.getElementById('nb-stud').textContent=ativosNb.length;
+  document.getElementById('nb-at').textContent=ativosNb.filter(x=>x.p!=="TÍPICO").length;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -4768,12 +4827,13 @@ function gerarRelatorio(){
   // Encaminhamento multi-select
   const encamCbs = [...document.querySelectorAll('.rel-encam-cb:checked')].map(cb=>cb.value);
 
-  // Filter by perfil
+  // Filter by perfil (apenas alunos efetivamente matriculados, i.e. não transferidos)
+  const matriculados = S.filter(x=>!x._transferido);
   let data;
   if(!perfil || perfil==='ATIPICOS_ANALISE'){
-    data = perfil==='ATIPICOS_ANALISE' ? S.filter(x=>x.p!=="TÍPICO") : [...S];
+    data = perfil==='ATIPICOS_ANALISE' ? matriculados.filter(x=>x.p!=="TÍPICO") : [...matriculados];
   } else {
-    data = S.filter(x=>x.p===perfil);
+    data = matriculados.filter(x=>x.p===perfil);
   }
 
   if(turma) data=data.filter(x=>x.t===turma);
@@ -6475,6 +6535,7 @@ function refreshAllViews(){
   renderDashboard(); renderTable(); renderAtipicos();
   filtered=[...active];
   if(typeof renderMateriaisTable==='function') renderMateriaisTable();
+  if(typeof renderAlertas==='function') renderAlertas();
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -6705,6 +6766,123 @@ async function onMaterialGridCheck(checkbox){
   const turmaF = document.getElementById('materiaisFilterTurma')?.value||'';
   const statsBase = turmaF ? S.filter(x=>!x._transferido && x.t===turmaF) : S.filter(x=>!x._transferido);
   renderMateriaisStats(statsBase);
+  if(typeof renderAlertas==='function') renderAlertas();
+}
+
+/* ════════════════════════════════════════════════════════════
+   ALERTAS — desequilíbrio de gênero por turma e materiais incompletos
+   ════════════════════════════════════════════════════════════ */
+
+// Diferença mínima entre meninos e meninas numa turma para gerar alerta
+const ALERTA_DESEQUILIBRIO_GENERO_MIN = 2;
+
+// Retorna [{turma, meninos, meninas, diferenca, maioria}] apenas para turmas
+// com diferença >= ALERTA_DESEQUILIBRIO_GENERO_MIN, considerando só alunos
+// efetivamente matriculados (não transferidos).
+function getTurmasDesequilibrioGenero(){
+  const ativos = S.filter(x=>!x._transferido);
+  const porTurma = {};
+  ativos.forEach(al=>{
+    if(!porTurma[al.t]) porTurma[al.t] = { meninos:0, meninas:0 };
+    if(al.s==='M') porTurma[al.t].meninos++;
+    else if(al.s==='F') porTurma[al.t].meninas++;
+  });
+  return Object.keys(porTurma).map(t=>{
+    const { meninos, meninas } = porTurma[t];
+    const diferenca = Math.abs(meninos-meninas);
+    const maioria = meninos>meninas ? 'meninos' : (meninas>meninos ? 'meninas' : null);
+    return { turma:t, meninos, meninas, diferenca, maioria };
+  }).filter(x=>x.diferenca>=ALERTA_DESEQUILIBRIO_GENERO_MIN)
+    .sort((a,b)=> b.diferenca-a.diferenca || a.turma.localeCompare(b.turma,'pt-BR'));
+}
+
+// Retorna [{al,prog,situacao}] para alunos ativos com materiais pendentes ou
+// parciais (ou seja, situação diferente de "completo").
+function getAlunosMateriaisIncompletos(){
+  const ativos = S.filter(x=>!x._transferido);
+  return ativos.map(al=>{
+    const prog = calcMaterialProgress(al);
+    const situacao = prog.recebidos===0?'pendente':(prog.recebidos===prog.total?'completo':'parcial');
+    return { al, prog, situacao };
+  }).filter(r=> r.prog.total>0 && r.situacao!=='completo')
+    .sort((a,b)=> a.al.t===b.al.t ? a.al.n.localeCompare(b.al.n,'pt-BR') : a.al.t.localeCompare(b.al.t,'pt-BR'));
+}
+
+function renderAlertas(){
+  const statsGrid = document.getElementById('alertasStatsGrid');
+  const generoWrap = document.getElementById('alertasGeneroWrap');
+  const tbody = document.getElementById('alertasMatTableBody');
+  if(!statsGrid || !generoWrap || !tbody) return;
+
+  const desequilibrios = getTurmasDesequilibrioGenero();
+  const incompletos = getAlunosMateriaisIncompletos();
+
+  // Popula o filtro de turma da tabela de materiais incompletos
+  const selTurma = document.getElementById('alertasMatFilterTurma');
+  if(selTurma){
+    const cur = selTurma.value;
+    while(selTurma.options.length>1) selTurma.remove(1);
+    TURMAS.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; selTurma.appendChild(o); });
+    if(TURMAS.includes(cur)) selTurma.value=cur;
+  }
+  const turmaF = selTurma?.value || '';
+  const incompletosFiltrados = turmaF ? incompletos.filter(r=>r.al.t===turmaF) : incompletos;
+
+  // Badge de navegação com o total de alertas
+  const totalAlertas = desequilibrios.length + incompletos.length;
+  const nbAlertas = document.getElementById('nb-alertas');
+  if(nbAlertas){ nbAlertas.textContent = totalAlertas; nbAlertas.style.display = totalAlertas>0 ? '' : 'none'; }
+
+  // Cards de resumo
+  statsGrid.innerHTML = `
+    <div class="stat-card">
+      <div style="font-size:11px;color:#999;margin-bottom:6px">Turmas com desequilíbrio de gênero</div>
+      <div style="font-size:22px;font-weight:700;color:var(--coral-dark,#333)">${desequilibrios.length}</div>
+    </div>
+    <div class="stat-card">
+      <div style="font-size:11px;color:#999;margin-bottom:6px">Alunos com materiais incompletos</div>
+      <div style="font-size:22px;font-weight:700;color:var(--amber-dark,#333)">${incompletos.length}</div>
+    </div>
+  `;
+
+  // Bloco de desequilíbrio de gênero
+  if(!desequilibrios.length){
+    generoWrap.innerHTML = '<div style="font-size:12px;color:#BBB;padding:.5rem 0">Nenhuma turma com desequilíbrio de gênero no momento.</div>';
+  } else {
+    generoWrap.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        ${desequilibrios.map(d=>`
+          <div class="stat-card" style="border-color:var(--coral)">
+            <div style="font-weight:700;font-size:14px;margin-bottom:6px">${d.turma}</div>
+            <div style="font-size:12px;color:#888;margin-bottom:4px">${d.meninos} menino${d.meninos!==1?'s':''} · ${d.meninas} menina${d.meninas!==1?'s':''}</div>
+            <span class="badge b-atipico">Diferença de ${d.diferenca} ${d.maioria ? '('+d.maioria+' em maioria)' : ''}</span>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+
+  // Tabela de materiais incompletos
+  const cnt = document.getElementById('alertasMatCount');
+  if(cnt) cnt.textContent = `${incompletosFiltrados.length} estudante${incompletosFiltrados.length!==1?'s':''}`;
+
+  const situacaoBadge = { parcial:'<span class="badge b-analise">Parcial</span>', pendente:'<span class="badge b-atipico">Pendente</span>' };
+  if(!incompletosFiltrados.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante com materiais incompletos.</td></tr>';
+  } else {
+    tbody.innerHTML = incompletosFiltrados.map(({al,prog,situacao})=>`
+      <tr>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #F0EFEA">${al.t}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #F0EFEA">${al.n}</td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #F0EFEA">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;min-width:50px;height:6px;background:#F0EFEA;border-radius:4px;overflow:hidden"><div style="width:${prog.pct}%;height:100%;background:var(--verde-dark)"></div></div>
+            <span style="font-size:11px;color:#999;white-space:nowrap">${prog.recebidos}/${prog.total}</span>
+          </div>
+        </td>
+        <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #F0EFEA">${situacaoBadge[situacao]}</td>
+      </tr>
+    `).join('');
+  }
 }
 
 function printMateriaisGrid(){
@@ -7333,6 +7511,7 @@ function showView(id, btn){
   if(btn) btn.classList.add('active');
   if(id === 'usuarios') carregarUsuarios();
   if(id === 'materiais') renderMateriaisTable();
+  if(id === 'alertas') renderAlertas();
   if(id === 'ata'){
     const f=document.getElementById('ataIframe');
     if(f && !f.src) f.src='ata.html';
