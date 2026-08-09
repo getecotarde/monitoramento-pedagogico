@@ -812,7 +812,7 @@ html.embedded body { background: var(--surface); }
     <select id="sel-trimestre" onchange="onTrimestreChange()" style="background:transparent;border:none;color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 10px;cursor:pointer;outline:none">
       <option value="1" style="color:#0f1923">1º TRIMESTRE 2026</option>
       <option value="2" style="color:#0f1923">2º TRIMESTRE 2026</option>
-      <option value="3" style="color:#0f1923">3º TRIMESTRE 2026</option>
+      <option value="3" id="opt-header-trimestre-3" style="color:#0f1923;display:none">3º TRIMESTRE 2026</option>
     </select>
   </div>
 </header>
@@ -851,6 +851,14 @@ html.embedded body { background: var(--surface); }
       </div>
 
       <div class="field-row">
+        <div class="field">
+          <label>Trimestre <span class="required-star">*</span></label>
+          <select id="f-trimestre" onchange="onTrimestreFormChange()">
+            <option value="1">1º Trimestre 2026</option>
+            <option value="2">2º Trimestre 2026</option>
+            <option value="3" id="opt-trimestre-3" style="display:none">3º Trimestre 2026</option>
+          </select>
+        </div>
         <div class="field">
           <label>Data do Conselho <span class="required-star">*</span></label>
           <input type="date" id="f-data" />
@@ -1335,8 +1343,21 @@ async function excluirFichaSupabase(t){
 }
 
 // ========================== TRIMESTRE ==========================
+// Por padrão só o 1º e o 2º trimestre ficam disponíveis pra escolher.
+// O 3º só aparece depois que já existir pelo menos uma ficha salva no
+// 2º trimestre (ou seja, quando o 2º trimestre já começou de verdade).
+function atualizarDisponibilidadeTrimestre3(){
+  const liberado = Object.keys(fichasDoTrimestre('2')).length > 0;
+  ['opt-trimestre-3','opt-header-trimestre-3'].forEach(id=>{
+    const opt = document.getElementById(id);
+    if(opt) opt.style.display = liberado ? '' : 'none';
+  });
+}
+
 function onTrimestreChange(){
   TRIMESTRE_ATUAL = document.getElementById('sel-trimestre').value;
+  const formSel = document.getElementById('f-trimestre');
+  if(formSel) formSel.value = TRIMESTRE_ATUAL;
   limparFormulario();
   updatePrevSel();
   updateGeralStats();
@@ -1344,11 +1365,19 @@ function onTrimestreChange(){
   if(view === 'view-preview') renderPreview();
 }
 
+// Disparado pelo seletor de trimestre DENTRO da própria ficha de
+// preenchimento — mantém o seletor do cabeçalho sincronizado.
+function onTrimestreFormChange(){
+  document.getElementById('sel-trimestre').value = document.getElementById('f-trimestre').value;
+  onTrimestreChange();
+}
+
 // ========================== INIT ==========================
 async function init() {
   const sel = document.getElementById('f-turma');
   const prevSel = document.getElementById('prev-turma-sel');
   document.getElementById('sel-trimestre').value = TRIMESTRE_ATUAL;
+  document.getElementById('f-trimestre').value = TRIMESTRE_ATUAL;
   try {
     await carregarTurmasDaPlataforma();
 
@@ -1357,6 +1386,7 @@ async function init() {
     showToast('⚠️ Não foi possível carregar turmas e alunos da Plataforma de Monitoramento.');
   }
   await carregarFichasDoSupabase();
+  atualizarDisponibilidadeTrimestre3();
   Object.keys(TURMAS).forEach(t => {
     sel.innerHTML += `<option value="${t}">${t} (${TURMAS[t].total} alunos)</option>`;
     prevSel.innerHTML += `<option value="${t}">${t}</option>`;
@@ -1465,6 +1495,8 @@ document.addEventListener('click', e => {
 async function salvarFicha() {
   const t = document.getElementById('f-turma').value;
   if (!t) { showToast('⚠️ Selecione uma turma antes de salvar!'); return; }
+  TRIMESTRE_ATUAL = document.getElementById('f-trimestre').value; // fonte da verdade no momento de salvar
+  document.getElementById('sel-trimestre').value = TRIMESTRE_ATUAL;
   const f = {
     turma: t,
     trimestre: TRIMESTRE_ATUAL,
@@ -1495,6 +1527,7 @@ async function salvarFicha() {
   fichasDoTrimestre()[t] = f; // guarda local na hora, garante que a tela funcione mesmo se o Supabase falhar
   updateGeralStats();
   updatePrevSel();
+  atualizarDisponibilidadeTrimestre3();
 
   try {
     const { data, error } = await sbUpsertAta(f);
