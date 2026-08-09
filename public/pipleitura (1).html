@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Livro de Registro — Fluência de Leitura</title>
+<style>
+  html, body { margin:0; padding:0; background: #EFE9DA; }
+  body { padding: 18px; }
+  :root{
+    --paper: #EFE9DA;
+    --paper-deep: #E4DCC7;
+    --ledger-line: #B9C2AA;
+    --ink-navy: #202B45;
+    --ink-navy-soft: #3B4766;
+    --stamp-red: #A73B2E;
+    --stamp-red-deep: #8A2F24;
+    --gold: #B8892B;
+    --text-dark: #2A241A;
+    --text-mute: #6B6252;
+    --card-bg: #FBF8F0;
+    --white: #FFFDF7;
+  }
+
+  * { box-sizing: border-box; }
+
+  #app-root {
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    color: var(--text-dark);
+    background: transparent;
+    padding: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .stamp-font { font-family: 'Special Elite', 'Courier New', monospace; }
+
+  /* ===== Header ===== */
+  .ledger-header {
+    background: var(--paper);
+    border: 1px solid var(--ledger-line);
+    border-bottom: 3px double var(--ink-navy);
+    padding: 22px 28px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ledger-header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 27px, rgba(90,100,70,0.15) 28px
+    );
+    pointer-events:none;
+  }
+  .eyebrow {
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--ink-navy-soft);
+    position: relative;
+    z-index: 1;
+  }
+  .ledger-title {
+    font-family: 'Special Elite', monospace;
+    font-size: 26px;
+    color: var(--ink-navy);
+    margin: 6px 0 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .ledger-sub {
+    font-size: 13px;
+    color: var(--text-mute);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== Upload zone ===== */
+  .dropzone {
+    margin-top: 18px;
+    background: var(--paper);
+    border: 2px dashed var(--ink-navy-soft);
+    border-radius: 2px;
+    padding: 26px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    background: var(--paper-deep);
+    border-color: var(--stamp-red);
+  }
+  .dropzone-title {
+    font-family: 'Special Elite', monospace;
+    font-size: 15px;
+    color: var(--ink-navy);
+  }
+  .dropzone-hint {
+    font-size: 12.5px;
+    color: var(--text-mute);
+    margin-top: 4px;
+  }
+  .dropzone input[type=file]{ display:none; }
+
+  .status-line {
+    font-size: 12.5px;
+    color: var(--text-mute);
+    padding: 8px 4px 0;
+    min-height: 18px;
+  }
+  .status-line.error { color: var(--stamp-red-deep); }
+  .status-line.ok { color: #3C6E47; }
+
+  /* ===== Toolbar ===== */
+  .toolbar {
+    display:flex; gap:10px; flex-wrap:wrap;
+    align-items:center; justify-content: space-between;
+    margin: 18px 0 10px;
+  }
+  .count-badge {
+    font-family:'Special Elite', monospace;
+    font-size: 12.5px;
+    color: var(--ink-navy);
+  }
+  .btn-group { display:flex; gap:8px; flex-wrap: wrap; }
+  button.btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 9px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--ink-navy);
+    background: var(--white);
+    color: var(--ink-navy);
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+  button.btn:hover { background: var(--paper-deep); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn.primary {
+    background: var(--ink-navy);
+    color: var(--white);
+    border-color: var(--ink-navy);
+  }
+  button.btn.primary:hover { background: var(--ink-navy-soft); }
+  button.btn.danger {
+    color: var(--stamp-red-deep);
+    border-color: var(--stamp-red-deep);
+    background: var(--white);
+  }
+  button.btn.danger:hover { background: #F5E7E4; }
+  button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== Ledger table ===== */
+  .ledger-wrap {
+    border: 1px solid var(--ledger-line);
+    background: var(--card-bg);
+    overflow-x: auto;
+  }
+  table.ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 820px;
+  }
+  table.ledger thead th {
+    font-family: 'Special Elite', monospace;
+    font-weight: 400;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--ink-navy);
+    padding: 10px 12px;
+    position: sticky;
+    top: 0;
+  }
+  table.ledger tbody tr { border-bottom: 1px solid var(--ledger-line); cursor: pointer; }
+  table.ledger tbody tr:hover { background: var(--paper); }
+  table.ledger td {
+    padding: 10px 12px;
+    vertical-align: top;
+    color: var(--text-dark);
+  }
+  td.mono { font-family: 'Special Elite', monospace; font-size: 12px; }
+  td.remove-cell { text-align:center; }
+  .row-remove {
+    border: none; background: none; color: var(--text-mute);
+    font-size: 15px; cursor: pointer;
+  }
+  .row-remove:hover { color: var(--stamp-red-deep); }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+  }
+  .empty-state .stamp-font { font-size: 14px; color: var(--ink-navy-soft); display:block; margin-bottom: 6px; }
+
+  /* Protocol stamp chip */
+  .stamp-chip {
+    display: inline-block;
+    font-family: 'Special Elite', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 9px;
+    border: 2px solid var(--stamp-red);
+    color: var(--stamp-red);
+    border-radius: 3px;
+    transform: rotate(-2deg);
+    background: rgba(167,59,46,0.05);
+    white-space: nowrap;
+  }
+  .stamp-chip.protocolo-2 { border-color: var(--gold); color: var(--gold); background: rgba(184,137,43,0.06); }
+  .stamp-chip.protocolo-neutro { border-color: var(--ink-navy-soft); color: var(--ink-navy-soft); background: rgba(59,71,102,0.05); }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    position: fixed; inset:0; background: rgba(20,18,12,0.55);
+    display:flex; align-items:center; justify-content:center;
+    padding: 20px; z-index: 50;
+  }
+  .modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--ledger-line);
+    max-width: 640px; width:100%;
+    max-height: 85vh; overflow-y: auto;
+    padding: 24px 26px;
+    position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; font-size: 20px;
+    color: var(--text-mute); cursor: pointer;
+  }
+  .modal-close:hover { color: var(--stamp-red-deep); }
+  .modal-title { font-family:'Special Elite', monospace; font-size: 17px; color: var(--ink-navy); margin-bottom: 2px;}
+  .modal-meta { font-size: 12px; color: var(--text-mute); margin-bottom: 16px; }
+  .field-block { margin-bottom: 14px; }
+  .field-label {
+    font-family:'Special Elite', monospace;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--ink-navy-soft); margin-bottom: 4px;
+  }
+  .field-value { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+
+  /* ===== Signature / teacher field ===== */
+  .signature-block {
+    margin: 4px 0 18px;
+    padding-top: 4px;
+    border-top: 1px dashed var(--ledger-line);
+  }
+  .signature-row { display:flex; align-items:baseline; gap: 10px; }
+  .signature-label {
+    font-family:'Special Elite', monospace;
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--ink-navy-soft); white-space: nowrap;
+  }
+  .signature-input {
+    flex: 1;
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    color: var(--ink-navy);
+    border: none;
+    border-bottom: 1.5px solid var(--ink-navy-soft);
+    background: transparent;
+    padding: 2px 4px 4px;
+    outline: none;
+  }
+  .signature-input::placeholder { font-family: 'IBM Plex Sans', sans-serif; font-size: 12px; color: var(--text-mute); }
+  .signature-input:focus { border-bottom-color: var(--stamp-red); }
+  .modal-print-btn {
+    position: absolute; top: 14px; right: 46px;
+    background: none; border: 1px solid var(--ink-navy); border-radius: 2px;
+    font-size: 11px; padding: 5px 10px; cursor: pointer;
+    color: var(--ink-navy); font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .modal-print-btn:hover { background: var(--paper-deep); }
+
+  /* ===== Tabs ===== */
+  .tab-bar {
+    display: flex; gap: 6px; margin: 18px 0 0;
+    border-bottom: 2px solid var(--ink-navy);
+  }
+  .tab-btn {
+    font-family: 'Special Elite', monospace;
+    font-size: 12.5px;
+    padding: 10px 16px;
+    background: var(--paper);
+    border: 1px solid var(--ledger-line);
+    border-bottom: none;
+    color: var(--ink-navy-soft);
+    cursor: pointer;
+    border-radius: 3px 3px 0 0;
+  }
+  .tab-btn:hover { background: var(--paper-deep); }
+  .tab-btn.active { background: var(--ink-navy); color: var(--white); border-color: var(--ink-navy); }
+  .tab-panel { padding-top: 4px; }
+
+  /* ===== Dashboard ===== */
+  .dash-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:14px; margin-top:16px; }
+  .dash-card { background: var(--card-bg); border:1px solid var(--ledger-line); padding:14px 16px; }
+  .dash-card-title { font-family:'Special Elite',monospace; font-size:13px; color:var(--ink-navy); margin-bottom:2px; }
+  .dash-card-sub { font-size:11px; color:var(--text-mute); margin-bottom:10px; }
+  .dash-bar { display:flex; height:14px; border-radius:2px; overflow:hidden; background:#E4DED0; margin-bottom:9px; }
+  .dash-bar-seg { transition: width 0.2s ease; }
+  .dash-bar-seg.alta { background: var(--stamp-red); }
+  .dash-bar-seg.media { background: var(--gold); }
+  .dash-bar-seg.baixa { background: #3C7A4B; }
+  .dash-bar-seg.nc { background: #ABA290; }
+  .dash-legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:11.5px; color: var(--text-dark); }
+  .dash-legend-item { display:flex; align-items:center; gap:5px; }
+  .dash-legend-dot { width:9px; height:9px; border-radius:2px; display:inline-block; flex-shrink:0; }
+  .dash-legend-dot.alta{ background:var(--stamp-red); }
+  .dash-legend-dot.media{ background:var(--gold); }
+  .dash-legend-dot.baixa{ background:#3C7A4B; }
+  .dash-legend-dot.nc{ background:#ABA290; }
+
+  /* ===== Priority list ===== */
+  .priority-empty {
+    padding: 40px 20px; text-align: center; color: var(--text-mute); font-size: 13px;
+  }
+  .priority-group { margin-top: 18px; }
+  .priority-group-title {
+    font-family:'Special Elite',monospace; font-size:14px; color:var(--ink-navy);
+    border-bottom:2px double var(--ink-navy); padding-bottom:6px; margin-bottom:2px;
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .priority-group-count { font-size:11px; color:var(--text-mute); font-family:'IBM Plex Sans',sans-serif; }
+  .priority-item {
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:10px 6px; border-bottom:1px solid var(--ledger-line); cursor:pointer;
+  }
+  .priority-item:hover { background: var(--paper); }
+  .priority-item-name { font-weight:600; font-size:13px; color: var(--text-dark); }
+  .priority-item-meta { font-size:11.5px; color:var(--text-mute); margin-top:2px; }
+  .priority-item-ppm { font-family:'Special Elite',monospace; font-size:12px; color:var(--ink-navy); white-space:nowrap; }
+
+  .priority-dot-badge { display:inline-flex; align-items:center; gap:5px; font-size:12px; white-space:nowrap; }
+
+  @media (max-width: 640px) {
+    .ledger-header { padding: 18px 16px; }
+    .ledger-title { font-size: 20px; }
+    .toolbar { flex-direction: column; align-items: flex-start; }
+    .tab-btn { font-size: 11px; padding: 8px 10px; }
+  }
+
+  /* ===== Print: single record, one page ===== */
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    body * { visibility: hidden; }
+    .modal-card, .modal-card * { visibility: visible; }
+    .modal-overlay {
+      position: static; background: none; padding: 0; display: block;
+    }
+    .modal-card {
+      position: absolute; left: 0; top: 0; width: 100%;
+      max-width: none; max-height: none; overflow: visible;
+      border: none; padding: 0; margin: 0;
+    }
+    .modal-close, .modal-print-btn { display: none !important; }
+    .modal-title { font-size: 16px; margin-bottom: 1px; }
+    .modal-meta { font-size: 10px; margin-bottom: 8px; }
+    .field-grid-print { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .field-block { margin-bottom: 6px; }
+    .field-label { font-size: 8px; letter-spacing: 0.5px; margin-bottom: 1px; }
+    .field-value { font-size: 9.5px; line-height: 1.25; }
+    .signature-block { margin: 6px 0 4px; padding-top: 4px; }
+    .signature-label { font-size: 8px; }
+    .signature-input { font-size: 16px; border-bottom: 1px solid #444; }
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Caveat:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<div id="app-root">
+  <div class="ledger-header">
+    <div class="eyebrow">Diretoria do Ensino Fundamental · Prefeitura de Belo Horizonte</div>
+    <div class="ledger-title">Livro de Registro — Fluência de Leitura</div>
+    <div class="ledger-sub">Envie os relatórios .txt do Medidor de Fluência para alimentar a planilha consolidada.</div>
+
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-title">⤓ Solte os arquivos .txt aqui, ou clique para selecionar</div>
+      <div class="dropzone-hint">Aceita múltiplos arquivos ao mesmo tempo · formato do Medidor de Fluência</div>
+      <input type="file" id="fileInput" accept=".txt" multiple />
+    </div>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="livro" type="button">📖 Livro de Registro</button>
+    <button class="tab-btn" data-tab="dashboard" type="button">📊 Painel por Turma</button>
+    <button class="tab-btn" data-tab="prioridade" type="button">🔴 Alta Prioridade</button>
+  </div>
+
+  <div class="tab-panel" id="panelLivro">
+    <div class="toolbar">
+      <div class="count-badge" id="countBadge">0 registros no livro</div>
+      <div class="btn-group">
+        <button class="btn" id="exportCsvBtn">Exportar CSV</button>
+        <button class="btn primary" id="exportXlsxBtn">Exportar planilha (.xlsx)</button>
+        <button class="btn danger" id="clearBtn">Limpar tudo</button>
+      </div>
+    </div>
+
+    <div class="ledger-wrap">
+      <table class="ledger" id="ledgerTable">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Aluno</th>
+            <th>Turma</th>
+            <th>PPM</th>
+            <th>Classificação</th>
+            <th>Prioridade</th>
+            <th>Prosódia</th>
+            <th>Compreensão</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState">
+        <span class="stamp-font">— livro em branco —</span>
+        Nenhum relatório importado ainda. Envie um arquivo .txt acima para começar.
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panelDashboard" style="display:none;">
+    <div id="dashboardContent"></div>
+  </div>
+
+  <div class="tab-panel" id="panelPrioridade" style="display:none;">
+    <div id="priorityContent"></div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+(function(){
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const statusLine = document.getElementById('statusLine');
+  const ledgerBody = document.getElementById('ledgerBody');
+  const emptyState = document.getElementById('emptyState');
+  const countBadge = document.getElementById('countBadge');
+  const modalRoot = document.getElementById('modalRoot');
+
+  let records = [];
+
+  // ---------- storage (Supabase) ----------
+  const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+  const TABLE = 'fluencia_leitura';
+
+  function sbHeaders(extra={}){
+    return {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...extra
+    };
+  }
+
+  // camelCase (usado na UI) <-> snake_case (colunas no banco)
+  function toRow(rec){
+    return {
+      id: rec.id,
+      arquivo: rec.arquivo,
+      importado_em: rec.importadoEm,
+      data_avaliacao: rec.dataAvaliacao,
+      nome: rec.nome,
+      turma: rec.turma,
+      idade: rec.idade,
+      classificacao: rec.classificacao,
+      prioridade: rec.prioridade,
+      protocolo: rec.protocolo,
+      ppm: rec.ppm,
+      transcricao: rec.transcricao,
+      analise_coerencia: rec.analiseCoerencia,
+      prosodia: rec.prosodia,
+      compreensao: rec.compreensao,
+      plano_intervencao: rec.planoIntervencao,
+      texto_pratica: rec.textoPratica,
+      professor: rec.professor || null,
+      parse_ok: rec.parseOk
+    };
+  }
+  function fromRow(row){
+    return {
+      id: row.id,
+      arquivo: row.arquivo,
+      importadoEm: row.importado_em,
+      dataAvaliacao: row.data_avaliacao,
+      nome: row.nome,
+      turma: row.turma,
+      idade: row.idade,
+      classificacao: row.classificacao,
+      prioridade: row.prioridade,
+      protocolo: row.protocolo,
+      ppm: row.ppm,
+      transcricao: row.transcricao,
+      analiseCoerencia: row.analise_coerencia,
+      prosodia: row.prosodia,
+      compreensao: row.compreensao,
+      planoIntervencao: row.plano_intervencao,
+      textoPratica: row.texto_pratica,
+      professor: row.professor,
+      parseOk: row.parse_ok
+    };
+  }
+
+  async function loadRecords(){
+    try{
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=importado_em.desc`, { headers: sbHeaders() });
+      if(!r.ok) throw new Error('Falha ao consultar o banco de dados.');
+      const rows = await r.json();
+      records = rows.map(fromRow);
+    }catch(e){
+      records = [];
+      setStatus('Não foi possível carregar os registros do banco de dados.', 'error');
+    }
+    render();
+  }
+
+  async function insertRecord(rec){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+      method: 'POST', headers: sbHeaders(),
+      body: JSON.stringify([toRow(rec)])
+    });
+    if(!r.ok) throw new Error(await r.text());
+    const rows = await r.json();
+    return fromRow(rows[0]);
+  }
+
+  async function patchRecord(id, fields){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH', headers: sbHeaders(),
+      body: JSON.stringify(fields)
+    });
+    if(!r.ok) throw new Error(await r.text());
+  }
+
+  async function deleteRecord(id){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: sbHeaders()
+    });
+    if(!r.ok) throw new Error(await r.text());
+  }
+
+  async function deleteAllRecords(){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=not.is.null`, {
+      method: 'DELETE', headers: sbHeaders()
+    });
+    if(!r.ok) throw new Error(await r.text());
+  }
+
+  // ---------- parsing ----------
+  function grabSections(text){
+    const sections = {};
+    const re = /(\d+)\.\s+([^\n]+)\n-{5,}\n([\s\S]*?)(?=\n\d+\.\s+[^\n]+\n-{5,}|\n=+|$)/g;
+    let m;
+    while((m = re.exec(text)) !== null){
+      const title = m[2].trim().toUpperCase();
+      sections[title] = m[3].trim();
+    }
+    return sections;
+  }
+
+  function grabField(block, label){
+    if(!block) return '';
+    const re = new RegExp(label + '\\s*:\\s*(.*)', 'i');
+    const m = block.match(re);
+    return m ? m[1].trim() : '';
+  }
+
+  function parseReport(text, filename){
+    const sections = grabSections(text);
+    const ident = sections['IDENTIFICAÇÃO DO ESTUDANTE'] || '';
+    const classif = sections['CLASSIFICAÇÃO'] || '';
+    const ppmBlock = sections['PALAVRAS POR MINUTO'] || '';
+    const transcricao = sections['TRANSCRIÇÃO BRUTA'] || '';
+    const analise = sections['ANÁLISE DE COERÊNCIA'] || '';
+    const prosodia = sections['PROSÓDIA SELECIONADA'] || '';
+    const compreensao = sections['COMPREENSÃO DO TEXTO'] || '';
+    const plano = sections['PLANO DE INTERVENÇÃO'] || '';
+    const pratica = sections['TEXTO DE PRÁTICA APLICADO'] || '';
+
+    const ppmMatch = ppmBlock.match(/([\d.,]+)\s*PPM/i);
+    const protocoloMatch = classif.match(/Protocolo\s*(\d+)/i);
+
+    return {
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+      arquivo: filename,
+      importadoEm: new Date().toISOString(),
+      dataAvaliacao: grabField(ident, 'Data da Avaliação') || '—',
+      nome: grabField(ident, 'Nome') || 'Não informado',
+      turma: grabField(ident, 'Turma') || 'Não informada',
+      idade: grabField(ident, 'Idade') || 'Não informada',
+      classificacao: classif || '—',
+      prioridade: derivePriority(classif),
+      protocolo: protocoloMatch ? protocoloMatch[1] : '',
+      ppm: ppmMatch ? ppmMatch[1] : (ppmBlock || '—'),
+      transcricao: transcricao || '—',
+      analiseCoerencia: analise || '—',
+      prosodia: prosodia || '—',
+      compreensao: compreensao || '—',
+      planoIntervencao: plano || '—',
+      textoPratica: pratica || '—',
+      parseOk: Object.keys(sections).length >= 4
+    };
+  }
+
+  // ---------- UI ----------
+  function setStatus(msg, kind){
+    statusLine.textContent = msg;
+    statusLine.className = 'status-line' + (kind ? ' ' + kind : '');
+  }
+
+  function stampClass(protocolo){
+    if(protocolo === '1') return 'stamp-chip';
+    if(protocolo === '2') return 'stamp-chip protocolo-2';
+    return 'stamp-chip protocolo-neutro';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- priority levels (Tabela 3 do PIP Leitura: Pré-Leitor 1-4 = Alta,
+  // Iniciante = Média, Fluente Básico / Proficiente = Baixa) ----------
+  function derivePriority(classifText){
+    const m = String(classifText || '').match(/\b(Alta|Média|Media|Baixa)\b/i);
+    if(!m) return 'Não classificado';
+    const v = m[1].toLowerCase();
+    if(v === 'alta') return 'Alta';
+    if(v === 'baixa') return 'Baixa';
+    return 'Média';
+  }
+
+  function priorityOf(rec){
+    return rec.prioridade || derivePriority(rec.classificacao);
+  }
+
+  function priorityDotClass(p){
+    if(p === 'Alta') return 'alta';
+    if(p === 'Média') return 'media';
+    if(p === 'Baixa') return 'baixa';
+    return 'nc';
+  }
+
+  function priorityEmoji(p){
+    if(p === 'Alta') return '🔴';
+    if(p === 'Média') return '🟡';
+    if(p === 'Baixa') return '🟢';
+    return '⚪';
+  }
+
+  function priorityBadge(p){
+    return `<span class="priority-dot-badge"><span class="dash-legend-dot ${priorityDotClass(p)}"></span>${priorityEmoji(p)} ${escapeHtml(p)}</span>`;
+  }
+
+  function render(){
+    countBadge.textContent = records.length + (records.length === 1 ? ' registro no livro' : ' registros no livro');
+    ledgerBody.innerHTML = '';
+    emptyState.style.display = records.length ? 'none' : 'block';
+
+    records.slice().reverse().forEach(rec => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono">${escapeHtml(rec.dataAvaliacao)}</td>
+        <td>${escapeHtml(rec.nome)}</td>
+        <td>${escapeHtml(rec.turma)}</td>
+        <td class="mono">${escapeHtml(rec.ppm)}</td>
+        <td><span class="${stampClass(rec.protocolo)}">${escapeHtml(rec.protocolo ? 'Protocolo ' + rec.protocolo : (rec.classificacao.slice(0,18)))}</span></td>
+        <td>${priorityBadge(priorityOf(rec))}</td>
+        <td>${escapeHtml(rec.prosodia.split('\n')[0].slice(0,40))}</td>
+        <td>${escapeHtml(rec.compreensao.slice(0,28))}</td>
+        <td class="remove-cell"><button class="row-remove" title="Remover" data-id="${rec.id}">✕</button></td>
+      `;
+      tr.addEventListener('click', (e) => {
+        if(e.target.classList.contains('row-remove')) return;
+        openModal(rec);
+      });
+      tr.querySelector('.row-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeRecord(rec.id);
+      });
+      ledgerBody.appendChild(tr);
+    });
+
+    renderDashboard();
+    renderPriorityList();
+  }
+
+  // ---------- dashboard: % por turma nos níveis de prioridade ----------
+  function renderDashboard(){
+    const el = document.getElementById('dashboardContent');
+    if(!el) return;
+    if(!records.length){
+      el.innerHTML = `<div class="priority-empty"><span class="stamp-font" style="display:block;margin-bottom:6px;">— sem dados —</span>Importe relatórios na aba "Livro de Registro" para ver o painel por turma.</div>`;
+      return;
+    }
+    const byTurma = {};
+    records.forEach(rec => {
+      const t = rec.turma || 'Não informada';
+      if(!byTurma[t]) byTurma[t] = { alta:0, media:0, baixa:0, nc:0, total:0 };
+      const p = priorityOf(rec);
+      byTurma[t].total++;
+      if(p === 'Alta') byTurma[t].alta++;
+      else if(p === 'Média') byTurma[t].media++;
+      else if(p === 'Baixa') byTurma[t].baixa++;
+      else byTurma[t].nc++;
+    });
+    const turmas = Object.keys(byTurma).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const pct = (n, total) => total ? Math.round((n/total)*100) : 0;
+
+    el.innerHTML = '<div class="dash-grid">' + turmas.map(t => {
+      const d = byTurma[t];
+      return `
+        <div class="dash-card">
+          <div class="dash-card-title">Turma ${escapeHtml(t)}</div>
+          <div class="dash-card-sub">${d.total} aluno${d.total === 1 ? '' : 's'} avaliado${d.total === 1 ? '' : 's'}</div>
+          <div class="dash-bar">
+            ${d.alta ? `<div class="dash-bar-seg alta" style="width:${pct(d.alta, d.total)}%"></div>` : ''}
+            ${d.media ? `<div class="dash-bar-seg media" style="width:${pct(d.media, d.total)}%"></div>` : ''}
+            ${d.baixa ? `<div class="dash-bar-seg baixa" style="width:${pct(d.baixa, d.total)}%"></div>` : ''}
+            ${d.nc ? `<div class="dash-bar-seg nc" style="width:${pct(d.nc, d.total)}%"></div>` : ''}
+          </div>
+          <div class="dash-legend">
+            <span class="dash-legend-item"><span class="dash-legend-dot alta"></span>🔴 Alta: ${pct(d.alta, d.total)}% (${d.alta})</span>
+            <span class="dash-legend-item"><span class="dash-legend-dot media"></span>🟡 Média: ${pct(d.media, d.total)}% (${d.media})</span>
+            <span class="dash-legend-item"><span class="dash-legend-dot baixa"></span>🟢 Baixa: ${pct(d.baixa, d.total)}% (${d.baixa})</span>
+            ${d.nc ? `<span class="dash-legend-item"><span class="dash-legend-dot nc"></span>Não classif.: ${pct(d.nc, d.total)}% (${d.nc})</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('') + '</div>';
+  }
+
+  // ---------- alta prioridade: alunos para intervenção, agrupados por turma ----------
+  function renderPriorityList(){
+    const el = document.getElementById('priorityContent');
+    if(!el) return;
+    const altaRecs = records.filter(r => priorityOf(r) === 'Alta');
+    if(!altaRecs.length){
+      el.innerHTML = `<div class="priority-empty"><span class="stamp-font" style="display:block;margin-bottom:6px;">— nenhum aluno em alta prioridade —</span>Estudantes classificados como Alta Prioridade (Pré-Leitor 1 a 4, conforme o PIP Leitura) aparecerão aqui, agrupados por turma, para atendimento intensivo.</div>`;
+      return;
+    }
+    const byTurma = {};
+    altaRecs.forEach(rec => {
+      const t = rec.turma || 'Não informada';
+      (byTurma[t] = byTurma[t] || []).push(rec);
+    });
+    const turmas = Object.keys(byTurma).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+
+    el.innerHTML = turmas.map(t => {
+      const list = byTurma[t].slice().sort((a,b) => (parseFloat(String(a.ppm).replace(',','.')) || 0) - (parseFloat(String(b.ppm).replace(',','.')) || 0));
+      return `
+        <div class="priority-group">
+          <div class="priority-group-title">
+            <span>🔴 Turma ${escapeHtml(t)}</span>
+            <span class="priority-group-count">${list.length} aluno${list.length === 1 ? '' : 's'} para intervenção</span>
+          </div>
+          ${list.map(rec => `
+            <div class="priority-item" data-id="${rec.id}">
+              <div>
+                <div class="priority-item-name">${escapeHtml(rec.nome)}</div>
+                <div class="priority-item-meta">${escapeHtml(rec.classificacao)} · avaliado em ${escapeHtml(rec.dataAvaliacao)}</div>
+              </div>
+              <div class="priority-item-ppm">${escapeHtml(rec.ppm)} PPM</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }).join('');
+
+    el.querySelectorAll('.priority-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const rec = records.find(r => r.id === item.dataset.id);
+        if(rec) openModal(rec);
+      });
+    });
+  }
+
+  // ---------- tabs ----------
+  function switchTab(tab){
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.getElementById('panelLivro').style.display = tab === 'livro' ? '' : 'none';
+    document.getElementById('panelDashboard').style.display = tab === 'dashboard' ? '' : 'none';
+    document.getElementById('panelPrioridade').style.display = tab === 'prioridade' ? '' : 'none';
+    if(tab === 'dashboard') renderDashboard();
+    if(tab === 'prioridade') renderPriorityList();
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.addEventListener('click', () => switchTab(b.dataset.tab));
+  });
+
+  function openModal(rec){
+    modalRoot.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+          <button class="modal-print-btn" id="modalPrint">🖶 Imprimir</button>
+          <button class="modal-close" id="modalClose">×</button>
+          <div class="modal-title">${escapeHtml(rec.nome)}</div>
+          <div class="modal-meta">${escapeHtml(rec.turma)} · ${escapeHtml(rec.idade)} · Avaliado em ${escapeHtml(rec.dataAvaliacao)} · arquivo: ${escapeHtml(rec.arquivo)}</div>
+
+          <div class="field-grid-print">
+            <div class="field-block"><div class="field-label">Classificação</div><div class="field-value">${escapeHtml(rec.classificacao)}</div></div>
+            <div class="field-block"><div class="field-label">Palavras por minuto</div><div class="field-value">${escapeHtml(rec.ppm)} PPM</div></div>
+          </div>
+          <div class="field-block"><div class="field-label">Transcrição bruta</div><div class="field-value">${escapeHtml(rec.transcricao)}</div></div>
+          <div class="field-block"><div class="field-label">Análise de coerência</div><div class="field-value">${escapeHtml(rec.analiseCoerencia)}</div></div>
+          <div class="field-grid-print">
+            <div class="field-block"><div class="field-label">Prosódia selecionada</div><div class="field-value">${escapeHtml(rec.prosodia)}</div></div>
+            <div class="field-block"><div class="field-label">Compreensão do texto</div><div class="field-value">${escapeHtml(rec.compreensao)}</div></div>
+          </div>
+          <div class="field-block"><div class="field-label">Plano de intervenção</div><div class="field-value">${escapeHtml(rec.planoIntervencao)}</div></div>
+          <div class="field-block"><div class="field-label">Texto de prática aplicado</div><div class="field-value">${escapeHtml(rec.textoPratica)}</div></div>
+
+          <div class="signature-block">
+            <div class="signature-row">
+              <span class="signature-label">Professor(a) responsável</span>
+              <input type="text" class="signature-input" id="professorInput" placeholder="assinar aqui" value="${escapeHtml(rec.professor || '')}" />
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if(e.target.id === 'modalOverlay') closeModal();
+    });
+    document.getElementById('modalPrint').addEventListener('click', () => window.print());
+    const profInput = document.getElementById('professorInput');
+    profInput.addEventListener('change', async () => {
+      const novoProfessor = profInput.value;
+      const idx = records.findIndex(r => r.id === rec.id);
+      if(idx > -1){
+        rec.professor = novoProfessor;
+        records[idx].professor = novoProfessor;
+        try{
+          await patchRecord(rec.id, { professor: novoProfessor });
+        }catch(e){
+          setStatus('Não foi possível salvar o(a) professor(a) responsável no banco.', 'error');
+        }
+      }
+    });
+  }
+  function closeModal(){ modalRoot.innerHTML = ''; }
+
+  async function removeRecord(id){
+    try{
+      await deleteRecord(id);
+      records = records.filter(r => r.id !== id);
+      render();
+      setStatus('Registro removido.', 'ok');
+    }catch(e){
+      setStatus('Não foi possível remover o registro no banco de dados.', 'error');
+    }
+  }
+
+  async function clearAll(){
+    if(!records.length) return;
+    if(!confirm('Isso vai apagar todos os ' + records.length + ' registros do livro. Confirmar?')) return;
+    try{
+      await deleteAllRecords();
+      records = [];
+      render();
+      setStatus('Livro limpo.', 'ok');
+    }catch(e){
+      setStatus('Não foi possível limpar os registros no banco de dados.', 'error');
+    }
+  }
+
+  // ---------- file ingestion ----------
+  function readFileAsText(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file, 'utf-8');
+    });
+  }
+
+  async function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.txt'));
+    if(!files.length){
+      setStatus('Selecione arquivos .txt exportados pelo Medidor de Fluência.', 'error');
+      return;
+    }
+    let okCount = 0, partialCount = 0, failCount = 0;
+    for(const file of files){
+      try{
+        const text = await readFileAsText(file);
+        const rec = parseReport(text, file.name);
+        const saved = await insertRecord(rec);
+        records.unshift(saved);
+        if(rec.parseOk) okCount++; else partialCount++;
+      }catch(e){
+        failCount++;
+        setStatus('Falha ao salvar o arquivo ' + file.name + ' no banco de dados.', 'error');
+      }
+    }
+    render();
+    if(failCount){
+      // status de erro já foi definido acima
+    }else if(okCount && !partialCount){
+      setStatus(okCount + (okCount === 1 ? ' relatório importado.' : ' relatórios importados.'), 'ok');
+    }else if(okCount || partialCount){
+      setStatus(okCount + ' importado(s) com sucesso, ' + partialCount + ' importado(s) parcialmente (estrutura incompleta) — confira antes de exportar.', 'error');
+    }
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', clearAll);
+
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    if(!records.length){ setStatus('Não há registros para exportar.', 'error'); return; }
+    const cols = ['dataAvaliacao','nome','turma','idade','classificacao','prioridade','protocolo','ppm','prosodia','compreensao','analiseCoerencia','planoIntervencao','textoPratica','transcricao','arquivo'];
+    const header = ['Data da Avaliação','Nome','Turma','Idade','Classificação','Prioridade','Protocolo','PPM','Prosódia Selecionada','Compreensão do Texto','Análise de Coerência','Plano de Intervenção','Texto de Prática Aplicado','Transcrição Bruta','Arquivo Origem'];
+    const rows = records.map(r => cols.map(c => '"' + String(c === 'prioridade' ? priorityOf(r) : (r[c] ?? '')).replace(/"/g,'""').replace(/\n/g,' ') + '"'));
+    const csv = [header.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'fluencia_leitura_pbh.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('exportXlsxBtn').addEventListener('click', () => {
+    if(!records.length){ setStatus('Não há registros para exportar.', 'error'); return; }
+    if(typeof XLSX === 'undefined'){ setStatus('Biblioteca de planilha ainda carregando, tente novamente em instantes.', 'error'); return; }
+    const data = records.map(r => ({
+      'Data da Avaliação': r.dataAvaliacao,
+      'Nome': r.nome,
+      'Turma': r.turma,
+      'Idade': r.idade,
+      'Classificação': r.classificacao,
+      'Prioridade': priorityOf(r),
+      'Protocolo': r.protocolo,
+      'PPM': r.ppm,
+      'Prosódia Selecionada': r.prosodia,
+      'Compreensão do Texto': r.compreensao,
+      'Análise de Coerência': r.analiseCoerencia,
+      'Plano de Intervenção': r.planoIntervencao,
+      'Texto de Prática Aplicado': r.textoPratica,
+      'Transcrição Bruta': r.transcricao,
+      'Arquivo Origem': r.arquivo,
+      'Importado em': r.importadoEm
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+      {wch:14},{wch:20},{wch:14},{wch:10},{wch:26},{wch:14},{wch:10},{wch:8},
+      {wch:30},{wch:22},{wch:30},{wch:30},{wch:30},{wch:40},{wch:24},{wch:20}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Fluência de Leitura');
+    XLSX.writeFile(wb, 'fluencia_leitura_pbh.xlsx');
+    setStatus('Planilha exportada.', 'ok');
+  });
+
+  loadRecords();
+})();
+</script>
+</body>
+</html>
