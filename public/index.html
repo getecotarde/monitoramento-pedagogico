@@ -2733,6 +2733,10 @@
   <div class="modal-box" id="modalBox"></div>
 </div>
 
+<div class="modal-overlay" id="pipLeituraDetailModalOverlay" onclick="fecharPipLeituraDetalhe(event)" style="z-index:330">
+  <div class="modal-box" id="pipLeituraDetailBox"></div>
+</div>
+
 <script>
 /* ════════════════════════════════════════════════════════════
    DARK MODE
@@ -3959,6 +3963,14 @@ function renderModalContent(idx){
         </div>
       </div>
       <div class="modal-section">
+        <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <span>PIP Leitura — Fluência de Leitura</span>
+        </div>
+        <div id="modalPipLeituraBox">
+          <div style="font-size:12px;color:#AAA">Carregando…</div>
+        </div>
+      </div>
+      <div class="modal-section">
         <div class="modal-section-title" style="display:flex;align-items:center;gap:6px">
           Rotina escolar · recomendações AEE/Coordenação ${fieldEditBtn(idx,'r')}
         </div>
@@ -4006,6 +4018,123 @@ function renderModalContent(idx){
       </div>`:''}
     </div>
   `;
+  carregarPipLeituraModal(idx, x.n);
+}
+
+/* ── PIP Leitura (Fluência de Leitura) — integrado ao card do aluno ─── */
+const _pipLeituraCache = {};
+
+function pipLeituraClassColor(rec){
+  const p = (rec.prioridade||'').toLowerCase();
+  if(p.includes('alta') || p.includes('vermelh')) return {bg:'#FAECE7', fg:'#D85A30'};
+  if(p.includes('média') || p.includes('media') || p.includes('amarel')) return {bg:'#FEF3DC', fg:'#BA7517'};
+  if(p.includes('baixa') || p.includes('verde')) return {bg:'#E1F5EE', fg:'#0F6E56'};
+  return {bg:'#F3F2EF', fg:'#888780'};
+}
+
+async function carregarPipLeituraModal(idx, nome){
+  const box = document.getElementById('modalPipLeituraBox');
+  if(!box) return;
+  const key = (nome||'').trim().toLowerCase();
+  // Mostra cache imediatamente (sem "Carregando…") se já tivermos dados desta consulta
+  if(_pipLeituraCache[key]){
+    renderPipLeituraBox(_pipLeituraCache[key], idx);
+  }
+  try{
+    const url = `${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&nome=ilike.${encodeURIComponent(nome.trim())}&order=importado_em.desc`;
+    const r = await fetch(url, { headers: sbHeaders() });
+    if(!r.ok) throw new Error('Falha na consulta');
+    const rows = await r.json();
+    _pipLeituraCache[key] = rows;
+    if(currentModalIdx === idx) renderPipLeituraBox(rows, idx);
+  }catch(e){
+    if(currentModalIdx === idx && !_pipLeituraCache[key]){
+      box.innerHTML = `<div style="font-size:12px;color:#D85A30">Não foi possível carregar os dados de fluência de leitura.</div>`;
+    }
+  }
+}
+
+function renderPipLeituraBox(rows, idx){
+  const box = document.getElementById('modalPipLeituraBox');
+  if(!box) return;
+  if(!rows || !rows.length){
+    box.innerHTML = `<div class="modal-text" style="color:#CCC;font-style:italic">Nenhuma avaliação de fluência de leitura registrada para este(a) estudante.</div>`;
+    return;
+  }
+  box.innerHTML = rows.map(rec => {
+    const c = pipLeituraClassColor(rec);
+    return `
+      <div onclick='abrirPipLeituraDetalhe(${JSON.stringify(rec).replace(/'/g,"&#39;")})' style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px;cursor:pointer;background:#FAFAF8">
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:600;color:#1A1916">${escapeHtmlPip(rec.classificacao||'—')}</div>
+          <div style="font-size:11px;color:#999">Avaliado em ${escapeHtmlPip(rec.data_avaliacao||'—')}${rec.professor?' · '+escapeHtmlPip(rec.professor):''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${c.bg};color:${c.fg};white-space:nowrap">${escapeHtmlPip(rec.ppm||'—')} PPM</span>
+          <svg fill="none" stroke="#BBB" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    `;
+  }).join('') + `<div style="margin-top:4px"><a href="pipleitura.html" target="_blank" rel="noopener" style="font-size:11.5px;color:#2B7FD4;text-decoration:none">↗ Ver livro completo de fluência de leitura</a></div>`;
+}
+
+function escapeHtmlPip(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function abrirPipLeituraDetalhe(rec){
+  document.getElementById('pipLeituraDetailBox').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:#EEEDFE;color:#3C3489">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="modal-nome">${escapeHtmlPip(rec.nome)}</div>
+        <div class="modal-sub">${escapeHtmlPip(rec.turma||'—')} · Avaliado em ${escapeHtmlPip(rec.data_avaliacao||'—')}</div>
+      </div>
+      <button class="modal-close" onclick="fecharPipLeituraDetalheBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-row"><span class="modal-key">Classificação</span><span class="modal-val">${escapeHtmlPip(rec.classificacao||'—')}</span></div>
+        <div class="modal-row"><span class="modal-key">Palavras por minuto</span><span class="modal-val">${escapeHtmlPip(rec.ppm||'—')} PPM</span></div>
+        <div class="modal-row"><span class="modal-key">Professor(a) responsável</span><span class="modal-val">${escapeHtmlPip(rec.professor||'—')}</span></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Transcrição bruta</div>
+        <div class="modal-text">${escapeHtmlPip(rec.transcricao||'—')}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Análise de coerência</div>
+        <div class="modal-text">${escapeHtmlPip(rec.analise_coerencia||'—')}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Prosódia selecionada</div>
+        <div class="modal-text">${escapeHtmlPip(rec.prosodia||'—')}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Compreensão do texto</div>
+        <div class="modal-text">${escapeHtmlPip(rec.compreensao||'—')}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Plano de intervenção</div>
+        <div class="modal-text">${escapeHtmlPip(rec.plano_intervencao||'—')}</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Texto de prática aplicado</div>
+        <div class="modal-text">${escapeHtmlPip(rec.texto_pratica||'—')}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('pipLeituraDetailModalOverlay').classList.add('open');
+}
+function fecharPipLeituraDetalheBtn(){
+  document.getElementById('pipLeituraDetailModalOverlay').classList.remove('open');
+}
+function fecharPipLeituraDetalhe(e){
+  if(e.target === document.getElementById('pipLeituraDetailModalOverlay')) fecharPipLeituraDetalheBtn();
 }
 
 async function excluirEstudante(idx){
