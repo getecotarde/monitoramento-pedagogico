@@ -808,7 +808,13 @@ html.embedded body { background: var(--surface); }
     <div class="header-title">Sistema de Conselho de Classe — 2026</div>
     <div class="header-meta">Coordenação Pedagógica: Everton Correa Alves</div>
   </div>
-  <div class="header-badge">1º TRIMESTRE</div>
+  <div class="header-badge" style="padding:0">
+    <select id="sel-trimestre" onchange="onTrimestreChange()" style="background:transparent;border:none;color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 10px;cursor:pointer;outline:none">
+      <option value="1" style="color:#0f1923">1º TRIMESTRE 2026</option>
+      <option value="2" style="color:#0f1923">2º TRIMESTRE 2026</option>
+      <option value="3" style="color:#0f1923">3º TRIMESTRE 2026</option>
+    </select>
+  </div>
 </header>
 
 <!-- ═══════════════ NAV ═══════════════ -->
@@ -997,7 +1003,7 @@ html.embedded body { background: var(--surface); }
       <div class="card-header">
         <div class="card-icon blue">🗂️</div>
         <div>
-          <div class="card-title">Projetos para o 3º Trimestre</div>
+          <div class="card-title">Projetos para o Trimestre Seguinte</div>
           <div class="card-subtitle">Projetos por disciplina ou interdisciplinares</div>
         </div>
       </div>
@@ -1200,25 +1206,163 @@ async function carregarTurmasDaPlataforma(){
   TURMAS = turmas;
 }
 
-let fichas = {};
+let fichas = {};           // fichas[trimestre][turma] = ficha
 let selectedAlunos = {};
 const MS_KEYS = ['remanejamento','baixo','disciplina','destaque','ped','familia','medico'];
+
+// Trimestre atualmente selecionado no cabeçalho ('1', '2' ou '3')
+let TRIMESTRE_ATUAL = '1';
+function fichasDoTrimestre(trimestre = TRIMESTRE_ATUAL){ return fichas[trimestre] || (fichas[trimestre] = {}); }
+function fichaTrimestreAnterior(t){
+  const anterior = String(Number(TRIMESTRE_ATUAL) - 1);
+  if(Number(anterior) < 1) return null;
+  return (fichas[anterior] || {})[t] || null;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PERSISTÊNCIA DAS FICHAS/ATAS NO SUPABASE
+   Antes, salvarFicha() só guardava os dados no objeto `fichas` em
+   memória — nada era enviado ao banco, então tudo se perdia ao
+   recarregar a página ou era invisível para outros usuários.
+   Agora cada ficha é gravada (upsert por turma + trimestre) na
+   tabela "atas_conselho" — dentro do MESMO trimestre, salvar de
+   novo a mesma turma sobrescreve a ficha; trimestres diferentes
+   ficam em registros separados, um por combinação (turma, trimestre)
+   — é preciso rodar o SQL de criação/atualização dessa tabela no
+   Supabase antes (ver instruções fornecidas separadamente).
+   ════════════════════════════════════════════════════════════ */
+function fichaToRow(f){
+  return {
+    turma: f.turma,
+    trimestre: Number(f.trimestre),
+    data: f.data || null,
+    professor: f.professor || null,
+    meninos: f.meninos ?? 0,
+    meninas: f.meninas ?? 0,
+    total: f.total ?? 0,
+    perfil: f.perfil || null,
+    remanejamento_alunos: f.remanejamento.alunos,
+    remanejamento_obs: f.remanejamento.obs || null,
+    baixo_alunos: f.baixo.alunos,
+    baixo_obs: f.baixo.obs || null,
+    disciplina_alunos: f.disciplina.alunos,
+    disciplina_obs: f.disciplina.obs || null,
+    destaque_alunos: f.destaque.alunos,
+    destaque_obs: f.destaque.obs || null,
+    projetos: f.projetos || null,
+    acoes: f.acoes || null,
+    enc_checks: f.enc.checks,
+    enc_ped_alunos: f.enc.ped.alunos,
+    enc_familia_alunos: f.enc.familia.alunos,
+    enc_medico_alunos: f.enc.medico.alunos,
+    enc_outros: f.enc.outros || null
+  };
+}
+
+function rowToFicha(row){
+  return {
+    turma: row.turma,
+    trimestre: String(row.trimestre),
+    data: row.data || '',
+    professor: row.professor || '',
+    meninos: row.meninos || 0,
+    meninas: row.meninas || 0,
+    total: row.total || 0,
+    perfil: row.perfil || '',
+    remanejamento: { alunos: row.remanejamento_alunos||[], obs: row.remanejamento_obs||'' },
+    baixo:         { alunos: row.baixo_alunos||[],         obs: row.baixo_obs||'' },
+    disciplina:    { alunos: row.disciplina_alunos||[],    obs: row.disciplina_obs||'' },
+    destaque:      { alunos: row.destaque_alunos||[],      obs: row.destaque_obs||'' },
+    projetos: row.projetos || '',
+    acoes: row.acoes || '',
+    enc: {
+      checks:  row.enc_checks||[],
+      ped:     { alunos: row.enc_ped_alunos||[] },
+      familia: { alunos: row.enc_familia_alunos||[] },
+      medico:  { alunos: row.enc_medico_alunos||[] },
+      outros:  row.enc_outros||''
+    },
+    _id: row.id
+  };
+}
+
+// Upsert (insere ou atualiza) pela chave única (turma, trimestre) — precisa
+// da constraint UNIQUE(turma, trimestre) criada no SQL da tabela.
+async function sbUpsertAta(f){
+  const row = fichaToRow(f);
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?on_conflict=turma,trimestre`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation'
+    },
+    body: JSON.stringify([row])
+  });
+  const data = await r.json();
+  return { data, error: r.ok ? null : data };
+}
+
+async function carregarFichasDoSupabase(){
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const rows = await r.json();
+    if(!r.ok || !Array.isArray(rows)){
+      console.warn('Supabase retornou erro ao carregar atas_conselho:', rows);
+      return;
+    }
+    fichas = {};
+    rows.forEach(row => { fichasDoTrimestre(String(row.trimestre))[row.turma] = rowToFicha(row); });
+  } catch(e){
+    console.error('Erro ao carregar atas do Supabase:', e);
+  }
+}
+
+async function excluirFichaSupabase(t){
+  const f = fichasDoTrimestre()[t];
+  if(f && f._id){
+    try{
+      await fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?id=eq.${f._id}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      });
+    }catch(e){ console.warn('Não foi possível excluir a ficha no Supabase.', e); }
+  }
+  delete fichasDoTrimestre()[t];
+}
+
+// ========================== TRIMESTRE ==========================
+function onTrimestreChange(){
+  TRIMESTRE_ATUAL = document.getElementById('sel-trimestre').value;
+  limparFormulario();
+  updatePrevSel();
+  updateGeralStats();
+  const view = document.querySelector('.view.active')?.id;
+  if(view === 'view-preview') renderPreview();
+}
 
 // ========================== INIT ==========================
 async function init() {
   const sel = document.getElementById('f-turma');
   const prevSel = document.getElementById('prev-turma-sel');
+  document.getElementById('sel-trimestre').value = TRIMESTRE_ATUAL;
   try {
     await carregarTurmasDaPlataforma();
+
   } catch(e) {
     console.error('Erro ao carregar turmas/alunos da Plataforma de Monitoramento:', e);
     showToast('⚠️ Não foi possível carregar turmas e alunos da Plataforma de Monitoramento.');
   }
+  await carregarFichasDoSupabase();
   Object.keys(TURMAS).forEach(t => {
     sel.innerHTML += `<option value="${t}">${t} (${TURMAS[t].total} alunos)</option>`;
     prevSel.innerHTML += `<option value="${t}">${t}</option>`;
   });
   MS_KEYS.forEach(k => { selectedAlunos[k] = []; });
+  updatePrevSel();
   updateGeralStats();
 }
 
@@ -1235,8 +1379,20 @@ function onTurmaChange() {
     renderTags(k);
     buildList(k, d.alunos);
   });
-  if (fichas[t]) loadFicha(t);
-  else limparCampos();
+  if (fichasDoTrimestre()[t]) {
+    loadFicha(fichasDoTrimestre()[t]);
+  } else {
+    limparCampos();
+    const anterior = fichaTrimestreAnterior(t);
+    if (anterior) {
+      // Trimestre novo, turma sem ficha ainda: pré-preenche com os dados do
+      // trimestre anterior como ponto de partida. Nada é salvo até que o
+      // usuário clique em "Salvar Ficha" — só então vira um registro deste
+      // trimestre (a ficha do trimestre anterior não é alterada).
+      loadFicha({ ...anterior, data:'', _id:undefined });
+      showToast(`📋 Dados do ${Number(TRIMESTRE_ATUAL)-1}º trimestre carregados como ponto de partida. Revise e salve.`);
+    }
+  }
 }
 
 // ========================== MULTISELECT ==========================
@@ -1306,11 +1462,12 @@ document.addEventListener('click', e => {
 });
 
 // ========================== SAVE / LOAD ==========================
-function salvarFicha() {
+async function salvarFicha() {
   const t = document.getElementById('f-turma').value;
   if (!t) { showToast('⚠️ Selecione uma turma antes de salvar!'); return; }
-  fichas[t] = {
+  const f = {
     turma: t,
+    trimestre: TRIMESTRE_ATUAL,
     data:  document.getElementById('f-data').value,
     professor: document.getElementById('f-professor').value,
     meninos: TURMAS[t].meninos,
@@ -1329,15 +1486,28 @@ function salvarFicha() {
       familia:{ alunos: [...selectedAlunos.familia] },
       medico: { alunos: [...selectedAlunos.medico] },
       outros: document.getElementById('f-outros-enc').value
-    }
+    },
+    // Reaproveita o ID só se já existir uma ficha SALVA para esta turma
+    // NESTE trimestre — dados herdados do trimestre anterior (ainda não
+    // salvos) não têm _id, então viram um registro novo, correto.
+    _id: fichasDoTrimestre()[t] ? fichasDoTrimestre()[t]._id : undefined
   };
+  fichasDoTrimestre()[t] = f; // guarda local na hora, garante que a tela funcione mesmo se o Supabase falhar
   updateGeralStats();
   updatePrevSel();
-  showToast(`✅ Ficha da turma ${t} salva!`);
+
+  try {
+    const { data, error } = await sbUpsertAta(f);
+    if(error) throw error;
+    if(Array.isArray(data) && data[0]) fichasDoTrimestre()[t]._id = data[0].id;
+    showToast(`✅ Ficha da turma ${t} (${TRIMESTRE_ATUAL}º trimestre) salva na nuvem!`);
+  } catch(e){
+    console.warn('Não foi possível salvar a ficha no Supabase.', e);
+    showToast(`⚠️ Ficha da turma ${t} salva só neste computador — sem conexão com o servidor.`);
+  }
 }
 
-function loadFicha(t) {
-  const f = fichas[t];
+function loadFicha(f) {
   document.getElementById('f-data').value      = f.data || '';
   document.getElementById('f-professor').value = f.professor || '';
   document.getElementById('f-perfil').value    = f.perfil || '';
@@ -1388,11 +1558,12 @@ function renderPreview() {
   const val = document.getElementById('prev-turma-sel').value;
   const box = document.getElementById('preview-content');
   if (val === 'geral') { box.innerHTML = renderGeralHTML(); return; }
-  if (!fichas[val]) {
-    box.innerHTML = `<p class="ph">Ficha da turma <strong>${val}</strong> ainda não foi salva.</p>`;
+  const f = fichasDoTrimestre()[val];
+  if (!f) {
+    box.innerHTML = `<p class="ph">Ficha da turma <strong>${val}</strong> ainda não foi salva no ${TRIMESTRE_ATUAL}º trimestre.</p>`;
     return;
   }
-  box.innerHTML = renderFichaHTML(fichas[val]);
+  box.innerHTML = renderFichaHTML(f);
 }
 
 function renderFichaHTML(f) {
@@ -1402,7 +1573,7 @@ function renderFichaHTML(f) {
   return `
   <div class="school-header">
     <h2>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA</h2>
-    <p><strong>CONSELHO DE CLASSE — 1º TRIMESTRE 2026</strong></p>
+    <p><strong>CONSELHO DE CLASSE — ${f.trimestre || TRIMESTRE_ATUAL}º TRIMESTRE 2026</strong></p>
     <p>Coordenação Pedagógica: Everton Correa Alves</p>
   </div>
   <table>
@@ -1431,7 +1602,7 @@ function renderFichaHTML(f) {
   <h3>ALUNOS DESTAQUE</h3>
   ${formatAlunos(f.destaque.alunos)}
   ${f.destaque.obs ? `<br><em>Obs: ${f.destaque.obs}</em>` : ''}
-  <h3>PROJETOS PARA O 3º TRIMESTRE</h3>
+  <h3>PROJETOS PARA O TRIMESTRE SEGUINTE</h3>
   <p>${f.projetos || '<em>Não preenchido</em>'}</p>
   <h3>AÇÕES DESENVOLVIDAS PARA MINIMIZAR DIFICULDADES</h3>
   <p>${f.acoes || '<em>Não preenchido</em>'}</p>
@@ -1449,8 +1620,8 @@ function renderFichaHTML(f) {
 }
 
 function renderGeralHTML() {
-  const saved = Object.values(fichas);
-  if (!saved.length) return '<p class="ph">Nenhuma ficha salva ainda.</p>';
+  const saved = Object.values(fichasDoTrimestre());
+  if (!saved.length) return `<p class="ph">Nenhuma ficha salva ainda no ${TRIMESTRE_ATUAL}º trimestre.</p>`;
   let rows = saved.map(f => `
     <tr>
       <td><strong>${f.turma}</strong></td>
@@ -1468,7 +1639,7 @@ function renderGeralHTML() {
   return `
   <div class="school-header">
     <h2>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA</h2>
-    <p><strong>RESUMO GERAL — CONSELHO DE CLASSE — 1º TRIMESTRE 2026</strong></p>
+    <p><strong>RESUMO GERAL — CONSELHO DE CLASSE — ${TRIMESTRE_ATUAL}º TRIMESTRE 2026</strong></p>
     <p>Coordenação: Everton Correa Alves &nbsp;|&nbsp; Turmas com ficha salva: ${saved.length}</p>
   </div>
   <table>
@@ -1490,19 +1661,16 @@ function renderGeralHTML() {
 
 function updatePrevSel() {
   const sel = document.getElementById('prev-turma-sel');
-  const existing = [...sel.options].map(o=>o.value);
-  Object.keys(fichas).forEach(t => {
-    if (!existing.includes(t)) sel.innerHTML += `<option value="${t}">${t} ✓</option>`;
-    else {
-      const opt = sel.querySelector(`option[value="${t}"]`);
-      if (opt && !opt.text.includes('✓')) opt.text += ' ✓';
-    }
+  const salvas = new Set(Object.keys(fichasDoTrimestre()));
+  [...sel.options].forEach(opt => {
+    if (opt.value === 'geral') return;
+    opt.text = salvas.has(opt.value) ? `${opt.value} ✓` : opt.value;
   });
 }
 
 // ========================== PAINEL GERAL ==========================
 function updateGeralStats() {
-  const saved = Object.values(fichas);
+  const saved = Object.values(fichasDoTrimestre());
   const totalAlunos = Object.values(TURMAS).reduce((s,t)=>s+t.total,0);
   const totalFichas = saved.length;
   const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
@@ -1579,12 +1747,12 @@ function previewTurma(t) {
 
 // ========================== EXPORT ==========================
 function exportarTudo() {
-  const json = JSON.stringify(fichas, null, 2);
+  const json = JSON.stringify(fichas, null, 2); // exporta todos os trimestres salvos
   const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url;
   a.download = 'conselho_classe_geteco_2026.json'; a.click();
-  showToast('📥 Dados exportados!');
+  showToast('📥 Dados de todos os trimestres exportados!');
 }
 
 // ========================== NAVIGATION ==========================
