@@ -3866,6 +3866,7 @@ function renderAtipicos(){
           ${encamBadge(x.e)}
           ${hasAEE?(x.a==='Avaliar AEE'?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`:`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`):''}
           ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${pipLabel(v)}</span>`; })():''}
+          ${leituraBadge(x)}
           ${x.ocn?`<span class="badge" style="background:#D8392E;color:#fff;font-weight:600">⚠ ${x.ocn} advertência${x.ocn>1?'s':''}</span>`:''}
         </div>
         <div style="margin-top:8px">
@@ -6048,6 +6049,58 @@ async function migrarAlunosOrfaosParaSupabase(alunos){
   }
 }
 
+// Busca, para cada aluno, o registro mais recente de fluência de leitura
+// (tabela fluencia_leitura) e anexa um resumo direto no objeto do aluno em S
+// (x._leituraClass / x._leituraPrio / x._leituraPpm), para uso nos cards
+// pequenos (Atípicos) e nos cards de impressão — sem precisar abrir o modal.
+async function carregarFluenciaLeituraResumo(){
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=estudante_id,nome,classificacao,prioridade,ppm,importado_em&order=importado_em.desc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if (!r.ok || !Array.isArray(rows)) return;
+
+    // Como veio ordenado do mais recente pro mais antigo, o primeiro
+    // registro que encontrarmos por chave já é o mais recente daquele aluno.
+    const porId = {}, porNome = {};
+    rows.forEach(row=>{
+      if(row.estudante_id && !porId[row.estudante_id]) porId[row.estudante_id] = row;
+      const chave = normalizarNomeAluno(row.nome);
+      if(chave && !porNome[chave]) porNome[chave] = row;
+    });
+
+    S.forEach(x=>{
+      const rec = (x.id && porId[x.id]) || porNome[normalizarNomeAluno(x.n)];
+      if(rec){
+        x._leituraClass = rec.classificacao || '';
+        x._leituraPrio  = rec.prioridade || '';
+        x._leituraPpm   = rec.ppm || '';
+      } else {
+        x._leituraClass = ''; x._leituraPrio = ''; x._leituraPpm = '';
+      }
+    });
+  } catch(err){
+    console.error('Erro ao carregar resumo de fluência de leitura:', err);
+  }
+}
+
+// Monta o chip de leitura (usado nos cards pequenos e nos cards de impressão).
+// Encurta o texto de classificação (ex.: "Média Necessidade de Intervenção
+// (Protocolo 2)" → "Média Intervenção") e usa o texto completo + PPM como tooltip.
+function leituraBadge(x){
+  if(!x._leituraClass) return '';
+  const prio = x._leituraPrio || '';
+  let bg = '#F3F2EF', color = '#555', border = '#CFCEC8';
+  if(prio === 'Alta'){ bg = '#FDEDEB'; color = '#B23A2E'; border = '#E8A79E'; }
+  else if(prio === 'Média' || prio === 'Media'){ bg = '#FEF3DC'; color = '#946012'; border = '#E4C179'; }
+  else if(prio === 'Baixa'){ bg = '#E1F5EE'; color = '#0F6E56'; border = '#9AD9C4'; }
+  const curto = x._leituraClass
+    .replace(/necessidade de /i, '')
+    .replace(/\s*\(Protocolo[^)]*\)/i, '')
+    .trim();
+  const tooltip = x._leituraClass + (x._leituraPpm ? ` · ${x._leituraPpm} PPM` : '');
+  return `<span class="badge" title="${tooltip.replace(/"/g,'&quot;')}" style="background:${bg};border:1px solid ${border};color:${color};font-weight:600">&#128214; Leitura: ${curto}</span>`;
+}
+
 async function carregarMovimentacoes(){
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/movimentacoes?select=*&order=created_at.desc`, { headers: sbHeaders() });
@@ -7606,6 +7659,7 @@ async function init(){
   if(dashLoading) dashLoading.style.display = 'flex';
 
   await carregarEstudantes();
+  await carregarFluenciaLeituraResumo();
   await carregarMovimentacoes();
   await carregarRelEscolares();
   await carregarMateriaisItens();
@@ -8384,7 +8438,7 @@ function executeCardPrint(){
             <div class="print-card-turma">${x.t} &middot; ${x.s==='M'?'Masculino':'Feminino'}</div>
           </div>
         </div>
-        <div class="print-card-chips">${perfilBadge(x.p)}${encamBadge(x.e)}${aeeChip}${pipChip}${ocnChip}</div>
+        <div class="print-card-chips">${perfilBadge(x.p)}${encamBadge(x.e)}${aeeChip}${pipChip}${leituraBadge(x)}${ocnChip}</div>
         <div class="print-card-section-title">Rotina / Recomendações</div>
         ${rotina}${ocsBlock}${obs}
       </div>
