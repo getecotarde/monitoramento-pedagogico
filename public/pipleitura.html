@@ -124,6 +124,19 @@
     color: var(--ink-navy);
   }
   .btn-group { display:flex; gap:8px; flex-wrap: wrap; }
+  .filter-group { display:flex; gap:8px; flex-wrap: wrap; align-items:center; }
+  .filter-select {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--ink-navy);
+    background: var(--white);
+    color: var(--ink-navy);
+    cursor: pointer;
+  }
+  .filter-select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   button.btn {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12.5px;
@@ -441,6 +454,18 @@
   <div class="tab-panel" id="panelLivro">
     <div class="toolbar">
       <div class="count-badge" id="countBadge">0 registros no livro</div>
+      <div class="filter-group">
+        <select class="filter-select" id="filterTurma" title="Filtrar por turma">
+          <option value="">Todas as turmas</option>
+        </select>
+        <select class="filter-select" id="filterPrioridade" title="Filtrar por prioridade">
+          <option value="">Todas as prioridades</option>
+          <option value="Alta">🔴 Alta</option>
+          <option value="Média">🟡 Média</option>
+          <option value="Baixa">🟢 Baixa</option>
+          <option value="Não classificado">⚪ Não classificado</option>
+        </select>
+      </div>
       <div class="btn-group">
         <button class="btn" id="exportCsvBtn">Exportar CSV</button>
         <button class="btn primary" id="exportXlsxBtn">Exportar planilha (.xlsx)</button>
@@ -494,6 +519,8 @@
   const emptyState = document.getElementById('emptyState');
   const countBadge = document.getElementById('countBadge');
   const modalRoot = document.getElementById('modalRoot');
+  const filterTurmaSel = document.getElementById('filterTurma');
+  const filterPrioridadeSel = document.getElementById('filterPrioridade');
 
   let records = [];
 
@@ -817,12 +844,55 @@
     return `<span class="priority-dot-badge"><span class="dash-legend-dot ${priorityDotClass(p)}"></span>${priorityEmoji(p)} ${escapeHtml(p)}</span>`;
   }
 
-  function render(){
-    countBadge.textContent = records.length + (records.length === 1 ? ' registro no livro' : ' registros no livro');
-    ledgerBody.innerHTML = '';
-    emptyState.style.display = records.length ? 'none' : 'block';
+  // ---------- filtros e ordenação (Livro de Registro) ----------
+  // Ordem de prioridade pedida: Alta, Média, Baixa e por último não classificado.
+  function priorityOrder(p){
+    if(p === 'Alta') return 0;
+    if(p === 'Média' || p === 'Media') return 1;
+    if(p === 'Baixa') return 2;
+    return 3;
+  }
 
-    records.slice().reverse().forEach(rec => {
+  function populateTurmaFilter(){
+    const turmasAtuais = [...new Set(records.map(r => r.turma || 'Não informada'))]
+      .sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const valorSelecionado = filterTurmaSel.value;
+    filterTurmaSel.innerHTML = '<option value="">Todas as turmas</option>' +
+      turmasAtuais.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+    // preserva a seleção anterior se a turma ainda existir na lista
+    if(turmasAtuais.includes(valorSelecionado)) filterTurmaSel.value = valorSelecionado;
+  }
+
+  // Filtra por turma/prioridade selecionadas e ordena: turma (A-Z) →
+  // prioridade (Alta, Média, Baixa, Não classificado) → nome (A-Z).
+  function getFilteredSortedRecords(){
+    const turmaSel = filterTurmaSel.value;
+    const prioSel = filterPrioridadeSel.value;
+    let list = records.slice();
+    if(turmaSel) list = list.filter(r => (r.turma || 'Não informada') === turmaSel);
+    if(prioSel) list = list.filter(r => priorityOf(r) === prioSel);
+    list.sort((a,b) => {
+      const turmaCmp = (a.turma || '').localeCompare(b.turma || '', 'pt-BR');
+      if(turmaCmp !== 0) return turmaCmp;
+      const prioCmp = priorityOrder(priorityOf(a)) - priorityOrder(priorityOf(b));
+      if(prioCmp !== 0) return prioCmp;
+      return (a.nome || '').localeCompare(b.nome || '', 'pt-BR');
+    });
+    return list;
+  }
+
+  function render(){
+    populateTurmaFilter();
+    const filtered = getFilteredSortedRecords();
+    const total = records.length;
+    const showing = filtered.length;
+    countBadge.textContent = showing === total
+      ? (total + (total === 1 ? ' registro no livro' : ' registros no livro'))
+      : (showing + ' de ' + total + ' registros' + (showing === 1 ? '' : '') + ' (filtro ativo)');
+    ledgerBody.innerHTML = '';
+    emptyState.style.display = total ? 'none' : 'block';
+
+    filtered.forEach(rec => {
       const tr = document.createElement('tr');
       const vinculoHtml = rec.estudanteId
         ? `<button class="link-badge linked" data-id="${rec.id}" title="Vinculado — clique para alterar">✓ vinculado</button>`
@@ -960,6 +1030,9 @@
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.addEventListener('click', () => switchTab(b.dataset.tab));
   });
+
+  filterTurmaSel.addEventListener('change', render);
+  filterPrioridadeSel.addEventListener('change', render);
 
   function openModal(rec){
     modalRoot.innerHTML = `
