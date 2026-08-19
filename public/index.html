@@ -1859,6 +1859,7 @@
       <p>Visão consolidada de todas as turmas do turno tarde — 3º ciclo</p>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
+    <div id="duplicatesBanner"></div>
     <div class="charts-row">
       <div class="card">
         <div class="card-title">Perfil dos estudantes</div>
@@ -3464,6 +3465,45 @@ function filterByTurma(t){
 /* ════════════════════════════════════════════════════════════
    DASHBOARD
    ════════════════════════════════════════════════════════════ */
+// Detecta nomes duplicados entre os alunos efetivamente matriculados
+// (transferidos já ficam de fora, pois "ativos" já vem filtrado por
+// !x._transferido). Um mesmo nome em turmas diferentes também conta como
+// duplicidade, pois normalmente indica cadastro repetido por engano.
+function findDuplicateNames(ativos){
+  const grupos = {};
+  ativos.forEach(x=>{
+    const chave = normalizarNomeAluno(x.n);
+    if(!chave) return;
+    if(!grupos[chave]) grupos[chave] = [];
+    grupos[chave].push(x);
+  });
+  return Object.values(grupos).filter(g => g.length > 1);
+}
+
+function renderDuplicatesBanner(ativos){
+  const banner = document.getElementById('duplicatesBanner');
+  if(!banner) return;
+  const duplicados = findDuplicateNames(ativos);
+  if(!duplicados.length){ banner.innerHTML = ''; return; }
+
+  banner.innerHTML = `
+    <div style="background:#FEF3DC;border:1px solid #E4C179;border-radius:6px;padding:14px 16px;margin:0 0 20px">
+      <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:#946012;margin-bottom:8px">
+        ⚠ ${duplicados.length} nome${duplicados.length>1?'s':''} duplicado${duplicados.length>1?'s':''} entre os matriculados — revise e exclua um dos cadastros
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${duplicados.map(g => `
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#5A4210">
+            <span style="font-weight:600">${g[0].n}</span>
+            <span style="color:#8A6A20">— cadastrado ${g.length}x (${g.map(x=>x.t).join(', ')})</span>
+            ${g.map(x => `<button class="btn-small" style="border:1px solid #E4C179;background:#fff;color:#946012;padding:2px 8px;border-radius:4px;font-size:11.5px;cursor:pointer" onclick="openModal(${S.indexOf(x)})">Ver ${x.t}</button>`).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function renderDashboard(){
   // Apenas alunos efetivamente matriculados entram nas contagens do painel
   // (movimentações como transferência retiram o aluno da contagem oficial).
@@ -3478,6 +3518,8 @@ function renderDashboard(){
   const avaliarAEE = ativos.filter(x=>x.a==="Avaliar AEE").length;
   const semAvaliacaoPIPAEE = ativos.filter(x=>x.p==="EM ANÁLISE" && x.pip==="N/A" && x.a==="N/A").length;
   const masc     = ativos.filter(x=>x.s==="M").length;
+
+  renderDuplicatesBanner(ativos);
 
   const statsGrid=document.getElementById('statsGrid'); if(!statsGrid) return;
   statsGrid.innerHTML=`
@@ -3755,7 +3797,7 @@ function matchPIP(studentVal, selectedSet){
 /* ════════════════════════════════════════════════════════════
    STUDENTS TABLE
    ════════════════════════════════════════════════════════════ */
-let filtered = [...S];
+let filtered = S.filter(x=>!x._transferido);
 let page = 1;
 const PER_PAGE = 30;
 
@@ -3765,6 +3807,7 @@ function applyFilters(){
   const fp = document.getElementById('filterPerfil').value;
 
   filtered = S.filter(x=>{
+    if(x._transferido) return false;
     if(q  && !x.n.toLowerCase().includes(q)) return false;
     if(ft && x.t !== ft) return false;
     if(fp && x.p !== fp) return false;
@@ -3831,7 +3874,7 @@ function goPage(p){ page=p; renderTable(); window.scrollTo(0,0); }
 function renderAtipicos(){
   const ft = document.getElementById('filterAtTurma').value;
   const fp = document.getElementById('filterAtPerfil').value;
-  let data = [...S];
+  let data = S.filter(x=>!x._transferido);
   if(ft) data=data.filter(x=>x.t===ft);
   if(fp) data=data.filter(x=>x.p===fp);
   if(MS_STATE.AtEncam.size>0) data=data.filter(x=>MS_STATE.AtEncam.has(encamKey(x.e)));
