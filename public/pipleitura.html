@@ -298,6 +298,24 @@
     color: var(--ink-navy-soft); margin-bottom: 4px;
   }
   .field-value { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+  .pip-info-card { max-width: 720px; max-height: 86vh; overflow-y: auto; }
+  .pip-info-card h3 { font-family:'Special Elite', monospace; font-size: 14px; color: var(--ink-navy); margin: 20px 0 8px; border-bottom: 1px solid var(--ledger-line); padding-bottom: 4px; }
+  .pip-info-card h3:first-of-type { margin-top: 4px; }
+  .pip-info-card p { font-size: 13px; line-height: 1.55; margin: 0 0 10px; color: #333; }
+  .pip-proto-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+  .pip-proto-card { border: 1px solid var(--ledger-line); border-radius: 3px; padding: 10px 12px; background: var(--card-bg); }
+  .pip-proto-card .proto-head { font-weight: 700; font-size: 12.5px; margin-bottom: 4px; }
+  .pip-proto-card .proto-crit { font-size: 11px; color: var(--text-mute); margin-bottom: 6px; font-family:'Courier New', monospace; }
+  .pip-proto-card .proto-desc { font-size: 12px; line-height: 1.4; }
+  .pip-mini-table { width:100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+  .pip-mini-table th { text-align:left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-mute); border-bottom: 1px solid var(--ledger-line); padding: 5px 6px; }
+  .pip-mini-table td { padding: 5px 6px; border-bottom: 1px solid #EEE9DA; vertical-align: top; }
+  .pip-cycle-row { display:flex; gap:10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .pip-cycle-step { flex: 1 1 140px; border-left: 3px solid var(--gold); padding: 4px 10px; font-size: 12px; }
+  .pip-cycle-step b { display:block; font-size: 12px; margin-bottom: 2px; }
+  @media (max-width: 640px){
+    .pip-proto-grid { grid-template-columns: 1fr; }
+  }
 
   /* ===== Signature / teacher field ===== */
   .signature-block {
@@ -467,6 +485,8 @@
         </select>
       </div>
       <div class="btn-group">
+        <button class="btn" id="pipInfoBtn">📋 Resumo do PIP Leitura</button>
+        <button class="btn" id="printBtn">🖨️ Imprimir</button>
         <button class="btn" id="exportCsvBtn">Exportar CSV</button>
         <button class="btn primary" id="exportXlsxBtn">Exportar planilha (.xlsx)</button>
         <button class="btn danger" id="clearBtn">Limpar tudo</button>
@@ -844,6 +864,143 @@
     return `<span class="priority-dot-badge"><span class="dash-legend-dot ${priorityDotClass(p)}"></span>${priorityEmoji(p)} ${escapeHtml(p)}</span>`;
   }
 
+  // ---------- impressão do Livro de Registro ----------
+  function priorityPrintColor(p){
+    if(p === 'Alta') return '#B23A2E';
+    if(p === 'Média' || p === 'Media') return '#946012';
+    if(p === 'Baixa') return '#0F6E56';
+    return '#666';
+  }
+
+  function buildPrintHtml(list){
+    const agora = new Date();
+    const dataGeracao = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+
+    const turmaSel = filterTurmaSel.value || 'Todas';
+    const prioSel = filterPrioridadeSel.value || 'Todas';
+    const filtrosAtivos = (filterTurmaSel.value || filterPrioridadeSel.value)
+      ? `Filtros aplicados — Turma: <strong>${escapeHtml(turmaSel)}</strong> · Prioridade: <strong>${escapeHtml(prioSel)}</strong>`
+      : 'Sem filtros aplicados — todos os registros do livro';
+
+    const contagem = { Alta: 0, 'Média': 0, Baixa: 0, 'Não classificado': 0 };
+    list.forEach(r => { const p = priorityOf(r); contagem[p] = (contagem[p]||0) + 1; });
+
+    let turmaAtual = null;
+    const linhas = list.map((rec, i) => {
+      const novaTurma = rec.turma !== turmaAtual;
+      turmaAtual = rec.turma;
+      const separador = novaTurma
+        ? `<tr class="turma-sep"><td colspan="8">Turma ${escapeHtml(rec.turma || 'Não informada')}</td></tr>`
+        : '';
+      const p = priorityOf(rec);
+      return separador + `
+        <tr>
+          <td>${escapeHtml(rec.nome)}</td>
+          <td class="mono center">${escapeHtml(rec.dataAvaliacao)}</td>
+          <td class="mono center">${escapeHtml(rec.ppm)}</td>
+          <td>${escapeHtml(rec.classificacao)}</td>
+          <td class="center" style="color:${priorityPrintColor(p)};font-weight:700">${escapeHtml(p)}</td>
+          <td>${escapeHtml((rec.prosodia||'').split('\n')[0])}</td>
+          <td>${escapeHtml(rec.compreensao)}</td>
+        </tr>`;
+    }).join('');
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Livro de Registro — Fluência de Leitura</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; color:#1a1a1a; margin: 0; padding: 32px 40px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 3px double #1a1a1a; padding-bottom: 14px; margin-bottom: 6px; }
+  .header-left .brasao { font-family: 'Arial', sans-serif; font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color:#555; margin-bottom: 2px; }
+  .header-left .orgao { font-family: 'Arial', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+  .header-left .depto { font-family: 'Arial', sans-serif; font-size: 11.5px; color:#333; margin-top: 1px; }
+  .header-right { text-align:right; font-family: 'Arial', sans-serif; font-size: 10.5px; color:#555; }
+  .titulo-doc { text-align:center; margin: 18px 0 4px; }
+  .titulo-doc h1 { font-size: 21px; margin: 0; letter-spacing: 0.3px; }
+  .titulo-doc .sub { font-family:'Arial', sans-serif; font-size: 11.5px; color:#555; margin-top: 4px; }
+  .meta-bar { font-family:'Arial', sans-serif; font-size: 11px; color:#444; display:flex; justify-content:space-between; margin: 16px 0 4px; padding: 8px 12px; background:#F6F4EE; border:1px solid #D9D5C7; }
+  .resumo { font-family:'Arial', sans-serif; font-size: 11px; color:#333; margin: 8px 0 18px; display:flex; gap:18px; flex-wrap:wrap; }
+  .resumo b { font-size: 12.5px; }
+  table { width:100%; border-collapse:collapse; font-family:'Arial', sans-serif; font-size: 11.5px; }
+  thead th { text-align:left; border-bottom: 2px solid #1a1a1a; padding: 7px 8px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; color:#333; }
+  tbody td { padding: 6px 8px; border-bottom: 1px solid #E4E1D6; vertical-align: top; }
+  tbody tr.turma-sep td { background:#EFEBDD; font-weight:700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 7px 8px; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; }
+  .center { text-align:center; }
+  .mono { font-family: 'Courier New', monospace; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc; font-family:'Arial', sans-serif; font-size: 9.5px; color:#888; text-align:center; }
+  @media print {
+    body { padding: 14mm 16mm; }
+    thead { display: table-header-group; }
+    tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="brasao">Prefeitura de Belo Horizonte</div>
+      <div class="orgao">Secretaria Municipal de Educação</div>
+      <div class="depto">Diretoria do Ensino Fundamental</div>
+    </div>
+    <div class="header-right">
+      Gerado em ${dataGeracao}<br>
+      Sistema Medidor de Fluência
+    </div>
+  </div>
+
+  <div class="titulo-doc">
+    <h1>Livro de Registro — Fluência de Leitura</h1>
+    <div class="sub">PIP Leitura · Projeto de Intervenção Pedagógica para a Consolidação da Fluência e Compreensão Leitora</div>
+  </div>
+
+  <div class="meta-bar">
+    <span>${filtrosAtivos}</span>
+    <span>${list.length} registro${list.length===1?'':'s'} listado${list.length===1?'':'s'}</span>
+  </div>
+
+  <div class="resumo">
+    <span>🔴 Alta prioridade: <b>${contagem['Alta']}</b></span>
+    <span>🟡 Média prioridade: <b>${contagem['Média']}</b></span>
+    <span>🟢 Baixa prioridade: <b>${contagem['Baixa']}</b></span>
+    <span>⚪ Não classificado: <b>${contagem['Não classificado']}</b></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th class="center">Data</th>
+        <th class="center">PPM</th>
+        <th>Classificação</th>
+        <th class="center">Prioridade</th>
+        <th>Prosódia</th>
+        <th>Compreensão</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${linhas}
+    </tbody>
+  </table>
+
+  <div class="footer">Documento gerado digitalmente pelo aplicativo Medidor de Fluência — Diretoria do Ensino Fundamental, Prefeitura de Belo Horizonte</div>
+</body>
+</html>`;
+  }
+
+  function imprimirLivro(){
+    const list = getFilteredSortedRecords();
+    if(!list.length){ setStatus('Não há registros para imprimir.', 'error'); return; }
+    const win = window.open('', '_blank');
+    if(!win){ setStatus('O navegador bloqueou a janela de impressão. Permita pop-ups para este site.', 'error'); return; }
+    win.document.open();
+    win.document.write(buildPrintHtml(list));
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+  }
+
   // ---------- filtros e ordenação (Livro de Registro) ----------
   // Ordem de prioridade pedida: Alta, Média, Baixa e por último não classificado.
   function priorityOrder(p){
@@ -1087,6 +1244,101 @@
   }
   function closeModal(){ modalRoot.innerHTML = ''; }
 
+  // ---------- Resumo esquemático do documento orientador (PIP Leitura) ----------
+  function openPipInfoModal(){
+    modalRoot.innerHTML = `
+      <div class="modal-overlay" id="pipInfoOverlay">
+        <div class="modal-card pip-info-card">
+          <button class="modal-close" id="pipInfoClose">×</button>
+          <div class="modal-title">PIP Leitura — Resumo Esquemático</div>
+          <div class="modal-meta">Projeto de Intervenção Pedagógica para a Consolidação da Fluência e Compreensão Leitora · SMED / PBH</div>
+
+          <h3>O que é</h3>
+          <p>Projeto que organiza a intervenção de leitura em <strong>três protocolos</strong> (Alta, Média, Baixa), cada um com um foco pedagógico diferente, para que cada estudante receba exatamente o estímulo de que precisa. Atende do 2º ao 9º ano.</p>
+
+          <h3>Os três protocolos</h3>
+          <div class="pip-proto-grid">
+            <div class="pip-proto-card">
+              <div class="proto-head">🔴 Protocolo 1 — Alta</div>
+              <div class="proto-crit">&lt; 60 PPM + Prosódia 1 ou 2</div>
+              <div class="proto-desc"><strong>Remediação.</strong> Decodificação, rota fonológica e automaticidade. Atendimento intensivo com o Professor PIP.</div>
+            </div>
+            <div class="pip-proto-card">
+              <div class="proto-head">🟡 Protocolo 2 — Média</div>
+              <div class="proto-crit">60–100 PPM + Prosódia 2 ou 3</div>
+              <div class="proto-desc"><strong>Transição.</strong> Prosódia, ritmo e entonação. Trabalhado em sala pelo Professor Regente.</div>
+            </div>
+            <div class="pip-proto-card">
+              <div class="proto-head">🟢 Protocolo 3 — Baixa</div>
+              <div class="proto-crit">&gt; 100 PPM + Prosódia 4</div>
+              <div class="proto-desc"><strong>Enriquecimento.</strong> Compreensão de alto nível, inferência e análise crítica.</div>
+            </div>
+          </div>
+
+          <h3>Escala de Prosódia (1 a 4)</h3>
+          <table class="pip-mini-table">
+            <thead><tr><th>Nível</th><th>Descrição</th></tr></thead>
+            <tbody>
+              <tr><td>1 · Monótono</td><td>Leitura lenta, palavra por palavra, sem observar pontuação.</td></tr>
+              <tr><td>2 · Pouca expressão</td><td>Velocidade um pouco melhor, mas ainda não natural; ignora a maioria da pontuação.</td></tr>
+              <tr><td>3 · Bom ritmo</td><td>Ritmo adequado, respeita a maioria da pontuação, entonação apropriada.</td></tr>
+              <tr><td>4 · Fluente e dramática</td><td>Leitura expressiva e natural, velocidade e precisão elevadas.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Compreensão do texto</h3>
+          <table class="pip-mini-table">
+            <thead><tr><th>Nível</th><th>Descrição</th></tr></thead>
+            <tbody>
+              <tr><td>Ausente</td><td>Não consegue relatar o que leu.</td></tr>
+              <tr><td>Fragmentada</td><td>Recorda apenas palavras soltas ou elementos isolados.</td></tr>
+              <tr><td>Global</td><td>Identifica a ideia principal e o tema central.</td></tr>
+              <tr><td>Interpretação e Inferência</td><td>Explica com as próprias palavras e identifica informações implícitas.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Ciclo semanal (4 dias)</h3>
+          <div class="pip-cycle-row">
+            <div class="pip-cycle-step"><b>1º dia</b>Modelagem — leitura em coro/eco pelo professor.</div>
+            <div class="pip-cycle-step"><b>2º e 3º dia</b>Treino sistemático — repetição do mesmo texto (escola/casa).</div>
+            <div class="pip-cycle-step"><b>4º dia</b>Tomada de leitura — verificação de 1 min e registro do progresso.</div>
+          </div>
+
+          <h3>Cronograma geral (8 semanas)</h3>
+          <table class="pip-mini-table">
+            <thead><tr><th>Fase</th><th>Período</th><th>Resultado esperado</th></tr></thead>
+            <tbody>
+              <tr><td>1. Preparação</td><td>Semana 1</td><td>Equipe treinada e estudantes enturmados.</td></tr>
+              <tr><td>2. Execução</td><td>Semanas 2 a 7</td><td>8 textos treinados (1 por semana).</td></tr>
+              <tr><td>3. Consolidação</td><td>Semana 8</td><td>Avaliação de saída e celebração.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Papéis da equipe</h3>
+          <table class="pip-mini-table">
+            <thead><tr><th>Papel</th><th>Responsabilidade</th></tr></thead>
+            <tbody>
+              <tr><td>Professor PIP</td><td>Diagnóstico e intervenção intensiva com grupos de Alta Prioridade.</td></tr>
+              <tr><td>Professor Regente</td><td>Atendimento de Média/Baixa Prioridade em sala, com apoio do Estagiário.</td></tr>
+              <tr><td>Estagiário de At. Diferenciado</td><td>Suporte individualizado, prática intensiva com Média Prioridade.</td></tr>
+              <tr><td>Bibliotecário</td><td>Curadoria de acervo e mediação de leitura por perfil de prioridade.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Sondagem inicial</h3>
+          <p>Teste de 1 minuto: o estudante lê em voz alta por 60 segundos enquanto o professor marca erros, hesitações e o ponto de parada — sem corrigir durante a leitura. Meta de precisão: <strong>95%</strong> (palavras lidas corretamente ÷ total de palavras lidas × 100).</p>
+
+          <h3>Fonte</h3>
+          <p style="color:#888;font-size:11.5px;">Baseado no documento orientador "PIP Leitura — Projeto de Intervenção Pedagógica para a Consolidação da Fluência e Compreensão Leitora", SMED/Prefeitura de Belo Horizonte.</p>
+        </div>
+      </div>
+    `;
+    document.getElementById('pipInfoClose').addEventListener('click', closeModal);
+    document.getElementById('pipInfoOverlay').addEventListener('click', (e) => {
+      if(e.target.id === 'pipInfoOverlay') closeModal();
+    });
+  }
+
   async function removeRecord(id){
     try{
       await deleteRecord(id);
@@ -1171,6 +1423,8 @@
   });
 
   document.getElementById('clearBtn').addEventListener('click', clearAll);
+  document.getElementById('printBtn').addEventListener('click', imprimirLivro);
+  document.getElementById('pipInfoBtn').addEventListener('click', openPipInfoModal);
 
   document.getElementById('exportCsvBtn').addEventListener('click', () => {
     if(!records.length){ setStatus('Não há registros para exportar.', 'error'); return; }
