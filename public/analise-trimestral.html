@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Boletins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --paper:#F5F1E8;
+  --paper-2:#EDE7D8;
+  --ink:#1E2A2E;
+  --ink-soft:#57666B;
+  --line:#D8CFB8;
+  --accent:#2F6F63;    /* aprovado direto */
+  --accent-soft:#DCEAE3;
+  --warn:#B4802A;      /* recuperou */
+  --warn-soft:#F3E6CC;
+  --danger:#9C3E2C;    /* nao recuperou */
+  --danger-soft:#F2DED6;
+  --plum:#6E4A7E;      /* destaque */
+  --plum-soft:#E9E0ED;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:'Inter',sans-serif; font-size:14px; line-height:1.5;
+}
+.app{display:flex; min-height:100vh;}
+.sidebar{
+  width:280px; flex-shrink:0; background:var(--paper-2);
+  border-right:1px solid var(--line); padding:24px 18px;
+  display:flex; flex-direction:column; gap:20px;
+}
+.brand{font-family:'Fraunces',serif; font-weight:700; font-size:22px; line-height:1.15;}
+.brand span{display:block; font-family:'Inter',sans-serif; font-weight:500; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-top:4px;}
+.upload-box{
+  border:1.5px dashed var(--line); border-radius:10px; padding:14px;
+  background:var(--paper); text-align:center; cursor:pointer; transition:.15s;
+}
+.upload-box:hover{border-color:var(--accent); background:var(--accent-soft);}
+.upload-box input{display:none;}
+.upload-box .lbl{font-weight:600; font-size:13px;}
+.upload-box .sub{font-size:11px; color:var(--ink-soft); margin-top:3px;}
+.status-line{font-size:12px; color:var(--ink-soft); min-height:16px;}
+.class-list{display:flex; flex-direction:column; gap:4px; overflow-y:auto;}
+.class-item{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13px;
+  border:1px solid transparent;
+}
+.class-item:hover{background:var(--paper);}
+.class-item.active{background:var(--ink); color:var(--paper); font-weight:600;}
+.class-item .n{color:var(--ink-soft); font-size:11px;}
+.class-item.active .n{color:#c9d3d2;}
+.class-item .del{opacity:0; font-size:12px; color:var(--danger);}
+.class-item:hover .del{opacity:1;}
+.overview-btn{
+  padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;
+  background:var(--ink); color:var(--paper); text-align:center;
+}
+.overview-btn:hover{opacity:.9;}
+.main{flex:1; padding:32px 44px; max-width:1180px;}
+.hdr{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; border-bottom:2px solid var(--ink); padding-bottom:14px;}
+.hdr h1{font-family:'Fraunces',serif; font-size:30px; margin:0; font-weight:700;}
+.hdr .meta{font-size:12px; color:var(--ink-soft); text-align:right;}
+.stamp{
+  width:56px; height:56px; border-radius:50%; border:2.5px solid var(--danger); color:var(--danger);
+  display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700;
+  font-size:15px; transform:rotate(-8deg); flex-shrink:0;
+}
+.empty{
+  margin-top:60px; text-align:center; color:var(--ink-soft);
+}
+.empty h2{font-family:'Fraunces',serif; color:var(--ink); font-weight:600;}
+.section-title{font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:30px 0 12px;}
+.highlight-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;}
+.hl-card{
+  background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; flex:1; min-width:220px;
+}
+.hl-card h3{margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);}
+.hl-card .count{font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:var(--plum);}
+.hl-names{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.pill{background:var(--plum-soft); color:var(--plum); border-radius:20px; padding:3px 10px; font-size:11.5px; font-weight:600;}
+.pill.acc{background:var(--accent-soft); color:var(--accent);}
+.pill.warn{background:var(--warn-soft); color:var(--warn);}
+.hl-card.attn{border-color:var(--warn);}
+.hl-card.attn .count{color:var(--warn);}
+.subject-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px;}
+.subj-card{
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+  cursor:pointer; transition:.15s;
+}
+.subj-card:hover{border-color:var(--ink);}
+.subj-card h4{margin:0 0 10px; font-family:'Fraunces',serif; font-size:16px;}
+.bar{height:10px; border-radius:6px; overflow:hidden; display:flex; background:var(--line); margin-bottom:8px;}
+.bar div{height:100%;}
+.bar .seg-direct{background:var(--accent);}
+.bar .seg-rec{background:var(--warn);}
+.bar .seg-norec{background:var(--danger);}
+.legend{display:flex; gap:12px; font-size:11px; color:var(--ink-soft); flex-wrap:wrap;}
+.legend span{display:inline-flex; align-items:center; gap:4px;}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+.final-row{display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px dashed var(--line);}
+.final-row .lbl{font-size:12px; color:var(--ink-soft);}
+.final-row .val{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:20px;}
+.val.ok{color:var(--accent);}
+.val.mid{color:var(--warn);}
+.val.bad{color:var(--danger);}
+.detail-panel{
+  margin-top:20px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px;
+}
+.detail-panel table{width:100%; border-collapse:collapse; font-size:12.5px;}
+.detail-panel th{text-align:left; font-size:11px; text-transform:uppercase; color:var(--ink-soft); padding:6px 8px; border-bottom:1px solid var(--line);}
+.detail-panel td{padding:6px 8px; border-bottom:1px solid var(--paper-2); font-family:'JetBrains Mono',monospace;}
+.tag{border-radius:5px; padding:2px 7px; font-size:11px; font-weight:600; font-family:'Inter',sans-serif;}
+.tag.ok{background:var(--accent-soft); color:var(--accent);}
+.tag.mid{background:var(--warn-soft); color:var(--warn);}
+.tag.bad{background:var(--danger-soft); color:var(--danger);}
+.tag.na{background:var(--paper-2); color:var(--ink-soft);}
+.review-box{
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px;
+}
+.review-box h3{margin-top:0; font-family:'Fraunces',serif;}
+.subj-edit{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0;}
+.subj-edit input{
+  font-family:'Inter',sans-serif; font-size:12.5px; padding:6px 9px; border:1px solid var(--line); border-radius:6px; width:170px;
+}
+.btn{
+  background:var(--ink); color:var(--paper); border:none; border-radius:8px; padding:9px 18px;
+  font-weight:600; cursor:pointer; font-size:13px;
+}
+.btn:hover{opacity:.88;}
+.btn.secondary{background:transparent; color:var(--ink); border:1px solid var(--ink);}
+.overview-table{width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px;}
+.overview-table th, .overview-table td{padding:8px 10px; border-bottom:1px solid var(--line); text-align:center;}
+.overview-table th{background:var(--paper-2); font-size:11px; text-transform:uppercase; color:var(--ink-soft);}
+.overview-table td:first-child, .overview-table th:first-child{text-align:left; font-weight:600;}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+.print-btn{
+  background:transparent; color:var(--ink); border:1.5px solid var(--ink); border-radius:8px;
+  padding:8px 16px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  font-family:'Inter',sans-serif;
+}
+.print-btn:hover{background:var(--ink); color:var(--paper);}
+.hdr-actions{display:flex; align-items:center; gap:14px;}
+.hdr-sub{color:var(--ink-soft); font-size:13px; margin-top:2px;}
+.hdr-info{display:flex; gap:16px; margin-top:9px; flex-wrap:wrap;}
+.hdr-info label{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
+.meta-input{font-family:'Inter',sans-serif; font-size:12px; padding:4px 7px; border:1px solid var(--line); border-radius:6px; width:150px; background:#fff; color:var(--ink);}
+.print-footer{display:none;}
+
+/* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
+@media print{
+  @page{ margin:8mm 9mm; size:A4 portrait; }
+  *{ box-shadow:none !important; text-shadow:none !important; }
+  html, body{ background:#fff !important; color:#000 !important; font-size:9.5px; height:auto !important; }
+  .app{ display:block; }
+  .sidebar, .print-btn, .status-line, #uploadBox, .upload-box, .overview-btn,
+  .class-item .del, .review-box, .detail-panel{ display:none !important; }
+  .main{ padding:0; max-width:100%; }
+
+  .hdr{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1.3px solid #000; padding-bottom:4px; margin-bottom:6px; }
+  .hdr h1{ font-size:14px; color:#000; }
+  .hdr-sub{ color:#333; font-size:9px; margin-top:1px; }
+  .hdr .meta{ color:#333; }
+  .stamp{ border-color:#000; color:#000; width:28px; height:28px; font-size:8px; }
+
+  .hdr-info{ gap:12px; margin-top:4px; }
+  .hdr-info label{ color:#000; font-size:9px; gap:3px; }
+  .meta-input{ border:none !important; background:transparent !important; padding:0 !important; width:auto !important; min-width:50px; color:#000 !important; font-weight:700; font-size:9px; }
+
+  .section-title{ font-size:11px; margin:6px 0 4px; color:#000; }
+
+  /* cards viram caixas com borda simples, sem preenchimento colorido */
+  .highlight-row{ gap:6px; margin-bottom:2px; }
+  .hl-card{ background:#fff !important; border:1px solid #000; padding:4px 6px; min-width:0; }
+  .hl-card h3{ color:#000; font-size:7.5px; margin-bottom:2px; }
+  .hl-card .count{ color:#000; font-size:13px; }
+  .hl-names{ margin-top:2px; gap:2px; }
+  .pill{ background:#fff !important; color:#000 !important; border:1px solid #000; padding:1px 5px; font-size:7.8px; }
+  .pill.acc{ background:#fff !important; color:#000 !important; }
+  .pill.warn{ background:#fff !important; color:#000 !important; }
+  .hl-card.attn{ border-style:dashed; }
+
+  .subject-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+  .subj-card{ background:#fff !important; border:1px solid #000; padding:4px 7px; cursor:default; break-inside:avoid; page-break-inside:avoid; }
+  .subj-card h4{ font-size:9px; margin-bottom:2px; }
+  .subj-card:hover{ border-color:#000; }
+
+  /* barra some; percentuais viram texto — mais legível e não gasta tinta */
+  .bar{ display:none !important; }
+
+  .legend{ gap:0; flex-direction:column; align-items:flex-start; }
+  .legend span{ display:flex; align-items:center; gap:4px; padding:0px 0; font-size:7.8px; color:#000; line-height:1.25; }
+  .legend .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; border:1px solid #000; background:#fff !important; flex-shrink:0; }
+  /* padrões (não cores) diferenciam as 3 situações no papel */
+  .legend span:nth-of-type(1) .dot{ background:#000 !important; }               /* média direta = preenchido */
+  .legend span:nth-of-type(2) .dot{ background:repeating-linear-gradient(45deg,#000,#000 1px,#fff 1px,#fff 2px) !important; } /* recuperou = hachurado */
+  .legend span:nth-of-type(3) .dot{ background:#fff !important; }               /* não recuperou = vazio */
+
+  .final-row{ border-top:1px dashed #000; margin-top:3px; padding-top:3px; }
+  .final-row .lbl{ color:#000; font-size:7.8px; }
+  .final-row .val{ color:#000 !important; font-weight:800; font-size:11px; border:1.2px solid #000; border-radius:3px; padding:0px 6px; }
+  /* diferencia o resultado por padrão de borda, não por cor, para continuar claro em P&B */
+  .final-row .val.ok{ border-style:solid; }
+  .final-row .val.mid{ border-style:dashed; }
+  .final-row .val.bad{ border-width:2px; }
+
+  .overview-table{ font-size:8.5px; }
+  .overview-table th, .overview-table td{ border-color:#000; color:#000; padding:3px 5px; }
+  .overview-table th{ background:#fff !important; }
+  .tag{ background:#fff !important; color:#000 !important; border:1px solid #000; font-size:7.8px; padding:1px 4px; }
+  .tag.ok{ border-style:solid; }
+  .tag.mid{ border-style:dashed; }
+  .tag.bad{ border-width:1.8px; }
+
+  .print-footer{
+    display:flex !important; justify-content:space-between; gap:8px;
+    margin-top:6px; padding-top:4px; border-top:1px solid #000; font-size:8px; color:#000;
+  }
+  .print-footer strong{ font-weight:800; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="brand">Boletins<span>Painel de análise trimestral</span></div>
+    <label class="upload-box" id="uploadBox">
+      <input type="file" id="fileInput" accept="application/pdf" multiple>
+      <div class="lbl">＋ Enviar PDF da turma</div>
+      <div class="sub">Quadro síntese de pontuação</div>
+    </label>
+    <div class="status-line" id="statusLine"></div>
+    <div class="overview-btn" id="overviewBtn">Visão geral — todas as turmas</div>
+    <div class="class-list" id="classList"></div>
+  </div>
+  <div class="main" id="main">
+    <div class="empty">
+      <h2>Nenhuma turma carregada ainda</h2>
+      <p>Envie o PDF do quadro síntese de uma turma para começar a análise.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const PASS = 18, MAXV = 30;
+const DIRECT='direct', RECOVERED='recovered', NOTREC='notrec', NA='na';
+
+const SUBJECT_DICT = [
+  'EDUCAÇÃO FÍSICA','LÍNGUA PORTUGUESA','LÍNGUA ESTRANGEIRA','ENSINO RELIGIOSO',
+  'CIÊNCIAS','GEOGRAFIA','HISTÓRIA','MATEMÁTICA','ARTE',
+  'INGLÊS','ESPANHOL','FILOSOFIA','SOCIOLOGIA','REDAÇÃO'
+].sort((a,b)=>b.length-a.length);
+
+// Lista de professores(as) referência por turma (preenchimento automático do cabeçalho)
+const TEACHER_MAP = {
+  '6ºA': 'ALESSANDRA', '6ºB': 'GISLAINE', '6ºC': 'JUSCELE', '6ºD': 'ADILSON',
+  '6ºE': 'JOANDE', '6ºF': 'LEIDIANE',
+  '7ºA': 'ALEXANDRA', '7ºB': 'JULIANA', '7ºC': 'GUILHERME', '7ºD': 'MAGNA', '7ºE': 'FABIANA',
+  '8ºZ': 'MARELO C.'
+};
+function normTurma(n){
+  return (n||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[°º]/g,'O').replace(/\s+/g,'').trim();
+}
+const TEACHER_MAP_NORM = {};
+Object.keys(TEACHER_MAP).forEach(k=> TEACHER_MAP_NORM[normTurma(k)] = TEACHER_MAP[k]);
+function defaultProfessorFor(className){
+  return TEACHER_MAP_NORM[normTurma(className)] || '';
+}
+
+function isLiteratura(name){
+  return /LITERAT/i.test((name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+}
+
+let currentClasses = {}; // name -> data
+let pendingParse = null; // {rawLines, name, tokensPerSubjDetected, studentsRaw}
+let activeClass = null; // 'OVERVIEW' or class name
+let reviewQueue = []; // turmas detectadas aguardando confirmação
+
+function classAlreadyLoaded(name){
+  const norm = name.trim().toLowerCase();
+  if(Object.keys(currentClasses).some(n=>n.trim().toLowerCase()===norm)) return true;
+  if(reviewQueue.some(p=>p.className.trim().toLowerCase()===norm)) return true;
+  return false;
+}
+
+function statusMsg(t){ document.getElementById('statusLine').textContent = t; }
+
+// ---------- PDF TEXT EXTRACTION ----------
+async function extractLines(file){
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  let allLines = [];
+  for(let p=1; p<=pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    const items = tc.items.map(it=>({str:it.str, x:it.transform[4], y:it.transform[5]}))
+      .filter(it=>it.str.trim().length>0);
+    items.sort((a,b)=> b.y-a.y || a.x-b.x);
+    let lines=[]; let curY=null; let curLine=[];
+    for(const it of items){
+      if(curY===null || Math.abs(it.y-curY)<3){
+        curLine.push(it); curY = curY===null? it.y : curY;
+      } else {
+        lines.push(curLine); curLine=[it]; curY=it.y;
+      }
+    }
+    if(curLine.length) lines.push(curLine);
+    for(const ln of lines){
+      ln.sort((a,b)=>a.x-b.x);
+      allLines.push(ln.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim());
+    }
+  }
+  return allLines;
+}
+
+// ---------- PARSING ----------
+function detectSubjectCount(lines){
+  for(const l of lines){
+    const matches = l.match(/\bTA\b/g);
+    if(matches && matches.length>=3) return matches.length;
+  }
+  return null;
+}
+
+function splitSubjectNames(line, n){
+  let remaining = line.replace(/PONTUA[ÇC][ÕO]ES TRIMESTRAIS/i,'').trim();
+  let found = [];
+  while(remaining.length>0 && found.length<n){
+    let matched=false;
+    for(const s of SUBJECT_DICT){
+      if(remaining.toUpperCase().startsWith(s)){
+        found.push(s);
+        remaining = remaining.slice(s.length).trim();
+        matched=true; break;
+      }
+    }
+    if(!matched){
+      const parts = remaining.split(' ');
+      found.push(parts[0]);
+      remaining = parts.slice(1).join(' ').trim();
+    }
+  }
+  while(found.length<n) found.push('Disciplina '+(found.length+1));
+  return found.slice(0,n);
+}
+
+// Divide as linhas de um PDF em blocos, um por turma, sempre que houver mais
+// de uma ocorrência de "TURMA:" no documento (ex.: exportação com várias
+// turmas em sequência, cada uma com seu próprio cabeçalho).
+function splitIntoClassBlocks(lines){
+  const idxs = [];
+  lines.forEach((l,i)=>{ if(/TURMA:\s*.+/i.test(l)) idxs.push(i); });
+  if(idxs.length<=1) return [lines];
+  const blocks = [];
+  for(let k=0;k<idxs.length;k++){
+    const start = idxs[k];
+    const end = k+1<idxs.length ? idxs[k+1] : lines.length;
+    blocks.push(lines.slice(start,end));
+  }
+  return blocks;
+}
+
+// fallbackSubjects: usado quando um bloco (turma) não repete o cabeçalho de
+// disciplinas — assume-se as mesmas disciplinas da turma anterior no mesmo arquivo.
+function parseClassPDF(lines, fallbackSubjects){
+  let className = 'Turma sem nome';
+  for(const l of lines){
+    const m = l.match(/TURMA:\s*(.+)/i);
+    if(m){ className = m[1].trim(); break; }
+  }
+  let nSubj = detectSubjectCount(lines);
+  let subjects;
+  if(nSubj){
+    let subjLine = null;
+    for(const l of lines){
+      if(/ARTE|CI[ÊE]NCIAS|GEOGRAFIA|HIST[ÓO]RIA|MATEM[ÁA]TICA|PORTUGUESA/i.test(l) && !/\bTA\b/.test(l)){
+        subjLine = l; break;
+      }
+    }
+    subjects = subjLine ? splitSubjectNames(subjLine, nSubj) : Array.from({length:nSubj},(_,i)=>'Disciplina '+(i+1));
+  } else if(fallbackSubjects && fallbackSubjects.length){
+    nSubj = fallbackSubjects.length;
+    subjects = fallbackSubjects.slice();
+  } else {
+    return {error:'Não foi possível identificar as disciplinas neste PDF.'};
+  }
+
+  const students = [];
+  const scoreTailLen = nSubj*7;
+  for(const l of lines){
+    const tokens = l.split(' ').filter(Boolean);
+    if(tokens.length < 4+scoreTailLen) continue;
+    if(!/^\d+$/.test(tokens[0])) continue;
+    const tail = tokens.slice(-scoreTailLen);
+    if(!tail.every(t=>/^-$|^[SX]$|^\d+$/.test(t))) continue;
+    const name = tokens.slice(3, tokens.length-scoreTailLen).join(' ');
+    if(!name || !/[A-ZÀ-Ÿ]{2,}/.test(name)) continue;
+    const rme = tokens[2];
+    const subjData = [];
+    for(let i=0;i<nSubj;i++){
+      const g = tail.slice(i*7,(i*7)+7); // n1 r1 n2 r2 n3 r3 TA
+      let usedIdx = 0;
+      for(let k=2;k>=0;k--){ if(g[k*2] !== '-'){ usedIdx=k; break; } }
+      subjData.push({ nota: g[usedIdx*2], rec: g[usedIdx*2+1], ta: g[6] });
+    }
+    students.push({rme, name, subjects: subjData});
+  }
+  if(students.length===0) return {error:'Nenhum aluno foi reconhecido no PDF. Verifique se é o formato de quadro síntese esperado.'};
+  return {className, subjects, students};
+}
+
+function classify(nota, rec){
+  if(nota==='S' || nota==='-') return NA;
+  const n = Number(nota);
+  if(n>=PASS) return DIRECT;
+  if(rec==='X' || rec==='-') return NOTREC;
+  const r = Number(rec);
+  return r>=PASS ? RECOVERED : NOTREC;
+}
+function taStatus(ta){
+  if(ta==='S' || ta==='-') return NA;
+  return Number(ta)>=PASS ? 'ok':'bad';
+}
+
+function computeStats(classData){
+  const {subjects, students} = classData;
+  const stats = subjects.map((name,idx)=>{
+    let direct=0, recovered=0, notrec=0, taPass=0, taTotal=0, n=0;
+    for(const st of students){
+      const s = st.subjects[idx];
+      const c = classify(s.nota, s.rec);
+      if(c!==NA){ n++; if(c===DIRECT) direct++; else if(c===RECOVERED) recovered++; else notrec++; }
+      const ts = taStatus(s.ta);
+      if(ts!=='na'){ taTotal++; if(ts==='ok') taPass++; }
+    }
+    const needRec = recovered+notrec;
+    return {name, n, direct, recovered, notrec, needRec, taPass, taTotal};
+  });
+
+  // Alunos com nota final (nota total) abaixo da média em 2 ou mais disciplinas —
+  // não é um "destaque negativo": é um sinalizador de acompanhamento próximo.
+  const atencao = students.map(st=>{
+    const lowSubjects = subjects.filter((subjName,idx)=> !isLiteratura(subjName) && taStatus(st.subjects[idx].ta)==='bad');
+    return {name: st.name, count: lowSubjects.length, lowSubjects};
+  }).filter(st=> st.count>=2)
+    .sort((a,b)=> b.count-a.count);
+
+  const destaques70 = students.filter(st=>{
+    let hasAny=false;
+    return st.subjects.every((s,idx)=>{
+      if(isLiteratura(subjects[idx])) return true;
+      if(s.ta==='S'||s.ta==='-') return true;
+      hasAny=true;
+      return Number(s.ta) >= 0.7*MAXV;
+    }) && hasAny;
+  });
+
+  function subjIndexOf(nameMatch){
+    return subjects.findIndex(s=>s.toUpperCase().includes(nameMatch));
+  }
+  const idxPort = subjIndexOf('PORTUGUESA');
+  const idxMat = subjIndexOf('MATEM');
+  const destaquesPort = idxPort>=0 ? students.filter(st=>{
+    const s=st.subjects[idxPort]; return s.ta!=='S'&&s.ta!=='-' && Number(s.ta)>=0.9*MAXV;
+  }) : [];
+  const destaquesMat = idxMat>=0 ? students.filter(st=>{
+    const s=st.subjects[idxMat]; return s.ta!=='S'&&s.ta!=='-' && Number(s.ta)>=0.9*MAXV;
+  }) : [];
+
+  return {stats, destaques70, destaquesPort, destaquesMat, atencao};
+}
+
+// ---------- STORAGE (Supabase) ----------
+// Mesmo projeto Supabase usado pelo painel de monitoramento (index.html),
+// para que os boletins da Análise Trimestral fiquem salvos no banco em vez
+// do localStorage do navegador.
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+
+function sbHeaders(extra={}){
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extra
+  };
+}
+async function sbFetch(path, opts={}){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { ...opts, headers: { ...sbHeaders(), ...(opts.headers||{}) } });
+  const data = await r.json().catch(()=>null);
+  if(!r.ok){
+    const msg = (data && (data.message || data.hint || data.details)) || ('Erro Supabase (HTTP '+r.status+')');
+    throw new Error(msg);
+  }
+  return data;
+}
+
+// Tenta casar o aluno do PDF com um registro já existente na tabela "estudantes"
+// (mesma turma, nome normalizado igual). Best-effort: se não achar, salva sem vínculo.
+function normNomeAluno(n){
+  return (n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toUpperCase();
+}
+const _estudantesPorTurmaCache = {};
+async function tryMatchEstudanteId(nomeAluno, turma){
+  try{
+    if(!_estudantesPorTurmaCache[turma]){
+      _estudantesPorTurmaCache[turma] = sbFetch(`estudantes?select=id,nome&turma=eq.${encodeURIComponent(turma)}`).catch(()=>[]);
+    }
+    const rows = await _estudantesPorTurmaCache[turma];
+    const alvo = normNomeAluno(nomeAluno);
+    const found = (rows||[]).find(e=>normNomeAluno(e.nome)===alvo);
+    return found ? found.id : null;
+  }catch(e){ return null; }
+}
+
+// Salva (insere ou atualiza) a turma inteira: cada novo upload/edição da mesma
+// turma substitui os dados anteriores dela — mesmo comportamento do
+// localStorage.setItem original, agora persistido no Supabase.
+async function saveClass(name, data){
+  const cfg = loadGlobalConfig();
+  const payload = {
+    turma: name,
+    escola: cfg.escola || null,
+    mes_ano: (data.meta && data.meta.mesAno) || null,
+    professor: (data.meta && data.meta.professor) || null,
+    disciplinas: data.subjects
+  };
+  let turmaRow;
+  try{
+    const upserted = await sbFetch('analise_trimestral_turmas?on_conflict=turma', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(payload)
+    });
+    turmaRow = Array.isArray(upserted) ? upserted[0] : upserted;
+    if(!turmaRow) throw new Error('Resposta vazia do Supabase ao salvar a turma.');
+  }catch(e){
+    throw new Error('Falha ao salvar a turma no Supabase: '+e.message);
+  }
+  data._turmaId = turmaRow.id;
+
+  try{
+    // Substitui todos os alunos desta turma pelos dados do upload atual.
+    await sbFetch(`analise_trimestral_alunos?turma_id=eq.${turmaRow.id}`, { method:'DELETE' });
+    const alunosPayload = [];
+    for(const st of data.students){
+      const estudanteId = await tryMatchEstudanteId(st.name, name);
+      alunosPayload.push({
+        turma_id: turmaRow.id,
+        estudante_id: estudanteId,
+        rme: st.rme || null,
+        nome: st.name,
+        notas: st.subjects
+      });
+    }
+    if(alunosPayload.length){
+      await sbFetch('analise_trimestral_alunos', { method:'POST', body: JSON.stringify(alunosPayload) });
+    }
+  }catch(e){
+    throw new Error('A turma foi salva, mas houve falha ao salvar os alunos: '+e.message);
+  }
+  return true;
+}
+
+async function loadAllClasses(){
+  const out = {};
+  const rows = await sbFetch('analise_trimestral_turmas?select=*,analise_trimestral_alunos(*)&order=turma.asc');
+  (rows||[]).forEach(row=>{
+    out[row.turma] = {
+      className: row.turma,
+      subjects: row.disciplinas || [],
+      meta: { mesAno: row.mes_ano || '', professor: row.professor || '' },
+      students: (row.analise_trimestral_alunos||[]).map(a=>({ rme: a.rme, name: a.nome, subjects: a.notas })),
+      _turmaId: row.id
+    };
+  });
+  return out;
+}
+
+async function deleteClass(name){
+  const cd = currentClasses[name];
+  try{
+    if(cd && cd._turmaId){
+      await sbFetch(`analise_trimestral_turmas?id=eq.${cd._turmaId}`, { method:'DELETE' });
+    } else {
+      await sbFetch(`analise_trimestral_turmas?turma=eq.${encodeURIComponent(name)}`, { method:'DELETE' });
+    }
+  }catch(e){ console.error('erro ao remover turma no Supabase', e); }
+}
+
+// Config global (nome da escola) — linha única (id=1) na tabela de config.
+let _globalConfigCache = {};
+function loadGlobalConfig(){
+  return _globalConfigCache;
+}
+async function fetchGlobalConfig(){
+  try{
+    const rows = await sbFetch('analise_trimestral_config?id=eq.1&select=*');
+    _globalConfigCache = (rows && rows[0]) || {};
+  }catch(e){ _globalConfigCache = {}; }
+  return _globalConfigCache;
+}
+async function saveGlobalConfig(cfg){
+  _globalConfigCache = { ..._globalConfigCache, ...cfg };
+  try{
+    await sbFetch('analise_trimestral_config?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify({ id: 1, ..._globalConfigCache })
+    });
+  }catch(e){ console.error('erro ao salvar config no Supabase', e); }
+}
+
+// ---------- UI ----------
+function renderSidebar(){
+  const list = document.getElementById('classList');
+  list.innerHTML='';
+  const names = Object.keys(currentClasses).sort();
+  for(const name of names){
+    const el = document.createElement('div');
+    el.className = 'class-item'+(activeClass===name?' active':'');
+    el.innerHTML = `<span>${name}</span><span class="n">${currentClasses[name].students.length} alunos</span><span class="del" title="Remover">✕</span>`;
+    el.onclick = (e)=>{
+      if(e.target.classList.contains('del')){
+        e.stopPropagation();
+        if(confirm('Remover a turma "'+name+'"?')){
+          deleteClass(name); delete currentClasses[name];
+          if(activeClass===name) activeClass=null;
+          renderSidebar(); renderMain();
+        }
+        return;
+      }
+      activeClass = name; renderSidebar(); renderMain();
+    };
+    list.appendChild(el);
+  }
+}
+
+function pct(a,b){ return b>0 ? Math.round((a/b)*100) : null; }
+function statusClass(p){ if(p===null) return 'na'; if(p>=70) return 'ok'; if(p>=40) return 'mid'; return 'bad'; }
+
+function renderMain(){
+  const main = document.getElementById('main');
+  if(activeClass==='OVERVIEW') return renderOverview();
+  if(!activeClass || !currentClasses[activeClass]){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma na lista ao lado.</p></div>`;
+    return;
+  }
+  const cd = currentClasses[activeClass];
+  const {stats, destaques70, destaquesPort, destaquesMat, atencao} = computeStats(cd);
+  const cfg = loadGlobalConfig();
+  if(!cfg.escola){ cfg.escola = 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(cfg); }
+  cd.meta = cd.meta || {};
+  // Preenche automaticamente (e salva) o Mês/Ano padrão e o professor(a) referência
+  // com base na lista de turmas, caso ainda não tenham sido definidos manualmente.
+  let metaChanged = false;
+  if(!cd.meta.mesAno){ cd.meta.mesAno = 'Julho/2026'; metaChanged = true; }
+  if(!cd.meta.professor){
+    const auto = defaultProfessorFor(activeClass);
+    if(auto){ cd.meta.professor = auto; metaChanged = true; }
+  }
+  if(metaChanged){ saveClass(activeClass, cd); }
+
+  let html = `<div class="hdr">
+    <div>
+      <h1>${activeClass}</h1>
+      <div class="hdr-sub">${cd.students.length} alunos · ${cd.subjects.filter(s=>!isLiteratura(s)).length} disciplinas</div>
+      <div class="hdr-info">
+        <label>Escola: <input type="text" class="meta-input" id="metaEscola" value="${(cfg.escola||'').replace(/"/g,'&quot;')}" placeholder="Nome da escola"></label>
+        <label>Mês/Ano: <input type="text" class="meta-input" id="metaMesAno" value="${(cd.meta.mesAno||'').replace(/"/g,'&quot;')}" placeholder="ex: Julho/2026"></label>
+        <label>Prof. de referência: <input type="text" class="meta-input" id="metaProfessor" value="${(cd.meta.professor||'').replace(/"/g,'&quot;')}" placeholder="Nome do professor(a)"></label>
+      </div>
+    </div>
+    <div class="hdr-actions">
+      <button class="print-btn" onclick="window.print()">🖶 Imprimir quadro resumo</button>
+      <div class="stamp">${activeClass.slice(0,6)}</div>
+    </div>
+  </div>`;
+
+  html += `<div class="section-title">Destaques e acompanhamento da turma</div><div class="highlight-row">`;
+  html += hlCard('Destaques gerais (≥70% em todas as disciplinas)', destaques70, 'plum');
+  html += hlCard('Destaques em Língua Portuguesa (≥90%)', destaquesPort, 'acc');
+  html += hlCard('Destaques em Matemática (≥90%)', destaquesMat, 'acc');
+  html += attentionCard(atencao);
+  html += `</div>`;
+
+  html += `<div class="section-title">Análise por disciplina</div><div class="subject-grid">`;
+  stats.forEach((s,i)=>{
+    if(isLiteratura(s.name)) return;
+    const wDirect = s.n? (s.direct/s.n*100):0;
+    const wRec = s.n? (s.recovered/s.n*100):0;
+    const wNotRec = s.n? (s.notrec/s.n*100):0;
+    const taP = pct(s.taPass, s.taTotal);
+    html += `<div class="subj-card" data-idx="${i}">
+      <h4>${s.name}</h4>
+      <div class="bar">
+        <div class="seg-direct" style="width:${wDirect}%"></div>
+        <div class="seg-rec" style="width:${wRec}%"></div>
+        <div class="seg-norec" style="width:${wNotRec}%"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--accent)"></i>Média direta ${pct(s.direct,s.n)??'–'}%</span>
+        <span><i class="dot" style="background:var(--warn)"></i>Recuperou ${pct(s.recovered,s.needRec)??'–'}% <span style="color:#999">(de ${s.needRec})</span></span>
+        <span><i class="dot" style="background:var(--danger)"></i>Não recuperou ${pct(s.notrec,s.needRec)??'–'}%</span>
+      </div>
+      <div class="final-row"><span class="lbl">Aprovação final (nota total)</span><span class="val ${statusClass(taP)==='ok'?'ok':statusClass(taP)==='mid'?'mid':'bad'}">${taP??'–'}%</span></div>
+    </div>`;
+  });
+  html += `</div>`;
+  html += `<div class="print-footer">
+    <div>Coordenador(a) Pedagógico(a): <strong>Prof. Everton Correa</strong></div>
+    <div>Coordenadora Geral: <strong>Leila Cardoso</strong></div>
+  </div>`;
+  html += `<div id="detailPanel"></div>`;
+  main.innerHTML = html;
+
+  main.querySelectorAll('.subj-card').forEach(card=>{
+    card.onclick = ()=> renderDetail(cd, Number(card.dataset.idx));
+  });
+
+  document.getElementById('metaEscola').onchange = (e)=>{
+    const c = loadGlobalConfig(); c.escola = e.target.value; saveGlobalConfig(c);
+  };
+  document.getElementById('metaMesAno').onchange = (e)=>{
+    cd.meta.mesAno = e.target.value; saveClass(activeClass, cd);
+  };
+  document.getElementById('metaProfessor').onchange = (e)=>{
+    cd.meta.professor = e.target.value; saveClass(activeClass, cd);
+  };
+}
+
+function hlCard(title, list, colorClass){
+  const pills = list.length ? list.map(s=>`<span class="pill ${colorClass==='acc'?'acc':''}">${s.name}</span>`).join('') : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno atingiu o critério</span>`;
+  return `<div class="hl-card"><h3>${title}</h3><div class="count">${list.length}</div><div class="hl-names">${pills}</div></div>`;
+}
+
+// Cartão de acompanhamento: alunos com nota final abaixo da média em 2+ disciplinas.
+// Tom neutro/de cuidado (cor de alerta, não de reprovação) — não é um "ranking negativo".
+function attentionCard(list){
+  const pills = list.length
+    ? list.map(s=>`<span class="pill warn">${s.name} <span style="opacity:.75;">(${s.count} disc.)</span></span>`).join('')
+    : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno nesta condição</span>`;
+  return `<div class="hl-card attn"><h3>Situações que merecem atenção</h3><div class="count">${list.length}</div><div class="hl-names">${pills}</div></div>`;
+}
+
+function renderDetail(cd, idx){
+  const subjName = cd.subjects[idx];
+  const panel = document.getElementById('detailPanel');
+  let rows = cd.students.map(st=>{
+    const s = st.subjects[idx];
+    const c = classify(s.nota, s.rec);
+    const ts = taStatus(s.ta);
+    const tagFor = (val)=>{
+      if(val===DIRECT) return '<span class="tag ok">Média direta</span>';
+      if(val===RECOVERED) return '<span class="tag ok">Recuperou</span>';
+      if(val===NOTREC) return '<span class="tag bad">Não recuperou</span>';
+      return '<span class="tag na">—</span>';
+    };
+    const taTag = ts==='ok' ? '<span class="tag ok">Aprovado</span>' : ts==='bad' ? '<span class="tag bad">Reprovado</span>' : '<span class="tag na">—</span>';
+    return `<tr><td style="font-family:'Inter',sans-serif;">${st.name}</td><td>${s.nota}</td><td>${s.rec}</td><td>${tagFor(c)}</td><td>${s.ta}</td><td>${taTag}</td></tr>`;
+  }).join('');
+  panel.innerHTML = `<div class="detail-panel">
+    <h3 style="font-family:'Fraunces',serif; margin-top:0;">${subjName} — detalhe por aluno</h3>
+    <table><thead><tr><th>Aluno</th><th>Nota inicial</th><th>Recuperação</th><th>Situação</th><th>Nota total</th><th>Resultado final</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+  </div>`;
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderOverview(){
+  const main = document.getElementById('main');
+  const names = Object.keys(currentClasses).sort();
+  if(names.length===0){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para ver a visão geral.</p></div>`;
+    return;
+  }
+  const allSubjects = new Set();
+  names.forEach(n=> currentClasses[n].subjects.forEach(s=>{ if(!isLiteratura(s)) allSubjects.add(s); }));
+  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button></div>`;
+  html += `<div class="section-title">Aprovação final (%) por turma e disciplina</div>`;
+  html += `<table class="overview-table"><thead><tr><th>Turma</th>${[...allSubjects].map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
+  for(const n of names){
+    const cd = currentClasses[n];
+    const {stats} = computeStats(cd);
+    const map = {}; stats.forEach(s=>map[s.name]=s);
+    html += `<tr><td>${n}</td>`;
+    for(const subj of allSubjects){
+      const s = map[subj];
+      if(!s){ html+='<td>—</td>'; continue; }
+      const p = pct(s.taPass, s.taTotal);
+      const cls = statusClass(p);
+      html += `<td><span class="tag ${cls}">${p??'–'}%</span></td>`;
+    }
+    html += '</tr>';
+  }
+  html += `</tbody></table>`;
+
+  html += `<div class="section-title">Destaques gerais por turma</div><div class="highlight-row">`;
+  for(const n of names){
+    const cd = currentClasses[n];
+    const {destaques70} = computeStats(cd);
+    html += hlCard(n, destaques70, 'plum');
+  }
+  html += `</div>`;
+
+  html += `<div class="section-title">Acompanhamento por turma (nota final abaixo da média em 2+ disciplinas)</div><div class="highlight-row">`;
+  for(const n of names){
+    const cd = currentClasses[n];
+    const {atencao} = computeStats(cd);
+    html += `<div class="hl-card attn"><h3>${n}</h3><div class="count">${atencao.length}</div><div class="hl-names">${atencao.length ? atencao.map(s=>`<span class="pill warn">${s.name} <span style="opacity:.75;">(${s.count})</span></span>`).join('') : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno nesta condição</span>`}</div></div>`;
+  }
+  html += `</div>`;
+  main.innerHTML = html;
+}
+
+// ---------- UPLOAD FLOW ----------
+document.getElementById('fileInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  let skipped = 0, queued = 0;
+  for(const file of files){
+    statusMsg('Lendo '+file.name+'…');
+    try{
+      const lines = await extractLines(file);
+      const blocks = splitIntoClassBlocks(lines);
+      let lastSubjects = null;
+      for(const block of blocks){
+        const parsed = parseClassPDF(block, lastSubjects);
+        if(parsed.error){
+          statusMsg(parsed.error);
+          continue;
+        }
+        lastSubjects = parsed.subjects;
+        if(classAlreadyLoaded(parsed.className)){
+          skipped++;
+          continue;
+        }
+        reviewQueue.push(parsed);
+        queued++;
+      }
+    }catch(err){
+      console.error(err);
+      statusMsg('Erro ao processar '+file.name+'.');
+    }
+  }
+  e.target.value = '';
+  if(skipped>0){
+    statusMsg(skipped+' turma(s) já carregada(s) foram ignoradas.'+(queued>0?' '+queued+' nova(s) para revisar.':''));
+  }
+  if(reviewQueue.length){
+    processNextInQueue();
+  }
+});
+
+function processNextInQueue(){
+  if(reviewQueue.length===0){ renderMain(); return; }
+  const parsed = reviewQueue.shift();
+  showReview(parsed);
+}
+
+function showReview(parsed){
+  const main = document.getElementById('main');
+  const remaining = reviewQueue.length;
+  let html = `<div class="review-box">
+    <h3>Confirmar disciplinas — ${parsed.className}${remaining>0?` <span style="font-size:12px; color:var(--ink-soft); font-weight:400;">(mais ${remaining} turma(s) na fila)</span>`:''}</h3>
+    <p style="color:var(--ink-soft); font-size:13px;">Detectamos ${parsed.students.length} alunos e ${parsed.subjects.length} disciplinas. Ajuste os nomes se necessário antes de salvar.</p>
+    <div class="subj-edit">${parsed.subjects.map((s,i)=>`<input type="text" id="subjInput${i}" value="${s}">`).join('')}</div>
+    <label style="font-size:12.5px; display:block; margin-bottom:10px;">Nome da turma: <input type="text" id="classNameInput" value="${parsed.className}" style="margin-left:6px; padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-family:'Inter',sans-serif;"></label>
+    <button class="btn" id="confirmSave">Salvar e analisar</button>
+    <button class="btn secondary" id="cancelReview" style="margin-left:8px;">${remaining>0?'Pular esta turma':'Cancelar'}</button>
+  </div>`;
+  main.innerHTML = html;
+  document.getElementById('cancelReview').onclick = ()=> processNextInQueue();
+  document.getElementById('confirmSave').onclick = async ()=>{
+    const btn = document.getElementById('confirmSave');
+    const subjects = parsed.subjects.map((_,i)=>document.getElementById('subjInput'+i).value.trim());
+    const className = document.getElementById('classNameInput').value.trim() || parsed.className;
+    if(classAlreadyLoaded(className)){
+      alert('Já existe uma turma chamada "'+className+'". Escolha outro nome ou remova a turma existente antes de salvar.');
+      return;
+    }
+    const data = {className, subjects, students: parsed.students};
+    btn.disabled = true; btn.textContent = 'Salvando…';
+    try{
+      await saveClass(className, data);
+      currentClasses[className] = data;
+      activeClass = className;
+      statusMsg('Turma "'+className+'" salva.');
+      renderSidebar();
+      processNextInQueue();
+    }catch(err){
+      console.error(err);
+      btn.disabled = false; btn.textContent = 'Salvar e analisar';
+      statusMsg('Erro ao salvar: '+err.message);
+      alert('Não foi possível salvar a turma. Detalhe: '+err.message);
+    }
+  };
+}
+
+document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; renderSidebar(); renderMain(); };
+
+// ---------- INIT ----------
+(async function init(){
+  statusMsg('Carregando turmas salvas…');
+  try{
+    await fetchGlobalConfig();
+    currentClasses = await loadAllClasses();
+  }catch(e){
+    console.error(e);
+    currentClasses = {};
+    statusMsg('Não foi possível conectar ao Supabase. Verifique a conexão.');
+  }
+  statusMsg(Object.keys(currentClasses).length ? Object.keys(currentClasses).length+' turma(s) carregada(s).' : '');
+  renderSidebar();
+  if(Object.keys(currentClasses).length) { activeClass = Object.keys(currentClasses).sort()[0]; }
+  renderMain();
+})();
+</script>
+</body>
+</html>
