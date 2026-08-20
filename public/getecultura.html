@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETECULTURA 2026 — Registro de Atividade</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --ink:#1a1612; --paper:#faf8f4; --cream:#f0ebe1;
+    --gold:#b8872a; --rust:#8b3a1e; --divider:#d4c9b8; --muted:#7a7060;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;}
+
+  /* HEADER */
+  header{background:var(--ink);color:var(--paper);padding:24px 40px 18px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent,transparent 18px,rgba(184,135,42,.07) 18px,rgba(184,135,42,.07) 19px);}
+  .header-inner{position:relative;max-width:780px;margin:0 auto;display:flex;align-items:flex-end;gap:20px;}
+  .event-badge{background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:4px 10px;border-radius:2px;white-space:nowrap;align-self:flex-start;margin-top:4px;}
+  .header-text h1{font-family:'Playfair Display',serif;font-weight:900;font-size:clamp(22px,4vw,36px);line-height:1.05;letter-spacing:-.02em;color:var(--paper);}
+  .header-text h1 span{color:#e8c96b;}
+  .header-text p{margin-top:5px;color:rgba(250,248,244,.6);font-size:12px;font-weight:300;letter-spacing:.04em;}
+
+  /* MAIN */
+  main{max-width:780px;margin:0 auto;padding:28px 20px 80px;}
+
+  .intro{border-left:3px solid var(--gold);padding:10px 16px;background:var(--cream);margin-bottom:24px;border-radius:0 4px 4px 0;}
+  .intro p{font-size:13px;color:var(--muted);}
+  .intro strong{color:var(--ink);}
+
+  /* FORM */
+  .form-section{margin-bottom:22px;}
+  .sec-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
+  .sec-num{width:22px;height:22px;background:var(--rust);color:#fff;font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .sec-head h2{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--ink);}
+  label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+  input[type="text"],textarea,select{width:100%;padding:8px 11px;border:1.5px solid var(--divider);border-radius:4px;background:#fff;color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .18s;}
+  input:focus,textarea:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,135,42,.1);}
+  textarea{resize:vertical;min-height:68px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field{margin-bottom:12px;}
+
+  .dyn-wrapper{display:flex;flex-direction:column;gap:7px;}
+  .dyn-row{display:flex;gap:7px;}
+  .dyn-row input{flex:1;}
+  .dyn-row.prof-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .btn-icon{width:34px;height:34px;min-width:34px;border:1.5px solid var(--divider);background:var(--cream);border-radius:4px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+  .btn-icon:hover{background:#e8c96b;border-color:var(--gold);}
+  .btn-add{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1.5px dashed var(--gold);background:transparent;border-radius:4px;font-size:12px;font-weight:600;color:var(--gold);cursor:pointer;margin-top:7px;transition:background .15s;}
+  .btn-add:hover{background:rgba(184,135,42,.08);}
+
+  hr.div{border:none;border-top:1px solid var(--divider);margin:20px 0;}
+
+  /* ACTIONS */
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;}
+  .btn-primary{flex:1 1 180px;padding:12px 18px;background:var(--rust);color:#fff;border:none;border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .18s;}
+  .btn-primary:hover{background:#6e2e17;}
+  .btn-secondary{flex:1 1 140px;padding:12px 18px;background:transparent;color:var(--ink);border:1.5px solid var(--divider);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:border-color .15s,background .15s;}
+  .btn-secondary:hover{border-color:var(--ink);background:var(--cream);}
+  .btn-gold{flex:1 1 180px;padding:12px 18px;background:transparent;color:var(--gold);border:1.5px solid var(--gold);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s;}
+  .btn-gold:hover{background:rgba(184,135,42,.09);}
+
+  /* MODAL */
+  #overlay{display:none;position:fixed;inset:0;background:rgba(26,22,18,.75);z-index:200;align-items:center;justify-content:center;}
+  #overlay.open{display:flex;}
+  #modal{background:#fff;border-radius:6px;max-width:96vw;width:700px;max-height:93vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 28px 70px rgba(0,0,0,.4);}
+  .modal-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid #e8e0d4;}
+  .modal-bar h3{font-family:'Playfair Display',serif;font-size:17px;color:var(--ink);}
+  .modal-scroll{overflow:auto;flex:1;padding:20px 24px;}
+  .modal-foot{padding:14px 22px;border-top:1px solid #e8e0d4;display:flex;gap:10px;flex-wrap:wrap;}
+  .btn-x{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
+
+  /* ── FICHA DE PREVIEW ── */
+  .ficha{width:100%;border:1px solid #c8bfb0;border-radius:3px;font-size:11.5px;}
+
+  .ficha-header{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 6px;border-bottom:2px solid var(--gold);}
+  .ficha-header .fh-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:var(--ink);}
+  .ficha-header .fh-title span{color:var(--gold);}
+  .ficha-header .fh-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+  .ficha-header .fh-right{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.09em;}
+
+  .ficha table{width:100%;border-collapse:collapse;}
+  .ficha table th{width:30%;background:#f5f1eb;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5a4e3e;padding:5px 8px;border:1px solid #d0c8bc;text-align:left;vertical-align:top;}
+  .ficha table td{font-size:13px;color:var(--ink);padding:5px 8px;border:1px solid #d0c8bc;vertical-align:top;line-height:1.45;}
+
+  .ficha-footer{display:flex;gap:10px;padding:7px 10px;border-top:1px solid var(--divider);}
+  .sig{border:1px solid #c0b8ae;border-radius:2px;padding:4px 8px;font-size:9px;color:var(--muted);flex:1;}
+  .sig span{display:block;font-size:8.5px;color:#bbb;margin-top:10px;}
+  .ficha-stamp{font-size:8.5px;color:#bbb;align-self:flex-end;text-align:right;}
+
+  /* linha divisória entre fichas no preview */
+  .ficha-sep{border:none;border-top:2px dashed #d4c9b8;margin:18px 0;position:relative;}
+  .ficha-sep::after{content:'✂ cortar aqui';position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#fff;padding:0 8px;font-size:9px;color:#bbb;letter-spacing:.05em;}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#4a6741;color:#fff;padding:10px 20px;border-radius:4px;font-size:13px;font-weight:500;opacity:0;transition:transform .3s,opacity .3s;z-index:999;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:560px){.grid-2{grid-template-columns:1fr;}.header-inner{flex-direction:column;align-items:flex-start;gap:10px;}.dyn-row.prof-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="event-badge">Outubro · 2026</div>
+    <div class="header-text">
+      <h1>GETE<span>CULTURA</span></h1>
+      <p>Registro de Atividade — Mostra Cultural 2026 &nbsp;·&nbsp; Formulário do Professor</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="intro">
+    <p>Preencha os campos e clique em <strong>Visualizar</strong> para conferir antes de gerar o PDF — o documento terá <strong>duas fichas por folha A4</strong>, em formato retrato.</p>
+  </div>
+
+  <!-- 1 Identificação -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">1</div><h2>Identificação da Atividade</h2></div>
+    <div class="field"><label for="titulo">Título / Nome da Atividade</label>
+      <input type="text" id="titulo" placeholder="Ex.: Instalação Poética — Vozes do Cerrado"></div>
+    <div class="field"><label for="descricao">Descrição Breve</label>
+      <textarea id="descricao" rows="2" placeholder="Objetivo pedagógico-cultural da atividade…"></textarea></div>
+    <div class="grid-2">
+      <div class="field"><label for="disciplina">Área / Disciplina</label>
+        <input type="text" id="disciplina" placeholder="Ex.: Artes Visuais"></div>
+      <div class="field"><label for="modalidade">Modalidade</label>
+        <select id="modalidade">
+          <option value="">— Selecione —</option>
+          <option>Instalação</option><option>Performance</option><option>Exposição</option>
+          <option>Apresentação Musical</option><option>Teatro / Dança</option>
+          <option>Oficina</option><option>Sarau / Leitura</option><option>Audiovisual</option><option>Outra</option>
+        </select></div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- 2 Turmas -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Turmas / Alunos Envolvidos</h2></div>
+    <div class="dyn-wrapper" id="turmas-wrap">
+      <div class="dyn-row">
+        <input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp">
+        <button class="btn-icon" onclick="remTurma(this)">×</button>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addTurma()">＋ Adicionar turma</button>
+  </div>
+
+  <hr class="div">
+
+  <!-- 3 Local -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Local de Instalação / Apresentação</h2></div>
+    <div class="field"><label for="local">Local da Instalação</label>
+      <input type="text" id="local" placeholder="Ex.: Pátio coberto, Corredor Bloco B…"></div>
+    <div class="field"><label for="obs-local">Observações sobre o espaço</label>
+      <textarea id="obs-local" rows="2" placeholder="Tomadas elétricas, escurecimento, necessidades especiais…"></textarea></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- 4 Materialidade -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">4</div><h2>Materialidade Necessária</h2></div>
+    <div class="field"><label for="materiais">Materiais, equipamentos e recursos</label>
+      <textarea id="materiais" rows="4" placeholder="Liste os materiais necessários, um por linha:&#10;— Tecido de algodão cru (5 m)&#10;— Projetor multimídia&#10;— Tinta acrílica…"></textarea></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- 5 Professores -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">5</div><h2>Professores Responsáveis</h2></div>
+    <div class="dyn-wrapper" id="profs-wrap">
+      <div class="dyn-row prof-row">
+        <input type="text" placeholder="Nome completo" class="prof-nome">
+        <input type="text" placeholder="Disciplina / cargo" class="prof-disc">
+      </div>
+    </div>
+    <button class="btn-add" onclick="addProf()">＋ Adicionar professor</button>
+  </div>
+
+  <div class="actions">
+    <button class="btn-secondary" onclick="limpar()">↺ Limpar</button>
+    <button class="btn-gold" onclick="gerarPDF(true)">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Formulário em Branco
+    </button>
+    <button class="btn-primary" id="btnSalvarSistema" onclick="salvarRegistro()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Salvar no Sistema
+    </button>
+    <button class="btn-primary" onclick="abrirPreview()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Visualizar
+    </button>
+  </div>
+
+  <hr class="div">
+
+  <!-- 6 Registros salvos nesta sessão -->
+  <div class="form-section">
+    <div class="sec-head"><div class="sec-num">6</div><h2>Registros Salvos no Sistema</h2></div>
+    <div id="registros-lista" style="display:flex;flex-direction:column;gap:8px">
+      <p style="font-size:12px;color:var(--muted)">Carregando registros…</p>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL PREVIEW -->
+<div id="overlay" onclick="clickOverlay(event)">
+  <div id="modal">
+    <div class="modal-bar">
+      <h3>Pré-visualização — 2 fichas por folha</h3>
+      <button class="btn-x" onclick="fecharModal()">×</button>
+    </div>
+    <div class="modal-scroll">
+      <div id="prev-content"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="fecharModal()">← Editar</button>
+      <button class="btn-primary" onclick="gerarPDF(false)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const {jsPDF} = window.jspdf;
+
+/* ── Integração com Supabase (mesmo projeto do Monitoramento Pedagógico) ── */
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+const GETECULTURA_TABLE = 'eventos_getecultura';
+
+function sbHeaders(extra={}){
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extra
+  };
+}
+
+async function salvarRegistro(){
+  const d = dados();
+  if(!d.titulo){ toast('Preencha ao menos o título da atividade.'); return; }
+
+  const btn = document.getElementById('btnSalvarSistema');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Salvando…';
+
+  const row = {
+    titulo:      d.titulo,
+    descricao:   d.descricao || null,
+    disciplina:  d.disciplina || null,
+    modalidade:  d.modalidade || null,
+    turmas:      d.turmas || [],
+    local:       d.local || null,
+    obs_local:   d.obsLocal || null,
+    materiais:   d.materiais || null,
+    professores: d.profs || []
+  };
+
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}`, {
+      method: 'POST', headers: sbHeaders(), body: JSON.stringify([row])
+    });
+    if(!r.ok){
+      const err = await r.json().catch(()=>({}));
+      throw new Error(err.message || 'Falha ao salvar');
+    }
+    toast('Registro salvo no sistema com sucesso!');
+    carregarRegistros();
+  }catch(err){
+    console.error(err);
+    toast('Não foi possível salvar. Verifique a conexão.');
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
+async function carregarRegistros(){
+  const box = document.getElementById('registros-lista');
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc&limit=20`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
+    if(!Array.isArray(rows) || rows.length === 0){
+      box.innerHTML = `<p style="font-size:12px;color:var(--muted)">Nenhum registro salvo ainda.</p>`;
+      return;
+    }
+    box.innerHTML = rows.map(row => `
+      <div style="border:1px solid var(--divider);border-radius:4px;padding:9px 12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink)">${escHtml(row.titulo || '(sem título)')}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            ${[row.disciplina, row.modalidade].filter(Boolean).map(escHtml).join(' · ')}
+            ${row.turmas && row.turmas.length ? ' — ' + row.turmas.map(escHtml).join(', ') : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-size:10px;color:#bbb;white-space:nowrap">${row.created_at ? new Date(row.created_at).toLocaleDateString('pt-BR') : ''}</span>
+          <button onclick="excluirRegistro('${row.id}')" title="Excluir" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:13px">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }catch(err){
+    console.error(err);
+    box.innerHTML = `<p style="font-size:12px;color:#c0392b">Não foi possível carregar os registros salvos.</p>`;
+  }
+}
+
+async function excluirRegistro(id){
+  if(!confirm('Excluir este registro?')) return;
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: sbHeaders()
+    });
+    if(!r.ok) throw new Error('Falha ao excluir');
+    carregarRegistros();
+  }catch(err){
+    console.error(err);
+    toast('Não foi possível excluir o registro.');
+  }
+}
+
+function escHtml(s){
+  return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', carregarRegistros);
+
+function addTurma(){
+  const w=document.getElementById('turmas-wrap');
+  const r=document.createElement('div'); r.className='dyn-row';
+  r.innerHTML=`<input type="text" placeholder="Ex.: 3º Ano B — 28 alunos" class="turma-inp"><button class="btn-icon" onclick="remTurma(this)">×</button>`;
+  w.appendChild(r);
+}
+function remTurma(b){ if(document.querySelectorAll('.turma-inp').length>1) b.parentElement.remove(); }
+function addProf(){
+  const w=document.getElementById('profs-wrap');
+  const r=document.createElement('div'); r.className='dyn-row prof-row';
+  r.innerHTML=`<input type="text" placeholder="Nome completo" class="prof-nome"><input type="text" placeholder="Disciplina / cargo" class="prof-disc">`;
+  w.appendChild(r);
+}
+
+function dados(){
+  const turmas=[...document.querySelectorAll('.turma-inp')].map(i=>i.value.trim()).filter(Boolean);
+  const profs=[...document.querySelectorAll('#profs-wrap .prof-row')].map(r=>{
+    const n=r.querySelector('.prof-nome')?.value.trim()||'';
+    const d=r.querySelector('.prof-disc')?.value.trim()||'';
+    return n?(d?`${n} — ${d}`:n):null;
+  }).filter(Boolean);
+  return{
+    titulo:    document.getElementById('titulo').value.trim(),
+    descricao: document.getElementById('descricao').value.trim(),
+    disciplina:document.getElementById('disciplina').value.trim(),
+    modalidade:document.getElementById('modalidade').value,
+    turmas,
+    local:     document.getElementById('local').value.trim(),
+    obsLocal:  document.getElementById('obs-local').value.trim(),
+    materiais: document.getElementById('materiais').value.trim(),
+    profs,
+    obsFinais: '',
+    dtMontagem:'', dtEvento:'',
+  };
+}
+
+/* ── monta HTML de uma ficha para o preview ── */
+function fichaHTML(d, isBlank){
+  const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  const area = isBlank ? '' : [d.disciplina, d.modalidade].filter(Boolean).join(' · ');
+  const turmas = isBlank ? '' : (d.turmas||[]).join('<br>');
+  const local  = isBlank ? '' : [esc(d.local), d.obsLocal?`<span style="color:#7a7060;font-size:10px">${esc(d.obsLocal)}</span>`:''].filter(Boolean).join('<br>');
+  const mat    = isBlank ? '' : esc(d.materiais);
+  const profs  = isBlank ? '' : (d.profs||[]).join('<br>');
+
+  const blankCell = `<td style="height:22px">&nbsp;</td>`;
+
+  return `<div class="ficha">
+    <div class="ficha-header">
+      <div><div class="fh-title">GETE<span>CULTURA</span> <span style="font-size:12px;color:#b8872a">2026</span></div>
+      <div class="fh-sub">Mostra Cultural · Registro de Atividade do Professor</div></div>
+      <div class="fh-right">OUTUBRO 2026</div>
+    </div>
+    <table>
+      <tr><th>Nome do Professor</th>${isBlank?blankCell:`<td>${esc(d.profs&&d.profs[0]||'')}</td>`}</tr>
+      <tr><th>Título / Atividade</th>${isBlank?blankCell:`<td>${esc(d.titulo)||'&nbsp;'}</td>`}</tr>
+      <tr><th>Descrição</th>${isBlank?blankCell:`<td>${esc(d.descricao)||'&nbsp;'}</td>`}</tr>
+      <tr><th>Área · Modalidade</th>${isBlank?blankCell:`<td>${area||'&nbsp;'}</td>`}</tr>
+      <tr><th>Turmas / Alunos</th>${isBlank?blankCell:`<td>${turmas||'&nbsp;'}</td>`}</tr>
+      <tr><th>Local da Instalação</th>${isBlank?blankCell:`<td>${local||'&nbsp;'}</td>`}</tr>
+      <tr><th>Materialidade</th>${isBlank?`<td style="height:40px">&nbsp;</td>`:`<td>${mat||'&nbsp;'}</td>`}</tr>
+      <tr><th>Prof. Responsáveis</th>${isBlank?blankCell:`<td>${profs||'&nbsp;'}</td>`}</tr>
+    </table>
+    <div class="ficha-footer">
+      <div class="sig">Assinatura do(a) professor(a) responsável<span>&nbsp;</span></div>
+      <div class="sig" style="max-width:160px">Data: _____ / _____ / 2026<span>&nbsp;</span></div>
+      <div class="ficha-stamp">GETECULTURA 2026<br>Mostra Cultural</div>
+    </div>
+  </div>`;
+}
+
+function abrirPreview(){
+  const d = dados();
+  document.getElementById('prev-content').innerHTML =
+    fichaHTML(d, false) +
+    `<hr class="ficha-sep">` +
+    fichaHTML(d, false);
+  document.getElementById('overlay').classList.add('open');
+}
+function fecharModal(){ document.getElementById('overlay').classList.remove('open'); }
+function clickOverlay(e){ if(e.target===document.getElementById('overlay')) fecharModal(); }
+
+function limpar(){
+  if(!confirm('Limpar todos os campos?')) return;
+  document.querySelectorAll('input,textarea,select').forEach(el=>el.value='');
+  document.getElementById('turmas-wrap').innerHTML=`<div class="dyn-row"><input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp"><button class="btn-icon" onclick="remTurma(this)">×</button></div>`;
+  document.getElementById('profs-wrap').innerHTML=`<div class="dyn-row prof-row"><input type="text" placeholder="Nome completo" class="prof-nome"><input type="text" placeholder="Disciplina / cargo" class="prof-disc"></div>`;
+}
+
+/* ════════════════════════════════════════
+   PDF RETRATO — 2 fichas por folha A4
+   Econômico: sem fundos escuros, só linhas
+════════════════════════════════════════ */
+function gerarPDF(blank){
+  const d = blank ? {} : dados();
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  // A4 retrato: 210 × 297
+  const PW=210, PH=297;
+  const ml=10, mr=10;
+  const cw = PW-ml-mr; // 190mm
+
+  // Cada ficha ocupa metade da folha
+  // Duas fichas: topo 0→148, base 149→297 (com margens internas)
+  const fichaH = PH/2; // 148.5mm
+
+  for(let fi=0; fi<2; fi++){
+    const oy = fi * fichaH; // offset vertical da ficha
+
+    /* ─ cabeçalho da ficha ─ */
+    const mt = 7;
+    const y0 = oy + mt;
+
+    // linha dourada topo
+    doc.setDrawColor(184,135,42); doc.setLineWidth(0.9);
+    doc.line(ml, y0, PW-mr, y0);
+
+    // título
+    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,22,18);
+    doc.text('GETECULTURA 2026', ml, y0+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(90,82,72);
+    doc.text('Mostra Cultural · Registro de Atividade do Professor', ml, y0+12);
+
+    // data direita
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(184,135,42);
+    doc.text('OUTUBRO 2026', PW-mr, y0+7, {align:'right'});
+
+    // linha divisória fina
+    doc.setDrawColor(200,190,178); doc.setLineWidth(0.25);
+    doc.line(ml, y0+15, PW-mr, y0+15);
+
+    /* ─ tabela de linhas ─ */
+    // largura col rótulo: 42mm; col valor: restante
+    const lbW = 42;
+    const valW = cw - lbW;
+    const rowH = 10; // altura padrão de linha
+    const bigH = 18; // materialidade (pode ter mais texto)
+
+    const rows = [
+      {label:'Nome do Professor',    val: blank?'': (d.profs&&d.profs[0]||''),  h:rowH},
+      {label:'Título / Atividade',   val: blank?'': (d.titulo||''),         h:rowH},
+      {label:'Descrição',            val: blank?'': (d.descricao||''),       h:14},
+      {label:'Área · Modalidade',    val: blank?'': ([d.disciplina,d.modalidade].filter(Boolean).join(' · ')), h:rowH},
+      {label:'Turmas / Alunos',      val: blank?'': (d.turmas||[]).join(', '), h:rowH},
+      {label:'Local da Instalação',   val: blank?'': ([d.local, d.obsLocal].filter(Boolean).join(' — ')), h:rowH},
+      {label:'Materialidade',        val: blank?'': (d.materiais||''),       h:bigH},
+      {label:'Prof. Responsáveis',   val: blank?'': (d.profs||[]).join(' / '), h:rowH},
+    ];
+
+    let y = y0 + 18;
+    rows.forEach((row,ri)=>{
+      // fundo alternado claro no rótulo — econômico (apenas a célula do rótulo)
+      doc.setFillColor(248,245,241);
+      doc.rect(ml, y, lbW, row.h, 'F');
+
+      // bordas
+      doc.setDrawColor(185,175,163); doc.setLineWidth(0.28);
+      doc.rect(ml, y, cw, row.h, 'D');
+      doc.line(ml+lbW, y, ml+lbW, y+row.h);
+
+      // rótulo
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(70,58,46);
+      doc.text(row.label.toUpperCase(), ml+2.5, y+6);
+
+      // valor
+      if(!blank && row.val){
+        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(26,22,18);
+        const wrapped = doc.splitTextToSize(row.val, valW-4);
+        let ty = y+6;
+        wrapped.forEach(ln=>{ if(ty < y+row.h-2){ doc.text(ln, ml+lbW+3, ty); ty+=4.5; } });
+      } else if(blank){
+        // linha de escrita manual
+        doc.setDrawColor(205,198,188); doc.setLineWidth(0.18);
+        const nL = Math.max(1, Math.floor((row.h-6)/5));
+        for(let li=0;li<nL;li++) doc.line(ml+lbW+3, y+5+li*5, ml+cw-3, y+5+li*5);
+      }
+
+      y += row.h;
+    });
+
+    /* ─ rodapé da ficha ─ */
+    const footY = y + 3;
+    doc.setDrawColor(185,135,42); doc.setLineWidth(0.35);
+    doc.line(ml, footY, PW-mr, footY);
+
+    doc.setDrawColor(175,167,156); doc.setLineWidth(0.22);
+    doc.rect(ml, footY+1.5, 90, 8, 'D');
+    doc.rect(ml+92, footY+1.5, 50, 8, 'D');
+    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(110,100,88);
+    doc.text('Assinatura do(a) professor(a) responsável', ml+2, footY+7);
+    doc.text('Data: _____ / _____ / 2026', ml+94, footY+7);
+    doc.setFontSize(6); doc.setTextColor(155,145,133);
+    doc.text('GETECULTURA 2026 · Mostra Cultural', PW-mr, footY+7, {align:'right'});
+
+    /* ─ linha de corte entre fichas ─ */
+    if(fi===0){
+      const cutY = fichaH - 1;
+      doc.setDrawColor(190,183,173); doc.setLineWidth(0.2);
+      doc.setLineDash([2,2], 0);
+      doc.line(ml, cutY, PW-mr, cutY);
+      doc.setLineDash([], 0);
+      doc.setFontSize(6); doc.setTextColor(180,172,162);
+      doc.text('✂', PW/2, cutY+2.5, {align:'center'});
+    }
+  }
+
+  const nome = blank
+    ? 'GETECULTURA2026_Formulario_Branco.pdf'
+    : `GETECULTURA2026_${(d.titulo||'atividade').replace(/[^a-zA-Z0-9À-ú\s]/g,'').replace(/\s+/g,'_').substring(0,38)}.pdf`;
+  doc.save(nome);
+  fecharModal();
+  toast(blank?'✓ Formulário em branco gerado!':'✓ PDF gerado com sucesso!');
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
