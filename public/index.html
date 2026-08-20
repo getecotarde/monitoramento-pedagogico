@@ -4238,7 +4238,12 @@ async function excluirEstudante(idx){
   if(!confirm(`Excluir "${est.n}" (${est.t}) definitivamente? Esta ação não pode ser desfeita.`)) return;
   if(est.id){
     try{
-      await sbDelete('estudantes', [`id=eq.${est.id}`]);
+      const { error } = await sbDelete('estudantes', [`id=eq.${est.id}`]);
+      if(error){
+        console.warn('Erro ao excluir estudante no Supabase:', error);
+        alert('Não foi possível excluir no servidor (o registro pode já ter sido alterado por outra pessoa). Atualize a página e tente novamente.');
+        return;
+      }
     }catch(e){
       console.warn('Erro ao excluir estudante no Supabase:', e);
       alert('Não foi possível excluir no servidor. Verifique a conexão e tente novamente.');
@@ -4434,56 +4439,14 @@ function closeEditModal(e){
   if(e.target===document.getElementById('editModalOverlay')) closeEditModalBtn();
 }
 
-function submitEdit(){
-  const el = document.getElementById('editModalText');
-  if(!el || !editTarget) return;
-  let newVal;
-  if(el.getAttribute && el.getAttribute('data-type')==='multiselect'){
-    const checked = Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
-    newVal = checked.length === 0 ? 'N/A' : checked.join(', ');
-  } else {
-    newVal = el.value.trim();
-  }
-  const { studentIdx, field } = editTarget;
-  const x = S[studentIdx];
-  const meta = FIELD_META[field];
-  const oldVal = field==='obs' ? (x.o||'') : (x[field]||'');
-
-  if(newVal === oldVal){ closeEditModalBtn(); return; }
-
-  const needsApproval = ROLES[currentRole].needsApproval;
-
-  if(needsApproval){
-    // Queue for approval
-    pendingEdits.push({
-      id: pendingIdCounter++,
-      studentIdx,
-      field,
-      oldVal,
-      newVal,
-      role: currentRole,
-      label: ROLES[currentRole].label,
-      fieldLabel: meta.label,
-      ts: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
-    });
-    updatePendingBtn();
-    closeEditModalBtn();
-    // Show toast
-    showToast(`Edição enviada para aprovação da Coordenação Pedagógica.`, 'amber');
-  } else {
-    // Apply immediately
-    if(field==='obs') x.o = newVal;
-    else              x[field] = newVal;
-    closeEditModalBtn();
-    // Re-render modal with updated data
-    if(currentModalIdx !== null) renderModalContent(currentModalIdx);
-    renderTable();
-    renderAtipicos();
-    renderDashboard();
-    showToast(`Campo "${meta.label}" atualizado com sucesso.`, 'verde');
-  }
-  editTarget = null;
-}
+// NOTA: a função submitEdit "real" (que salva no Supabase, sincroniza
+// nome nas outras abas e trata erro de gravação) está definida mais
+// abaixo, junto com o restante da lógica de sincronização em nuvem.
+// Havia uma versão antiga aqui, que só editava o array local em memória
+// e nunca chegou a ser atualizada para salvar no banco — como as duas
+// tinham o mesmo nome, a definição mais abaixo sempre prevalecia em
+// tempo de execução, mas manter as duas no arquivo só gerava confusão
+// (e risco de alguém editar a versão errada no futuro). Removida.
 
 /* ════════════════════════════════════════════════════════════
    PENDING PANEL
@@ -4500,67 +4463,11 @@ function closePendingPanel(e){
   if(e.target===document.getElementById('pendingPanelOverlay')) closePendingPanelBtn();
 }
 
-function renderPendingPanel(){
-  const list = document.getElementById('pendingList');
-  const isCoord = currentRole === 'coord-ped';
-  if(!pendingEdits.length){
-    list.innerHTML=`<div class="pending-empty">Nenhuma edição pendente de aprovação.</div>`;
-    return;
-  }
-  list.innerHTML = pendingEdits.map(ed=>{
-    const nome = ed.studentNome || (S.find(x=>x.id===ed.studentId)?.n) || '—';
-    const acoes = isCoord ? `
-      <div class="pending-item-actions">
-        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
-        <button class="btn-edit-approve" onclick="abrirApproveEdit(${ed.id})">✎ Editar e aprovar</button>
-        <button class="btn-reject" onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
-      </div>` : `
-      <div style="font-size:11px;color:#AAA;margin-top:4px">Aguardando aprovação da Coordenação Pedagógica.</div>`;
-    return `
-    <div class="pending-item" id="pend-${ed.id}">
-      <div class="pending-item-header">
-        <div class="pending-item-name">${nome}</div>
-        <span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>
-      </div>
-      <div class="pending-item-field">${ed.fieldLabel}</div>
-      <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
-      <div class="pending-item-new">${ed.newVal}</div>
-      <div class="pending-item-meta">Enviado às ${ed.ts}</div>
-      ${acoes}
-    </div>`;
-  }).join('');
-}
-
-async function approvePending(id, valorFinal){
-  const ed = pendingEdits.find(x=>x.id===id);
-  if(!ed) return;
-  const val = valorFinal !== undefined ? valorFinal : ed.newVal;
-
-  // Salva no estudante no Supabase
-  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
-  const { error } = await sbPatch('estudantes', { [dbField]: val }, [`id=eq.${ed.studentId}`]);
-  if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
-
-  // Remove da tabela de pendentes no Supabase
-  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
-
-  // Atualiza array local S
-  const idx = S.findIndex(x=>x.id===ed.studentId);
-  if(idx>=0){ if(ed.field==='obs') S[idx].o=val; else S[idx][ed.field]=val; }
-
-  await carregarPendentes();
-  renderPendingPanel();
-  renderTable(); renderAtipicos(); renderDashboard();
-  if(currentModalIdx !== null) renderModalContent(currentModalIdx);
-  showToast('Edição aprovada e aplicada.', 'verde');
-}
-
-async function rejectPending(id){
-  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
-  await carregarPendentes();
-  renderPendingPanel();
-  showToast('Edição rejeitada.', 'coral');
-}
+// NOTA: assim como submitEdit, as versões "reais" de renderPendingPanel,
+// approvePending e rejectPending (que gravam no Supabase) estão definidas
+// mais abaixo. As versões antigas que existiam aqui foram removidas pelo
+// mesmo motivo — eram sombreadas em tempo de execução e só causavam
+// confusão de manutenção.
 
 // Abre modal para editar o texto antes de aprovar
 function abrirApproveEdit(id){
@@ -5617,13 +5524,32 @@ async function sbPatch(table, obj, filters){
     body: JSON.stringify(obj)
   });
   const data = await r.json();
-  return { data, error: r.ok ? null : data };
+  if(!r.ok) return { data, error: data };
+  // O Supabase/PostgREST responde 200 com um array VAZIO quando o filtro
+  // (ex.: id=eq.123) não encontra nenhuma linha — isso não é erro HTTP,
+  // mas significa que NADA foi realmente salvo no banco. Sem checar isso,
+  // o app achava que a edição tinha funcionado (e atualizava a tela local),
+  // enquanto o registro no servidor continuava com o valor antigo. Na
+  // sincronização seguinte o valor antigo "voltava", dando a impressão de
+  // que o app manteve o nome errado e/ou duplicou o aluno.
+  if(Array.isArray(data) && data.length===0 && filters && filters.length){
+    return { data, error: { message: 'Nenhum registro correspondente foi encontrado no servidor para atualizar.' } };
+  }
+  return { data, error: null };
 }
 async function sbDelete(table, filters){
   let url = `${SUPABASE_URL}/rest/v1/${table}?`;
   if(filters && filters.length) url += filters.join('&');
   const r = await fetch(url, { method:'DELETE', headers: sbHeaders() });
-  return { error: r.ok ? null : await r.json() };
+  let data = [];
+  try{ data = await r.json(); }catch(e){ data = []; }
+  if(!r.ok) return { data, error: data };
+  // Mesmo raciocínio do sbPatch: DELETE que não encontra a linha também
+  // responde 200 com array vazio, e isso não pode ser tratado como sucesso.
+  if(Array.isArray(data) && data.length===0 && filters && filters.length){
+    return { data, error: { message: 'Nenhum registro correspondente foi encontrado no servidor para excluir.' } };
+  }
+  return { data, error: null };
 }
 
 /* ── Realtime via WebSocket ───────────────────────────────── */
@@ -6084,7 +6010,13 @@ async function carregarEstudantes(){
 
     if(somenteLocais.length){
       console.warn(`[AVISO] ${somenteLocais.length} aluno(s) existiam só no cadastro fixo do código e foram preservados nesta sessão. Migrando para o Supabase para não se perderem:`, somenteLocais.map(x=>x.n));
-      migrarAlunosOrfaosParaSupabase(somenteLocais);
+      // Antes isso disparava sem "await" (fire-and-forget): a tela liberava
+      // a edição do aluno antes de ele ter um id real do Supabase, e uma
+      // edição feita nessa janela de tempo não era salva no servidor
+      // (ver correção em submitEdit/sbPatch). Agora aguardamos a migração
+      // terminar antes de seguir, para que x.id já esteja definido quando
+      // o usuário conseguir interagir com a tela.
+      await migrarAlunosOrfaosParaSupabase(somenteLocais);
     }
   } catch(err) {
     console.error('Erro ao carregar estudantes do Supabase:', err);
@@ -7497,6 +7429,16 @@ async function submitEdit(){
   const meta = FIELD_META[field];
   const oldVal = field==='obs' ? (x.o||'') : (field==='ocn' ? (x.ocn ?? 0) : (x[field]||''));
   if(newVal===oldVal){ closeEditModalBtn(); return; }
+  // Aluno ainda sem id do Supabase = ainda está sendo migrado/sincronizado
+  // (acontece por 1-2s logo após o carregamento). Editar nesse instante
+  // fazia o app "salvar" só localmente, sem gravar nada no servidor —
+  // e na sincronização seguinte o valor antigo voltava, dando a
+  // impressão de nome duplicado/errado. Bloqueamos e avisamos em vez
+  // de deixar isso acontecer silenciosamente.
+  if(!x.id){
+    showToast('Este aluno ainda está sendo sincronizado com o servidor. Aguarde alguns segundos e tente novamente.','amber');
+    return;
+  }
   const needsApproval = ROLES[currentRole].needsApproval;
 
   if(needsApproval){
@@ -7619,21 +7561,33 @@ function renderPendingPanel(){
   }).join('');
 }
 
-async function approvePending(id){
+async function approvePending(id, valorFinal){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
+  // Permite que a Coordenação ajuste o valor antes de aprovar
+  // ("Editar e aprovar"); se nada for passado, usa o valor proposto.
+  const val = valorFinal !== undefined ? valorFinal : ed.newVal;
+  if(!ed.studentId){
+    showToast('Este aluno ainda não está sincronizado com o servidor. Aguarde e tente novamente.','coral');
+    return;
+  }
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
-  await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
-  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, ed.newVal);
+  const { error } = await sbPatch('estudantes',{ [dbField]:val },[ `id=eq.${ed.studentId}` ]);
+  if(error){
+    console.warn('Erro ao aprovar edição no Supabase:', error);
+    showToast('Erro ao salvar no servidor. Nada foi alterado — tente novamente.','coral');
+    return;
+  }
+  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, val);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
-  await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
+  await sbPatch('aprovacoes_pendentes',{ status:'aprovado', valor_novo:val },[ `id=eq.${id}` ]);
   // Atualiza S local
   const idx = S.findIndex(x=>x.id===ed.studentId);
   if(idx!==-1){
     const oldV = ed.field==='obs' ? (S[idx].o||'') : (ed.field==='ocn' ? (S[idx].ocn ?? 0) : (S[idx][ed.field]||''));
-    pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:ed.newVal, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
-    if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal;
+    pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:val, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
+    if(ed.field==='obs') S[idx].o=val; else S[idx][ed.field]=val;
   }
   await carregarPendentes();
   renderPendingPanel();
