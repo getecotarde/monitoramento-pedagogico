@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade de Disponibilidade — Interclasse 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#1a7a3c;--green2:#23a050;--green3:#e8f5ee;--green4:#0f5a2a;
+  --gold:#d4a017;--gold3:#f5c842;
+  --red:#c0392b;--blue:#1565c0;--purple:#7b1fa2;
+  --gray1:#f0f0ed;--gray2:#d8d8d4;--gray3:#888;--gray4:#444;
+  --dark:#111;--white:#fff;
+  --font-head:'Bebas Neue',sans-serif;
+  --font:'Barlow',sans-serif;
+  --font-cond:'Barlow Condensed',sans-serif;
+  --brd:2px solid #333;
+  --brd-light:1.5px solid #bbb;
+  --brd-day:3px solid;
+}
+body{font-family:var(--font);background:var(--gray1);color:var(--dark)}
+
+/* ── TOOLBAR ── */
+.toolbar{background:var(--green4);position:sticky;top:0;z-index:50;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+.stripe{height:5px;background:repeating-linear-gradient(90deg,var(--gold3) 0,var(--gold3) 16px,var(--green2) 16px,var(--green2) 32px)}
+.tb{display:flex;align-items:center;gap:8px;padding:9px 16px;flex-wrap:wrap}
+.tb-title{font-family:var(--font-head);font-size:18px;color:#fff;letter-spacing:2px;line-height:1}
+.tb-sub{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--font-cond);letter-spacing:.8px;margin-top:1px}
+.sp{flex:1}
+.btn{padding:6px 12px;border-radius:5px;font-family:var(--font-cond);font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;transition:.15s;white-space:nowrap}
+.btn-gold{background:var(--gold3);color:var(--dark)}.btn-gold:hover{background:var(--gold)}
+.btn-ghost{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.22)}.btn-ghost:hover{background:rgba(255,255,255,.22)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.1)}
+.orient-toggle{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px}
+.ot-btn{padding:5px 9px;border-radius:4px;font-family:var(--font-cond);font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.6);transition:.15s}
+.ot-btn.active{background:rgba(255,255,255,.25);color:#fff}
+
+/* ── PAGE ── */
+.page{padding:12px 16px;max-width:1080px;margin:0 auto}
+
+/* ── LEGENDA ── */
+.legend{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;align-items:center}
+.leg-label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin-right:3px}
+.leg-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-cond);font-weight:700;padding:3px 9px;border-radius:3px;border:2px solid transparent}
+
+/* ── TABELA ── */
+.wrap{overflow-x:auto;border-radius:4px;border:var(--brd);box-shadow:0 3px 14px rgba(0,0,0,.13)}
+
+table{
+  width:100%;border-collapse:collapse;background:#fff;
+  table-layout:fixed
+}
+
+/* cabeçalho */
+th{
+  background:var(--dark);color:#fff;
+  font-family:var(--font-cond);font-weight:700;letter-spacing:.4px;
+  padding:10px 8px;text-align:center;
+  border-right:var(--brd);
+}
+th:last-child{border-right:none}
+th.th-hora{text-align:left;width:92px;font-size:12px;border-right:var(--brd)}
+th.th-dia .dn{font-family:var(--font-head);font-size:22px;line-height:1;display:block}
+th.th-dia .ds{font-size:11px;opacity:.75;font-weight:600;display:block}
+th.th-dia .dt{font-size:9px;opacity:.45;font-style:italic;display:block;margin-top:1px}
+
+/* células de horário (col esquerda) */
+td.td-hora{
+  background:#f7f7f5;
+  font-family:var(--font-cond);font-size:13px;font-weight:700;
+  padding:0;vertical-align:top;
+  border-right:var(--brd);border-bottom:var(--brd);
+  width:92px
+}
+.hora-inner{padding:9px 10px}
+.hora-id{font-size:15px;color:var(--dark);font-weight:700;line-height:1}
+.hora-range{font-size:9px;color:var(--gray3);display:block;margin-top:2px;line-height:1.3;font-weight:500}
+
+/* linha de recreio */
+tr.rec-row td{
+  background:#e0e0dc;text-align:center;padding:5px;
+  font-family:var(--font-cond);font-size:11px;color:#666;
+  font-style:italic;letter-spacing:.3px;
+  border-bottom:var(--brd);border-top:var(--brd)
+}
+
+/* separador entre horários */
+tr.h-sep td{height:1px;background:#ccc;padding:0;border:none}
+
+/* célula dia×hora */
+td.td-cell{
+  padding:4px 5px;
+  border-right:var(--brd-light);border-bottom:var(--brd);
+  vertical-align:top
+}
+td.td-cell:last-child{border-right:none}
+
+/* espaço dentro da célula */
+.esp-row{
+  display:flex;align-items:stretch;
+  border:2px solid #bbb;border-radius:3px;
+  margin-bottom:3px;cursor:pointer;
+  overflow:hidden;transition:filter .1s
+}
+.esp-row:last-child{margin-bottom:0}
+.esp-row:hover{filter:brightness(.93)}
+
+.esp-tag{
+  writing-mode:vertical-rl;text-orientation:mixed;
+  transform:rotate(180deg);
+  font-family:var(--font-cond);font-size:9px;font-weight:700;
+  letter-spacing:.5px;
+  padding:3px 2px;display:flex;align-items:center;justify-content:center;
+  white-space:nowrap;min-width:16px;flex-shrink:0;
+  color:#fff
+}
+.esp-tag.fut  {background:#1a3a20}
+.esp-tag.volei{background:#5a4000}
+.esp-tag.esp3 {background:#0d2f6e}
+.esp-tag.esp4 {background:#3d0060}
+
+.esp-slot{
+  flex:1;padding:3px 6px;font-family:var(--font-cond);font-size:11px;
+  display:flex;flex-direction:column;justify-content:center;line-height:1.3;
+  min-height:38px
+}
+.esp-slot.livre{color:#bbb;font-style:italic;font-size:10px}
+.esp-slot.futsal  {background:#e4f3ea;border-left:2px solid #23a050;color:#0f5a2a}
+.esp-slot.volei   {background:#fffbe6;border-left:2px solid var(--gold);color:#7a4a00}
+.esp-slot.basquete{background:#e0eeff;border-left:2px solid var(--blue);color:#0d3d7a}
+.esp-slot.final   {background:#fff3cd;border-left:3px solid var(--gold3);color:#7a4a00;font-weight:700}
+.esp-slot.reservado{background:#f0f0f0;border-left:2px solid #aaa;color:#666}
+.s-espaco{font-size:9px;opacity:.6;font-weight:500}
+
+.s-mod  {font-weight:700;font-size:11px;line-height:1.2}
+.s-times{font-size:10px;line-height:1.2}
+.s-fase {font-size:9px;opacity:.65;margin-top:1px}
+
+/* ── TOTAIS ── */
+.totais{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.tot{background:#fff;border-radius:4px;padding:10px 12px;text-align:center;border:var(--brd-light);border-top-width:4px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.tot-n{font-family:var(--font-head);font-size:28px;line-height:1}
+.tot-bar-bg{background:var(--gray2);border-radius:20px;height:5px;margin:5px 0 3px;overflow:hidden}
+.tot-bar{height:5px;border-radius:20px;transition:.4s}
+.tot-l{font-size:10px;font-family:var(--font-cond);color:var(--gray3)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;align-items:center;justify-content:center;z-index:200;padding:14px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:20px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.28);position:relative;max-height:92vh;overflow-y:auto;border-top:4px solid var(--green2)}
+.modal-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:var(--gray3);font-size:20px;line-height:1}
+.modal-title{font-family:var(--font-head);font-size:17px;letter-spacing:1px;color:var(--dark);margin-bottom:2px}
+.modal-sub{font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-bottom:14px;line-height:1.4}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+.fg input,.fg select{width:100%;padding:8px 10px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
+.fg input:focus,.fg select:focus{border-color:var(--green2);outline:none}
+.preview{border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;transition:.2s;border:2px solid #eee;color:#aaa}
+.m-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.mb{padding:7px 12px;border-radius:4px;font-family:var(--font-cond);font-size:12px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
+.mb-green{background:var(--green2);color:#fff}.mb-green:hover{background:var(--green)}
+.mb-del{background:#fee;color:var(--red);border:1.5px solid #fcc}.mb-del:hover{background:#fdd}
+.mb-ghost{background:var(--gray2);color:var(--gray4)}.mb-ghost:hover{background:#ccc;color:#111}
+
+/* ── MODAL ESPAÇOS ── */
+.modal-esp{max-width:440px}
+.esp-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.esp-edit-row .esp-color{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.esp-edit-row label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;width:90px;flex-shrink:0}
+.esp-edit-row input{flex:1;padding:6px 9px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
+.esp-edit-row input:focus{border-color:var(--green2);outline:none}
+.esp-preview-tag{display:inline-block;font-family:var(--font-cond);font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:#fff;letter-spacing:.5px;min-width:36px;text-align:center}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:8px 18px;border-radius:20px;font-family:var(--font-cond);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:500;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* ══════════════════════════════════
+   IMPRESSÃO — página única, economia de tinta
+══════════════════════════════════ */
+@media print{
+  @page { margin: 5mm; }
+  @page retrato  { size: A4 portrait;  margin: 5mm; }
+  @page paisagem { size: A4 landscape; margin: 5mm; }
+
+  .toolbar,.legend,.totais,.modal-bg,.toast{ display:none!important }
+
+  /* forçar tudo numa página */
+  html,body{ height:auto!important; overflow:visible!important; }
+  body{
+    background:#fff;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .page{ padding:0; max-width:100%; }
+
+  /* tabela ocupa toda a largura e altura disponível */
+  .wrap{
+    border-radius:0; box-shadow:none; overflow:visible;
+    border:1px solid #666;
+    width:100%; display:block;
+  }
+  table{ width:100%; table-layout:fixed; }
+
+  /* ECONOMIA DE TINTA */
+  th{
+    background:#fff!important; color:#111!important;
+    border:1px solid #888!important;
+    padding:3px 3px; font-size:9px;
+  }
+  th.th-hora{ width:58px!important; }
+  th.th-dia .dn{ font-size:13px; color:#111!important; }
+  th.th-dia .ds{ font-size:8px; }
+  th.th-dia .dt{ font-size:7px; }
+
+  td.td-hora{
+    background:#f5f5f5!important; width:58px!important;
+    border:1px solid #aaa!important;
+  }
+  .hora-inner{ padding:3px 5px; }
+  .hora-id{ font-size:11px; }
+  .hora-range{ font-size:7px; }
+
+  td.td-cell{
+    padding:2px 3px;
+    border:1px solid #bbb!important;
+    border-left:none!important;
+  }
+
+  /* tag lateral — só borda, sem fundo escuro */
+  .esp-tag{
+    font-size:7px; min-width:12px; padding:2px 1px;
+    background:#fff!important; color:#111!important;
+    border-right:1px solid #ccc;
+    writing-mode:vertical-rl;
+  }
+  .esp-tag.fut  { border-right-color:#1a3a20!important; color:#1a3a20!important; }
+  .esp-tag.volei{ border-right-color:#5a4000!important; color:#5a4000!important; }
+  .esp-tag.esp3 { border-right-color:#0d2f6e!important; color:#0d2f6e!important; }
+
+  /* slots — sem fundo, só borda colorida à esquerda */
+  .esp-row{
+    margin-bottom:1px; border:1px solid #ccc!important;
+    page-break-inside:avoid;
+  }
+  .esp-slot{
+    background:#fff!important; min-height:22px; padding:1px 4px;
+    border-left-width:2px!important;
+  }
+  .esp-slot.livre{ color:#ccc!important; }
+  .esp-slot.futsal  { border-left-color:#23a050!important; color:#0f5a2a!important; }
+  .esp-slot.volei   { border-left-color:#d4a017!important; color:#7a4a00!important; }
+  .esp-slot.basquete{ border-left-color:#1565c0!important; color:#0d3d7a!important; }
+  .esp-slot.final   { border-left-color:#d4a017!important; color:#7a4a00!important; font-weight:700!important; }
+  .esp-slot.reservado{ border-left-color:#aaa!important; color:#666!important; }
+
+  .s-mod{ font-size:8px; font-weight:700; }
+  .s-times{ font-size:7px; }
+  .s-fase{ font-size:6px; }
+
+  tr.rec-row td{
+    background:#eee!important; padding:2px;
+    font-size:8px; color:#666!important;
+    border:1px solid #bbb!important;
+  }
+
+  /* cabeçalho de dia sem cor de fundo — só texto */
+  th.th-dia{ border-bottom:2px solid #555!important; }
+
+  /* ORIENTAÇÃO controlada por JS via classe no <html> */
+  html.retrato  { page: retrato;  }
+  html.paisagem { page: paisagem; }
+
+  /* modo transposto na impressão: col de dia mais larga */
+  html.transposto td.td-hora{ width:78px!important; }
+  html.transposto th.th-hora{ width:78px!important; }
+
+  /* versão em branco */
+  body.print-blank .s-mod,
+  body.print-blank .s-times,
+  body.print-blank .s-fase{ visibility:hidden }
+  body.print-blank .esp-slot:not(.livre){
+    background:#fff!important;
+    color:transparent!important;
+  }
+
+  /* cabeçalho de impressão */
+  .print-header{ display:block!important; text-align:center; margin-bottom:6px; font-family:'Barlow Condensed',sans-serif; }
+  .print-header h1{ font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:#111; }
+  .print-header p{ font-size:10px; color:#666; letter-spacing:.5px; }
+  .print-header .print-mode{ font-size:9px; color:#999; font-style:italic; margin-top:2px; }
+}
+/* esconder cabeçalho de impressão na tela */
+.print-header{ display:none }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="stripe"></div>
+  <div class="tb">
+    <div>
+      <div class="tb-title">INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</div>
+      <div class="tb-sub">08 A 11 DE SETEMBRO · GETECO · PROF. MARCELO · ED. FÍSICA</div>
+    </div>
+    <div class="sp"></div>
+    <div class="orient-toggle">
+      <button class="ot-btn active" id="ot-p" onclick="setOrient('retrato',this)">▯ Retrato</button>
+      <button class="ot-btn"        id="ot-l" onclick="setOrient('paisagem',this)">▭ Paisagem</button>
+    </div>
+    <button class="btn btn-ghost" id="btn-transp" onclick="toggleTranspose()">⇄ Transpor tabela</button>
+    <button class="btn btn-ghost"   onclick="abrirModalEspacos()">✏️ Espaços</button>
+    <button class="btn btn-ghost"   onclick="limparGrade()">🗑 Limpar</button>
+    <button class="btn btn-gold"    onclick="imprimir(false)">🖨 Imprimir preenchido</button>
+    <button class="btn btn-outline" onclick="imprimir(true)">🖨 Em branco</button>
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="page">
+
+  <!-- Legenda (só na tela) -->
+  <div class="legend">
+    <span class="leg-label">Modalidades:</span>
+    <span class="leg-chip" style="background:#e4f3ea;border-color:#23a050;color:#0f5a2a">⚽ Futsal</span>
+    <span class="leg-chip" style="background:#fffbe6;border-color:#d4a017;color:#7a4a00">🏐 Vôlei</span>
+    <span class="leg-chip" style="background:#e0eeff;border-color:#1565c0;color:#0d3d7a">🏀 Basquete</span>
+    <span class="leg-chip" style="background:#fff3cd;border-color:#d4a017;color:#7a4a00;font-weight:700">🏆 Final</span>
+    <span class="leg-chip" style="background:#f0f0f0;border-color:#aaa;color:#666">⏸ Reservado</span>
+    <span style="font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-left:4px">· Clique num espaço para editar</span>
+  </div>
+
+  <!-- Cabeçalho só na impressão -->
+  <div class="print-header">
+    <h1>INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</h1>
+    <p>08 A 11 DE SETEMBRO &nbsp;·&nbsp; GETECO &nbsp;·&nbsp; Prof. Marcelo — Educação Física</p>
+    <p class="print-mode" id="print-mode-label"></p>
+  </div>
+
+  <!-- Tabela -->
+  <div class="wrap">
+    <table id="main-table">
+      <colgroup id="colgroup"></colgroup>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Totalizadores (só na tela) -->
+  <div class="totais" id="totais"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <div class="modal-title" id="m-title"></div>
+    <div class="modal-sub"   id="m-sub"></div>
+    <input type="hidden" id="m-esp">
+    <input type="hidden" id="m-dia">
+    <input type="hidden" id="m-hora">
+    <div class="fg">
+      <label>Modalidade / Esporte</label>
+      <select id="m-mod" onchange="atualizarPreview()">
+        <option value="">— Livre / Vazio —</option>
+        <option value="futsal">⚽ Futsal</option>
+        <option value="volei">🏐 Vôlei</option>
+        <option value="basquete">🏀 Basquete</option>
+        <option value="final">🏆 Final</option>
+        <option value="reservado">⏸ Reservado / Pausa</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Espaço / Local</label>
+      <select id="m-espaco" onchange="atualizarPreview()">
+        <option value="">— não definido —</option>
+        <option value="Q1">Q1 — Quadra 1</option>
+        <option value="Q2">Q2 — Quadra 2</option>
+        <option value="B1">B1 — Basquete 1</option>
+        <option value="V1">V1 — Vôlei 1</option>
+      </select>
+    </div>
+    <div class="preview" id="m-preview">— livre —</div>
+    <div class="fg"><label>Time A / Turma A</label><input id="m-tA" placeholder="Ex: 7º A" oninput="atualizarPreview()"></div>
+    <div class="fg"><label>Time B / Turma B</label><input id="m-tB" placeholder="Ex: 7º B" oninput="atualizarPreview()"></div>
+    <div class="fg"><label>Fase / Observação</label><input id="m-fase" placeholder="Ex: Triangular J1, Chave, Final..." oninput="atualizarPreview()"></div>
+    <div class="m-act">
+      <button class="mb mb-green" onclick="salvar()">💾 Salvar</button>
+      <button class="mb mb-del"   onclick="limparSlot()">✕ Limpar slot</button>
+      <button class="mb mb-ghost" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ESPAÇOS -->
+<div class="modal-bg" id="modal-espacos">
+  <div class="modal modal-esp">
+    <button class="modal-close" onclick="fecharModalEspacos()">✕</button>
+    <div class="modal-title">✏️ EDITAR ESPAÇOS</div>
+    <div class="modal-sub" style="margin-bottom:16px">Personalize os nomes exibidos na tag lateral de cada espaço</div>
+    <div id="esp-edit-list"></div>
+    <div class="m-act" style="margin-top:14px">
+      <button class="mb mb-green" onclick="salvarEspacos()">💾 Salvar</button>
+      <button class="mb mb-ghost" onclick="fecharModalEspacos()">Cancelar</button>
+      <button class="mb mb-del"   onclick="resetarEspacos()">↩ Restaurar padrão</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DIAS = [
+  {key:'d08',num:'08',nome:'TERÇA',   data:'2026-09-08',turma:'',cor:'#23a050'},
+  {key:'d09',num:'09',nome:'QUARTA',  data:'2026-09-09',turma:'',cor:'#1565c0'},
+  {key:'d10',num:'10',nome:'QUINTA',  data:'2026-09-10',turma:'',cor:'#d4a017'},
+  {key:'d11',num:'11',nome:'SEXTA',   data:'2026-09-11',turma:'',cor:'#c0392b'},
+];
+const HORAS = [
+  {id:'H1',label:'H1',range:'13:20 – 14:00',rec:false},
+  {id:'H2',label:'H2',range:'14:00 – 14:40',rec:false},
+  {id:'H3',label:'H3',range:'14:40 – 15:20',rec:false},
+  {id:'R0',label:'RECREIO',range:'15:20 – 16:00',rec:true},
+  {id:'H4',label:'H4',range:'16:00 – 16:40',rec:false},
+  {id:'H5',label:'H5',range:'16:40 – 17:20',rec:false},
+];
+const ESPACOS_DEFAULT = [
+  {key:'q1', lbl:'Q1', css:'fut',  icon:'⚽',nome:'Quadra 1 (Futsal)'},
+  {key:'q2', lbl:'Q2', css:'fut',  icon:'⚽',nome:'Quadra 2 (Futsal)'},
+  {key:'b1', lbl:'B1', css:'esp3', icon:'🏅',nome:'Basquete 1'},
+  {key:'v1', lbl:'V1', css:'volei',icon:'🏐',nome:'Vôlei 1'},
+];
+// Labels editáveis — carregados do localStorage
+const LS_LBL='ic26_lbls';
+let _lbls={};
+function loadLbls(){try{const s=localStorage.getItem(LS_LBL);if(s)_lbls=JSON.parse(s);}catch(e){}}
+function saveLbls(){try{localStorage.setItem(LS_LBL,JSON.stringify(_lbls));}catch(e){}}
+function getLbl(key){return _lbls[key]||ESPACOS_DEFAULT.find(e=>e.key===key)?.lbl||key;}
+// ESPACOS é gerado dinamicamente com os labels atuais
+function getEspacos(){return ESPACOS_DEFAULT.map(e=>({...e,lbl:getLbl(e.key)}));}
+
+// ─ MODAL ESPAÇOS ─
+const ESP_COLORS={fut:'#1a3a20',volei:'#5a4000',esp3:'#0d2f6e',esp4:'#3d0060'};
+function abrirModalEspacos(){
+  const list=document.getElementById('esp-edit-list');
+  list.innerHTML=ESPACOS_DEFAULT.map(e=>{
+    const cur=getLbl(e.key);
+    const col=ESP_COLORS[e.css]||'#333';
+    return `<div class="esp-edit-row">
+      <span class="esp-preview-tag" style="background:${col}">${cur}</span>
+      <label>${e.icon} ${e.nome}</label>
+      <input id="elbl-${e.key}" value="${cur}" placeholder="${e.lbl}" maxlength="18"
+        oninput="document.querySelector('#esp-edit-list .esp-edit-row:nth-child(${ESPACOS_DEFAULT.indexOf(e)+1}) .esp-preview-tag').textContent=this.value||'${e.lbl}'">
+    </div>`;
+  }).join('');
+  document.getElementById('modal-espacos').classList.add('open');
+}
+function fecharModalEspacos(){document.getElementById('modal-espacos').classList.remove('open');}
+function salvarEspacos(){
+  ESPACOS_DEFAULT.forEach(e=>{
+    const v=document.getElementById('elbl-'+e.key)?.value.trim();
+    if(v)_lbls[e.key]=v; else delete _lbls[e.key];
+  });
+  saveLbls();fecharModalEspacos();render();toast('✅ Espaços atualizados!');
+}
+function resetarEspacos(){
+  _lbls={};saveLbls();fecharModalEspacos();render();toast('↩ Nomes restaurados.');
+}
+let ESPACOS=getEspacos();
+const MOD = {
+  futsal:   {bg:'#e4f3ea',brd:'#23a050',txt:'#0f5a2a',icon:'⚽',nome:'Futsal'},
+  volei:    {bg:'#fffbe6',brd:'#d4a017',txt:'#7a4a00',icon:'🏐',nome:'Vôlei'},
+  basquete: {bg:'#e0eeff',brd:'#1565c0',txt:'#0d3d7a',icon:'🏀',nome:'Basquete'},
+  final:    {bg:'#fff3cd',brd:'#d4a017',txt:'#7a4a00',icon:'🏆',nome:'Final'},
+  reservado:{bg:'#f0f0f0',brd:'#aaa',   txt:'#666',   icon:'⏸',nome:'Reservado'},
+};
+
+// ─ STORAGE ─
+const LS='ic26_grade3';
+let G={};
+function load(){try{const s=localStorage.getItem(LS);if(s)G=JSON.parse(s);}catch(e){}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(G));}catch(e){}}
+function get(e,d,h){return G[e]?.[d]?.[h]||null;}
+function put(e,d,h,v){
+  if(!G[e])G[e]={};if(!G[e][d])G[e][d]={};
+  if(!v||!v.mod)delete G[e][d][h];else G[e][d][h]=v;
+  save();
+}
+
+// ─ RENDER ─
+function cellHTML(esp, d, h){
+  const ESPACOS=getEspacos();
+  const espObj=ESPACOS.find(e=>e.key===esp.key)||esp;
+  const s=get(esp.key,d.key,h.id);
+  const m=s?.mod?MOD[s.mod]:null;
+  return `<div class="esp-row" onclick="abrirModal('${esp.key}','${d.key}','${h.id}')">
+    <div class="esp-tag ${esp.css}">${espObj.lbl}</div>
+    <div class="esp-slot ${s?.mod||'livre'}">
+      ${m
+        ?`<div class="s-mod">${m.icon} ${m.nome}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
+          ${s.timeA||s.timeB?`<div class="s-times">${s.timeA||''}${s.timeB?' × '+s.timeB:''}</div>`:''}
+          ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
+        :`<span>livre</span>`}
+    </div>
+  </div>`;
+}
+
+function render(){
+  const ESPACOS=getEspacos();
+  const HORAS_REAIS=HORAS.filter(h=>!h.rec);
+
+  if(!_transposed){
+    // ── MODO NORMAL: linhas=horários, colunas=dias ──
+    document.getElementById('colgroup').innerHTML =
+      `<col style="width:92px">` + DIAS.map(()=>`<col>`).join('');
+
+    document.getElementById('thead').innerHTML = `<tr>
+      <th class="th-hora" style="border-bottom:3px solid #444">Horário</th>
+      ${DIAS.map(d=>`
+        <th class="th-dia" style="border-bottom:4px solid ${d.cor};border-right:2px solid #333">
+          <span class="dn" style="color:${d.cor}">${d.num}/Set</span>
+          <span class="ds">${d.nome}</span>
+          <span class="dt">${d.turma}</span>
+        </th>`).join('')}
+    </tr>`;
+
+    let html='';
+    HORAS.forEach(h=>{
+      if(h.rec){
+        html+=`<tr class="rec-row"><td colspan="${DIAS.length+1}">⏸ &nbsp; RECREIO / INTERVALO &nbsp;·&nbsp; ${h.range} &nbsp; ⏸</td></tr>`;
+        return;
+      }
+      html+=`<tr>
+        <td class="td-hora" style="border-bottom:2px solid #bbb">
+          <div class="hora-inner">
+            <div class="hora-id">${h.label}</div>
+            <span class="hora-range">${h.range}</span>
+          </div>
+        </td>`;
+      DIAS.forEach(d=>{
+        html+=`<td class="td-cell" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
+        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
+        html+=`</td>`;
+      });
+      html+=`</tr>`;
+    });
+    document.getElementById('tbody').innerHTML=html;
+
+  } else {
+    // ── MODO TRANSPOSTO: linhas=dias, colunas=horários ──
+    document.getElementById('colgroup').innerHTML =
+      `<col style="width:110px">` + HORAS_REAIS.map(()=>`<col>`).join('');
+
+    document.getElementById('thead').innerHTML = `<tr>
+      <th class="th-hora" style="border-bottom:3px solid #444">Dia</th>
+      ${HORAS_REAIS.map(h=>`
+        <th class="th-dia" style="border-bottom:3px solid #444;border-right:2px solid #333">
+          <span class="dn" style="color:#fff;font-size:16px">${h.label}</span>
+          <span class="ds" style="font-size:9px;opacity:.7">${h.range}</span>
+        </th>`).join('')}
+    </tr>`;
+
+    let html='';
+    DIAS.forEach(d=>{
+      html+=`<tr>
+        <td class="td-hora" style="border-bottom:2px solid #bbb;border-top:3px solid ${d.cor}">
+          <div class="hora-inner">
+            <div class="hora-id" style="color:${d.cor}">${d.num}/Set</div>
+            <span class="hora-range">${d.nome}</span>
+            <span class="hora-range" style="font-size:8px">${d.turma}</span>
+          </div>
+        </td>`;
+      HORAS_REAIS.forEach(h=>{
+        html+=`<td class="td-cell" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
+        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
+        html+=`</td>`;
+      });
+      html+=`</tr>`;
+    });
+    document.getElementById('tbody').innerHTML=html;
+  }
+
+  // totais
+  document.getElementById('totais').innerHTML=DIAS.map(d=>{
+    let t=0,f=0;
+    ESPACOS.forEach(esp=>HORAS_REAIS.forEach(h=>{t++;if(get(esp.key,d.key,h.id)?.mod)f++;}));
+    const pct=t?Math.round(f/t*100):0;
+    return `<div class="tot" style="border-top-color:${d.cor}">
+      <div class="tot-n" style="color:${d.cor}">${f}<span style="font-size:14px;opacity:.4">/${t}</span></div>
+      <div class="tot-bar-bg"><div class="tot-bar" style="width:${pct}%;background:${d.cor}"></div></div>
+      <div class="tot-l">${d.nome} ${d.num}/Set — ${pct}% ocupado</div>
+    </div>`;
+  }).join('');
+}
+
+// ─ TRANSPOR ─
+let _transposed=false;
+function toggleTranspose(){
+  _transposed=!_transposed;
+  const btn=document.getElementById('btn-transp');
+  btn.style.background=_transposed?'rgba(255,255,255,.35)':'';
+  btn.style.outline=_transposed?'2px solid var(--gold3)':'';
+  btn.textContent=_transposed?'⇅ Vista normal':'⇄ Transpor tabela';
+  render();
+}
+
+// ─ ORIENTAÇÃO ─
+let _orient='retrato';
+function setOrient(o,btn){
+  _orient=o;
+  document.querySelectorAll('.ot-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─ MODAL ─
+let _e,_d,_h;
+function abrirModal(esp,dia,hora){
+  _e=esp;_d=dia;_h=hora;
+  const eO=ESPACOS_DEFAULT.find(e=>e.key===esp);
+  const dO=DIAS.find(d=>d.key===dia);
+  const hO=HORAS.find(h=>h.id===hora);
+  const s=get(esp,dia,hora)||{};
+  document.getElementById('m-title').textContent=`${eO.icon} ${eO.nome}`;
+  document.getElementById('m-sub').textContent=`${dO.nome} ${dO.num}/Set · ${hO.label} · ${hO.range} · ${dO.turma}`;
+  document.getElementById('m-esp').value=esp;
+  document.getElementById('m-dia').value=dia;
+  document.getElementById('m-hora').value=hora;
+  document.getElementById('m-mod').value=s.mod||'';
+  document.getElementById('m-espaco').value=s.espaco||'';
+  document.getElementById('m-tA').value=s.timeA||'';
+  document.getElementById('m-tB').value=s.timeB||'';
+  document.getElementById('m-fase').value=s.fase||'';
+  atualizarPreview();
+  document.getElementById('modal').classList.add('open');
+}
+function fecharModal(){document.getElementById('modal').classList.remove('open');}
+function atualizarPreview(){
+  const mod=document.getElementById('m-mod').value;
+  const espaco=document.getElementById('m-espaco').value;
+  const tA=document.getElementById('m-tA').value.trim();
+  const tB=document.getElementById('m-tB').value.trim();
+  const fase=document.getElementById('m-fase').value.trim();
+  const el=document.getElementById('m-preview');
+  if(!mod){el.style.cssText='border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;border:2px solid #eee;color:#aaa';el.textContent='— livre —';return;}
+  const m=MOD[mod];
+  el.style.cssText=`border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;background:${m.bg};border:2px solid ${m.brd};color:${m.txt}`;
+  el.innerHTML=`${m.icon} ${m.nome}${espaco?` <span style="opacity:.6;font-size:10px">[${espaco}]</span>`:''}${tA||tB?` · ${tA}${tB?' × '+tB:''}`:''}${fase?`<span style="font-size:10px;opacity:.7;display:block;font-weight:400;margin-top:2px">${fase}</span>`:''}`;
+}
+function salvar(){
+  const mod=document.getElementById('m-mod').value;
+  const espaco=document.getElementById('m-espaco').value;
+  const tA=document.getElementById('m-tA').value.trim();
+  const tB=document.getElementById('m-tB').value.trim();
+  const fase=document.getElementById('m-fase').value.trim();
+  put(_e,_d,_h,mod?{mod,espaco,timeA:tA,timeB:tB,fase}:null);
+  fecharModal();render();toast(mod?'✅ Slot salvo!':'🗑 Slot limpo.');
+}
+function limparSlot(){put(_e,_d,_h,null);fecharModal();render();toast('🗑 Slot limpo.');}
+function limparGrade(){if(!confirm('Limpar toda a grade?'))return;G={};save();render();toast('Grade limpa.','warn');}
+
+// ─ IMPRESSÃO ─
+function imprimir(branco){
+  const html=document.documentElement;
+  // orientação + transposto
+  html.className=[_orient, _transposed?'transposto':''].filter(Boolean).join(' ');
+  if(branco)document.body.classList.add('print-blank');
+  else document.body.classList.remove('print-blank');
+  // atualiza label de modo no cabeçalho
+  const lbl=document.getElementById('print-mode-label');
+  if(lbl){
+    const modoOrient=_orient==='paisagem'?'Paisagem':'Retrato';
+    const modoTabela=_transposed?'Dias nas linhas · Horários nas colunas':'Horários nas linhas · Dias nas colunas';
+    lbl.textContent=`${modoOrient} · ${modoTabela}${branco?' · Versão em branco':''}`;
+  }
+  setTimeout(()=>{window.print();html.className='';document.body.classList.remove('print-blank');},80);
+}
+
+// ─ TOAST ─
+let _tid;
+function toast(msg,tipo){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.style.background=tipo==='warn'?'#555':'#111';
+  el.classList.add('show');clearTimeout(_tid);
+  _tid=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ─ INIT ─
+load();loadLbls();render();
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+document.getElementById('modal-espacos').addEventListener('click',function(e){if(e.target===this)fecharModalEspacos();});
+</script>
+</body>
+</html>
