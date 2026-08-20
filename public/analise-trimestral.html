@@ -279,15 +279,39 @@ function isLiteratura(name){
   return /LITERAT/i.test((name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,''));
 }
 
-let currentClasses = {}; // name -> data
+// ---------- TRIMESTRE / ANO ----------
+// O quadro síntese (PDF) já traz os 3 trimestres (1º/2º/3º + TA) numa única
+// linha por aluno/disciplina, e o ano letivo no próprio cabeçalho ("ANO: 2026").
+// Cada novo upload de uma turma é uma versão cada vez mais completa do MESMO
+// ano (mais colunas de trimestre preenchidas conforme o ano avança) — então a
+// turma é identificada por (turma, ano), não por trimestre isolado. O que
+// precisava ser corrigido não era a chave de gravação, e sim o PARSER: ele
+// descartava os trimestres já fechados, guardando só o mais recente (ver
+// parseClassPDF mais abaixo).
+function trimLabel(t){ return ({1:'1º Trimestre', 2:'2º Trimestre', 3:'3º Trimestre'})[Number(t)] || 'Trimestre'; }
+function classKey(turma, ano){ return turma + '__' + ano; }
+// Tenta achar "ANO: 2026" (ou variações) no cabeçalho do PDF; se não achar,
+// usa o último ano escolhido no lote atual (ou o ano corrente na primeira vez).
+function extractAno(lines){
+  for(const l of lines){
+    const m = l.match(/ANO\s*:?\s*(\d{4})/i);
+    if(m) return Number(m[1]);
+  }
+  return null;
+}
+// Guarda o último ano escolhido durante um lote de uploads, para não ter que
+// reescolher a cada turma do mesmo boletim.
+let lastPickedAno = new Date().getFullYear();
+
+let currentClasses = {}; // classKey(turma,ano) -> data
 let pendingParse = null; // {rawLines, name, tokensPerSubjDetected, studentsRaw}
-let activeClass = null; // 'OVERVIEW' or class name
+let activeClass = null; // 'OVERVIEW' or a classKey
 let reviewQueue = []; // turmas detectadas aguardando confirmação
 
-function classAlreadyLoaded(name){
-  const norm = name.trim().toLowerCase();
-  if(Object.keys(currentClasses).some(n=>n.trim().toLowerCase()===norm)) return true;
-  if(reviewQueue.some(p=>p.className.trim().toLowerCase()===norm)) return true;
+function classAlreadyLoaded(turma, ano){
+  const key = classKey(turma, ano);
+  if(currentClasses[key]) return true;
+  if(reviewQueue.some(p=>classKey(p.className, p.ano)===key)) return true;
   return false;
 }
 
@@ -409,12 +433,22 @@ function parseClassPDF(lines, fallbackSubjects){
       const g = tail.slice(i*7,(i*7)+7); // n1 r1 n2 r2 n3 r3 TA
       let usedIdx = 0;
       for(let k=2;k>=0;k--){ if(g[k*2] !== '-'){ usedIdx=k; break; } }
-      subjData.push({ nota: g[usedIdx*2], rec: g[usedIdx*2+1], ta: g[6] });
+      subjData.push({
+        // nota/rec/ta = trimestre mais avançado já preenchido — é o que o
+        // resto do app (cards, alertas, quadro por disciplina) usa hoje como
+        // "situação atual" do aluno na disciplina.
+        nota: g[usedIdx*2], rec: g[usedIdx*2+1], ta: g[6],
+        // n1/r1/n2/r2/n3/r3 = os 3 trimestres separados, sem descartar nenhum —
+        // é o que a linha do tempo do aluno (Fase 2) e o dashboard evolutivo
+        // (Fase 5) vão usar para comparar trimestres.
+        n1: g[0], r1: g[1], n2: g[2], r2: g[3], n3: g[4], r3: g[5]
+      });
     }
     students.push({rme, name, subjects: subjData});
   }
   if(students.length===0) return {error:'Nenhum aluno foi reconhecido no PDF. Verifique se é o formato de quadro síntese esperado.'};
-  return {className, subjects, students};
+  const ano = extractAno(lines);
+  return {className, subjects, students, ano};
 }
 
 function classify(nota, rec){
@@ -522,13 +556,15 @@ async function tryMatchEstudanteId(nomeAluno, turma){
   }catch(e){ return null; }
 }
 
-// Salva (insere ou atualiza) a turma inteira: cada novo upload/edição da mesma
-// turma substitui os dados anteriores dela — mesmo comportamento do
-// localStorage.setItem original, agora persistido no Supabase.
-async function saveClass(name, data){
+// Salva (insere ou atualiza) uma turma NUM ANO ESPECÍFICO: o upload mais
+// recente do quadro síntese desse ano substitui o anterior — o que é o
+// comportamento certo, já que o PDF novo é uma versão mais completa do mesmo
+// ano (mais trimestres preenchidos), não um trimestre "concorrente".
+async function saveClass(data){
   const cfg = loadGlobalConfig();
   const payload = {
-    turma: name,
+    turma: data.className,
+    ano: Number(data.ano),
     escola: cfg.escola || null,
     mes_ano: (data.meta && data.meta.mesAno) || null,
     professor: (data.meta && data.meta.professor) || null,
@@ -536,7 +572,7 @@ async function saveClass(name, data){
   };
   let turmaRow;
   try{
-    const upserted = await sbFetch('analise_trimestral_turmas?on_conflict=turma', {
+    const upserted = await sbFetch('analise_trimestral_turmas?on_conflict=turma,ano', {
       method: 'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
       body: JSON.stringify(payload)
@@ -549,11 +585,12 @@ async function saveClass(name, data){
   data._turmaId = turmaRow.id;
 
   try{
-    // Substitui todos os alunos desta turma pelos dados do upload atual.
+    // Substitui os alunos desta turma neste ano pelos dados do upload atual
+    // (cada aluno já traz os 3 trimestres — nada é perdido).
     await sbFetch(`analise_trimestral_alunos?turma_id=eq.${turmaRow.id}`, { method:'DELETE' });
     const alunosPayload = [];
     for(const st of data.students){
-      const estudanteId = await tryMatchEstudanteId(st.name, name);
+      const estudanteId = await tryMatchEstudanteId(st.name, data.className);
       alunosPayload.push({
         turma_id: turmaRow.id,
         estudante_id: estudanteId,
@@ -573,10 +610,12 @@ async function saveClass(name, data){
 
 async function loadAllClasses(){
   const out = {};
-  const rows = await sbFetch('analise_trimestral_turmas?select=*,analise_trimestral_alunos(*)&order=turma.asc');
+  const rows = await sbFetch('analise_trimestral_turmas?select=*,analise_trimestral_alunos(*)&order=turma.asc,ano.asc');
   (rows||[]).forEach(row=>{
-    out[row.turma] = {
+    const key = classKey(row.turma, row.ano);
+    out[key] = {
       className: row.turma,
+      ano: row.ano,
       subjects: row.disciplinas || [],
       meta: { mesAno: row.mes_ano || '', professor: row.professor || '' },
       students: (row.analise_trimestral_alunos||[]).map(a=>({ rme: a.rme, name: a.nome, subjects: a.notas })),
@@ -586,13 +625,13 @@ async function loadAllClasses(){
   return out;
 }
 
-async function deleteClass(name){
-  const cd = currentClasses[name];
+async function deleteClass(key){
+  const cd = currentClasses[key];
   try{
     if(cd && cd._turmaId){
       await sbFetch(`analise_trimestral_turmas?id=eq.${cd._turmaId}`, { method:'DELETE' });
-    } else {
-      await sbFetch(`analise_trimestral_turmas?turma=eq.${encodeURIComponent(name)}`, { method:'DELETE' });
+    } else if(cd){
+      await sbFetch(`analise_trimestral_turmas?turma=eq.${encodeURIComponent(cd.className)}&ano=eq.${cd.ano}`, { method:'DELETE' });
     }
   }catch(e){ console.error('erro ao remover turma no Supabase', e); }
 }
@@ -620,26 +659,111 @@ async function saveGlobalConfig(cfg){
   }catch(e){ console.error('erro ao salvar config no Supabase', e); }
 }
 
+// ---------- PERÍODOS DOS TRIMESTRES (por ano letivo) ----------
+// O PDF não traz as datas de início/fim de cada trimestre — só o número do
+// trimestre (1º/2º/3º) embutido nas colunas de notas. Este cadastro (uma vez
+// por ano letivo) guarda essas datas, para: (a) rotular os trimestres com
+// datas reais na tela, e (b) mais à frente, os alertas (Fase 3) saberem "em
+// que trimestre estamos hoje" a partir da data corrente.
+let _periodosCache = {}; // ano -> {1:{inicio,fim}, 2:{...}, 3:{...}}
+async function fetchPeriodos(ano){
+  if(_periodosCache[ano]) return _periodosCache[ano];
+  try{
+    const rows = await sbFetch(`analise_trimestral_periodos?ano=eq.${ano}&select=*`);
+    const obj = {};
+    (rows||[]).forEach(r=> obj[r.trimestre] = {inicio: r.data_inicio, fim: r.data_fim});
+    _periodosCache[ano] = obj;
+    return obj;
+  }catch(e){ console.error('erro ao carregar períodos', e); return {}; }
+}
+async function savePeriodo(ano, trimestre, inicio, fim){
+  await sbFetch('analise_trimestral_periodos?on_conflict=ano,trimestre', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify({ ano: Number(ano), trimestre: Number(trimestre), data_inicio: inicio || null, data_fim: fim || null })
+  });
+  _periodosCache[ano] = _periodosCache[ano] || {};
+  _periodosCache[ano][trimestre] = {inicio, fim};
+}
+function fmtDateBR(iso){
+  if(!iso) return null;
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}`;
+}
+async function abrirPeriodosModal(ano){
+  const periodos = await fetchPeriodos(ano);
+  const existing = document.getElementById('periodosModalOverlay');
+  if(existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'periodosModalOverlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(30,42,46,.35); display:flex; align-items:center; justify-content:center; z-index:999;';
+  const rows = [1,2,3].map(t=>{
+    const p = periodos[t] || {};
+    return `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+      <span style="width:90px; font-size:12.5px; color:var(--ink-soft);">${trimLabel(t)}</span>
+      <input type="date" id="periodoInicio${t}" value="${p.inicio||''}" style="padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-family:'Inter',sans-serif; font-size:12.5px;">
+      <span style="color:var(--ink-soft); font-size:12px;">até</span>
+      <input type="date" id="periodoFim${t}" value="${p.fim||''}" style="padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-family:'Inter',sans-serif; font-size:12.5px;">
+    </div>`;
+  }).join('');
+  overlay.innerHTML = `<div style="background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:22px 24px; width:400px; max-width:92vw;">
+    <h3 style="margin:0 0 4px; font-size:15px;">Períodos dos trimestres — ${ano}</h3>
+    <p style="color:var(--ink-soft); font-size:12px; margin:0 0 14px;">Datas de referência (opcional). Usadas para identificar em que trimestre uma data cai, e para exibir os períodos junto às turmas deste ano.</p>
+    ${rows}
+    <div style="margin-top:16px; display:flex; gap:8px;">
+      <button class="btn" id="periodosSalvarBtn">Salvar</button>
+      <button class="btn secondary" id="periodosFecharBtn">Fechar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('periodosFecharBtn').onclick = ()=> overlay.remove();
+  overlay.onclick = (e)=>{ if(e.target===overlay) overlay.remove(); };
+  document.getElementById('periodosSalvarBtn').onclick = async ()=>{
+    const btn = document.getElementById('periodosSalvarBtn');
+    btn.disabled = true; btn.textContent = 'Salvando…';
+    try{
+      for(const t of [1,2,3]){
+        const inicio = document.getElementById('periodoInicio'+t).value;
+        const fim = document.getElementById('periodoFim'+t).value;
+        await savePeriodo(ano, t, inicio, fim);
+      }
+      overlay.remove();
+      renderMain();
+    }catch(e){
+      console.error(e);
+      btn.disabled = false; btn.textContent = 'Salvar';
+      alert('Não foi possível salvar os períodos: '+e.message);
+    }
+  };
+}
+
 // ---------- UI ----------
 function renderSidebar(){
   const list = document.getElementById('classList');
   list.innerHTML='';
-  const names = Object.keys(currentClasses).sort();
-  for(const name of names){
+  // Ordena por turma e, dentro da turma, por ano — assim os vários anos
+  // salvos da mesma turma aparecem agrupados e em ordem cronológica.
+  const keys = Object.keys(currentClasses).sort((a,b)=>{
+    const ca=currentClasses[a], cb=currentClasses[b];
+    return ca.className.localeCompare(cb.className) || (ca.ano-cb.ano);
+  });
+  for(const key of keys){
+    const cd = currentClasses[key];
+    const label = `${cd.className} <span style="opacity:.6; font-weight:400;">· ${cd.ano}</span>`;
     const el = document.createElement('div');
-    el.className = 'class-item'+(activeClass===name?' active':'');
-    el.innerHTML = `<span>${name}</span><span class="n">${currentClasses[name].students.length} alunos</span><span class="del" title="Remover">✕</span>`;
+    el.className = 'class-item'+(activeClass===key?' active':'');
+    el.innerHTML = `<span>${label}</span><span class="n">${cd.students.length} alunos</span><span class="del" title="Remover">✕</span>`;
     el.onclick = (e)=>{
       if(e.target.classList.contains('del')){
         e.stopPropagation();
-        if(confirm('Remover a turma "'+name+'"?')){
-          deleteClass(name); delete currentClasses[name];
-          if(activeClass===name) activeClass=null;
+        if(confirm(`Remover "${cd.className} · ${cd.ano}"?`)){
+          deleteClass(key); delete currentClasses[key];
+          if(activeClass===key) activeClass=null;
           renderSidebar(); renderMain();
         }
         return;
       }
-      activeClass = name; renderSidebar(); renderMain();
+      activeClass = key; renderSidebar(); renderMain();
     };
     list.appendChild(el);
   }
@@ -660,29 +784,32 @@ function renderMain(){
   const cfg = loadGlobalConfig();
   if(!cfg.escola){ cfg.escola = 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(cfg); }
   cd.meta = cd.meta || {};
-  // Preenche automaticamente (e salva) o Mês/Ano padrão e o professor(a) referência
-  // com base na lista de turmas, caso ainda não tenham sido definidos manualmente.
+  // Preenche automaticamente (e salva) o professor(a) referência com base na
+  // lista de turmas, caso ainda não tenha sido definido manualmente.
+  // Trimestre e ano NÃO são preenchidos aqui: eles são a chave do registro e só
+  // são definidos uma vez, na tela de confirmação do upload (showReview).
   let metaChanged = false;
-  if(!cd.meta.mesAno){ cd.meta.mesAno = 'Julho/2026'; metaChanged = true; }
   if(!cd.meta.professor){
-    const auto = defaultProfessorFor(activeClass);
+    const auto = defaultProfessorFor(cd.className);
     if(auto){ cd.meta.professor = auto; metaChanged = true; }
   }
-  if(metaChanged){ saveClass(activeClass, cd); }
+  if(metaChanged){ saveClass(cd); }
 
   let html = `<div class="hdr">
     <div>
-      <h1>${activeClass}</h1>
+      <h1>${cd.className} <span style="font-size:15px; font-weight:500; opacity:.65;">· ${cd.ano}</span></h1>
       <div class="hdr-sub">${cd.students.length} alunos · ${cd.subjects.filter(s=>!isLiteratura(s)).length} disciplinas</div>
+      <div id="periodosLine" class="hdr-sub" style="margin-top:2px;"></div>
       <div class="hdr-info">
         <label>Escola: <input type="text" class="meta-input" id="metaEscola" value="${(cfg.escola||'').replace(/"/g,'&quot;')}" placeholder="Nome da escola"></label>
-        <label>Mês/Ano: <input type="text" class="meta-input" id="metaMesAno" value="${(cd.meta.mesAno||'').replace(/"/g,'&quot;')}" placeholder="ex: Julho/2026"></label>
+        <label>Observação (opcional): <input type="text" class="meta-input" id="metaMesAno" value="${(cd.meta.mesAno||'').replace(/"/g,'&quot;')}" placeholder="ex: boletim de meio de trimestre"></label>
         <label>Prof. de referência: <input type="text" class="meta-input" id="metaProfessor" value="${(cd.meta.professor||'').replace(/"/g,'&quot;')}" placeholder="Nome do professor(a)"></label>
       </div>
     </div>
     <div class="hdr-actions">
+      <button class="print-btn" id="periodosBtn" type="button">📅 Períodos de ${cd.ano}</button>
       <button class="print-btn" onclick="window.print()">🖶 Imprimir quadro resumo</button>
-      <div class="stamp">${activeClass.slice(0,6)}</div>
+      <div class="stamp">${cd.className.slice(0,6)}</div>
     </div>
   </div>`;
 
@@ -727,14 +854,28 @@ function renderMain(){
     card.onclick = ()=> renderDetail(cd, Number(card.dataset.idx));
   });
 
+  document.getElementById('periodosBtn').onclick = ()=> abrirPeriodosModal(cd.ano);
+  // Preenche a linha de datas dos trimestres em segundo plano (não trava a
+  // renderização caso a consulta ao Supabase demore).
+  fetchPeriodos(cd.ano).then(periodos=>{
+    const el = document.getElementById('periodosLine');
+    if(!el) return; // usuário já trocou de turma antes da resposta chegar
+    const parts = [1,2,3].map(t=>{
+      const p = periodos[t];
+      if(!p || (!p.inicio && !p.fim)) return null;
+      return `${trimLabel(t)}: ${fmtDateBR(p.inicio)||'?'} – ${fmtDateBR(p.fim)||'?'}`;
+    }).filter(Boolean);
+    el.textContent = parts.length ? parts.join('  ·  ') : '';
+  });
+
   document.getElementById('metaEscola').onchange = (e)=>{
     const c = loadGlobalConfig(); c.escola = e.target.value; saveGlobalConfig(c);
   };
   document.getElementById('metaMesAno').onchange = (e)=>{
-    cd.meta.mesAno = e.target.value; saveClass(activeClass, cd);
+    cd.meta.mesAno = e.target.value; saveClass(cd);
   };
   document.getElementById('metaProfessor').onchange = (e)=>{
-    cd.meta.professor = e.target.value; saveClass(activeClass, cd);
+    cd.meta.professor = e.target.value; saveClass(cd);
   };
 }
 
@@ -778,21 +919,29 @@ function renderDetail(cd, idx){
 
 function renderOverview(){
   const main = document.getElementById('main');
-  const names = Object.keys(currentClasses).sort();
-  if(names.length===0){
+  // Cada turma pode aparecer mais de uma vez agora (uma linha por ano letivo
+  // carregado) — é esperado: a visão geral aqui é "todos os boletins carregados",
+  // não "uma linha por turma". Uma visão que compara anos/trimestres da mesma
+  // turma lado a lado é a Fase 5 do plano (Dashboard evolutivo), ainda não implementada.
+  const keys = Object.keys(currentClasses).sort((a,b)=>{
+    const ca=currentClasses[a], cb=currentClasses[b];
+    return ca.className.localeCompare(cb.className) || (ca.ano-cb.ano);
+  });
+  if(keys.length===0){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para ver a visão geral.</p></div>`;
     return;
   }
   const allSubjects = new Set();
-  names.forEach(n=> currentClasses[n].subjects.forEach(s=>{ if(!isLiteratura(s)) allSubjects.add(s); }));
-  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button></div>`;
-  html += `<div class="section-title">Aprovação final (%) por turma e disciplina</div>`;
+  keys.forEach(k=> currentClasses[k].subjects.forEach(s=>{ if(!isLiteratura(s)) allSubjects.add(s); }));
+  let html = `<div class="hdr"><h1>Visão geral — todos os boletins</h1><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button></div>`;
+  html += `<div class="section-title">Aprovação final (%) por turma/ano e disciplina</div>`;
   html += `<table class="overview-table"><thead><tr><th>Turma</th>${[...allSubjects].map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
-  for(const n of names){
-    const cd = currentClasses[n];
+  for(const k of keys){
+    const cd = currentClasses[k];
+    const label = `${cd.className} <span style="opacity:.6;">· ${cd.ano}</span>`;
     const {stats} = computeStats(cd);
     const map = {}; stats.forEach(s=>map[s.name]=s);
-    html += `<tr><td>${n}</td>`;
+    html += `<tr><td>${label}</td>`;
     for(const subj of allSubjects){
       const s = map[subj];
       if(!s){ html+='<td>—</td>'; continue; }
@@ -804,19 +953,19 @@ function renderOverview(){
   }
   html += `</tbody></table>`;
 
-  html += `<div class="section-title">Destaques gerais por turma</div><div class="highlight-row">`;
-  for(const n of names){
-    const cd = currentClasses[n];
+  html += `<div class="section-title">Destaques gerais por turma/ano</div><div class="highlight-row">`;
+  for(const k of keys){
+    const cd = currentClasses[k];
     const {destaques70} = computeStats(cd);
-    html += hlCard(n, destaques70, 'plum');
+    html += hlCard(`${cd.className} · ${cd.ano}`, destaques70, 'plum');
   }
   html += `</div>`;
 
-  html += `<div class="section-title">Acompanhamento por turma (nota final abaixo da média em 2+ disciplinas)</div><div class="highlight-row">`;
-  for(const n of names){
-    const cd = currentClasses[n];
+  html += `<div class="section-title">Acompanhamento por turma/ano (nota final abaixo da média em 2+ disciplinas)</div><div class="highlight-row">`;
+  for(const k of keys){
+    const cd = currentClasses[k];
     const {atencao} = computeStats(cd);
-    html += `<div class="hl-card attn"><h3>${n}</h3><div class="count">${atencao.length}</div><div class="hl-names">${atencao.length ? atencao.map(s=>`<span class="pill warn">${s.name} <span style="opacity:.75;">(${s.count})</span></span>`).join('') : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno nesta condição</span>`}</div></div>`;
+    html += `<div class="hl-card attn"><h3>${cd.className} <span style="font-weight:400; opacity:.65; font-size:12px;">${cd.ano}</span></h3><div class="count">${atencao.length}</div><div class="hl-names">${atencao.length ? atencao.map(s=>`<span class="pill warn">${s.name} <span style="opacity:.75;">(${s.count})</span></span>`).join('') : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno nesta condição</span>`}</div></div>`;
   }
   html += `</div>`;
   main.innerHTML = html;
@@ -825,11 +974,17 @@ function renderOverview(){
 // ---------- UPLOAD FLOW ----------
 document.getElementById('fileInput').addEventListener('change', async (e)=>{
   const files = Array.from(e.target.files);
-  let skipped = 0, queued = 0;
+  let queued = 0, skippedDupBatch = 0;
   for(const file of files){
     statusMsg('Lendo '+file.name+'…');
     try{
       const lines = await extractLines(file);
+      // "ANO: 2026" costuma aparecer uma vez no cabeçalho da página, que pode
+      // ficar ANTES da primeira ocorrência de "TURMA:" — e portanto de fora do
+      // bloco de qualquer turma depois do split abaixo. Por isso tentamos achar
+      // o ano no arquivo inteiro primeiro, como reserva para quando o bloco da
+      // turma não tiver essa informação.
+      const globalAno = extractAno(lines);
       const blocks = splitIntoClassBlocks(lines);
       let lastSubjects = null;
       for(const block of blocks){
@@ -839,8 +994,16 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
           continue;
         }
         lastSubjects = parsed.subjects;
-        if(classAlreadyLoaded(parsed.className)){
-          skipped++;
+        // O ano vem do cabeçalho do PDF ("ANO: 2026"). Se não detectar (formato
+        // diferente do esperado), cai no último ano usado neste lote — o
+        // usuário ainda confirma/ajusta na tela de revisão antes de salvar.
+        parsed.ano = parsed.ano || globalAno || lastPickedAno;
+        lastPickedAno = parsed.ano;
+        // Evita só duplicata dentro do MESMO lote (ex.: o mesmo PDF selecionado
+        // duas vezes). Reenviar uma turma que já existe no banco (de um lote
+        // anterior) é o fluxo normal de atualização — tratado na revisão abaixo.
+        if(reviewQueue.some(p=>classKey(p.className,p.ano)===classKey(parsed.className,parsed.ano))){
+          skippedDupBatch++;
           continue;
         }
         reviewQueue.push(parsed);
@@ -852,8 +1015,8 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
     }
   }
   e.target.value = '';
-  if(skipped>0){
-    statusMsg(skipped+' turma(s) já carregada(s) foram ignoradas.'+(queued>0?' '+queued+' nova(s) para revisar.':''));
+  if(skippedDupBatch>0){
+    statusMsg(skippedDupBatch+' turma(s) repetida(s) neste lote foram ignoradas.'+(queued>0?' '+queued+' para revisar.':''));
   }
   if(reviewQueue.length){
     processNextInQueue();
@@ -869,12 +1032,18 @@ function processNextInQueue(){
 function showReview(parsed){
   const main = document.getElementById('main');
   const remaining = reviewQueue.length;
+  // Se já existe uma turma salva com esse nome+ano, este upload vai
+  // ATUALIZAR (substituir) os dados dela — não criar um registro separado —
+  // já que o PDF novo é presumivelmente uma versão mais completa do mesmo ano.
+  const existing = currentClasses[classKey(parsed.className, parsed.ano)];
   let html = `<div class="review-box">
     <h3>Confirmar disciplinas — ${parsed.className}${remaining>0?` <span style="font-size:12px; color:var(--ink-soft); font-weight:400;">(mais ${remaining} turma(s) na fila)</span>`:''}</h3>
     <p style="color:var(--ink-soft); font-size:13px;">Detectamos ${parsed.students.length} alunos e ${parsed.subjects.length} disciplinas. Ajuste os nomes se necessário antes de salvar.</p>
     <div class="subj-edit">${parsed.subjects.map((s,i)=>`<input type="text" id="subjInput${i}" value="${s}">`).join('')}</div>
     <label style="font-size:12.5px; display:block; margin-bottom:10px;">Nome da turma: <input type="text" id="classNameInput" value="${parsed.className}" style="margin-left:6px; padding:5px 8px; border:1px solid var(--line); border-radius:6px; font-family:'Inter',sans-serif;"></label>
-    <button class="btn" id="confirmSave">Salvar e analisar</button>
+    <label style="font-size:12.5px; display:block; margin-bottom:10px;">Ano letivo: <input type="number" id="anoInput" value="${parsed.ano}" style="margin-left:6px; padding:5px 8px; width:90px; border:1px solid var(--line); border-radius:6px; font-family:'Inter',sans-serif;"></label>
+    ${existing ? `<p style="color:var(--warn); font-size:12.5px; background:var(--warn-soft); padding:8px 10px; border-radius:6px;">Já existe "${parsed.className}" salvo para ${parsed.ano} (${existing.students.length} aluno(s)). Salvar aqui vai <strong>substituir</strong> os dados existentes pelos deste PDF — confirme que este é o quadro síntese mais atualizado do ano antes de continuar.</p>` : ''}
+    <button class="btn" id="confirmSave">${existing?'Atualizar e analisar':'Salvar e analisar'}</button>
     <button class="btn secondary" id="cancelReview" style="margin-left:8px;">${remaining>0?'Pular esta turma':'Cancelar'}</button>
   </div>`;
   main.innerHTML = html;
@@ -883,17 +1052,16 @@ function showReview(parsed){
     const btn = document.getElementById('confirmSave');
     const subjects = parsed.subjects.map((_,i)=>document.getElementById('subjInput'+i).value.trim());
     const className = document.getElementById('classNameInput').value.trim() || parsed.className;
-    if(classAlreadyLoaded(className)){
-      alert('Já existe uma turma chamada "'+className+'". Escolha outro nome ou remova a turma existente antes de salvar.');
-      return;
-    }
-    const data = {className, subjects, students: parsed.students};
+    const ano = Number(document.getElementById('anoInput').value) || parsed.ano;
+    lastPickedAno = ano;
+    const data = {className, ano, subjects, students: parsed.students};
+    const key = classKey(className, ano);
     btn.disabled = true; btn.textContent = 'Salvando…';
     try{
-      await saveClass(className, data);
-      currentClasses[className] = data;
-      activeClass = className;
-      statusMsg('Turma "'+className+'" salva.');
+      await saveClass(data);
+      currentClasses[key] = data;
+      activeClass = key;
+      statusMsg(`Turma "${className}" (${ano}) salva.`);
       renderSidebar();
       processNextInQueue();
     }catch(err){
@@ -918,9 +1086,15 @@ document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; r
     currentClasses = {};
     statusMsg('Não foi possível conectar ao Supabase. Verifique a conexão.');
   }
-  statusMsg(Object.keys(currentClasses).length ? Object.keys(currentClasses).length+' turma(s) carregada(s).' : '');
+  const loadedKeys = Object.keys(currentClasses);
+  statusMsg(loadedKeys.length ? loadedKeys.length+' turma(s) carregada(s).' : '');
   renderSidebar();
-  if(Object.keys(currentClasses).length) { activeClass = Object.keys(currentClasses).sort()[0]; }
+  if(loadedKeys.length){
+    activeClass = loadedKeys.sort((a,b)=>{
+      const ca=currentClasses[a], cb=currentClasses[b];
+      return ca.className.localeCompare(cb.className) || (ca.ano-cb.ano);
+    })[0];
+  }
   renderMain();
 })();
 </script>
