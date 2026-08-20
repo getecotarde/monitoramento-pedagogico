@@ -99,6 +99,47 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
   @media(max-width:560px){.grid-2{grid-template-columns:1fr;}.header-inner{flex-direction:column;align-items:flex-start;gap:10px;}.dyn-row.prof-row{grid-template-columns:1fr;}}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;position:relative;margin-top:10px;}
+  .tab-btn{padding:7px 15px;border:1.5px solid rgba(250,248,244,.25);background:transparent;color:rgba(250,248,244,.65);border-radius:4px 4px 0 0;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.02em;cursor:pointer;transition:all .15s;}
+  .tab-btn:hover{color:var(--paper);border-color:rgba(250,248,244,.45);}
+  .tab-btn.active{background:var(--paper);color:var(--ink);border-color:var(--paper);}
+
+  /* QUADRO GERAL */
+  .qg-toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .qg-filters{display:flex;gap:9px;flex-wrap:wrap;flex:1;}
+  .qg-filters input,.qg-filters select{padding:8px 12px;border:1.5px solid var(--divider);border-radius:4px;background:#fff;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--ink);outline:none;}
+  .qg-filters input{flex:1;min-width:180px;}
+  .qg-filters input:focus,.qg-filters select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,135,42,.1);}
+  .qg-stats{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap;}
+  .qg-stat{background:var(--cream);border:1px solid var(--divider);border-radius:5px;padding:9px 16px;text-align:center;min-width:90px;}
+  .qg-stat b{display:block;font-family:'Playfair Display',serif;font-size:20px;color:var(--rust);}
+  .qg-stat span{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .prof-group{border:1px solid var(--divider);border-radius:6px;margin-bottom:14px;overflow:hidden;background:#fff;}
+  .prof-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;background:var(--cream);border-bottom:2px solid var(--gold);cursor:pointer;}
+  .prof-group-head .pg-name{font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:var(--ink);}
+  .prof-group-head .pg-count{font-size:10.5px;color:var(--muted);letter-spacing:.03em;}
+  .prof-group-head .pg-caret{font-size:11px;color:var(--gold);transition:transform .15s;}
+  .prof-group.collapsed .pg-caret{transform:rotate(-90deg);}
+  .prof-group.collapsed table{display:none;}
+  .qg-table{width:100%;border-collapse:collapse;}
+  .qg-table th{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5a4e3e;padding:7px 14px;text-align:left;border-bottom:1px solid var(--divider);background:#fbf9f5;}
+  .qg-table td{padding:9px 14px;font-size:12.5px;border-bottom:1px solid var(--divider);vertical-align:top;}
+  .qg-table tr:last-child td{border-bottom:none;}
+  .qg-tag{display:inline-block;background:var(--cream);border:1px solid var(--divider);color:#5a4e3e;font-size:10px;padding:2px 6px;border-radius:3px;margin:1px 3px 1px 0;white-space:nowrap;}
+  .qg-tag-mod{background:rgba(184,135,42,.12);border-color:rgba(184,135,42,.3);color:#8a6520;}
+  .qg-muted{color:var(--muted);}
+  .qg-atividade{font-weight:600;color:var(--ink);}
+  .qg-status{padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;}
+  .qg-status.err{color:#c0392b;}
+  .qg-actions-row{display:flex;gap:10px;margin-bottom:16px;}
+
+  @media print{
+    header::before{display:none;}
+    .tabs,.qg-toolbar{display:none;}
+    .prof-group{break-inside:avoid;}
+  }
 </style>
 </head>
 <body>
@@ -109,11 +150,15 @@
     <div class="header-text">
       <h1>GETE<span>CULTURA</span></h1>
       <p>Registro de Atividade — Mostra Cultural 2026 &nbsp;·&nbsp; Formulário do Professor</p>
+      <div class="tabs">
+        <button class="tab-btn active" id="tabFormBtn" onclick="mudarAba('form')">Formulário</button>
+        <button class="tab-btn" id="tabQuadroBtn" onclick="mudarAba('quadro')">Quadro Geral</button>
+      </div>
     </div>
   </div>
 </header>
 
-<main>
+<main id="viewForm">
   <div class="intro">
     <p>Preencha os campos e clique em <strong>Visualizar</strong> para conferir antes de gerar o PDF — o documento terá <strong>duas fichas por folha A4</strong>, em formato retrato.</p>
   </div>
@@ -211,6 +256,34 @@
       <p style="font-size:12px;color:var(--muted)">Carregando registros…</p>
     </div>
   </div>
+</main>
+
+<!-- QUADRO GERAL — atividades registradas, agrupadas por professor -->
+<main id="viewQuadro" style="display:none;max-width:980px">
+  <div class="intro">
+    <p>Quadro consolidado de todas as atividades registradas, <strong>organizado por professor responsável</strong>. Cada bloco mostra as atividades daquele professor, com turmas, local e demandas de materialidade.</p>
+  </div>
+
+  <div class="qg-stats">
+    <div class="qg-stat"><b id="qgTotal">—</b><span>Atividades</span></div>
+    <div class="qg-stat"><b id="qgProfs">—</b><span>Professores</span></div>
+    <div class="qg-stat"><b id="qgTurmas">—</b><span>Turmas</span></div>
+    <div class="qg-stat"><b id="qgModalidades">—</b><span>Modalidades</span></div>
+  </div>
+
+  <div class="qg-toolbar">
+    <div class="qg-filters">
+      <input type="text" id="qgBusca" placeholder="Buscar por professor, atividade, turma, local ou material…">
+      <select id="qgModalidade"><option value="">— Modalidade —</option></select>
+    </div>
+    <div style="display:flex;gap:9px;">
+      <button class="btn-secondary" onclick="carregarQuadro()">↻ Atualizar</button>
+      <button class="btn-primary" style="flex:0 1 auto;padding:8px 16px" onclick="window.print()">🖶 Imprimir</button>
+    </div>
+  </div>
+
+  <div id="qgConteudo"></div>
+  <div id="qgStatus" class="qg-status">Carregando atividades registradas…</div>
 </main>
 
 <!-- MODAL PREVIEW -->
@@ -563,6 +636,142 @@ function toast(msg){
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+/* ════════════════════════════════════════
+   ABAS — Formulário ⇄ Quadro Geral
+════════════════════════════════════════ */
+let QG_DATA = [];
+let QG_CARREGADO = false;
+
+function mudarAba(aba){
+  const isForm = aba==='form';
+  document.getElementById('viewForm').style.display = isForm ? '' : 'none';
+  document.getElementById('viewQuadro').style.display = isForm ? 'none' : '';
+  document.getElementById('tabFormBtn').classList.toggle('active', isForm);
+  document.getElementById('tabQuadroBtn').classList.toggle('active', !isForm);
+  if(!isForm && !QG_CARREGADO) carregarQuadro();
+}
+
+async function carregarQuadro(){
+  const status = document.getElementById('qgStatus');
+  const conteudo = document.getElementById('qgConteudo');
+  status.style.display='block'; status.className='qg-status'; status.textContent='Carregando atividades registradas…';
+  conteudo.innerHTML='';
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
+    QG_DATA = Array.isArray(rows) ? rows : [];
+    QG_CARREGADO = true;
+    montarFiltroModalidadeQG();
+    renderQuadro();
+  }catch(err){
+    console.error(err);
+    status.className='qg-status err';
+    status.textContent='Não foi possível carregar os registros. Verifique a conexão e clique em "Atualizar".';
+  }
+}
+
+function montarFiltroModalidadeQG(){
+  const sel = document.getElementById('qgModalidade');
+  const atual = sel.value;
+  const mods = [...new Set(QG_DATA.map(r=>r.modalidade).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">— Modalidade —</option>' + mods.map(m=>`<option>${escHtml(m)}</option>`).join('');
+  sel.value = atual;
+}
+
+function renderQuadro(){
+  const status = document.getElementById('qgStatus');
+  const conteudo = document.getElementById('qgConteudo');
+  const busca = document.getElementById('qgBusca').value.trim().toLowerCase();
+  const modalidade = document.getElementById('qgModalidade').value;
+
+  // filtra as atividades
+  const filtradas = QG_DATA.filter(r=>{
+    if(modalidade && r.modalidade!==modalidade) return false;
+    if(!busca) return true;
+    const hay = [r.titulo, (r.professores||[]).join(' '), (r.turmas||[]).join(' '), r.local, r.disciplina, r.materiais]
+      .filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(busca);
+  });
+
+  // estatísticas gerais (sobre o total, não sobre o filtro)
+  document.getElementById('qgTotal').textContent = QG_DATA.length;
+  document.getElementById('qgProfs').textContent = new Set(QG_DATA.flatMap(r=>r.professores||[])).size;
+  document.getElementById('qgTurmas').textContent = new Set(QG_DATA.flatMap(r=>r.turmas||[])).size;
+  document.getElementById('qgModalidades').textContent = new Set(QG_DATA.map(r=>r.modalidade).filter(Boolean)).size;
+
+  if(QG_DATA.length===0){
+    status.style.display='block'; status.className='qg-status';
+    status.textContent='Nenhuma atividade registrada ainda. Preencha e salve pelo Formulário para que apareça aqui.';
+    conteudo.innerHTML=''; return;
+  }
+  if(filtradas.length===0){
+    status.style.display='block'; status.className='qg-status';
+    status.textContent='Nenhuma atividade corresponde ao filtro aplicado.';
+    conteudo.innerHTML=''; return;
+  }
+  status.style.display='none';
+
+  // agrupa por professor — cada atividade aparece sob TODOS os professores responsáveis
+  const grupos = {};
+  filtradas.forEach(r=>{
+    const profs = (r.professores && r.professores.length) ? r.professores : ['— Sem professor indicado —'];
+    profs.forEach(p=>{
+      const nome = p.split(' — ')[0].trim(); // separa nome de "Nome — Disciplina/cargo"
+      const chave = nome || '— Sem professor indicado —';
+      if(!grupos[chave]) grupos[chave]=[];
+      grupos[chave].push(r);
+    });
+  });
+
+  const nomesOrdenados = Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+  conteudo.innerHTML = nomesOrdenados.map(nome=>{
+    const atividades = grupos[nome];
+    const linhas = atividades.map(r=>{
+      const areaModalidade = [
+        r.modalidade ? `<span class="qg-tag qg-tag-mod">${escHtml(r.modalidade)}</span>` : '',
+        r.disciplina ? `<span class="qg-tag">${escHtml(r.disciplina)}</span>` : ''
+      ].filter(Boolean).join(' ') || '<span class="qg-muted">—</span>';
+
+      const turmas = (r.turmas && r.turmas.length)
+        ? r.turmas.map(t=>`<span class="qg-tag">${escHtml(t)}</span>`).join(' ')
+        : '<span class="qg-muted">—</span>';
+
+      const demandas = r.materiais
+        ? escHtml(r.materiais).replace(/\n/g,'<br>')
+        : '<span class="qg-muted">—</span>';
+
+      return `<tr>
+        <td class="qg-atividade">${escHtml(r.titulo||'(sem título)')}</td>
+        <td>${areaModalidade}</td>
+        <td>${turmas}</td>
+        <td class="qg-muted">${escHtml(r.local||'—')}</td>
+        <td>${demandas}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="prof-group">
+      <div class="prof-group-head" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div>
+          <span class="pg-name">${escHtml(nome)}</span>
+          <span class="pg-count"> — ${atividades.length} atividade${atividades.length>1?'s':''}</span>
+        </div>
+        <span class="pg-caret">▾</span>
+      </div>
+      <table class="qg-table">
+        <thead><tr>
+          <th>Atividade</th><th>Área / Modalidade</th><th>Turmas</th><th>Local</th><th>Demandas / Materialidade</th>
+        </tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('qgBusca').addEventListener('input', renderQuadro);
+document.getElementById('qgModalidade').addEventListener('change', renderQuadro);
 </script>
 </body>
 </html>
