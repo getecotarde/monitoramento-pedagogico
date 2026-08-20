@@ -630,6 +630,22 @@
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
   .nav-item:hover { background: #EEEDEA; color: #1A1916; }
   .nav-item.active { background: var(--verde-bg); color: var(--verde-dark); font-weight: 600; }
+
+  /* ── SUB-TABS (usado em Eventos) ────────────────── */
+  .evento-subtab-btn {
+    display: flex; align-items: center; padding: 9px 16px;
+    border: none; background: transparent; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
+    color: #888780; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all .15s;
+  }
+  .evento-subtab-btn:hover { color: #1A1916; }
+  .evento-subtab-btn.active { color: var(--verde-dark); border-bottom-color: var(--verde); font-weight: 600; }
+  [data-theme="dark"] .evento-subtab-btn { color: #888 !important; }
+  [data-theme="dark"] .evento-subtab-btn:hover { color: #F0EFE9 !important; }
+  [data-theme="dark"] .evento-subtab-btn.active { color: var(--verde-dark) !important; }
+  [data-theme="dark"] .evento-subtabs { border-color: #2E2E2B !important; }
+  [data-theme="dark"] .evento-panel { background: #1C1C1A !important; border-color: #2E2E2B !important; }
   .nav-badge {
     margin-left: auto; background: rgba(0,0,0,.06);
     font-size: 10px; color: #999;
@@ -1782,6 +1798,10 @@
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18.4 8.6L13 14l-3-3-4 4"/></svg>
       Análise Trimestral
     </button>
+    <button class="nav-item" onclick="showView('eventos', this)" id="navEventos">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h2M14 14h2M8 18h2"/></svg>
+      Eventos
+    </button>
     <button class="nav-item" onclick="showView('materiais', this)" id="navMateriais">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
       Materiais
@@ -2460,6 +2480,39 @@
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
       <iframe id="analiseTrimestralIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Análise Trimestral"></iframe>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: EVENTOS (Getecultura + Interclasse) ─────────────────────────────────── -->
+  <div id="view-eventos" class="view">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h1>Eventos</h1>
+        <p>Registro de atividades dos eventos da escola — Getecultura e Interclasse</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="recarregarEventoIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
+        <a id="eventoAbrirNovaAba" href="getecultura.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
+      </div>
+    </div>
+
+    <!-- Sub-abas: Getecultura / Interclasse -->
+    <div class="evento-subtabs" style="display:flex;gap:6px;border-bottom:1px solid #E8E7E3;margin-bottom:14px">
+      <button class="evento-subtab-btn active" onclick="showEventoSubtab('getecultura', this)" id="subtabGetecultura">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Getecultura
+      </button>
+      <button class="evento-subtab-btn" onclick="showEventoSubtab('interclasse', this)" id="subtabInterclasse">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        Interclasse
+      </button>
+    </div>
+
+    <div id="evento-panel-getecultura" class="evento-panel active" style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
+      <iframe id="geteculturaIframe" src="" style="width:100%;height:calc(100vh - 250px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Getecultura"></iframe>
+    </div>
+    <div id="evento-panel-interclasse" class="evento-panel" style="display:none;border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
+      <iframe id="interclasseIframe" src="" style="width:100%;height:calc(100vh - 250px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Interclasse"></iframe>
     </div>
   </div>
 
@@ -7776,6 +7829,10 @@ function showView(id, btn){
     const f=document.getElementById('analiseTrimestralIframe');
     if(f && !f.src) f.src='analise-trimestral.html';
   }
+  if(id === 'eventos'){
+    const f=document.getElementById('geteculturaIframe');
+    if(f && !f.src) f.src='getecultura.html';
+  }
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
     const sidebar = document.querySelector('.sidebar');
@@ -7799,6 +7856,33 @@ function recarregarPipleituraIframe(){
 function recarregarAnaliseTrimestralIframe(){
   const f=document.getElementById('analiseTrimestralIframe');
   if(f) f.src='analise-trimestral.html?_='+Date.now();
+}
+
+/* ── Sub-abas de Eventos (Getecultura / Interclasse) ─────────────── */
+const EVENTO_SRC = { getecultura: 'getecultura.html', interclasse: 'interclasse.html' };
+
+function showEventoSubtab(tab, btn){
+  document.querySelectorAll('.evento-subtab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.evento-panel').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
+  const panel = document.getElementById('evento-panel-'+tab);
+  panel.style.display = 'block';
+  panel.classList.add('active');
+
+  const iframeId = tab === 'getecultura' ? 'geteculturaIframe' : 'interclasseIframe';
+  const f = document.getElementById(iframeId);
+  if(f && !f.src) f.src = EVENTO_SRC[tab];
+
+  const link = document.getElementById('eventoAbrirNovaAba');
+  if(link) link.href = EVENTO_SRC[tab];
+}
+
+function recarregarEventoIframe(){
+  const activeBtn = document.querySelector('.evento-subtab-btn.active');
+  const tab = activeBtn && activeBtn.id === 'subtabInterclasse' ? 'interclasse' : 'getecultura';
+  const iframeId = tab === 'getecultura' ? 'geteculturaIframe' : 'interclasseIframe';
+  const f = document.getElementById(iframeId);
+  if(f) f.src = EVENTO_SRC[tab] + '?_=' + Date.now();
 }
 
 // Spinner CSS
