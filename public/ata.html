@@ -214,6 +214,39 @@ body {
   margin-top: 4px;
 }
 
+.page-intro-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.page-intro-row .page-intro {
+  margin-bottom: 0;
+}
+
+.geral-filter-box {
+  min-width: 240px;
+}
+
+.geral-filter-box label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.geral-filter-box select {
+  min-width: 240px;
+  font-weight: 600;
+  color: var(--blue);
+  border-color: var(--border-strong);
+}
+
 /* ──────────── CARDS ──────────── */
 .card {
   background: var(--white);
@@ -1145,9 +1178,17 @@ html.embedded body { background: var(--surface); }
   <!-- ════════ VIEW: PAINEL GERAL ════════ -->
   <div class="view" id="view-geral">
 
-    <div class="page-intro">
-      <h2>Painel Geral</h2>
-      <p>Visão consolidada de todas as turmas com fichas salvas.</p>
+    <div class="page-intro-row">
+      <div class="page-intro">
+        <h2>Painel Geral</h2>
+        <p id="geral-subtitle">Visão consolidada de todas as turmas com fichas salvas.</p>
+      </div>
+      <div class="geral-filter-box no-print">
+        <label for="geral-turma-filter">Filtrar por turma</label>
+        <select id="geral-turma-filter" onchange="updateGeralStats()">
+          <option value="todas">Todas as turmas</option>
+        </select>
+      </div>
     </div>
 
     <div class="stat-grid" id="stat-grid"></div>
@@ -1156,7 +1197,7 @@ html.embedded body { background: var(--surface); }
       <div class="card-header">
         <div class="card-icon blue">📋</div>
         <div>
-          <div class="card-title">Fichas Salvas por Turma</div>
+          <div class="card-title" id="fichas-salvas-title">Fichas Salvas por Turma</div>
         </div>
       </div>
       <div id="fichas-salvas-table">
@@ -1376,6 +1417,7 @@ function onTrimestreFormChange(){
 async function init() {
   const sel = document.getElementById('f-turma');
   const prevSel = document.getElementById('prev-turma-sel');
+  const geralSel = document.getElementById('geral-turma-filter');
   document.getElementById('sel-trimestre').value = TRIMESTRE_ATUAL;
   document.getElementById('f-trimestre').value = TRIMESTRE_ATUAL;
   try {
@@ -1390,6 +1432,7 @@ async function init() {
   Object.keys(TURMAS).forEach(t => {
     sel.innerHTML += `<option value="${t}">${t} (${TURMAS[t].total} alunos)</option>`;
     prevSel.innerHTML += `<option value="${t}">${t}</option>`;
+    geralSel.innerHTML += `<option value="${t}">${t}</option>`;
   });
   MS_KEYS.forEach(k => { selectedAlunos[k] = []; });
   updatePrevSel();
@@ -1712,16 +1755,36 @@ function updatePrevSel() {
 
 // ========================== PAINEL GERAL ==========================
 function updateGeralStats() {
-  const saved = Object.values(fichasDoTrimestre());
-  const totalAlunos = Object.values(TURMAS).reduce((s,t)=>s+t.total,0);
+  const geralSel = document.getElementById('geral-turma-filter');
+  const filtroTurma = geralSel ? geralSel.value : 'todas';
+  const modoTodas = !filtroTurma || filtroTurma === 'todas';
+
+  const todasFichas = Object.values(fichasDoTrimestre());
+  const saved = modoTodas ? todasFichas : todasFichas.filter(f => f.turma === filtroTurma);
+
+  const turmasCadastradas = modoTodas ? Object.keys(TURMAS).length : 1;
+  const totalAlunos = modoTodas
+    ? Object.values(TURMAS).reduce((s,t)=>s+t.total,0)
+    : (TURMAS[filtroTurma]?.total ?? 0);
   const totalFichas = saved.length;
   const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
   const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
   const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
   const totRemanj = saved.reduce((s,f)=>s+f.remanejamento.alunos.length,0);
 
+  const subtitle = document.getElementById('geral-subtitle');
+  const tableTitle = document.getElementById('fichas-salvas-title');
+  if (subtitle) {
+    subtitle.textContent = modoTodas
+      ? 'Visão consolidada de todas as turmas com fichas salvas.'
+      : `Visão consolidada da turma ${filtroTurma}.`;
+  }
+  if (tableTitle) {
+    tableTitle.textContent = modoTodas ? 'Fichas Salvas por Turma' : `Ficha Salva — Turma ${filtroTurma}`;
+  }
+
   document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-card"><div class="sv">${Object.keys(TURMAS).length}</div><div class="sl">Turmas Cadastradas</div></div>
+    <div class="stat-card"><div class="sv">${turmasCadastradas}</div><div class="sl">${modoTodas ? 'Turmas Cadastradas' : 'Turma Selecionada'}</div></div>
     <div class="stat-card"><div class="sv">${totalAlunos}</div><div class="sl">Total de Alunos</div></div>
     <div class="stat-card"><div class="sv">${totalFichas}</div><div class="sl">Fichas Salvas</div></div>
     <div class="stat-card"><div class="sv" style="color:#991b1b">${totBaixo}</div><div class="sl">Baixo Aproveitamento</div></div>
@@ -1731,7 +1794,9 @@ function updateGeralStats() {
   `;
 
   if (saved.length === 0) {
-    document.getElementById('fichas-salvas-table').innerHTML = '<p class="hint">Nenhuma ficha salva ainda.</p>';
+    document.getElementById('fichas-salvas-table').innerHTML = modoTodas
+      ? '<p class="hint">Nenhuma ficha salva ainda.</p>'
+      : `<p class="hint">Nenhuma ficha salva para a turma ${filtroTurma} neste trimestre.</p>`;
     document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Salve fichas para ver o consolidado.</p>';
     return;
   }
