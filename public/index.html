@@ -630,22 +630,6 @@
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
   .nav-item:hover { background: #EEEDEA; color: #1A1916; }
   .nav-item.active { background: var(--verde-bg); color: var(--verde-dark); font-weight: 600; }
-
-  /* ── SUB-TABS (usado em Eventos) ────────────────── */
-  .evento-subtab-btn {
-    display: flex; align-items: center; padding: 9px 16px;
-    border: none; background: transparent; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
-    color: #888780; border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: all .15s;
-  }
-  .evento-subtab-btn:hover { color: #1A1916; }
-  .evento-subtab-btn.active { color: var(--verde-dark); border-bottom-color: var(--verde); font-weight: 600; }
-  [data-theme="dark"] .evento-subtab-btn { color: #888 !important; }
-  [data-theme="dark"] .evento-subtab-btn:hover { color: #F0EFE9 !important; }
-  [data-theme="dark"] .evento-subtab-btn.active { color: var(--verde-dark) !important; }
-  [data-theme="dark"] .evento-subtabs { border-color: #2E2E2B !important; }
-  [data-theme="dark"] .evento-panel { background: #1C1C1A !important; border-color: #2E2E2B !important; }
   .nav-badge {
     margin-left: auto; background: rgba(0,0,0,.06);
     font-size: 10px; color: #999;
@@ -1794,14 +1778,6 @@
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       Fluência de Leitura
     </button>
-    <button class="nav-item" onclick="showView('analisetrimestral', this)" id="navAnaliseTrimestral">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18.4 8.6L13 14l-3-3-4 4"/></svg>
-      Análise Trimestral
-    </button>
-    <button class="nav-item" onclick="showView('eventos', this)" id="navEventos">
-      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 14h2M14 14h2M8 18h2"/></svg>
-      Eventos
-    </button>
     <button class="nav-item" onclick="showView('materiais', this)" id="navMateriais">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
       Materiais
@@ -1884,6 +1860,7 @@
     </div>
     <div class="stats-grid" id="statsGrid"></div>
     <div id="duplicatesBanner"></div>
+    <div id="correcoesNomeBanner"></div>
     <div class="charts-row">
       <div class="card">
         <div class="card-title">Perfil dos estudantes</div>
@@ -2466,56 +2443,6 @@
     </div>
   </div>
 
-  <!-- ─── VIEW: ANÁLISE TRIMESTRAL (Painel de Boletins) ─────────────────────────────────── -->
-  <div id="view-analisetrimestral" class="view">
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
-      <div>
-        <h1>Análise Trimestral</h1>
-        <p>Painel de boletins — envie o PDF do quadro síntese e acompanhe aprovação, recuperação e destaques por turma</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button onclick="recarregarAnaliseTrimestralIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
-        <a href="analise-trimestral.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
-      </div>
-    </div>
-    <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="analiseTrimestralIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Análise Trimestral"></iframe>
-    </div>
-  </div>
-
-  <!-- ─── VIEW: EVENTOS (Getecultura + Interclasse) ─────────────────────────────────── -->
-  <div id="view-eventos" class="view">
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
-      <div>
-        <h1>Eventos</h1>
-        <p>Registro de atividades dos eventos da escola — Getecultura e Interclasse</p>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button onclick="recarregarEventoIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
-        <a id="eventoAbrirNovaAba" href="getecultura.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
-      </div>
-    </div>
-
-    <!-- Sub-abas: Getecultura / Interclasse -->
-    <div class="evento-subtabs" style="display:flex;gap:6px;border-bottom:1px solid #E8E7E3;margin-bottom:14px">
-      <button class="evento-subtab-btn active" onclick="showEventoSubtab('getecultura', this)" id="subtabGetecultura">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        Getecultura
-      </button>
-      <button class="evento-subtab-btn" onclick="showEventoSubtab('interclasse', this)" id="subtabInterclasse">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
-        Interclasse
-      </button>
-    </div>
-
-    <div id="evento-panel-getecultura" class="evento-panel active" style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="geteculturaIframe" src="" style="width:100%;height:calc(100vh - 250px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Getecultura"></iframe>
-    </div>
-    <div id="evento-panel-interclasse" class="evento-panel" style="display:none;border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="interclasseIframe" src="" style="width:100%;height:calc(100vh - 250px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Interclasse"></iframe>
-    </div>
-  </div>
-
   <!-- ─── VIEW: MATERIAIS (livros, kit escolar, uniforme) ─────────────────────────────────── -->
   <div id="view-materiais" class="view">
     <div class="page-header">
@@ -2810,6 +2737,24 @@
 
 <div class="modal-overlay" id="pipLeituraDetailModalOverlay" onclick="fecharPipLeituraDetalhe(event)" style="z-index:330">
   <div class="modal-box" id="pipLeituraDetailBox"></div>
+</div>
+
+<!-- ═══ REVISÃO DE NOMES DIVERGENTES (PDF oficial) ═══════════════════ -->
+<div class="modal-overlay" id="correcoesNomeModalOverlay" onclick="if(event.target===this) closeCorrecoesNomeModalBtn()" style="z-index:340">
+  <div class="modal-box" style="max-width:640px;max-height:86vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <div style="flex:1">
+        <div class="modal-nome">Revisar nomes divergentes</div>
+        <div class="modal-sub">Comparado com a listagem oficial de matrícula (PDF, 20/08/2026) — a aplicação altera apenas o nome, mantendo todos os demais dados do aluno.</div>
+      </div>
+      <button class="modal-close" onclick="closeCorrecoesNomeModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="correcoesNomeModalBody" style="overflow-y:auto">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
 </div>
 
 <script>
@@ -3463,6 +3408,53 @@ S.forEach(x=>{
   if(x.ocs === undefined) x.ocs = '';
 });
 
+// Correções de nome identificadas ao comparar com a listagem oficial de
+// matrícula (PDF "Relação de Alunos por Turma", emitido em 20/08/2026).
+// Cada item liga o nome ATUALMENTE cadastrado (com possível erro de grafia)
+// ao nome oficial correto. Usado apenas pelo painel de revisão — nunca altera
+// nada sozinho; cada correção exige confirmação manual.
+const CORRECOES_NOME_PDF = [
+  { turma:"6ºA", nomeAtual:"Bernardo Martins Emídio de Sousa", nomeCorrigido:"Bernardo Martins Emigdio de Sousa" },
+  { turma:"6ºA", nomeAtual:"Kaliam Robson Moreira Costa da Silva", nomeCorrigido:"Kauam Robson Moreira Costa da Silva" },
+  { turma:"6ºA", nomeAtual:"Rayissa de Oliveira Damasceno", nomeCorrigido:"Rayssa de Oliveira Damasceno" },
+  { turma:"6ºC", nomeAtual:"Gustavo Gabriel Silva Fernandes", nomeCorrigido:"Alvaro Gabriel Silva Fernandes" },
+  { turma:"6ºC", nomeAtual:"Ana Beatriz Castro Apostolu", nomeCorrigido:"Ana Beatriz Castro Apostolo" },
+  { turma:"6ºD", nomeAtual:"Davi Chiogio Maciel Rosa", nomeCorrigido:"Davi Gregio Maciel Rosa" },
+  { turma:"6ºD", nomeAtual:"Matheus Ribsinds Santos", nomeCorrigido:"Matheus Resende Santos" },
+  { turma:"6ºE", nomeAtual:"Clariesse de Almeida Carvalho", nomeCorrigido:"Clarisse de Almeida Carvalho" },
+  { turma:"6ºE", nomeAtual:"Kallen William Gonçalves Rossi", nomeCorrigido:"Kalleb Willian Goncalves Rossi" },
+  { turma:"6ºE", nomeAtual:"Leonardo Henrique Queiroga Rocha", nomeCorrigido:"Leonardo Henrique Queiroga Rocha dos Santos" },
+  { turma:"6ºF", nomeAtual:"Isadora Líeza de Brito Soares", nomeCorrigido:"Isadora Luiza de Brito Soares" },
+  { turma:"6ºE", nomeAtual:"Lusmyla Aguiar Fonseca", nomeCorrigido:"Ludmyla Aguiar Fonseca" },
+  { turma:"6ºF", nomeAtual:"Luiz Philipe Valle Teixura", nomeCorrigido:"Luiz Philipe Vale Teixeira" },
+  { turma:"6ºF", nomeAtual:"Pedro Garil da Silva Marques", nomeCorrigido:"Pedro Gael da Silva Marques" },
+  { turma:"7ºA", nomeAtual:"Alice Cosso Guimarães de Souza Simão", nomeCorrigido:"Alice Cosso Guimarães de Souza Simões" },
+  { turma:"7ºA", nomeAtual:"Isaque Antônio Vieira Dias", nomeCorrigido:"Isaquy Antônio Vieira Dias" },
+  { turma:"7ºA", nomeAtual:"Nicolly Maria Teixeira da Silva Viana", nomeCorrigido:"Nicolly Maira Teixeira da Silva Viana" },
+  { turma:"7ºA", nomeAtual:"Nikolas Matheus Nunes Curvelo", nomeCorrigido:"Nikolas Matheus Nunes Curvelano" },
+  { turma:"7ºA", nomeAtual:"Rabisa Gomes Dias dos Santos", nomeCorrigido:"Raissa Gomes Dias dos Santos" },
+  { turma:"7ºA", nomeAtual:"Stephanie Katlen de Almeida Lapa", nomeCorrigido:"Sthephany Katlen de Almeida Lapa" },
+  { turma:"7ºB", nomeAtual:"Debick Alejandro dos Santos", nomeCorrigido:"Derick Alejandro dos Santos" },
+  { turma:"7ºB", nomeAtual:"Giovana Juliane Anzio Santos", nomeCorrigido:"Giovana Juliane Anizio Santos" },
+  { turma:"7ºB", nomeAtual:"Jose Gabriel Menezes Guenha", nomeCorrigido:"Jose Gabriel Menezes Guerra" },
+  { turma:"7ºB", nomeAtual:"Olivia Adriana Araújo Mendonça", nomeCorrigido:"Oliver Adriane Araújo Mendonça" },
+  { turma:"7ºC", nomeAtual:"Agatha Amáda da Silva", nomeCorrigido:"Agatha Amaral da Silva" },
+  { turma:"7ºC", nomeAtual:"Manuela Vitônia Diniz Lourenço", nomeCorrigido:"Manuela Vitória Diniz Lourenço" },
+  { turma:"7ºC", nomeAtual:"Thalita Emanuele de Souza Lima", nomeCorrigido:"Thalita Emanuelle Souza Lima" },
+  { turma:"7ºD", nomeAtual:"Kamilly Gomes Silva Leite", nomeCorrigido:"Kamily Gomes Silva Leite" },
+  { turma:"7ºD", nomeAtual:"Lhauanny Gabrielle Queiroz", nomeCorrigido:"Lhuanny Gabrielle Queiroz" },
+  { turma:"7ºD", nomeAtual:"Pedro Augusto de Souza Ribeiro", nomeCorrigido:"Pietro Augusto de Souza Ribeiro" },
+  { turma:"7ºE", nomeAtual:"Giovana Sousa Duarte", nomeCorrigido:"Giovanna Souza Duarte" },
+  { turma:"7ºE", nomeAtual:"Robert Taylor dos Santos Monteiro Primo", nomeCorrigido:"Robert Taylor dos Santos Monteiro Pinto" },
+  { turma:"6ºB", nomeAtual:"Beatriz Eduarda do Nascimento Amara", nomeCorrigido:"Beatriz Eduarda do Nascimento Amaral" },
+  { turma:"6ºB", nomeAtual:"Clara Inês Frias", nomeCorrigido:"Clara Rios Frias" },
+  { turma:"6ºB", nomeAtual:"Esther Brasileira Wacha", nomeCorrigido:"Esther Brasileiro Wacha" },
+  { turma:"6ºB", nomeAtual:"Kaillany Evillyn Florençoo Laboure da Cruz", nomeCorrigido:"Kaillany Evillyn Florenço Laboure da Silva" },
+  { turma:"6ºB", nomeAtual:"Lara Cularte Duarte", nomeCorrigido:"Lara Gularte Duarte" },
+  { turma:"6ºB", nomeAtual:"Valentina Almeida Macalhaes", nomeCorrigido:"Valentina Almeida Magalhaes" },
+  { turma:"8ºX", nomeAtual:"Taylor Eduardo Ferreira da Lima", nomeCorrigido:"Taylor Eduardo Ferreira da Silva" },
+];
+
 /* ════════════════════════════════════════════════════════════
    HELPERS
    ════════════════════════════════════════════════════════════ */
@@ -3578,6 +3570,122 @@ function renderDuplicatesBanner(ativos){
   `;
 }
 
+// ────────────────────────────────────────────────────────────
+// Revisão de nomes divergentes (comparação com o PDF oficial)
+// ────────────────────────────────────────────────────────────
+// Guarda o que já foi tratado nesta sessão (aplicado ou ignorado),
+// pra sumir da lista sem precisar apagar do array de origem.
+const CORRECOES_NOME_STATUS = {};
+
+function correcoesNomePendentes(){
+  return CORRECOES_NOME_PDF
+    .map((c,i)=>({...c, i}))
+    .filter(c => !CORRECOES_NOME_STATUS[c.i]);
+}
+
+function renderCorrecoesNomeBanner(){
+  const banner = document.getElementById('correcoesNomeBanner');
+  if(!banner) return;
+  const pendentes = correcoesNomePendentes();
+  if(!pendentes.length){ banner.innerHTML=''; return; }
+  banner.innerHTML = `
+    <div style="background:#EAF2FB;border:1px solid #A9C9EA;border-radius:6px;padding:14px 16px;margin:0 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font-size:13px;color:#154F8A">
+        <strong>✎ ${pendentes.length} nome${pendentes.length>1?'s':''} com possível diferença de grafia</strong> em relação à listagem oficial da matrícula (PDF de 20/08/2026).
+      </div>
+      <button class="action-btn" style="background:#fff;border:1px solid #A9C9EA;color:#154F8A" onclick="openCorrecoesNomeModal()">Revisar e corrigir</button>
+    </div>
+  `;
+}
+
+function openCorrecoesNomeModal(){
+  renderCorrecoesNomeModalBody();
+  document.getElementById('correcoesNomeModalOverlay').classList.add('open');
+}
+function closeCorrecoesNomeModalBtn(){
+  document.getElementById('correcoesNomeModalOverlay').classList.remove('open');
+}
+
+function renderCorrecoesNomeModalBody(){
+  const body = document.getElementById('correcoesNomeModalBody');
+  if(!body) return;
+  const pendentes = correcoesNomePendentes();
+  if(!pendentes.length){
+    body.innerHTML = `<div style="padding:24px;text-align:center;color:#999;font-size:13px">Nenhuma correção pendente. ✓</div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="action-btn" style="font-size:11.5px" onclick="applyAllCorrecoesNome()">Aplicar todas (${pendentes.length})</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${pendentes.map(c => `
+        <div style="border:1px solid #E8E7E3;border-radius:6px;padding:10px 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.04em;min-width:34px">${c.turma}</span>
+          <div style="flex:1;min-width:220px;font-size:13px">
+            <span style="color:#C0392B;text-decoration:line-through">${c.nomeAtual}</span>
+            <span style="color:#999"> → </span>
+            <span style="color:#0F6E56;font-weight:600">${c.nomeCorrigido}</span>
+          </div>
+          <button class="action-btn" style="font-size:11.5px;background:#E1F5EE;border-color:#9AD9C4;color:#0F6E56" onclick="applyCorrecaoNome(${c.i})">Aplicar</button>
+          <button class="action-btn" style="font-size:11.5px" onclick="ignoreCorrecaoNome(${c.i})">Ignorar</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function applyCorrecaoNome(i){
+  const c = CORRECOES_NOME_PDF[i];
+  if(!c) return;
+  const idx = S.findIndex(x => x.t === c.turma && x.n === c.nomeAtual);
+  if(idx === -1){
+    if(!confirm(`Não encontrei mais "${c.nomeAtual}" (${c.turma}) cadastrado exatamente assim — o nome pode já ter sido alterado. Marcar esta correção como resolvida mesmo assim?`)) return;
+    CORRECOES_NOME_STATUS[i] = 'aplicado';
+    renderCorrecoesNomeBanner(); renderCorrecoesNomeModalBody();
+    return;
+  }
+  if(!confirm(`Corrigir o nome de "${c.nomeAtual}" para "${c.nomeCorrigido}"?\n\nTodos os outros dados do cadastro (perfil, AEE, PIP, rotina, advertências, observações) serão mantidos — só o nome muda.`)) return;
+
+  const est = S[idx];
+  est.n = c.nomeCorrigido;
+  if(est.id){
+    try{ await sbPatch('estudantes', { nome: c.nomeCorrigido }, [`id=eq.${est.id}`]); }
+    catch(err){ console.warn('Erro ao salvar correção de nome no Supabase:', err); showToast('Nome corrigido localmente, mas houve erro ao salvar no servidor. Tente novamente.','coral'); }
+  }
+  CORRECOES_NOME_STATUS[i] = 'aplicado';
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx===idx) renderModalContent(idx);
+  renderCorrecoesNomeModalBody();
+  showToast(`Nome corrigido para "${c.nomeCorrigido}".`,'verde');
+}
+
+function ignoreCorrecaoNome(i){
+  CORRECOES_NOME_STATUS[i] = 'ignorado';
+  renderCorrecoesNomeBanner();
+  renderCorrecoesNomeModalBody();
+}
+
+async function applyAllCorrecoesNome(){
+  const pendentes = correcoesNomePendentes();
+  if(!pendentes.length) return;
+  if(!confirm(`Aplicar as ${pendentes.length} correções de nome pendentes? Todos os outros dados de cada aluno serão mantidos — só os nomes mudam.`)) return;
+  for(const c of pendentes){
+    const idx = S.findIndex(x => x.t === c.turma && x.n === c.nomeAtual);
+    if(idx === -1){ CORRECOES_NOME_STATUS[c.i] = 'aplicado'; continue; }
+    const est = S[idx];
+    est.n = c.nomeCorrigido;
+    if(est.id){
+      try{ await sbPatch('estudantes', { nome: c.nomeCorrigido }, [`id=eq.${est.id}`]); }
+      catch(err){ console.warn('Erro ao salvar correção de nome no Supabase:', err); }
+    }
+    CORRECOES_NOME_STATUS[c.i] = 'aplicado';
+  }
+  renderTable(); renderAtipicos(); renderDashboard();
+  renderCorrecoesNomeModalBody();
+  showToast(`${pendentes.length} nomes corrigidos.`,'verde');
+}
+
 function renderDashboard(){
   // Apenas alunos efetivamente matriculados entram nas contagens do painel
   // (movimentações como transferência retiram o aluno da contagem oficial).
@@ -3594,6 +3702,7 @@ function renderDashboard(){
   const masc     = ativos.filter(x=>x.s==="M").length;
 
   renderDuplicatesBanner(ativos);
+  renderCorrecoesNomeBanner();
 
   const statsGrid=document.getElementById('statsGrid'); if(!statsGrid) return;
   statsGrid.innerHTML=`
@@ -4291,12 +4400,7 @@ async function excluirEstudante(idx){
   if(!confirm(`Excluir "${est.n}" (${est.t}) definitivamente? Esta ação não pode ser desfeita.`)) return;
   if(est.id){
     try{
-      const { error } = await sbDelete('estudantes', [`id=eq.${est.id}`]);
-      if(error){
-        console.warn('Erro ao excluir estudante no Supabase:', error);
-        alert('Não foi possível excluir no servidor (o registro pode já ter sido alterado por outra pessoa). Atualize a página e tente novamente.');
-        return;
-      }
+      await sbDelete('estudantes', [`id=eq.${est.id}`]);
     }catch(e){
       console.warn('Erro ao excluir estudante no Supabase:', e);
       alert('Não foi possível excluir no servidor. Verifique a conexão e tente novamente.');
@@ -4492,14 +4596,56 @@ function closeEditModal(e){
   if(e.target===document.getElementById('editModalOverlay')) closeEditModalBtn();
 }
 
-// NOTA: a função submitEdit "real" (que salva no Supabase, sincroniza
-// nome nas outras abas e trata erro de gravação) está definida mais
-// abaixo, junto com o restante da lógica de sincronização em nuvem.
-// Havia uma versão antiga aqui, que só editava o array local em memória
-// e nunca chegou a ser atualizada para salvar no banco — como as duas
-// tinham o mesmo nome, a definição mais abaixo sempre prevalecia em
-// tempo de execução, mas manter as duas no arquivo só gerava confusão
-// (e risco de alguém editar a versão errada no futuro). Removida.
+function submitEdit(){
+  const el = document.getElementById('editModalText');
+  if(!el || !editTarget) return;
+  let newVal;
+  if(el.getAttribute && el.getAttribute('data-type')==='multiselect'){
+    const checked = Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
+    newVal = checked.length === 0 ? 'N/A' : checked.join(', ');
+  } else {
+    newVal = el.value.trim();
+  }
+  const { studentIdx, field } = editTarget;
+  const x = S[studentIdx];
+  const meta = FIELD_META[field];
+  const oldVal = field==='obs' ? (x.o||'') : (x[field]||'');
+
+  if(newVal === oldVal){ closeEditModalBtn(); return; }
+
+  const needsApproval = ROLES[currentRole].needsApproval;
+
+  if(needsApproval){
+    // Queue for approval
+    pendingEdits.push({
+      id: pendingIdCounter++,
+      studentIdx,
+      field,
+      oldVal,
+      newVal,
+      role: currentRole,
+      label: ROLES[currentRole].label,
+      fieldLabel: meta.label,
+      ts: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    });
+    updatePendingBtn();
+    closeEditModalBtn();
+    // Show toast
+    showToast(`Edição enviada para aprovação da Coordenação Pedagógica.`, 'amber');
+  } else {
+    // Apply immediately
+    if(field==='obs') x.o = newVal;
+    else              x[field] = newVal;
+    closeEditModalBtn();
+    // Re-render modal with updated data
+    if(currentModalIdx !== null) renderModalContent(currentModalIdx);
+    renderTable();
+    renderAtipicos();
+    renderDashboard();
+    showToast(`Campo "${meta.label}" atualizado com sucesso.`, 'verde');
+  }
+  editTarget = null;
+}
 
 /* ════════════════════════════════════════════════════════════
    PENDING PANEL
@@ -4516,11 +4662,67 @@ function closePendingPanel(e){
   if(e.target===document.getElementById('pendingPanelOverlay')) closePendingPanelBtn();
 }
 
-// NOTA: assim como submitEdit, as versões "reais" de renderPendingPanel,
-// approvePending e rejectPending (que gravam no Supabase) estão definidas
-// mais abaixo. As versões antigas que existiam aqui foram removidas pelo
-// mesmo motivo — eram sombreadas em tempo de execução e só causavam
-// confusão de manutenção.
+function renderPendingPanel(){
+  const list = document.getElementById('pendingList');
+  const isCoord = currentRole === 'coord-ped';
+  if(!pendingEdits.length){
+    list.innerHTML=`<div class="pending-empty">Nenhuma edição pendente de aprovação.</div>`;
+    return;
+  }
+  list.innerHTML = pendingEdits.map(ed=>{
+    const nome = ed.studentNome || (S.find(x=>x.id===ed.studentId)?.n) || '—';
+    const acoes = isCoord ? `
+      <div class="pending-item-actions">
+        <button class="btn-approve" onclick="approvePending(${ed.id})">✓ Aprovar</button>
+        <button class="btn-edit-approve" onclick="abrirApproveEdit(${ed.id})">✎ Editar e aprovar</button>
+        <button class="btn-reject" onclick="rejectPending(${ed.id})">✗ Rejeitar</button>
+      </div>` : `
+      <div style="font-size:11px;color:#AAA;margin-top:4px">Aguardando aprovação da Coordenação Pedagógica.</div>`;
+    return `
+    <div class="pending-item" id="pend-${ed.id}">
+      <div class="pending-item-header">
+        <div class="pending-item-name">${nome}</div>
+        <span class="badge" style="background:#F3F2EF;color:#555;font-size:10px">${ed.label}</span>
+      </div>
+      <div class="pending-item-field">${ed.fieldLabel}</div>
+      <div class="pending-item-old">${ed.oldVal||'(vazio)'}</div>
+      <div class="pending-item-new">${ed.newVal}</div>
+      <div class="pending-item-meta">Enviado às ${ed.ts}</div>
+      ${acoes}
+    </div>`;
+  }).join('');
+}
+
+async function approvePending(id, valorFinal){
+  const ed = pendingEdits.find(x=>x.id===id);
+  if(!ed) return;
+  const val = valorFinal !== undefined ? valorFinal : ed.newVal;
+
+  // Salva no estudante no Supabase
+  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
+  const { error } = await sbPatch('estudantes', { [dbField]: val }, [`id=eq.${ed.studentId}`]);
+  if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
+
+  // Remove da tabela de pendentes no Supabase
+  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
+
+  // Atualiza array local S
+  const idx = S.findIndex(x=>x.id===ed.studentId);
+  if(idx>=0){ if(ed.field==='obs') S[idx].o=val; else S[idx][ed.field]=val; }
+
+  await carregarPendentes();
+  renderPendingPanel();
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx !== null) renderModalContent(currentModalIdx);
+  showToast('Edição aprovada e aplicada.', 'verde');
+}
+
+async function rejectPending(id){
+  await sbDelete('aprovacoes_pendentes', [`id=eq.${id}`]);
+  await carregarPendentes();
+  renderPendingPanel();
+  showToast('Edição rejeitada.', 'coral');
+}
 
 // Abre modal para editar o texto antes de aprovar
 function abrirApproveEdit(id){
@@ -5577,32 +5779,13 @@ async function sbPatch(table, obj, filters){
     body: JSON.stringify(obj)
   });
   const data = await r.json();
-  if(!r.ok) return { data, error: data };
-  // O Supabase/PostgREST responde 200 com um array VAZIO quando o filtro
-  // (ex.: id=eq.123) não encontra nenhuma linha — isso não é erro HTTP,
-  // mas significa que NADA foi realmente salvo no banco. Sem checar isso,
-  // o app achava que a edição tinha funcionado (e atualizava a tela local),
-  // enquanto o registro no servidor continuava com o valor antigo. Na
-  // sincronização seguinte o valor antigo "voltava", dando a impressão de
-  // que o app manteve o nome errado e/ou duplicou o aluno.
-  if(Array.isArray(data) && data.length===0 && filters && filters.length){
-    return { data, error: { message: 'Nenhum registro correspondente foi encontrado no servidor para atualizar.' } };
-  }
-  return { data, error: null };
+  return { data, error: r.ok ? null : data };
 }
 async function sbDelete(table, filters){
   let url = `${SUPABASE_URL}/rest/v1/${table}?`;
   if(filters && filters.length) url += filters.join('&');
   const r = await fetch(url, { method:'DELETE', headers: sbHeaders() });
-  let data = [];
-  try{ data = await r.json(); }catch(e){ data = []; }
-  if(!r.ok) return { data, error: data };
-  // Mesmo raciocínio do sbPatch: DELETE que não encontra a linha também
-  // responde 200 com array vazio, e isso não pode ser tratado como sucesso.
-  if(Array.isArray(data) && data.length===0 && filters && filters.length){
-    return { data, error: { message: 'Nenhum registro correspondente foi encontrado no servidor para excluir.' } };
-  }
-  return { data, error: null };
+  return { error: r.ok ? null : await r.json() };
 }
 
 /* ── Realtime via WebSocket ───────────────────────────────── */
@@ -6063,13 +6246,7 @@ async function carregarEstudantes(){
 
     if(somenteLocais.length){
       console.warn(`[AVISO] ${somenteLocais.length} aluno(s) existiam só no cadastro fixo do código e foram preservados nesta sessão. Migrando para o Supabase para não se perderem:`, somenteLocais.map(x=>x.n));
-      // Antes isso disparava sem "await" (fire-and-forget): a tela liberava
-      // a edição do aluno antes de ele ter um id real do Supabase, e uma
-      // edição feita nessa janela de tempo não era salva no servidor
-      // (ver correção em submitEdit/sbPatch). Agora aguardamos a migração
-      // terminar antes de seguir, para que x.id já esteja definido quando
-      // o usuário conseguir interagir com a tela.
-      await migrarAlunosOrfaosParaSupabase(somenteLocais);
+      migrarAlunosOrfaosParaSupabase(somenteLocais);
     }
   } catch(err) {
     console.error('Erro ao carregar estudantes do Supabase:', err);
@@ -7482,16 +7659,6 @@ async function submitEdit(){
   const meta = FIELD_META[field];
   const oldVal = field==='obs' ? (x.o||'') : (field==='ocn' ? (x.ocn ?? 0) : (x[field]||''));
   if(newVal===oldVal){ closeEditModalBtn(); return; }
-  // Aluno ainda sem id do Supabase = ainda está sendo migrado/sincronizado
-  // (acontece por 1-2s logo após o carregamento). Editar nesse instante
-  // fazia o app "salvar" só localmente, sem gravar nada no servidor —
-  // e na sincronização seguinte o valor antigo voltava, dando a
-  // impressão de nome duplicado/errado. Bloqueamos e avisamos em vez
-  // de deixar isso acontecer silenciosamente.
-  if(!x.id){
-    showToast('Este aluno ainda está sendo sincronizado com o servidor. Aguarde alguns segundos e tente novamente.','amber');
-    return;
-  }
   const needsApproval = ROLES[currentRole].needsApproval;
 
   if(needsApproval){
@@ -7614,33 +7781,21 @@ function renderPendingPanel(){
   }).join('');
 }
 
-async function approvePending(id, valorFinal){
+async function approvePending(id){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
-  // Permite que a Coordenação ajuste o valor antes de aprovar
-  // ("Editar e aprovar"); se nada for passado, usa o valor proposto.
-  const val = valorFinal !== undefined ? valorFinal : ed.newVal;
-  if(!ed.studentId){
-    showToast('Este aluno ainda não está sincronizado com o servidor. Aguarde e tente novamente.','coral');
-    return;
-  }
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
-  const { error } = await sbPatch('estudantes',{ [dbField]:val },[ `id=eq.${ed.studentId}` ]);
-  if(error){
-    console.warn('Erro ao aprovar edição no Supabase:', error);
-    showToast('Erro ao salvar no servidor. Nada foi alterado — tente novamente.','coral');
-    return;
-  }
-  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, val);
+  await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
+  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, ed.newVal);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
-  await sbPatch('aprovacoes_pendentes',{ status:'aprovado', valor_novo:val },[ `id=eq.${id}` ]);
+  await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
   // Atualiza S local
   const idx = S.findIndex(x=>x.id===ed.studentId);
   if(idx!==-1){
     const oldV = ed.field==='obs' ? (S[idx].o||'') : (ed.field==='ocn' ? (S[idx].ocn ?? 0) : (S[idx][ed.field]||''));
-    pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:val, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
-    if(ed.field==='obs') S[idx].o=val; else S[idx][ed.field]=val;
+    pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:ed.newVal, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
+    if(ed.field==='obs') S[idx].o=ed.newVal; else S[idx][ed.field]=ed.newVal;
   }
   await carregarPendentes();
   renderPendingPanel();
@@ -7825,14 +7980,6 @@ function showView(id, btn){
     const f=document.getElementById('pipleituraIframe');
     if(f && !f.src) f.src='pipleitura.html';
   }
-  if(id === 'analisetrimestral'){
-    const f=document.getElementById('analiseTrimestralIframe');
-    if(f && !f.src) f.src='analise-trimestral.html';
-  }
-  if(id === 'eventos'){
-    const f=document.getElementById('geteculturaIframe');
-    if(f && !f.src) f.src='getecultura.html';
-  }
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
     const sidebar = document.querySelector('.sidebar');
@@ -7851,38 +7998,6 @@ function recarregarAtaIframe(){
 function recarregarPipleituraIframe(){
   const f=document.getElementById('pipleituraIframe');
   if(f) f.src='pipleitura.html?_='+Date.now();
-}
-
-function recarregarAnaliseTrimestralIframe(){
-  const f=document.getElementById('analiseTrimestralIframe');
-  if(f) f.src='analise-trimestral.html?_='+Date.now();
-}
-
-/* ── Sub-abas de Eventos (Getecultura / Interclasse) ─────────────── */
-const EVENTO_SRC = { getecultura: 'getecultura.html', interclasse: 'interclasse.html' };
-
-function showEventoSubtab(tab, btn){
-  document.querySelectorAll('.evento-subtab-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.querySelectorAll('.evento-panel').forEach(p=>{ p.classList.remove('active'); p.style.display='none'; });
-  const panel = document.getElementById('evento-panel-'+tab);
-  panel.style.display = 'block';
-  panel.classList.add('active');
-
-  const iframeId = tab === 'getecultura' ? 'geteculturaIframe' : 'interclasseIframe';
-  const f = document.getElementById(iframeId);
-  if(f && !f.src) f.src = EVENTO_SRC[tab];
-
-  const link = document.getElementById('eventoAbrirNovaAba');
-  if(link) link.href = EVENTO_SRC[tab];
-}
-
-function recarregarEventoIframe(){
-  const activeBtn = document.querySelector('.evento-subtab-btn.active');
-  const tab = activeBtn && activeBtn.id === 'subtabInterclasse' ? 'interclasse' : 'getecultura';
-  const iframeId = tab === 'getecultura' ? 'geteculturaIframe' : 'interclasseIframe';
-  const f = document.getElementById(iframeId);
-  if(f) f.src = EVENTO_SRC[tab] + '?_=' + Date.now();
 }
 
 // Spinner CSS
