@@ -6828,8 +6828,19 @@ function todosItensMateriais(){
   return out;
 }
 
-function getMaterialEntry(alunoId, itemNome){
-  return materiaisLog.find(m=> String(m.aluno_id)===String(alunoId) && m.item_nome===itemNome );
+// Casa um registro de materiais_recebimento com o aluno. Prioriza a matrícula
+// (estável mesmo se o cadastro do aluno for excluído e recriado no Supabase).
+// Para registros gravados antes desta correção (sem aluno_matricula), cai
+// para o casamento por aluno_id, que é o comportamento antigo.
+function getMaterialEntry(aluno, itemNome){
+  const matricula = aluno && (aluno.matricula ?? null);
+  const alunoId = aluno && (aluno.id ?? null);
+  return materiaisLog.find(m => {
+    if(m.item_nome !== itemNome) return false;
+    if(matricula!=null && m.aluno_matricula!=null) return String(m.aluno_matricula)===String(matricula);
+    if(alunoId!=null) return String(m.aluno_id)===String(alunoId);
+    return false;
+  });
 }
 
 // Calcula progresso de um aluno: {recebidos, total, pct, porCategoria:{cat:{recebidos,total}}}
@@ -6841,7 +6852,7 @@ function calcMaterialProgress(aluno){
   Object.keys(MATERIAL_CATEGORIAS).forEach(cat=>{ porCategoria[cat] = { recebidos:0, total:0 }; });
   todos.forEach(it=>{
     porCategoria[it.categoria].total++;
-    const entry = getMaterialEntry(aluno.id ?? aluno.n, it.nome);
+    const entry = getMaterialEntry(aluno, it.nome);
     if(entry && entry.status === 'recebido'){ recebidos++; porCategoria[it.categoria].recebidos++; }
   });
   const pct = total ? Math.round((recebidos/total)*100) : 0;
@@ -6938,7 +6949,7 @@ function renderMateriaisTable(){
   tbody.innerHTML = rows.map(({al,prog,situacao})=>{
     const idxReal = S.indexOf(al);
     const cells = todos.map(it=>{
-      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+      const entry = getMaterialEntry(al, it.nome);
       const checked = entry && entry.status==='recebido';
       return `<td class="materiais-td-check"><input type="checkbox" ${checked?'checked':''} data-idx="${idxReal}" data-cat="${it.categoria}" data-item="${encodeURIComponent(it.nome)}" title="${it.nome}${checked && entry.data_recebimento ? ' — recebido em '+new Date(entry.data_recebimento+'T12:00:00').toLocaleDateString('pt-BR') : ''}" onchange="onMaterialGridCheck(this)"></td>`;
     }).join('');
@@ -7122,7 +7133,7 @@ function printMateriaisGrid(){
   const paginasHtml = [...porTurma.entries()].map(([turma, turmaRows], i)=>{
     const linhasHtml = turmaRows.map(({al,prog})=>{
       const cels = todos.map(it=>{
-        const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+        const entry = getMaterialEntry(al, it.nome);
         const ok = entry && entry.status==='recebido';
         return `<td class="chk-cell">${ok?'☑':'☐'}</td>`;
       }).join('');
@@ -7199,7 +7210,7 @@ function renderMaterialFichaBody(){
     if(!itens.length) return '';
     const meta = MATERIAL_CATEGORIAS[cat];
     const linhas = itens.map(it=>{
-      const entry = getMaterialEntry(al.id ?? al.n, it.nome);
+      const entry = getMaterialEntry(al, it.nome);
       const recebido = entry && entry.status==='recebido';
       const dataVal = (entry && entry.data_recebimento) ? entry.data_recebimento : hoje;
       const safeId = `mf_${cat}_${it.id}`.replace(/[^a-zA-Z0-9_]/g,'');
@@ -7257,9 +7268,8 @@ async function updateMaterialItemDate(idx, categoria, itemNome, novaData){
 }
 
 async function salvarMaterialItem(al, categoria, itemNome, status, dataRecebimento){
-  const alunoId = al.id ?? al.n;
-  const existente = getMaterialEntry(alunoId, itemNome);
-  const payload = { aluno_id: al.id ?? null, aluno_nome: al.n, turma: al.t, item_categoria: categoria, item_nome: itemNome, status, data_recebimento: status==='recebido' ? dataRecebimento : null };
+  const existente = getMaterialEntry(al, itemNome);
+  const payload = { aluno_id: al.id ?? null, aluno_matricula: al.matricula ?? null, aluno_nome: al.n, turma: al.t, item_categoria: categoria, item_nome: itemNome, status, data_recebimento: status==='recebido' ? dataRecebimento : null };
   try {
     if(existente && existente.id && al.id){
       const { data } = await sbPatch('materiais_recebimento', payload, [ `id=eq.${existente.id}` ]);
@@ -7371,12 +7381,21 @@ async function removerItemMaterial(cat, id){
 async function sincronizarNomeAlunoEmOutrasAbas(studentId, studentMatricula, oldName, newName){
   if(!newName || newName===oldName) return;
 
-  // Materiais — cada registro tem aluno_id, então dá pra vincular com segurança
+  // Materiais — agora guarda aluno_matricula, então vincula com segurança pela
+  // matrícula (estável mesmo se o cadastro do Supabase for recriado).
+  // Registros antigos (de antes desta correção) ainda não têm aluno_matricula;
+  // para esses, o casamento por aluno_id continua sendo o único jeito.
+  if(studentMatricula!=null){
+    try {
+      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_matricula=eq.${encodeURIComponent(studentMatricula)}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais (por matrícula).', e); }
+    materiaisLog.forEach(m=>{ if(m.aluno_matricula!=null && String(m.aluno_matricula)===String(studentMatricula)) m.aluno_nome=newName; });
+  }
   if(studentId){
     try {
-      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_id=eq.${studentId}`]);
-    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais.', e); }
-    materiaisLog.forEach(m=>{ if(String(m.aluno_id)===String(studentId)) m.aluno_nome=newName; });
+      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_matricula=is.null`, `aluno_id=eq.${studentId}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais (por id, registros antigos).', e); }
+    materiaisLog.forEach(m=>{ if(m.aluno_matricula==null && String(m.aluno_id)===String(studentId)) m.aluno_nome=newName; });
   }
 
   // Relatórios Escolares — agora guarda aluno_matricula, então vincula com
