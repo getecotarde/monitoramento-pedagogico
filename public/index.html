@@ -3102,351 +3102,19 @@ async function marcarNotificacaoLida(id){
 /* ════════════════════════════════════════════════════════════
    DADOS — extraídos das tabelas PDF
    ════════════════════════════════════════════════════════════ */
-const S = [
-  /* ── 6ºA ─────────────────────────────────────────────── */
-  {t:"6ºA",n:"Bryan Felipe de Caria Teixeira",s:"M",p:"ATÍPICO",a:"TDAH",pip:"N/A",e:"ADAPTAÇÃO",r:"",o:"Apresenta dificuldade"},
-  {t:"6ºA",n:"Davi Nathan Silva Nascimento",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Diulia Victoria Lima da Cruz",s:"F",p:"ATÍPICO",a:"N/A",pip:"SIM — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"6ºA",n:"Esther Almeida Brito",s:"F",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Jhulia Ketellyn Moreira da Cunha",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Reforço em LP",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Kaique Eduardo de Souza Lopes",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Dif. aprendizagem e concentração"},
-  {t:"6ºA",n:"Kaua Victor Nunes Silva",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP",e:"AVALIAR",r:"Reforço em MAT",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Kauam Robson Moreira Costa da Silva",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Lucas Damian Barbosa Gonçalves",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Lucca Campos Saldanha",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Organizar atividades em etapas curtas, com rotina previsível, apoio visual e tempo ampliado. Exemplo: entregar uma atividade com 3 questões por vez e um roteiro no quadro. Analisar possível troca de sala.",o:"Apresenta dificuldade"},
-  {t:"6ºA",n:"Andre Xavier da Silva Bispo",s:"M",p:"ATÍPICO",a:"TEA",pip:"N/A",e:"ADAPTAÇÃO",r:"O estudante demanda estrito cumprimento dos prazos estabelecidos com a turma, principalmente combinados e feitos diretamente com ele. Casos de imprevistos: favor avisar de ajustes em reagendamentos. Não demanda APOIO; apresenta quadro de ansiedade e agitação.",o:"Não demanda APOIO. Apresenta quadro de ansiedade e agitação."},
-  {t:"6ºA",n:"Bernardo Martins Emigdio de Sousa",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de concentração"},
-  {t:"6ºA",n:"Luara Valentina Barbosa Pinto Camilo",s:"F",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Pedro Tiago Pinheiro",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºA",n:"Agata Santos Teixeira Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Aleph Andrade Simões",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Alice Manuella de Oliveira Felix Lima",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Ana Julia Souza Oliveira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Catarina Penido de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Clara Alves Scaramelo Cupertino",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Elizabeth Cristina Ferreira Barbosa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Eloa Rubi Mendes de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Esther Soares Alcântara",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Heloisa Caroline Rodrigues Moreira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Lorenzo Santos Dias Castro",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Maria Eduarda de Jesus Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Miguel Gonçalves Freitas",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Rayssa de Oliveira Damasceno",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Sarah Alves dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºA",n:"Vitor Miguel Oliveira da Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 6ºB ─────────────────────────────────────────────── */
-  {t:"6ºB",n:"Arthur Oliveira de Freitas",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Kaillany Evillyn Florenço Laboure da Silva",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Lorenzo de Paula Santos de Almeida",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Sara Vitoria dos Anjos Silva",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"PIP",r:"",o:""},
-  {t:"6ºB",n:"Sofia Ester Almeida de Menezes",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Davi Vilas Boas Morais",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Lara Gularte Duarte",s:"F",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Nathan Henrique Coutinho Maciel",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºB",n:"Alice Perenne de Oliveira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Alice Pimenta Campos Rodrigues",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Ana Vitoria Antunes de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Anna Victoria Nedes Vieira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Barbara Victoria Quinonez Ramos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Beatriz Eduarda do Nascimento Amaral",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Bernard Alves Parreiras Peroni",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Bernardo Alves de Souza",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Christopher Alejandro Alves de Oliveira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Clara Rios Frias",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Estêvão Miguel Alves dos Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Esther Brasileiro Wacha",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Heitor Vitor Silva Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Isabella Vitória Moraes Rodrigues",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Isabelly Gabriely Freire Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Lauane Ester Silva Martins Rosa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Manuela Helena Xavier Lopes",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Rodrigo Marques Nascimento Cardoso",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Sophia Oliveira Viana",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Thauany Ester Rodrigues Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Valentina Almeida Magalhaes",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºB",n:"Matheus Michael Ferreira Valentim",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 6ºC ─────────────────────────────────────────────── */
-  {t:"6ºC",n:"Alvaro Gabriel Silva Fernandes",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Manter rotina estruturada, instruções objetivas, mediação direta e adaptação de tempo. Exemplo: explicar oralmente e também escrever os passos da tarefa no quadro.",o:"Acompanhamento"},
-  {t:"6ºC",n:"Arthur Ventura da Silva Araujo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Kaua Felipe de Oliveira Alvarenga",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Aluno com diagnóstico recente. Demanda por menor quantidade de registro do quadro, por disponibilização de conteúdos impressos, além de sentar mais à frente no mapeamento e de acompanhamento/apoio individual na realização de atividades avaliativas. PROVAS. ATIVIDADES ADAPTADAS. SENTAR NAS PRIMEIRAS FILEIRAS.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Sophia Almeida Pereira da Cruz",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A",e:"REFORÇO",r:"Reforço em LP",o:"Apresenta dificuldade"},
-  {t:"6ºC",n:"Yuri Cândida Medeiros",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM",e:"REFORÇO",r:"Reforço em LP e MAT",o:"Apresenta dificuldade"},
-  {t:"6ºC",n:"Arthur Vinicius Oliveira de Paiva",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
-  {t:"6ºC",n:"Bernardo Bragança do Nascimento",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Davi Victor Dias Duques",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Gustavo Felipe Caetano Miranda",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Pérola Maria Pires Santana",s:"F",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºC",n:"Agatha Rafaelly Vieira de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Alice Yasmin Martins Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Ana Beatriz Castro Apostolo",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Bruno William Silva da Costa",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Davi Carvalho de Oliveira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Emanuelle Bittencourt Soares",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Emanuelly Vitória Pereira Feliciano",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Enzo Neves de Souza",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Ester Luiza Felix de Oliveira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Esther Lopes Rocha de Abreu",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Gabrielle Rodrigues da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Giovana Ventura Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Julia Vitalino de Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Luis Miguel Pinheiro Moreira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Luiz Cláudio Silva Cunha Pereira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Luiza Vitória Fernandes Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Sofia Pereira de Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºC",n:"Zion Roberto Bandeira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 6ºD ─────────────────────────────────────────────── */
-  {t:"6ºD",n:"Cecilia de Oliveira Tavares",s:"F",p:"ATÍPICO",a:"DI",pip:"SIM",e:"ADAPTAÇÃO",r:"Usar atividades concretas, apoio visual, mediação passo a passo e avaliação flexível. Exemplo: trabalhar com figuras, cartões e material manipulável antes do registro escrito.",o:""},
-  {t:"6ºD",n:"Davi Gregio Maciel Rosa",s:"M",p:"ATÍPICO",a:"TEA/TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Garantir rotina previsível, tarefas segmentadas, apoio gradual e estímulo à autonomia. Exemplo: combinar um tempo curto para iniciar a tarefa sozinho e depois revisar com o professor.",o:"Possibilita autonomia"},
-  {t:"6ºD",n:"Davi Kenedy do Espírito Santo Azevedo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço em Matemática",o:""},
-  {t:"6ºD",n:"Gabrielly Corrêa Lima",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"Reforço em LP>",o:""},
-  {t:"6ºD",n:"Gustavo Junio da Silva Pereira",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP",e:"PIP",r:"Em matemática, confirmar com João(PIP).",o:"Dificuldade de aprendizagem"},
-  {t:"6ºD",n:"Levi Benjamin Costa",s:"M",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Trabalhar com previsibilidade, apoio visual, transições mediadas e reforço positivo. Exemplo: avisar com antecedência quando a atividade vai mudar e mostrar a sequência das ações.",o:""},
-  {t:"6ºD",n:"Marco Antonio Gonçalves Lima",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP. Em MAT, consultar João.",o:"Apresenta dificuldade"},
-  {t:"6ºD",n:"Pyetro Junio Souza de Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"",o:"Muito hiperativo"},
-  {t:"6ºD",n:"Eduardo Augusto Soares Silva",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
-  {t:"6ºD",n:"Lucas Eduardo Lima Rocha",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
-  {t:"6ºD",n:"Miguel Reis Romulo de Oliveira",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dispersa facilmente"},
-  {t:"6ºD",n:"Raul Sales Costa",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dispersa facilmente"},
-  {t:"6ºD",n:"Andre Miguel de Oliveira da Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Bryan Filipe Pires",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Daniel Caetano da Cunha",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Giulia Nunes da Silva Macedo",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Heitor Alves Medeiros",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Jennifer Vitória da Cruz Aguiar",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Leticia Emanuelly Pereira de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Maria Alice Barbosa de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Maria Eduarda Batista de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Matheus Resende Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Milena Carolina Antunes Esteves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Quezia Danielly Moura da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Sophia Barbosa dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Sophia Stefani Campos Ferreira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Valentina Amaral Sales Bispo",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Vitória Regina da Silva Veiga",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Yasmin Vitória Ribeiro Gonçalves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºD",n:"Nicolas Martins Gomes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 6ºE ─────────────────────────────────────────────── */
-  {t:"6ºE",n:"Ester Luiza dos Santos",s:"F",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — MAT",e:"PIP",r:"Reforço em LP.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Henrique da Silva Jardim",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Isaac Augusto Moreira Deziderio",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Kalleb Willian Goncalves Rossi",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP/MAT",e:"PIP",r:"",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Maria Clara Alves Costa",s:"F",p:"ATÍPICO",a:"TDAH",pip:"SIM — LP",e:"PIP",r:"Ambiente e organização: posicioná-la próxima ao professor, longe de janelas e fontes de dispersão. Dar instruções curtas e segmentadas (uma etapa por vez); confirmar compreensão. Oferecer tempo estendido para atividades e avaliações. Reduzir volume de itens por atividade. Permitir material de apoio (resumos, roteiros). Avaliação: priorizar avaliações orais ou em ambiente reservado quando possível. Diversificar instrumentos; valorizar o processo e o esforço, não só o resultado. Suporte emocional: evitar exposição ou comparação diante da turma; reforçar positivamente suas conquistas. Comunicar à coordenação qualquer sinal de ansiedade, bloqueio ou dificuldade relevante.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Maria Eduarda de Oliveira Teixeira",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"6ºE",n:"Tiago Ruan Silveira Mendes",s:"M",p:"ATÍPICO",a:"Avaliar AEE",pip:"SIM — LP",e:"PIP",r:"Reforço em MAT.",o:"Indicação para Elane: Transformê?"},
-  {t:"6ºE",n:"Clarisse de Almeida Carvalho",s:"F",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Davi Leonardo de Sousa Magalhaes",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua.",o:"Dificuldade de aprendizagem"},
-  {t:"6ºE",n:"Alice Mendes Alves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Ana Beatriz Moura Costa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Arthur Gomes Cabral Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Bryan Thales Simões de Assumpção",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Carlos Eduardo Martins de Freitas",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Cecília Silva Soares",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Davi de Alcântara Andrade",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Davi Lucas Almeida Fonseca",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Enzo Gabriel Freitas",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Gabriela Vitória dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Guilherme Oliveira Melo",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Helena Lopes Antunes",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Lara Sara Alves Ciriaco",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Leonardo Henrique Queiroga Rocha dos Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Lucas Alberto Ferreira de Oliveira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Lucas Gabriel de Oliveira Campos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Ludmyla Aguiar Fonseca",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Maria Eduarda Silva Pereira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Pedro Lucas Rodrigues dos Reis",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Raul Henrique Araújo Teixeira de Faria",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºE",n:"Sophia Victoria Santos do Nascimento",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 6ºF ─────────────────────────────────────────────── */
-  {t:"6ºF",n:"Anny Marie Victoria de Souza Oliveira",s:"F",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Oferecer rotina estável, linguagem clara, apoio concreto e tarefas em pequenas etapas. Exemplo: dividir a atividade em início, meio e fim, com modelo de resposta.",o:""},
-  {t:"6ºF",n:"Isabelly de Souza Xavier",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"6ºF",n:"Samuel Lucca de Sousa Pereira",s:"M",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"Organizar sequência bem definida, apoio constante, tempo ampliado e acompanhamento próximo. Exemplo: permitir que o aluno resolva uma parte, pause e depois retome com orientação.",o:""},
-  {t:"6ºF",n:"Arthur Guimarães Gomes Ferreira",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"",o:"Apresenta dificuldade"},
-  {t:"6ºF",n:"Cecília Amaral Tomaz",s:"F",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"",o:"Dificuldade de concentração"},
-  {t:"6ºF",n:"Claudio Calixto Fernandes Junior",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
-  {t:"6ºF",n:"Isadora Luiza de Brito Soares",s:"F",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"Dificuldade de aprendizagem"},
-  {t:"6ºF",n:"João Guilherme Sales Rodrigues",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:""},
-  {t:"6ºF",n:"Leandro Lessa Resende",s:"M",p:"EM ANÁLISE",a:"N/A",pip:"N/A",e:"AVALIAR",r:"Observação contínua",o:"Apresenta dificuldade"},
-  {t:"6ºF",n:"Anna Clara Silva de Oliveira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Davi Lucca Coutinho Lopes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Gabriel Rodrigues de Caldas",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Gabriela Silva Soares",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Giovanna Aparecida do Carmo Batista",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Isaque Emanuel Medina de Souza",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Izabelle Alice dos Santos Gandra",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Julia Maria Silva de Jesus",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Lucas Cardoso dos Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Luiz Philipe Vale Teixeira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Maria Fernanda da Silveira Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Maria Luiza Lopes da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Maria Luiza Nunes Flor de Lima",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Miguel da Silva Gomes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Miguel Martins de Almeida",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Pedro Gael da Silva Marques",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Pietra Julia Jesus Franca",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Rafael Soares de Oliveira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"6ºF",n:"Ritha Gabrielly Gonçalves da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 7ºA ─────────────────────────────────────────────── */
-  {t:"7ºA",n:"Alice Cosso Guimarães de Souza Simões",s:"F",p:"ATÍPICO",a:"Avaliar AEE",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºA",n:"Alice Rodrigues Amorim",s:"F",p:"ATÍPICO",a:"SURDEZ",pip:"SIM",e:"ADAPTAÇÃO",r:"Garantir comunicação acessível, apoio escrito, recursos visuais e checagem de compreensão. Exemplo: entregar a instrução impressa e confirmar se a aluna entendeu antes de começar.",o:""},
-  {t:"7ºA",n:"Enzo Damasceno Salvador",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Reduzir distrações, propor metas curtas, dar feedback imediato e manter rotina visível. Exemplo: organizar a carteira em local mais tranquilo e combinar pequenas metas durante a aula.",o:""},
-  {t:"7ºA",n:"Gabriel de Assis Furtado Brandão",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºA",n:"Gabriel Rodrigo Ferreira de Aquino",s:"M",p:"ATÍPICO",a:"TDAH e Outras",pip:"SIM",e:"ADAPTAÇÃO",r:"Usar instruções curtas, apoio à organização, acompanhamento frequente e avaliação adaptada. Exemplo: orientar com 'primeiro, depois e por último', acompanhando o andamento da tarefa.",o:""},
-  {t:"7ºA",n:"Miguel Gonçalves de Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºA",n:"Pedro Henrique Alves Bueno",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
-  {t:"7ºA",n:"Samuel de Araújo Magalhães",s:"M",p:"ATÍPICO",a:"TDAH/Bx.Vis/Neuro",pip:"SIM",e:"ADAPTAÇÃO",r:"Planejar atividades curtas, com metas claras, apoio à autorregulação e reforço positivo. Exemplo: combinar um sinal para o aluno pedir pausa quando perceber dificuldade de atenção.",o:""},
-  {t:"7ºA",n:"Samuel Lucas Costa de Aguiar",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºA",n:"Sthephany Katlen de Almeida Lapa",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºA",n:"Allyce Yevina Martins dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Anna Clara Sousa Costa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Antonelly Alves Marcolino de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Clara Maria Rodrigues dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Gabrielly Ferreira de Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Giovana Layla Gomes da Costa Correia",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Heitor Vitor de Almeida Valadares",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Isaquy Antônio Vieira Dias",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Jéssica Nicolly da Cunha de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Luan Jesus França",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Mayara Oliveira Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Miguel Ítalo Monteiro Amaral",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Nicolly Maira Teixeira da Silva Viana",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Nikolas Matheus Nunes Curvelano",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Pietro de Andrade Pereira Amaral",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Raissa Gomes Dias dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Sophia Gabriele Pereira dos Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Vitória Hanna Castro Apostolo",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºA",n:"Yasmin Gonçalves da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 7ºB ─────────────────────────────────────────────── */
-  {t:"7ºB",n:"Davi Alves Resende",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Davi Phillip Pereira da Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD",pip:"SIM",e:"ADAPTAÇÃO",r:"Estruturar a rotina, dividir tarefas, usar apoio visual e adaptar a avaliação ao ritmo. Exemplo: entregar um passo a passo com duas questões por vez. REforço em PORT e MAT.",o:""},
-  {t:"7ºB",n:"Derick Alejandro dos Santos",s:"M",p:"ATÍPICO",a:"DI/TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Trabalhar com tarefas simples, apoio constante, previsibilidade e avaliação por demonstração. Exemplo: permitir que o aluno mostre oralmente ou com apoio como fez a atividade.",o:""},
-  {t:"7ºB",n:"Eduardo Augusto Silva da Anunciação",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
-  {t:"7ºB",n:"Jose Gabriel Menezes Guerra",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Kayo Cristiano Rodrigues Silva",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP e MAT.",o:""},
-  {t:"7ºB",n:"Maria Rita Nunes Silva",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Nicolle Ester de Oliveira Guimarães",s:"F",p:"ATÍPICO",a:"DI/TDAH",pip:"SIM — LP/MAT",e:"PIP/ADAPTAÇÃO",r:"Oferecer mediação próxima, rotina estável, apoio concreto e redução de estímulos. Exemplo: usar material concreto e repetir a explicação em linguagem mais simples.",o:""},
-  {t:"7ºB",n:"Raphael da Silva Lobo",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"",o:""},
-  {t:"7ºB",n:"Sarah Emanuelly Gonçalves de Deus",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em LP.",o:""},
-  {t:"7ºB",n:"Sophya Gabrielly Vieira Souza",s:"F",p:"ATÍPICO",a:"DI",pip:"SIM — LP/MAT",e:"ADAPTAÇÃO",r:"Priorizar linguagem simples, repetição orientada, apoio visual e objetivos essenciais. Exemplo: apresentar o conteúdo com um exemplo pronto antes de pedir a resolução sozinha.",o:""},
-  {t:"7ºB",n:"Ana Clara Vitorino Santos Carvalho",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Arthur Pietro Veloso Conrado",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Ayla Oliveira Rodrigues",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Bernardo Diniz de Souza",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Bruna Fragoso Queiroz",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Carolina Freire Borges",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Daniel de Araujo Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Giovana Juliane Anizio Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Júlia de Carvalho Soares",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Julia Maria Crispim Santana",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Leonardo Miguel Campos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Maria Alice Braga Leonel",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Maria Alice Santos Costa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Maria Eduarda dos Santos Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Miguel Coelho Dias",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Nicolas Damasceno Salvador",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Oliver Adriane Araújo Mendonça",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Pietra Mendes Alves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºB",n:"Sara Nicácio Nicolau",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 7ºC ─────────────────────────────────────────────── */
-  {t:"7ºC",n:"Augusto Novais Assis Xavier Silva",s:"M",p:"ATÍPICO",a:"TDAH/TOD/M.UC/T.Alim.",pip:"SIM — Reforço",e:"PIP/ADAPTAÇÃO",r:"Reforço em LP.",o:""},
-  {t:"7ºC",n:"Enzo Reis Paulino",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
-  {t:"7ºC",n:"Fabio Batista Santos",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço em MAT.",o:""},
-  {t:"7ºC",n:"Hadassa Gabrielle Alves de Araújo",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — MAT",e:"PIP",r:"Dispensada em LP.",o:""},
-  {t:"7ºC",n:"Samuel Dias Fidelis Rosa",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço em MAT.",o:""},
-  {t:"7ºC",n:"Thalita Emanuelle Souza Lima",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço em MAT.",o:""},
-  {t:"7ºC",n:"Agatha Amaral da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Alice Gonçalves Lamas",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Anna Laura Ferreira de Morais",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Arthur Angelo Fernandes Cabral",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Arthur Borges Monteiro",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Arthur Gabriel de Paula Moreira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Bernardo Miguel Silva Pereira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Emanuelle Gonçalves da Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Esther Marinna Alves Costa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Esther Silva Diniz",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Gabrielle Stéfanny Santana Costa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"João Lucas Soares Alves",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Julia Vitória Timóteo de Paula",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Kauan Henrique Marinho Souza",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Lara Oliveira de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Laura Gomes Guimarães",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Lorenzo Gabriel Silva Lopes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Lucca Felicio Porto",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Manuela Vitória Diniz Lourenço",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Marcella Sophia Rosa Avelar Lima",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Melyssa Rosa Gomes Moreira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Pietro Francisco Andrade de Paula",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Sofia Cosso Guimarães de Souza Simões",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºC",n:"Victor Lucas Cardoso Mendes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 7ºD ─────────────────────────────────────────────── */
-  {t:"7ºD",n:"Bianka Vitória Reis de Mendonça",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"Reforço MAT.",o:""},
-  {t:"7ºD",n:"Davi Soares de Sousa",s:"M",p:"ATÍPICO",a:"DI/DI/Neuro",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:""},
-  {t:"7ºD",n:"Henrique Meira Ursine",s:"M",p:"ATÍPICO",a:"TDAH",pip:"SIM",e:"ADAPTAÇÃO",r:"Reduzir distrações, dividir em etapas curtas, usar instruções objetivas e tempo ampliado. Exemplo: entregar a atividade em blocos menores e conferir cada bloco antes de seguir.",o:""},
-  {t:"7ºD",n:"Hitalo Henrique da Silva Vieira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºD",n:"Juan Guilherme Pereira da Silva",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"LP e MAT.",o:""},
-  {t:"7ºD",n:"Pietro Augusto de Souza Ribeiro",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP/MAT",e:"PIP",r:"",o:""},
-  {t:"7ºD",n:"Skarlett Gabrielly de Almeida Lapa",s:"F",p:"ATÍPICO",a:"N/A",pip:"N/A — Reforço",e:"REFORÇO",r:"LP e MAT.",o:""},
-  {t:"7ºD",n:"Thiago Magalhães da Silva",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"N/A",e:"AVALIAR",r:"",o:""},
-  {t:"7ºD",n:"Alana Larissa Pereira de Sa Silva",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Arthur Gonçalves Ferreira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Beatriz Alves de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Bernardo Lima Viana de Carvalho",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Caio Nascimento Dantas de Paula",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Clarice Kelly Viveiros Barbosa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Daniel Silveira Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Isabela Rocha Ferreira",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Kamily Gomes Silva Leite",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Laura Manuela Bracarense Avila de Sa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Lhuanny Gabrielle Queiroz",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Lucas Junio Vieira Assis",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Lucas Rafael Bragança do Nascimento",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Marcello Henrique Fortes Costa",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Marcello Lima Nogueira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Maria Julia de Souza Azevedo",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Nicolas Rodrigues Vieira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Ryan Rafael Guimarães da Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Samuel Silva Nunes Santos Rocha",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Valentina Santana Torres",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Wallace Brayan dos Santos Alves",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºD",n:"Yasmin Magalhães Keler Dias",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 7ºE ─────────────────────────────────────────────── */
-  {t:"7ºE",n:"Bernardo de Paula Germano Moreira",s:"M",p:"ATÍPICO",a:"Bx.Visão",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:"Grave problema na visão. Solicitar informações."},
-  {t:"7ºE",n:"Gabriel Xisto de Jesus Oliveira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
-  {t:"7ºE",n:"Giovanna Vitória Rodrigues de Freitas",s:"F",p:"ATÍPICO",a:"TEA",pip:"SIM",e:"ADAPTAÇÃO",r:"",o:""},
-  {t:"7ºE",n:"Pedro Henrique de Paula Pereira",s:"M",p:"ATÍPICO",a:"N/A",pip:"N/A — LP",e:"PIP",r:"Reforço MAT.",o:""},
-  {t:"7ºE",n:"Robert Taylor dos Santos Monteiro Pinto",s:"M",p:"EM ANÁLISE",a:"Avaliar AEE",pip:"SIM",e:"AVALIAR",r:"Observação contínua",o:"O aluno relatou problemas nas vistas."},
-  {t:"7ºE",n:"Ana Luiza Gomes Rosa",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Bernardo Henrique da Silva Mangabeira",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Bernardo Miguel de Almeida",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Caio Bitencorte Diniz",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Emanuelle Beatriz Guimarães Reis",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Emanuelly Vitória Gomes de Paula",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Fernanda Lima Aparecida de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Gabrielly Vitória Ferreira Pinto",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Geovana Rodrigues Alves",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Giovanna Souza Duarte",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Isaac Emmanuel Sabino Fernandes",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Isabella Lima de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Izabel Rocha Paglioni",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Kaique Campos Andrade",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Laura Luísa Freitas Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Lorenzo Fonseca Alves",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Luiz Fernando Silva Cruz",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Maria Elisa Silva Pinto",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Maria Flor Fernandes de Souza",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Maria Julia Ribeiro Vasconcelos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Melissa Santarelli Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Rebeca Vitória Cangussu de Miranda",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Sarah Maria Barbosa Santos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"7ºE",n:"Talles Arthur de Lima Reis",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  /* ── 8ºX ─────────────────────────────────────────────── */
-  {t:"8ºX",n:"Arthur Dias dos Santos",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Guilherme Junio Oliveira Cruz",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Kaua Henrique Rios Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Maria Eduarda Gonçalves Ramos",s:"F",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Richard Flávio de Oliveira Faria",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Taylor Eduardo Ferreira da Silva",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-  {t:"8ºX",n:"Yuri Ezequiel Magalhaes de Lima",s:"M",p:"TÍPICO",a:"N/A",pip:"N/A",e:"REGULAR",r:"",o:""},
-];
+const S = [];
+// ── Item 1 da correção de fonte-da-verdade (ago/2026) ──────────────
+// Antes havia aqui um array fixo com 331 alunos, extraído em algum
+// momento das tabelas do PDF de matrícula. Ele funcionava como um
+// "seed" que era mesclado por cima dos dados do Supabase sempre que
+// a sincronização falhava ou o casamento por nome não batia — o que
+// fazia esse cadastro desatualizado reaparecer silenciosamente na
+// tela, mesmo quando a tabela `estudantes` do Supabase já era a fonte
+// oficial. Ele foi removido de propósito: agora `S` começa vazio e só
+// é populado pelo retorno de carregarEstudantes() (Supabase). Isso
+// exige conexão para carregar a lista de alunos — não há mais um modo
+// offline com dados antigos — mas elimina o risco de a tela mostrar
+// nomes, turmas ou perfis desatualizados sem nenhum aviso.
 
 // Garante que os campos de ocorrências existam em todos os registros
 // (dados locais de fallback usados antes da sincronização com o Supabase)
@@ -3706,7 +3374,7 @@ async function applyCorrecaoNome(i){
     try{ await sbPatch('estudantes', { nome: c.nomeCorrigido }, [`id=eq.${est.id}`]); }
     catch(err){ console.warn('Erro ao salvar correção de nome no Supabase:', err); showToast('Nome corrigido localmente, mas houve erro ao salvar no servidor. Tente novamente.','coral'); }
   }
-  await sincronizarNomeAlunoEmOutrasAbas(est.id, nomeAntigo, c.nomeCorrigido);
+  await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, nomeAntigo, c.nomeCorrigido);
   CORRECOES_NOME_STATUS[i] = 'aplicado';
   renderTable(); renderAtipicos(); renderDashboard();
   if(currentModalIdx===idx) renderModalContent(idx);
@@ -3734,7 +3402,7 @@ async function applyAllCorrecoesNome(){
       try{ await sbPatch('estudantes', { nome: c.nomeCorrigido }, [`id=eq.${est.id}`]); }
       catch(err){ console.warn('Erro ao salvar correção de nome no Supabase:', err); }
     }
-    await sincronizarNomeAlunoEmOutrasAbas(est.id, nomeAntigo, c.nomeCorrigido);
+    await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, nomeAntigo, c.nomeCorrigido);
     CORRECOES_NOME_STATUS[c.i] = 'aplicado';
   }
   renderTable(); renderAtipicos(); renderDashboard();
@@ -5984,13 +5652,13 @@ async function submitMovimento(){
     if(!est){ alert('Estudante não encontrado.'); return; }
     // Tenta salvar no Supabase; se falhar, registra apenas localmente
     try {
-      await sbPost('movimentacoes',{ tipo, data, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
+      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
       if(est.id) await sbPatch('estudantes',{ transferido:true, data_transferencia:data },[ `id=eq.${est.id}` ]);
     } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
     est._transferido=true;
     // Garante registro local no log de movimentações
     if(!movLog.find(m=>m._local && m.nome_aluno===est.n && m.tipo===tipo && m.data===data)){
-      movLog.unshift({ _local:true, tipo, data, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
+      movLog.unshift({ _local:true, tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
     }
     showMovNotification(`Transferência de ${est.n} registrada.`,'coral');
 
@@ -6004,17 +5672,18 @@ async function submitMovimento(){
     if(est.t===turmaAte){ alert('A turma de destino deve ser diferente da turma atual.'); return; }
     const turmaDe = est.t;
     try {
-      await sbPost('movimentacoes',{ tipo, data, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
       if(est.id) await sbPatch('estudantes',{ turma:turmaAte },[ `id=eq.${est.id}` ]);
     } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
     est.t = turmaAte;
     if(!movLog.find(m=>m._local && m.nome_aluno===est.n && m.tipo===tipo && m.data===data)){
-      movLog.unshift({ _local:true, tipo, data, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+      movLog.unshift({ _local:true, tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     }
     showMovNotification(`${est.n} remanejado(a) para ${turmaAte}.`,'azul');
 
   } else if(tipo==='matricula'){
     const nome    = document.getElementById('movNomeNovo').value.trim();
+    const numMatricula = document.getElementById('movNumMatricula')?.value.trim() || null;
     const turmaAte= document.getElementById('movTurmaAte').value;
     const perfil  = document.getElementById('movPerfil').value;
     const encam   = document.getElementById('movEncam').value;
@@ -6023,20 +5692,21 @@ async function submitMovimento(){
     if(!nome){ alert('Informe o nome do estudante.'); return; }
     if(!turmaAte){ alert('Selecione a turma.'); return; }
     // Adiciona localmente imediatamente (garante que funcione mesmo sem Supabase)
-    const novoAluno = { t:turmaAte, n:nome, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:true, _dataMatricula:data };
+    const novoAluno = { t:turmaAte, n:nome, matricula:numMatricula, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:true, _dataMatricula:data };
     S.push(novoAluno);
     // Tenta persistir no Supabase
     try {
-      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:true, data_matricula:data });
+      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:true, data_matricula:data });
       const novo = novoArr?.[0];
       if(novo) novoAluno.id = novo.id;
-      await sbPost('movimentacoes',{ tipo, data, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
-    movLog.unshift({ _local:true, tipo, data, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    movLog.unshift({ _local:true, tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     showMovNotification(`${nome} matriculado(a) na turma ${turmaAte}.`,'verde');
 
   } else if(tipo==='atualizacao'){
     const nome    = document.getElementById('movNomeNovo').value.trim();
+    const numMatricula = document.getElementById('movNumMatricula')?.value.trim() || null;
     const turmaAte= document.getElementById('movTurmaAte').value;
     const perfil  = document.getElementById('movPerfil').value;
     const encam   = document.getElementById('movEncam').value;
@@ -6045,16 +5715,16 @@ async function submitMovimento(){
     if(!nome){ alert('Informe o nome do estudante.'); return; }
     if(!turmaAte){ alert('Selecione a turma.'); return; }
     // Adiciona localmente imediatamente (não é nova matrícula, apenas inclusão no sistema)
-    const alunoExistente = { t:turmaAte, n:nome, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:false };
+    const alunoExistente = { t:turmaAte, n:nome, matricula:numMatricula, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:false };
     S.push(alunoExistente);
     // Tenta persistir no Supabase
     try {
-      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:false });
+      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:false });
       const novo = novoArr?.[0];
       if(novo) alunoExistente.id = novo.id;
-      await sbPost('movimentacoes',{ tipo, data, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
-    movLog.unshift({ _local:true, tipo, data, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    movLog.unshift({ _local:true, tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     showMovNotification(`${nome} incluído(a) no sistema na turma ${turmaAte}.`,'verde');
   }
 
@@ -6130,10 +5800,14 @@ async function salvarCampoMov(cid, campo, novoValor){
   const valorNormalizado = campo==='turma_de'||campo==='turma_ate' ? (novoValor==='—'?'—':novoValor) : novoValor;
   if(valorNormalizado===valorAntigo){ return; } // nada mudou, não precisa salvar
 
-  // A movimentação não guarda o ID do aluno — o vínculo com o cadastro em
-  // Estudantes é feito pelo nome que constava no registro até agora.
+  // Vínculo com o cadastro em Estudantes: preferimos a matrícula estável
+  // gravada na movimentação (matricula_aluno). Só recorremos ao nome
+  // (registros antigos, de antes desta correção, que não têm matrícula)
+  // como último recurso — e, mesmo assim, nunca pelo nome que está sendo
+  // editado agora, para não buscar por um valor que já vai deixar de existir.
   const nomeParaBuscar = campo==='nome_aluno' ? valorAntigo : registro.nome_aluno;
-  const est = S.find(x=>x.n===nomeParaBuscar);
+  const est = (registro.matricula_aluno!=null && S.find(x=>x.matricula!=null && String(x.matricula)===String(registro.matricula_aluno)))
+    || S.find(x=>x.n===nomeParaBuscar);
 
   registro[campo]=valorNormalizado;
   _movLastSaved={cid,field:campo};
@@ -6155,7 +5829,7 @@ async function salvarCampoMov(cid, campo, novoValor){
         try{ await sbPatch('estudantes', { nome:valorNormalizado }, [`id=eq.${est.id}`]); }
         catch(e){ console.warn('Não foi possível atualizar o nome em Estudantes.', e); }
       }
-      await sincronizarNomeAlunoEmOutrasAbas(est.id, nomeAntigo, valorNormalizado);
+      await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, nomeAntigo, valorNormalizado);
     } else if(campo==='turma_ate' && ['remanejamento','matricula','atualizacao'].includes(registro.tipo) && valorNormalizado!=='—'){
       est.t = valorNormalizado;
       if(est.id){
@@ -6194,7 +5868,10 @@ function descricaoEfeitoMov(registro){
 }
 
 async function desfazerEfeitoMovimentacao(registro){
-  const est = S.find(x=>x.n===registro.nome_aluno);
+  // Matrícula estável primeiro; nome só como último recurso para registros
+  // antigos gravados antes desta correção (sem matricula_aluno).
+  const est = (registro.matricula_aluno!=null && S.find(x=>x.matricula!=null && String(x.matricula)===String(registro.matricula_aluno)))
+    || S.find(x=>x.n===registro.nome_aluno);
   if(!est) return;
   if(registro.tipo==='transferencia'){
     est._transferido=false;
@@ -6281,7 +5958,7 @@ async function carregarEstudantes(){
     // de serem automaticamente enviados ao banco para deixarem de ser
     // "órfãos" — assim o próximo carregamento já os traz do Supabase.
     const doSupabase = rows.map(x=>({
-      id:x.id, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO',
+      id:x.id, matricula:x.numero_matricula||null, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO',
       a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'',
       ocn:x.num_ocorrencias||0, ocs:x.sintese_ocorrencias||'', o:x.obs||'',
       _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula
@@ -6431,9 +6108,12 @@ function openRelEscolarModal(idx){
   buildRelEscEstudanteOptions();
 
   if(item){
-    const matchIdx = S.findIndex(x=>x.n===item.aluno_nome);
-    document.getElementById('relEscEstudante').value = matchIdx!==-1 ? String(matchIdx) : '';
-    document.getElementById('relEscEstudanteBusca').value = matchIdx!==-1 ? `${item.aluno_nome} (${item.turma})` : (item.aluno_nome||'');
+    // Matrícula estável primeiro; nome só como último recurso para
+    // solicitações antigas gravadas antes desta correção (sem aluno_matricula).
+    const matchIdx = (item.aluno_matricula!=null ? S.findIndex(x=>x.matricula!=null && String(x.matricula)===String(item.aluno_matricula)) : -1);
+    const matchIdxFinal = matchIdx!==-1 ? matchIdx : S.findIndex(x=>x.n===item.aluno_nome);
+    document.getElementById('relEscEstudante').value = matchIdxFinal!==-1 ? String(matchIdxFinal) : '';
+    document.getElementById('relEscEstudanteBusca').value = matchIdxFinal!==-1 ? `${item.aluno_nome} (${item.turma})` : (item.aluno_nome||'');
     document.getElementById('relEscTurma').value = item.turma || '';
     document.getElementById('relEscSolicitante').value = (item.solicitante && item.solicitante!=='—') ? item.solicitante : '';
     document.getElementById('relEscMotivo').value = item.motivo || '';
@@ -6509,11 +6189,12 @@ async function submitRelEscolar(){
   const isEdit = relEscEditIdx !== null;
   const original = isEdit ? relEscolaresLog[relEscEditIdx] : null;
 
-  let alunoNome, turma;
+  let alunoNome, alunoMatricula, turma;
   if(estIdx===''||estIdx===null){
     if(isEdit && original){
       // mantém os dados do estudante já registrados (ex: pode não constar mais na lista ativa)
       alunoNome = original.aluno_nome;
+      alunoMatricula = original.aluno_matricula ?? null;
       turma = original.turma;
     } else {
       alert('Selecione o estudante.'); return;
@@ -6522,6 +6203,7 @@ async function submitRelEscolar(){
     const est = S[parseInt(estIdx)];
     if(!est){ alert('Estudante não encontrado.'); return; }
     alunoNome = est.n;
+    alunoMatricula = est.matricula ?? null;
     turma = est.t;
   }
 
@@ -6532,7 +6214,7 @@ async function submitRelEscolar(){
   if(status==='concluido' && !dataConclusao){ alert('Informe a data de conclusão.'); return; }
 
   const row = {
-    aluno_nome: alunoNome, turma, motivo, solicitante: solicitante||'—',
+    aluno_matricula: alunoMatricula, aluno_nome: alunoNome, turma, motivo, solicitante: solicitante||'—',
     data_solicitacao: dataSolicitacao, data_previsao: dataPrevisao||null,
     status, data_conclusao: dataConclusao||null, link_relatorio: link||null,
     observacoes: obs, registrado_por: ROLES[currentRole].label
@@ -7686,7 +7368,7 @@ async function removerItemMaterial(cat, id){
    mostrando o nome antigo. Esta função propaga o nome novo para
    esses registros também (no banco e nas listas já carregadas).
    ════════════════════════════════════════════════════════════ */
-async function sincronizarNomeAlunoEmOutrasAbas(studentId, oldName, newName){
+async function sincronizarNomeAlunoEmOutrasAbas(studentId, studentMatricula, oldName, newName){
   if(!newName || newName===oldName) return;
 
   // Materiais — cada registro tem aluno_id, então dá pra vincular com segurança
@@ -7697,12 +7379,22 @@ async function sincronizarNomeAlunoEmOutrasAbas(studentId, oldName, newName){
     materiaisLog.forEach(m=>{ if(String(m.aluno_id)===String(studentId)) m.aluno_nome=newName; });
   }
 
-  // Relatórios Escolares — não guarda aluno_id, então casa pelo nome antigo
+  // Relatórios Escolares — agora guarda aluno_matricula, então vincula com
+  // segurança pela matrícula (estável mesmo se o cadastro do Supabase for
+  // recriado). Registros antigos (de antes desta correção) ainda não têm
+  // aluno_matricula; para esses, o casamento pelo nome antigo continua
+  // sendo o único jeito de atualizá-los.
+  if(studentMatricula!=null){
+    try {
+      await sbPatch('rel_escolares', { aluno_nome:newName }, [`aluno_matricula=eq.${encodeURIComponent(studentMatricula)}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Relatórios Escolares (por matrícula).', e); }
+    relEscolaresLog.forEach(r=>{ if(r.aluno_matricula!=null && String(r.aluno_matricula)===String(studentMatricula)) r.aluno_nome=newName; });
+  }
   if(oldName){
     try {
-      await sbPatch('rel_escolares', { aluno_nome:newName }, [`aluno_nome=eq.${encodeURIComponent(oldName)}`]);
-    } catch(e){ console.warn('Não foi possível sincronizar o nome em Relatórios Escolares.', e); }
-    relEscolaresLog.forEach(r=>{ if(r.aluno_nome===oldName) r.aluno_nome=newName; });
+      await sbPatch('rel_escolares', { aluno_nome:newName }, [`aluno_matricula=is.null`, `aluno_nome=eq.${encodeURIComponent(oldName)}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Relatórios Escolares (por nome, registros antigos).', e); }
+    relEscolaresLog.forEach(r=>{ if(r.aluno_matricula==null && r.aluno_nome===oldName) r.aluno_nome=newName; });
   }
 
   if(typeof renderMateriaisTable === 'function') renderMateriaisTable();
@@ -7742,7 +7434,7 @@ async function submitEdit(){
     const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
-    if(field==='n') await sincronizarNomeAlunoEmOutrasAbas(x.id, oldVal, newVal);
+    if(field==='n') await sincronizarNomeAlunoEmOutrasAbas(x.id, x.matricula, oldVal, newVal);
     // Registra notificação visível para todos os perfis: alteração feita
     // diretamente pela Coordenação Pedagógica
     await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'aprovado' });
@@ -7856,7 +7548,7 @@ async function approvePending(id){
   if(!ed) return;
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
-  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, ed.oldVal, ed.newVal);
+  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, S.find(x=>String(x.id)===String(ed.studentId))?.matricula, ed.oldVal, ed.newVal);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
   await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
@@ -8467,6 +8159,10 @@ function openMovModal(tipo){
           </select>
         </div>
       </div>
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Número de matrícula (oficial)</label>
+        <input type="text" id="movNumMatricula" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Ex: 2026001234 — deixe em branco se ainda não souber">
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
         <div>
           <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma *</label>
@@ -8518,6 +8214,10 @@ function openMovModal(tipo){
             <option value="M">M</option>
           </select>
         </div>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Número de matrícula (oficial)</label>
+        <input type="text" id="movNumMatricula" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Ex: 2026001234 — deixe em branco se ainda não souber">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
         <div>
