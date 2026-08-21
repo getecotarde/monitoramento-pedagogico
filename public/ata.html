@@ -1655,16 +1655,24 @@ function renderFichaHTML(f) {
 function renderGeralHTML() {
   const saved = Object.values(fichasDoTrimestre());
   if (!saved.length) return `<p class="ph">Nenhuma ficha salva ainda no ${TRIMESTRE_ATUAL}º trimestre.</p>`;
-  let rows = saved.map(f => `
+  // Total ATUAL da turma (ao vivo, vindo de TURMAS/estudantes no Supabase),
+  // em vez do total que ficou congelado em f.total no momento em que a
+  // ficha foi salva. Se a turma não existir mais em TURMAS (ex.: nome
+  // alterado), cai de volta para o valor salvo na ficha, para não quebrar.
+  let rows = saved.map(f => {
+    const totalAtual = TURMAS[f.turma]?.total ?? f.total;
+    return `
     <tr>
       <td><strong>${f.turma}</strong></td>
       <td>${f.professor || '—'}</td>
-      <td style="text-align:center">${f.total}</td>
+      <td style="text-align:center">${totalAtual}</td>
       <td style="text-align:center">${f.baixo.alunos.length}</td>
       <td style="text-align:center">${f.disciplina.alunos.length}</td>
       <td style="text-align:center">${f.destaque.alunos.length}</td>
       <td style="text-align:center">${f.remanejamento.alunos.length}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+  const totGeral = saved.reduce((s,f)=>s+(TURMAS[f.turma]?.total ?? f.total),0);
   const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
   const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
   const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
@@ -1682,7 +1690,8 @@ function renderGeralHTML() {
     <tbody>
       ${rows}
       <tr style="background:#f0f4f8;font-weight:bold">
-        <td colspan="3">TOTAL</td>
+        <td colspan="2">TOTAL</td>
+        <td style="text-align:center">${totGeral}</td>
         <td style="text-align:center">${totBaixo}</td>
         <td style="text-align:center">${totDisc}</td>
         <td style="text-align:center">${totDest}</td>
