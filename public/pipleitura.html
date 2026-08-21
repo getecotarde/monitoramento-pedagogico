@@ -229,6 +229,8 @@
     padding: 9px 12px; border-bottom: 1px solid var(--ledger-line); cursor: pointer;
   }
   .link-picker-item:hover { background: var(--paper); }
+  .link-picker-item.disabled { opacity: 0.45; cursor: not-allowed; }
+  .link-picker-item.disabled:hover { background: transparent; }
   .link-picker-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
   .link-picker-turma { font-size: 11.5px; color: var(--text-mute); }
   .link-picker-search {
@@ -563,7 +565,7 @@
   function toRow(rec){
     return {
       id: rec.id,
-      estudante_id: rec.estudanteId || null,
+      estudante_matricula: rec.estudanteMatricula || null,
       arquivo: rec.arquivo,
       importado_em: rec.importadoEm,
       data_avaliacao: rec.dataAvaliacao,
@@ -587,7 +589,7 @@
   function fromRow(row){
     return {
       id: row.id,
-      estudanteId: row.estudante_id || null,
+      estudanteMatricula: row.estudante_matricula || null,
       arquivo: row.arquivo,
       importadoEm: row.importado_em,
       dataAvaliacao: row.data_avaliacao,
@@ -665,7 +667,7 @@
 
   async function loadEstudantes(){
     try{
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=id,nome,turma&order=nome.asc`, { headers: sbHeaders() });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=id,nome,turma,numero_matricula&order=nome.asc`, { headers: sbHeaders() });
       if(!r.ok) throw new Error('Falha ao consultar estudantes.');
       estudantes = await r.json();
     }catch(e){
@@ -678,11 +680,11 @@
     const nNome = normalizeStr(nome);
     if(!nNome) return null;
     let candidatos = estudantes.filter(e => normalizeStr(e.nome) === nNome);
-    if(candidatos.length === 1) return candidatos[0].id;
+    if(candidatos.length === 1) return candidatos[0].numero_matricula ?? null;
     if(candidatos.length > 1 && turma){
       const nTurma = normalizeStr(turma);
       const porTurma = candidatos.filter(e => normalizeStr(e.turma) === nTurma);
-      if(porTurma.length === 1) return porTurma[0].id;
+      if(porTurma.length === 1) return porTurma[0].numero_matricula ?? null;
     }
     return null; // ambíguo ou sem correspondência — fica para vínculo manual
   }
@@ -699,7 +701,7 @@
     const lista = !nq ? estudantes : estudantes.filter(e =>
       normalizeStr(e.nome).includes(nq) || normalizeStr(e.turma).includes(nq)
     );
-    const vinculado = rec.estudanteId ? estudantes.find(e => e.id === rec.estudanteId) : null;
+    const vinculado = rec.estudanteMatricula ? estudantes.find(e => String(e.numero_matricula) === String(rec.estudanteMatricula)) : null;
 
     linkModalRoot.innerHTML = `
       <div class="modal-overlay" id="linkModalOverlay">
@@ -710,15 +712,15 @@
           <input type="text" class="link-picker-search" id="linkSearchInput" placeholder="Buscar aluno por nome ou turma…" value="${escapeHtml(query)}" autofocus />
           <div class="link-picker-list" id="linkPickerList">
             ${lista.length ? lista.map(e => `
-              <div class="link-picker-item" data-id="${e.id}">
+              <div class="link-picker-item${e.numero_matricula==null ? ' disabled' : ''}" data-matricula="${e.numero_matricula ?? ''}" ${e.numero_matricula==null ? 'title="Aluno sem número de matrícula cadastrado — não é possível vincular"' : ''}>
                 <div>
-                  <div class="link-picker-name">${escapeHtml(e.nome)}${vinculado && vinculado.id===e.id ? ' ✓' : ''}</div>
-                  <div class="link-picker-turma">${escapeHtml(e.turma||'—')}</div>
+                  <div class="link-picker-name">${escapeHtml(e.nome)}${vinculado && String(vinculado.numero_matricula)===String(e.numero_matricula) ? ' ✓' : ''}</div>
+                  <div class="link-picker-turma">${escapeHtml(e.turma||'—')}${e.numero_matricula==null ? ' · sem matrícula' : ''}</div>
                 </div>
               </div>
             `).join('') : `<div class="link-picker-empty">Nenhum aluno encontrado com esse nome/turma.</div>`}
           </div>
-          ${rec.estudanteId ? `<button class="link-picker-clear" id="linkClearBtn">Remover vínculo</button>` : ''}
+          ${rec.estudanteMatricula ? `<button class="link-picker-clear" id="linkClearBtn">Remover vínculo</button>` : ''}
         </div>
       </div>
     `;
@@ -733,8 +735,9 @@
 
     linkModalRoot.querySelectorAll('.link-picker-item').forEach(item => {
       item.addEventListener('click', async () => {
-        const estId = item.dataset.id;
-        await vincularEstudante(rec, estId);
+        if(item.classList.contains('disabled')) return;
+        const estMatricula = item.dataset.matricula;
+        await vincularEstudante(rec, estMatricula);
       });
     });
     const clearBtn = document.getElementById('linkClearBtn');
@@ -743,14 +746,14 @@
     });
   }
 
-  async function vincularEstudante(rec, estudanteId){
+  async function vincularEstudante(rec, estudanteMatricula){
     try{
-      await patchRecord(rec.id, { estudante_id: estudanteId });
+      await patchRecord(rec.id, { estudante_matricula: estudanteMatricula || null });
       const idx = records.findIndex(r => r.id === rec.id);
-      if(idx > -1) records[idx].estudanteId = estudanteId;
+      if(idx > -1) records[idx].estudanteMatricula = estudanteMatricula || null;
       closeLinkPicker();
       render();
-      setStatus(estudanteId ? 'Registro vinculado ao aluno.' : 'Vínculo removido.', 'ok');
+      setStatus(estudanteMatricula ? 'Registro vinculado ao aluno.' : 'Vínculo removido.', 'ok');
     }catch(e){
       setStatus('Não foi possível salvar o vínculo no banco de dados.', 'error');
     }
@@ -794,7 +797,7 @@
 
     return {
       id: 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
-      estudanteId: null,
+      estudanteMatricula: null,
       arquivo: filename,
       importadoEm: new Date().toISOString(),
       dataAvaliacao: grabField(ident, 'Data da Avaliação') || '—',
@@ -1051,7 +1054,7 @@
 
     filtered.forEach(rec => {
       const tr = document.createElement('tr');
-      const vinculoHtml = rec.estudanteId
+      const vinculoHtml = rec.estudanteMatricula
         ? `<button class="link-badge linked" data-id="${rec.id}" title="Vinculado — clique para alterar">✓ vinculado</button>`
         : `<button class="link-badge unlinked" data-id="${rec.id}" title="Vincular a um aluno cadastrado">🔗 vincular</button>`;
       tr.innerHTML = `
@@ -1384,8 +1387,8 @@
       try{
         const text = await readFileAsText(file);
         const rec = parseReport(text, file.name);
-        rec.estudanteId = autoMatchEstudante(rec.nome, rec.turma);
-        if(rec.estudanteId) linkedCount++;
+        rec.estudanteMatricula = autoMatchEstudante(rec.nome, rec.turma);
+        if(rec.estudanteMatricula) linkedCount++;
         const saved = await insertRecord(rec);
         records.unshift(saved);
         if(rec.parseOk) okCount++; else partialCount++;
