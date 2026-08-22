@@ -3978,7 +3978,7 @@ function renderModalContent(idx){
       </div>`:''}
     </div>
   `;
-  carregarPipLeituraModal(idx, x.n, x.id);
+  carregarPipLeituraModal(idx, x.n, x.matricula);
   carregarLinhaDoTempoModal(idx, x.n, x.id, x.matricula);
 }
 
@@ -4193,22 +4193,23 @@ function pipLeituraClassColor(rec){
   return {bg:'#F3F2EF', fg:'#888780'};
 }
 
-async function carregarPipLeituraModal(idx, nome, estudanteId){
+async function carregarPipLeituraModal(idx, nome, matricula){
   const box = document.getElementById('modalPipLeituraBox');
   if(!box) return;
-  const key = 'id:'+(estudanteId||'')+'|nome:'+(nome||'').trim().toLowerCase();
+  const key = 'mat:'+(matricula||'')+'|nome:'+(nome||'').trim().toLowerCase();
   // Mostra cache imediatamente (sem "Carregando…") se já tivermos dados desta consulta
   if(_pipLeituraCache[key]){
-    renderPipLeituraBox(_pipLeituraCache[key], idx, estudanteId);
+    renderPipLeituraBox(_pipLeituraCache[key], idx, matricula);
   }
   try{
     const reqs = [];
-    if(estudanteId){
-      reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_id=eq.${estudanteId}&order=importado_em.desc`, { headers: sbHeaders() }));
+    if(matricula!=null){
+      // pipleitura.html vincula por estudante_matricula (não por estudante_id)
+      reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=eq.${encodeURIComponent(String(matricula))}&order=importado_em.desc`, { headers: sbHeaders() }));
     }
     // Fallback: registros ainda não vinculados a nenhum aluno, mas com nome igual
     // (útil para dados antigos/importados sem correspondência automática)
-    reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_id=is.null&nome=ilike.${encodeURIComponent((nome||'').trim())}&order=importado_em.desc`, { headers: sbHeaders() }));
+    reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=is.null&nome=ilike.${encodeURIComponent((nome||'').trim())}&order=importado_em.desc`, { headers: sbHeaders() }));
     const responses = await Promise.all(reqs);
     responses.forEach(r => { if(!r.ok) throw new Error('Falha na consulta'); });
     const datasets = await Promise.all(responses.map(r => r.json()));
@@ -4217,7 +4218,7 @@ async function carregarPipLeituraModal(idx, nome, estudanteId){
     datasets.forEach(arr => arr.forEach(row => { if(!seen.has(row.id)){ seen.add(row.id); rows.push(row); } }));
     rows.sort((a,b) => new Date(b.importado_em) - new Date(a.importado_em));
     _pipLeituraCache[key] = rows;
-    if(currentModalIdx === idx) renderPipLeituraBox(rows, idx, estudanteId);
+    if(currentModalIdx === idx) renderPipLeituraBox(rows, idx, matricula);
   }catch(e){
     if(currentModalIdx === idx && !_pipLeituraCache[key]){
       box.innerHTML = `<div style="font-size:12px;color:#D85A30">Não foi possível carregar os dados de fluência de leitura.</div>`;
@@ -4225,22 +4226,22 @@ async function carregarPipLeituraModal(idx, nome, estudanteId){
   }
 }
 
-async function vincularPipLeituraModal(recId, estudanteId, idx, nome){
+async function vincularPipLeituraModal(recId, matricula, idx, nome){
   try{
     const r = await fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?id=eq.${encodeURIComponent(recId)}`, {
       method: 'PATCH', headers: sbHeaders(),
-      body: JSON.stringify({ estudante_id: estudanteId })
+      body: JSON.stringify({ estudante_matricula: matricula })
     });
     if(!r.ok) throw new Error('Falha ao vincular');
     // limpa cache desse aluno para forçar releitura, e recarrega a seção
-    Object.keys(_pipLeituraCache).forEach(k => { if(k.startsWith('id:'+estudanteId+'|')) delete _pipLeituraCache[k]; });
-    carregarPipLeituraModal(idx, nome, estudanteId);
+    Object.keys(_pipLeituraCache).forEach(k => { if(k.startsWith('mat:'+matricula+'|')) delete _pipLeituraCache[k]; });
+    carregarPipLeituraModal(idx, nome, matricula);
   }catch(e){
     alert('Não foi possível vincular este registro ao aluno. Tente novamente.');
   }
 }
 
-function renderPipLeituraBox(rows, idx, estudanteId){
+function renderPipLeituraBox(rows, idx, matricula){
   const box = document.getElementById('modalPipLeituraBox');
   if(!box) return;
   if(!rows || !rows.length){
@@ -4250,7 +4251,7 @@ function renderPipLeituraBox(rows, idx, estudanteId){
   const nomeAtual = S[idx] ? S[idx].n : '';
   box.innerHTML = rows.map(rec => {
     const c = pipLeituraClassColor(rec);
-    const naoVinculado = !rec.estudante_id;
+    const naoVinculado = !rec.estudante_matricula;
     const recJson = JSON.stringify(rec).replace(/'/g,"&#39;");
     const nomeAttr = escapeHtmlPip(nomeAtual).replace(/"/g,'&quot;');
     return `
@@ -4261,7 +4262,7 @@ function renderPipLeituraBox(rows, idx, estudanteId){
           ${naoVinculado ? `<div style="font-size:10.5px;color:#BA7517;margin-top:2px">⚠ correspondência por nome — não vinculado</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          ${naoVinculado && estudanteId ? `<button onclick='event.stopPropagation();vincularPipLeituraModal("${rec.id}", ${estudanteId}, ${idx}, "${nomeAttr}")' style="font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid #2B7FD4;background:#E6F1FB;color:#154F8A;cursor:pointer;white-space:nowrap;font-family:inherit">vincular</button>` : ''}
+          ${naoVinculado && matricula!=null ? `<button onclick='event.stopPropagation();vincularPipLeituraModal("${rec.id}", "${matricula}", ${idx}, "${nomeAttr}")' style="font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid #2B7FD4;background:#E6F1FB;color:#154F8A;cursor:pointer;white-space:nowrap;font-family:inherit">vincular</button>` : ''}
           <span onclick='abrirPipLeituraDetalhe(${recJson})' style="cursor:pointer;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${c.bg};color:${c.fg};white-space:nowrap">${escapeHtmlPip(rec.ppm||'—')} PPM</span>
         </div>
       </div>
