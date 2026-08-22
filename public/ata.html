@@ -258,6 +258,8 @@ body {
   overflow: hidden;
 }
 
+.card-chart { overflow: visible; }
+
 .card-header {
   display: flex;
   align-items: center;
@@ -631,23 +633,23 @@ select {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .data-table thead th {
   background: var(--surface);
   color: var(--ink-2);
-  padding: 10px 12px;
+  padding: 7px 10px;
   text-align: left;
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: .05em;
   border-bottom: 1.5px solid var(--border-strong);
 }
 
 .data-table tbody td {
-  padding: 10px 12px;
+  padding: 7px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--ink);
 }
@@ -658,8 +660,8 @@ select {
 /* ──────────── STAT CARDS ──────────── */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(102px, 1fr));
+  gap: 8px;
   margin-bottom: 24px;
 }
 
@@ -667,13 +669,13 @@ select {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 16px;
+  padding: 10px 8px;
   text-align: center;
   box-shadow: var(--shadow);
 }
 
 .stat-card .sv {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--blue);
   line-height: 1;
@@ -681,11 +683,11 @@ select {
 }
 
 .stat-card .sl {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--ink-3);
-  margin-top: 5px;
+  margin-top: 3px;
   font-weight: 500;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 /* ──────────── PAINEL GERAL — GRÁFICO ──────────── */
@@ -721,8 +723,11 @@ select {
   border-radius: 6px 6px 0 0;
   min-height: 3px;
   position: relative;
-  transition: height .4s ease;
+  transition: height .4s ease, filter .15s;
+  cursor: default;
 }
+
+.chart-bar:hover { filter: brightness(1.08); }
 
 .chart-bar .chart-value {
   position: absolute;
@@ -733,6 +738,64 @@ select {
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
+}
+
+.chart-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  min-width: 160px;
+  max-width: 240px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+  text-align: left;
+  cursor: default;
+}
+
+.chart-bar:hover .chart-tooltip { display: block; }
+
+.chart-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--ink);
+}
+
+.chart-tooltip-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  margin-bottom: 6px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+  padding-bottom: 6px;
+}
+
+.chart-tooltip-list {
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.9);
+}
+
+.chart-tooltip-list .ctl-turma {
+  color: rgba(255,255,255,.55);
+  font-size: 10.5px;
+}
+
+.chart-tooltip-empty {
+  font-size: 12px;
+  color: rgba(255,255,255,.6);
 }
 
 .chart-col-label {
@@ -1259,7 +1322,7 @@ html.embedded body { background: var(--surface); }
 
     <div class="stat-grid" id="stat-grid"></div>
 
-    <div class="card">
+    <div class="card card-chart">
       <div class="card-header amber">
         <div class="card-icon amber">📊</div>
         <div>
@@ -1831,7 +1894,15 @@ function updatePrevSel() {
 }
 
 // ========================== GRÁFICO DO PAINEL GERAL ==========================
-function renderGeralChart(itens) {
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderGeralChart(itens, mostrarTurma) {
   const wrap = document.getElementById('geral-chart-wrap');
   if (!wrap) return;
 
@@ -1845,11 +1916,27 @@ function renderGeralChart(itens) {
   const cols = itens.map(it => {
     const alturaPct = Math.round((it.valor / maxValor) * 100);
     const alturaPx = Math.max(Math.round((alturaPct / 100) * 180), it.valor > 0 ? 6 : 2);
+
+    let tooltipBody;
+    if (!it.alunos || it.alunos.length === 0) {
+      tooltipBody = '<div class="chart-tooltip-empty">Nenhum aluno nesta categoria.</div>';
+    } else {
+      const linhas = it.alunos.map(a => mostrarTurma
+        ? `<div>${escHtml(a.nome)} <span class="ctl-turma">— ${escHtml(a.turma)}</span></div>`
+        : `<div>${escHtml(a.nome)}</div>`
+      ).join('');
+      tooltipBody = `<div class="chart-tooltip-list">${linhas}</div>`;
+    }
+
     return `
       <div class="chart-col">
         <div class="chart-bar-track">
           <div class="chart-bar" style="height:${alturaPx}px;background:${it.cor}">
             <span class="chart-value" style="color:${it.cor}">${it.valor}</span>
+            <div class="chart-tooltip">
+              <div class="chart-tooltip-title">${escHtml(it.label)} (${it.valor})</div>
+              ${tooltipBody}
+            </div>
           </div>
         </div>
         <div class="chart-col-label">${it.label}</div>
@@ -1905,12 +1992,20 @@ function updateGeralStats() {
       ? 'Comparativo de alunos por categoria — todas as turmas'
       : `Comparativo de alunos por categoria — turma ${filtroTurma}`;
   }
+  const coletarAlunos = (categoria) => {
+    const lista = [];
+    saved.forEach(f => {
+      (f[categoria].alunos || []).forEach(nome => lista.push({ nome, turma: f.turma }));
+    });
+    return lista;
+  };
+
   renderGeralChart([
-    { label: 'Baixo Aprov.',   valor: totBaixo,  cor: '#991b1b' },
-    { label: 'Disciplinares',  valor: totDisc,   cor: '#b45309' },
-    { label: 'Destaque',       valor: totDest,   cor: '#0d7d6e' },
-    { label: 'Remanejamento',  valor: totRemanj, cor: '#5b21b6' },
-  ]);
+    { label: 'Baixo Aprov.',   valor: totBaixo,  cor: '#991b1b', alunos: coletarAlunos('baixo') },
+    { label: 'Disciplinares',  valor: totDisc,   cor: '#b45309', alunos: coletarAlunos('disciplina') },
+    { label: 'Destaque',       valor: totDest,   cor: '#0d7d6e', alunos: coletarAlunos('destaque') },
+    { label: 'Remanejamento',  valor: totRemanj, cor: '#5b21b6', alunos: coletarAlunos('remanejamento') },
+  ], modoTodas);
 
   if (saved.length === 0) {
     document.getElementById('fichas-salvas-table').innerHTML = modoTodas
