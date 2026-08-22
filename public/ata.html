@@ -255,15 +255,17 @@ body {
   padding: 24px;
   margin-bottom: 16px;
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 14px;
+  margin: -24px -24px 20px -24px;
+  padding: 16px 24px 15px;
   border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
 .card-icon {
@@ -274,13 +276,15 @@ body {
   place-items: center;
   font-size: 15px;
   flex-shrink: 0;
+  background: var(--white);
+  box-shadow: 0 1px 3px rgba(15,25,35,.10);
 }
 
-.card-icon.blue   { background: var(--blue-lt); }
-.card-icon.teal   { background: var(--teal-lt); }
-.card-icon.amber  { background: var(--amber-lt); }
-.card-icon.red    { background: var(--red-lt); }
-.card-icon.violet { background: var(--violet-lt); }
+.card-header.blue   { background: var(--blue-lt); }
+.card-header.teal   { background: var(--teal-lt); }
+.card-header.amber  { background: var(--amber-lt); }
+.card-header.red    { background: var(--red-lt); }
+.card-header.violet { background: var(--violet-lt); }
 
 .card-title {
   font-size: 14px;
@@ -684,6 +688,68 @@ select {
   line-height: 1.3;
 }
 
+/* ──────────── PAINEL GERAL — GRÁFICO ──────────── */
+.chart-box {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 34px;
+  padding: 12px 8px 4px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.chart-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 92px;
+}
+
+.chart-bar-track {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.chart-bar {
+  width: 44px;
+  border-radius: 6px 6px 0 0;
+  min-height: 3px;
+  position: relative;
+  transition: height .4s ease;
+}
+
+.chart-bar .chart-value {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.chart-col-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.chart-empty {
+  text-align: center;
+  color: var(--ink-3);
+  font-size: 13px;
+  padding: 30px 0;
+}
+
 /* ──────────── PREVIEW BOX ──────────── */
 .preview-box {
   background: var(--white);
@@ -875,7 +941,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header blue">
         <div class="card-icon blue">📋</div>
         <div>
           <div class="card-title">Identificação da Ficha</div>
@@ -925,7 +991,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header teal">
         <div class="card-icon teal">🎓</div>
         <div>
           <div class="card-title">Perfil e Observações da Turma</div>
@@ -939,7 +1005,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header violet">
         <div class="card-icon violet">🔄</div>
         <div>
           <div class="card-title">Indicações para Remanejamento</div>
@@ -965,7 +1031,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header amber">
         <div class="card-icon amber">⚠️</div>
         <div>
           <div class="card-title">Alunos com Aproveitamento Abaixo do Esperado</div>
@@ -991,7 +1057,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header red">
         <div class="card-icon red">🚨</div>
         <div>
           <div class="card-title">Alunos com Problemas Disciplinares</div>
@@ -1016,7 +1082,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header teal">
         <div class="card-icon teal">⭐</div>
         <div>
           <div class="card-title">Alunos Destaque</div>
@@ -1041,7 +1107,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header blue">
         <div class="card-icon blue">🗂️</div>
         <div>
           <div class="card-title">Projetos para o Trimestre Seguinte</div>
@@ -1055,7 +1121,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header amber">
         <div class="card-icon amber">🛠️</div>
         <div>
           <div class="card-title">Ações Desenvolvidas para Minimizar Dificuldades</div>
@@ -1067,7 +1133,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header violet">
         <div class="card-icon violet">📌</div>
         <div>
           <div class="card-title">Encaminhamentos ou Ações Sugeridas</div>
@@ -1194,7 +1260,18 @@ html.embedded body { background: var(--surface); }
     <div class="stat-grid" id="stat-grid"></div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header amber">
+        <div class="card-icon amber">📊</div>
+        <div>
+          <div class="card-title" id="geral-chart-title">Distribuição dos Indicadores</div>
+          <div class="card-subtitle" id="geral-chart-subtitle">Comparativo de alunos por categoria</div>
+        </div>
+      </div>
+      <div id="geral-chart-wrap"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header blue">
         <div class="card-icon blue">📋</div>
         <div>
           <div class="card-title" id="fichas-salvas-title">Fichas Salvas por Turma</div>
@@ -1206,7 +1283,7 @@ html.embedded body { background: var(--surface); }
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header violet">
         <div class="card-icon violet">📌</div>
         <div>
           <div class="card-title">Encaminhamentos Consolidados</div>
@@ -1753,6 +1830,35 @@ function updatePrevSel() {
   });
 }
 
+// ========================== GRÁFICO DO PAINEL GERAL ==========================
+function renderGeralChart(itens) {
+  const wrap = document.getElementById('geral-chart-wrap');
+  if (!wrap) return;
+
+  const total = itens.reduce((s, it) => s + it.valor, 0);
+  if (total === 0) {
+    wrap.innerHTML = '<p class="chart-empty">Sem dados para exibir no gráfico ainda.</p>';
+    return;
+  }
+
+  const maxValor = Math.max(...itens.map(it => it.valor), 1);
+  const cols = itens.map(it => {
+    const alturaPct = Math.round((it.valor / maxValor) * 100);
+    const alturaPx = Math.max(Math.round((alturaPct / 100) * 180), it.valor > 0 ? 6 : 2);
+    return `
+      <div class="chart-col">
+        <div class="chart-bar-track">
+          <div class="chart-bar" style="height:${alturaPx}px;background:${it.cor}">
+            <span class="chart-value" style="color:${it.cor}">${it.valor}</span>
+          </div>
+        </div>
+        <div class="chart-col-label">${it.label}</div>
+      </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="chart-box">${cols}</div>`;
+}
+
 // ========================== PAINEL GERAL ==========================
 function updateGeralStats() {
   const geralSel = document.getElementById('geral-turma-filter');
@@ -1792,6 +1898,19 @@ function updateGeralStats() {
     <div class="stat-card"><div class="sv" style="color:#0d7d6e">${totDest}</div><div class="sl">Alunos Destaque</div></div>
     <div class="stat-card"><div class="sv" style="color:#5b21b6">${totRemanj}</div><div class="sl">Remanejamentos</div></div>
   `;
+
+  const chartSubtitle = document.getElementById('geral-chart-subtitle');
+  if (chartSubtitle) {
+    chartSubtitle.textContent = modoTodas
+      ? 'Comparativo de alunos por categoria — todas as turmas'
+      : `Comparativo de alunos por categoria — turma ${filtroTurma}`;
+  }
+  renderGeralChart([
+    { label: 'Baixo Aprov.',   valor: totBaixo,  cor: '#991b1b' },
+    { label: 'Disciplinares',  valor: totDisc,   cor: '#b45309' },
+    { label: 'Destaque',       valor: totDest,   cor: '#0d7d6e' },
+    { label: 'Remanejamento',  valor: totRemanj, cor: '#5b21b6' },
+  ]);
 
   if (saved.length === 0) {
     document.getElementById('fichas-salvas-table').innerHTML = modoTodas
