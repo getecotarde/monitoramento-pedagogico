@@ -1777,6 +1777,17 @@
       Movimentações
       <span class="nav-badge" id="nb-mov">0</span>
     </button>
+    <button class="nav-item nav-item-collapsible" onclick="toggleLinhaDoTempoNav(event)" id="navLinhaDoTempoToggle">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+      Linha do Tempo
+      <svg id="navLinhaDoTempoChevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12" style="margin-left:auto;transition:transform .18s"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="navLinhaDoTempoSub" style="display:none;padding-left:10px">
+      <button class="nav-item" onclick="showView('timeline', this)" id="navLinhaDoTempo" style="font-size:12.5px">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        Consultar / imprimir
+      </button>
+    </div>
     <button class="nav-item" onclick="showView('relescolares', this)" id="navRelEscolares">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="12" y2="11"/></svg>
       Rel. Escolares
@@ -2337,6 +2348,69 @@
             <tr><td colspan="8" style="text-align:center;padding:2rem;color:#BBB">Nenhuma movimentação registrada ainda.</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: LINHA DO TEMPO ─────────────────────────────────── -->
+  <div id="view-timeline" class="view">
+    <div class="page-header">
+      <h1>Linha do Tempo</h1>
+      <p>Busque um ou mais estudantes por nome ou turma e gere um relatório cronológico, pronto para impressão, com todo o histórico registrado na plataforma.</p>
+    </div>
+
+    <div class="detail-card" style="margin-bottom:1.5rem">
+      <div class="detail-card-inner">
+        <!-- Busca -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <input type="text" id="ltBuscaNome" placeholder="Digite o nome do estudante…" oninput="renderLinhaDoTempoResultados()"
+            style="flex:1;min-width:220px;padding:9px 12px;border:1px solid #E8E7E3;border-radius:8px;font-size:13px;font-family:inherit;background:#FAFAF8">
+          <button onclick="toggleAllLtAlunos(true)" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Selecionar todos</button>
+          <button onclick="toggleAllLtAlunos(false)" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Limpar seleção</button>
+        </div>
+
+        <!-- Filtro por turma -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Filtrar por turma (uma ou mais)</div>
+        <div id="ltTurmaFiltro" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+
+        <!-- Lista de resultados -->
+        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span></div>
+        <div id="ltResultList" style="max-height:320px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
+      </div>
+    </div>
+
+    <!-- Dados do relatório -->
+    <div class="detail-card" style="margin-bottom:1.5rem">
+      <div class="detail-card-inner">
+        <h2 style="font-size:15px;font-weight:700;margin-bottom:.9rem">Dados para o relatório impresso</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px">
+          <label style="font-size:12px;color:#888">
+            Pedagogo(a) / Coord. Pedagógico
+            <input type="text" id="ltPedagogo" value="Prof. Everton Corrêa Alves"
+              style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:7px;font-size:13px;font-family:inherit">
+          </label>
+          <label style="font-size:12px;color:#888">
+            Professor(a) referência da sala <span style="color:#BBB">(opcional — deixe em branco para assinatura manual)</span>
+            <input type="text" id="ltProfessorRef" placeholder="Nome do(a) professor(a) regente"
+              style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:7px;font-size:13px;font-family:inherit">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prévia + ação -->
+    <div class="detail-card">
+      <div class="detail-card-inner">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          <h2 style="font-size:15px;font-weight:700">Prévia da linha do tempo</h2>
+          <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="imprimirLinhaDoTempo()" style="display:inline-flex;align-items:center;gap:6px" disabled>
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Gerar relatório para impressão
+          </button>
+        </div>
+        <div id="ltPreview">
+          <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -7778,6 +7852,7 @@ function showView(id, btn){
     const f=document.getElementById('eventosGeteculturaIframe');
     if(f && !f.src) f.src='getecultura.html';
   }
+  if(id === 'timeline') initLinhaDoTempo();
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
     const sidebar = document.querySelector('.sidebar');
@@ -8577,6 +8652,307 @@ function fitPrintCards(){
 }
 window.addEventListener('beforeprint', fitPrintCards);
 
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   LINHA DO TEMPO — busca de estudante(s) e relatório cronológico
+   ════════════════════════════════════════════════════════════ */
+let ltSelecionados = new Set(); // guarda x.matricula (ou x.n como fallback) dos selecionados
+let ltTurmasAtivas = new Set(); // turmas marcadas no filtro (vazio = todas)
+
+function toggleLinhaDoTempoNav(e){
+  e.stopPropagation();
+  const sub = document.getElementById('navLinhaDoTempoSub');
+  const chevron = document.getElementById('navLinhaDoTempoChevron');
+  const abrir = sub.style.display === 'none';
+  sub.style.display = abrir ? 'block' : 'none';
+  chevron.style.transform = abrir ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function ltChaveAluno(x){ return x.matricula ? ('m:'+x.matricula) : ('n:'+x.n+'|'+x.t); }
+
+function initLinhaDoTempo(){
+  // mantém a subaba aberta e o botão pai marcado quando a view está ativa
+  const sub = document.getElementById('navLinhaDoTempoSub');
+  const chevron = document.getElementById('navLinhaDoTempoChevron');
+  if(sub && sub.style.display === 'none'){ sub.style.display='block'; chevron.style.transform='rotate(180deg)'; }
+  document.getElementById('navLinhaDoTempoToggle')?.classList.add('active');
+
+  // monta filtro de turmas (uma vez, ou se as turmas mudaram)
+  const wrap = document.getElementById('ltTurmaFiltro');
+  if(wrap){
+    wrap.innerHTML = TURMAS.map(t=>`
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;user-select:none">
+        <input type="checkbox" class="lt-turma-chk" value="${t}" onchange="onLtTurmaFiltroChange()" style="accent-color:var(--verde);width:13px;height:13px;cursor:pointer">
+        ${t}
+      </label>
+    `).join('');
+  }
+  renderLinhaDoTempoResultados();
+}
+
+function onLtTurmaFiltroChange(){
+  ltTurmasAtivas = new Set([...document.querySelectorAll('.lt-turma-chk:checked')].map(c=>c.value));
+  renderLinhaDoTempoResultados();
+}
+
+function renderLinhaDoTempoResultados(){
+  const termo = (document.getElementById('ltBuscaNome')?.value||'').trim().toLowerCase();
+  const ativos = S.filter(x=>!x._transferido);
+  let candidatos = ativos.filter(x=>{
+    if(ltTurmasAtivas.size && !ltTurmasAtivas.has(x.t)) return false;
+    if(termo && !x.n.toLowerCase().includes(termo)) return false;
+    return true;
+  });
+  candidatos = candidatos.slice().sort((a,b)=> a.n.localeCompare(b.n,'pt-BR'));
+
+  const listDiv = document.getElementById('ltResultList');
+  const countEl = document.getElementById('ltResultCount');
+  if(countEl) countEl.textContent = `(${candidatos.length})`;
+
+  if(!listDiv) return;
+  if(!candidatos.length){
+    listDiv.innerHTML = `<div style="font-size:12px;color:#AAA;padding:10px;text-align:center">Nenhum estudante encontrado com esses critérios.</div>`;
+  } else {
+    listDiv.innerHTML = candidatos.map(x=>{
+      const chave = ltChaveAluno(x);
+      const checked = ltSelecionados.has(chave) ? 'checked' : '';
+      return `
+        <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;padding:7px 8px;border-radius:6px;user-select:none" onmouseover="this.style.background='#FAFAF8'" onmouseout="this.style.background='transparent'">
+          <input type="checkbox" class="lt-aluno-chk" value="${chave}" ${checked} onchange="onLtAlunoToggle(this)" style="accent-color:var(--verde);width:14px;height:14px;cursor:pointer;flex-shrink:0">
+          <span style="flex:1">${x.n}</span>
+          <span style="color:#AAA;font-size:11px">${x.t}</span>
+        </label>`;
+    }).join('');
+  }
+  renderLinhaDoTempoPreview();
+}
+
+function onLtAlunoToggle(el){
+  if(el.checked) ltSelecionados.add(el.value);
+  else ltSelecionados.delete(el.value);
+  renderLinhaDoTempoPreview();
+}
+
+function toggleAllLtAlunos(marcar){
+  document.querySelectorAll('.lt-aluno-chk').forEach(c=>{
+    c.checked = marcar;
+    if(marcar) ltSelecionados.add(c.value); else ltSelecionados.delete(c.value);
+  });
+  renderLinhaDoTempoPreview();
+}
+
+function getLtAlunosSelecionados(){
+  const ativos = S.filter(x=>!x._transferido);
+  return ativos.filter(x=> ltSelecionados.has(ltChaveAluno(x)));
+}
+
+// Reúne, para um estudante, todos os eventos disponíveis nos registros da
+// plataforma (movimentações, relatórios escolares e materiais), ordenados
+// cronologicamente.
+function montarEventosLinhaDoTempo(x){
+  const eventos = [];
+  const pertence = (matricula, nome) =>
+    (x.matricula && matricula && String(matricula)===String(x.matricula)) ||
+    (!matricula && nome && nome===x.n) ||
+    (matricula==null && nome===x.n);
+
+  // Matrícula / entrada no turno
+  if(x._dataMatricula){
+    eventos.push({ data:x._dataMatricula, tipo:'Matrícula', desc:`Entrada no turno tarde — turma ${x.t}`, por:'—' });
+  }
+
+  // Movimentações
+  (typeof movLog!=='undefined'?movLog:[]).forEach(m=>{
+    if(pertence(m.matricula_aluno, m.nome_aluno)){
+      const label = MOV_TIPO_LABEL[m.tipo]?.[0] || m.tipo || 'Movimentação';
+      let desc = label;
+      if(m.turma_de && m.turma_ate && m.turma_de!=='—' && m.turma_ate!=='—') desc += ` — de ${m.turma_de} para ${m.turma_ate}`;
+      else if(m.turma_ate && m.turma_ate!=='—') desc += ` — turma ${m.turma_ate}`;
+      if(m.motivo) desc += ` · ${m.motivo}`;
+      eventos.push({ data:m.data, tipo:label, desc, por:m.registrado_por||'—' });
+    }
+  });
+
+  // Relatórios escolares solicitados
+  (typeof relEscolaresLog!=='undefined'?relEscolaresLog:[]).forEach(r=>{
+    if(pertence(r.aluno_matricula, r.aluno_nome)){
+      let desc = 'Relatório escolar solicitado';
+      if(r.motivo) desc += ` · ${r.motivo}`;
+      const statusLbl = (typeof relEscStatusLabel==='function') ? relEscStatusLabel(r) : (r.status||'');
+      if(statusLbl) desc += ` (${statusLbl})`;
+      eventos.push({ data:r.data_solicitacao, tipo:'Relatório escolar', desc, por:r.solicitante||'—' });
+    }
+  });
+
+  // Materiais
+  (typeof materiaisLog!=='undefined'?materiaisLog:[]).forEach(m=>{
+    if(pertence(m.aluno_matricula, m.aluno_nome)){
+      const desc = `${m.item_categoria||'Material'}${m.item_nome?' — '+m.item_nome:''} · ${m.status==='recebido'?'Recebido':'Pendente'}`;
+      eventos.push({ data:m.data_recebimento, tipo:'Material', desc, por:'—' });
+    }
+  });
+
+  // Síntese geral de ocorrências (sem data específica)
+  if(x.ocs){
+    eventos.push({ data:null, tipo:'Síntese de ocorrências', desc:x.ocs, por:'—' });
+  }
+
+  // Ordena cronologicamente; itens sem data vão para o final
+  eventos.sort((a,b)=>{
+    const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
+    const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
+    return da - db;
+  });
+  return eventos;
+}
+
+function ltFmtData(d){
+  if(!d) return 'Sem data';
+  return new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR');
+}
+
+function ltEsc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderLinhaDoTempoPreview(){
+  const selecionados = getLtAlunosSelecionados();
+  const previewDiv = document.getElementById('ltPreview');
+  const btnImprimir = document.getElementById('btnImprimirLinhaDoTempo');
+  if(btnImprimir) btnImprimir.disabled = !selecionados.length;
+
+  if(!previewDiv) return;
+  if(!selecionados.length){
+    previewDiv.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo.</div>`;
+    return;
+  }
+
+  previewDiv.innerHTML = selecionados.map(x=>{
+    const eventos = montarEventosLinhaDoTempo(x);
+    const itens = eventos.length
+      ? eventos.map(ev=>`
+        <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0EFEA">
+          <div style="width:88px;flex-shrink:0;font-size:11px;color:#999;font-family:'DM Mono',monospace">${ltFmtData(ev.data)}</div>
+          <div style="flex:1">
+            <span style="font-size:11.5px;font-weight:600;color:var(--verde-dark)">${ltEsc(ev.tipo)}</span>
+            <div style="font-size:12.5px;color:#444;margin-top:2px">${ltEsc(ev.desc)}</div>
+          </div>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:#BBB;padding:8px 0">Nenhum evento registrado para este estudante.</div>`;
+
+    return `
+      <div style="margin-bottom:18px;padding-bottom:12px">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
+          <span style="font-size:14px;font-weight:700">${ltEsc(x.n)}</span>
+          <span style="font-size:11.5px;color:#999">Turma ${ltEsc(x.t)}</span>
+        </div>
+        ${itens}
+      </div>`;
+  }).join('<hr style="border:none;border-top:1px solid #E8E7E3;margin:6px 0 16px">');
+}
+
+function imprimirLinhaDoTempo(){
+  const selecionados = getLtAlunosSelecionados();
+  if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
+
+  const pedagogo = (document.getElementById('ltPedagogo')?.value||'').trim() || '—';
+  const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const paginas = selecionados.map((x,idx)=>{
+    const eventos = montarEventosLinhaDoTempo(x);
+    const linhas = eventos.length
+      ? eventos.map(ev=>`
+        <tr>
+          <td style="white-space:nowrap">${ltFmtData(ev.data)}</td>
+          <td><b>${ltEsc(ev.tipo)}</b></td>
+          <td>${ltEsc(ev.desc)}</td>
+          <td style="white-space:nowrap;color:#666">${ltEsc(ev.por||'—')}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="4" style="text-align:center;color:#999;padding:14px 0">Nenhum evento registrado para este estudante.</td></tr>`;
+
+    return `
+    <div class="lt-page" style="${idx>0?'page-break-before:always;':''}">
+      <div class="doc-header">
+        <div>
+          <div class="doc-title">Linha do Tempo do Estudante</div>
+          <div class="doc-sub">
+            E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Coord. Pedagógico: ${ltEsc(pedagogo)}<br>
+            Estudante: <b>${ltEsc(x.n)}</b> &nbsp;·&nbsp; Turma: <b>${ltEsc(x.t)}</b>${x.matricula?' &nbsp;·&nbsp; Matrícula: '+ltEsc(x.matricula):''}
+          </div>
+        </div>
+        <div class="doc-badge">
+          <strong>${now}</strong>
+          Data de emissão
+        </div>
+      </div>
+
+      <table class="lt-table">
+        <colgroup><col style="width:12%"><col style="width:18%"><col style="width:52%"><col style="width:18%"></colgroup>
+        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Registrado por</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+
+      <div class="lt-assinaturas">
+        <div class="lt-assin-col">
+          <div class="lt-assin-linha"></div>
+          <div class="lt-assin-label">${professorRef ? ltEsc(professorRef) : 'Professor(a) referência da sala'}</div>
+        </div>
+        <div class="lt-assin-col">
+          <div class="lt-assin-linha"></div>
+          <div class="lt-assin-label">${ltEsc(pedagogo)} — Pedagogo(a)</div>
+        </div>
+      </div>
+
+      <div class="doc-footer">
+        <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
+        <span>Coord. Pedagógico: ${ltEsc(pedagogo)} &nbsp;·&nbsp; Emitido em ${now}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Linha do Tempo — Relatório</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  @page{size:portrait A4;margin:1.4cm 1.4cm 1.6cm 1.4cm}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1A1916;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1A1916;padding-bottom:10px;margin-bottom:18px}
+  .doc-title{font-size:16px;font-weight:700;color:#1A1916;margin-bottom:3px}
+  .doc-sub{font-size:10px;color:#666;line-height:1.7}
+  .doc-badge{background:#fff;border:1px solid #999;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#333;line-height:1.7;white-space:nowrap}
+  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1A1916}
+
+  .lt-table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:28px}
+  .lt-table thead th{background:#F2F2EF;color:#1A1916;padding:7px 9px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;border-bottom:1.5px solid #1A1916}
+  .lt-table tbody td{padding:7px 9px;border-bottom:1px solid #ECEAE4;vertical-align:top;font-size:10.5px;word-break:break-word}
+  .lt-table tbody tr:nth-child(even){background:#F9F8F5}
+
+  .lt-assinaturas{display:flex;gap:40px;margin-top:34px;margin-bottom:8px}
+  .lt-assin-col{flex:1;text-align:center}
+  .lt-assin-linha{border-top:1px solid #1A1916;margin-bottom:6px;margin-top:26px}
+  .lt-assin-label{font-size:9.5px;color:#555}
+
+  .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
+  .lt-page{page-break-inside:avoid}
+</style>
+</head>
+<body>
+${paginas}
+<script>window.onload=function(){window.print();}<\/script>
+</body>
+</html>`;
+
+  const win = window.open('','_blank','width=1000,height=800');
+  win.document.write(html);
+  win.document.close();
+}
 </script>
 
 <footer class="platform-footer">
