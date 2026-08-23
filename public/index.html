@@ -2385,11 +2385,15 @@
   <div id="view-timeline" class="view">
     <div class="page-header">
       <h1>Perfil Individual</h1>
-      <p>Busque um ou mais estudantes por nome ou turma e gere uma ficha por estudante, pronta para impressão, organizada por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais.</p>
+      <p>Busque um ou mais estudantes por nome ou turma para visualizar o perfil completo em tela ou gerar uma ficha pronta para impressão, organizada por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais. Recolha as guias de busca abaixo para dar mais espaço à área de visualização.</p>
     </div>
 
-    <div class="detail-card" style="margin-bottom:1.5rem">
-      <div class="detail-card-inner">
+    <details id="ltBuscaDetails" open ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+      <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
+        <span style="font-size:13px;font-weight:700">Buscar e selecionar estudantes</span>
+        <span id="ltBuscaResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
+      </summary>
+      <div class="detail-card-inner" style="padding-top:0">
         <!-- Busca -->
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
           <input type="text" id="ltBuscaNome" placeholder="Digite o nome do estudante…" oninput="renderLinhaDoTempoResultados()"
@@ -2399,21 +2403,25 @@
         </div>
 
         <!-- Filtro por turma (recolhível — economiza espaço quando não está em uso) -->
-        <details id="ltTurmaFiltroDetails" style="margin-bottom:12px">
+        <details id="ltTurmaFiltroDetails" ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:12px">
           <summary style="cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;padding:2px 0">
             Filtrar por turma (uma ou mais) <span id="ltTurmaFiltroResumo" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span>
           </summary>
           <div id="ltTurmaFiltro" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
         </details>
 
-        <!-- Lista de resultados (recolhível por turma) -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span></div>
-        <div id="ltResultList" style="max-height:260px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
+        <!-- Lista de resultados (guia recolhível, agrupada por turma) -->
+        <details id="ltEncontradosDetails" open ontoggle="ajustarAlturaPreviewLt()">
+          <summary style="cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;padding:2px 0">
+            Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span>
+          </summary>
+          <div id="ltResultList" style="max-height:260px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px;margin-top:10px"></div>
+        </details>
       </div>
-    </div>
+    </details>
 
     <!-- Dados do relatório (recolhível — condensado por padrão para dar mais espaço à prévia) -->
-    <details style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+    <details id="ltDadosRelatorioDetails" ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
       <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
         <span style="font-size:13px;font-weight:700">Dados para o relatório impresso</span>
         <span id="ltDadosRelatorioResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
@@ -2438,7 +2446,7 @@
     <div class="detail-card">
       <div class="detail-card-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
-          <h2 style="font-size:15px;font-weight:700">Prévia do perfil individual</h2>
+          <h2 style="font-size:15px;font-weight:700">Perfil individual — visualização e impressão</h2>
           <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="imprimirLinhaDoTempo()" style="display:inline-flex;align-items:center;gap:6px" disabled>
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Gerar relatório para impressão
@@ -2453,8 +2461,8 @@
             <input type="radio" name="ltModoImpressao" value="lista" style="accent-color:var(--verde)"> Listagem da turma (vários alunos por página)
           </label>
         </div>
-        <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px">
-          <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia do perfil individual.</div>
+        <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px;transition:max-height .15s ease">
+          <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para visualizar o perfil individual em tela ou gerar a prévia de impressão.</div>
         </div>
       </div>
     </div>
@@ -8749,6 +8757,25 @@ function initLinhaDoTempo(){
   }
   atualizarResumoDadosRelatorio();
   renderLinhaDoTempoResultados();
+  ajustarAlturaPreviewLt();
+}
+
+// A prévia agora serve tanto para visualização em tela quanto para impressão,
+// então ela deve ocupar o máximo de espaço possível. Sempre que uma das guias
+// recolhíveis acima (Buscar/selecionar estudantes e Dados para o relatório)
+// é aberta ou fechada, recalculamos quanto espaço vertical sobrou para ela.
+function ajustarAlturaPreviewLt(){
+  const preview = document.getElementById('ltPreview');
+  if(!preview) return;
+  const buscaAberta = document.getElementById('ltBuscaDetails')?.open;
+  const dadosAberta = document.getElementById('ltDadosRelatorioDetails')?.open;
+
+  let reserva = 150; // cabeçalho da página, título da prévia e botão de impressão
+  if(buscaAberta) reserva += 260;
+  if(dadosAberta) reserva += 90;
+
+  preview.style.maxHeight = `calc(100vh - ${reserva}px)`;
+  preview.style.minHeight = buscaAberta ? '58vh' : '74vh';
 }
 
 function onLtTurmaFiltroChange(){
@@ -8781,6 +8808,13 @@ function renderLinhaDoTempoResultados(){
   const listDiv = document.getElementById('ltResultList');
   const countEl = document.getElementById('ltResultCount');
   if(countEl) countEl.textContent = `(${candidatos.length})`;
+
+  const buscaResumo = document.getElementById('ltBuscaResumo');
+  if(buscaResumo){
+    buscaResumo.textContent = ltSelecionados.size
+      ? `— ${ltSelecionados.size} selecionado${ltSelecionados.size>1?'s':''} de ${candidatos.length} encontrado${candidatos.length>1?'s':''}`
+      : `— ${candidatos.length} encontrado${candidatos.length>1?'s':''}`;
+  }
 
   if(!listDiv) return;
   if(!candidatos.length){
