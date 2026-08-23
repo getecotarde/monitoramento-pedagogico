@@ -8958,6 +8958,21 @@ const LT_ATA_CATEGORIAS = [
 function ltNomeBateAta(nomeAluno, nomeNaLista){
   return (nomeAluno||'').trim().toLowerCase() === (nomeNaLista||'').trim().toLowerCase();
 }
+// Cada item de uma lista de alunos da Ata pode vir em dois formatos:
+//  - novo:  { nome, matricula }  — gravado pela aba Ata a partir desta atualização
+//  - antigo: apenas o nome (string) — atas salvas antes desta mudança
+// Cruza primeiro pela matrícula (mais confiável, sobrevive a correções de
+// grafia do nome) e só recorre ao nome quando não há matrícula em algum dos
+// dois lados — assim nenhuma indicação antiga deixa de aparecer.
+function ltAlunoBateAta(item, x){
+  if(item && typeof item === 'object'){
+    if(item.matricula!=null && item.matricula!=='' && x.matricula!=null){
+      return String(item.matricula) === String(x.matricula);
+    }
+    return ltNomeBateAta(x.n, item.nome);
+  }
+  return ltNomeBateAta(x.n, item);
+}
 async function buscarEventosAtaLT(x){
   const key = 'ata:'+(x.t||'').trim().toLowerCase();
   if(_ltAtaCache[key]) return _ltAtaCache[key].then(rows=>ltFiltrarAtaPorAluno(rows, x));
@@ -8979,7 +8994,7 @@ function ltFiltrarAtaPorAluno(rows, x){
   (rows||[]).forEach(row=>{
     LT_ATA_CATEGORIAS.forEach(cat=>{
       const lista = row[cat.alunosCampo] || [];
-      const bateu = lista.some(nome=>ltNomeBateAta(x.n, nome));
+      const bateu = lista.some(item=>ltAlunoBateAta(item, x));
       if(!bateu) return;
       const obs = cat.obsCampo ? (row[cat.obsCampo]||'') : '';
       const desc = `${cat.titulo} — ${row.trimestre}º trimestre${obs ? ' · '+obs : ''}`;
