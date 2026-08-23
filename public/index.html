@@ -3915,15 +3915,6 @@ function renderModalContent(idx){
       </div>
       <div class="modal-section">
         <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-          <span>Linha do tempo do estudante</span>
-        </div>
-        <div style="font-size:11px;color:#AAA;margin:-6px 0 8px">Cruza boletins (Análise Trimestral), fluência de leitura, ata do conselho e advertências, do mais recente para o mais antigo.</div>
-        <div id="modalTimelineBox">
-          <div style="font-size:12px;color:#AAA">Carregando…</div>
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;gap:6px">
           <span>PIP Leitura — Fluência de Leitura</span>
         </div>
         <div id="modalPipLeituraBox">
@@ -3979,207 +3970,6 @@ function renderModalContent(idx){
     </div>
   `;
   carregarPipLeituraModal(idx, x.n, x.matricula);
-  carregarLinhaDoTempoModal(idx, x.n, x.id, x.matricula);
-}
-
-/* ════════════════════════════════════════════════════════════
-   LINHA DO TEMPO DO ESTUDANTE — cruza 4 fontes por estudante_id
-   (fallback por nome quando o registro ainda não está vinculado):
-   boletins (analise_trimestral_alunos/turmas), fluência de leitura
-   (fluencia_leitura), ata do conselho (atas_conselho) e advertências
-   (já presentes no cadastro em "estudantes").
-   Recomendação 2 do relatório de análise do app.
-   ════════════════════════════════════════════════════════════ */
-const _timelineCache = {};
-const TL_PASS = 18; // mesmo critério de aprovação usado em analise-trimestral.html
-
-function tlFormatDateBR(iso){
-  if(!iso) return '';
-  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso);
-}
-
-// Status de uma disciplina num trimestre específico: 'ok' | 'bad' | null (sem nota)
-function tlStatus(nota, rec){
-  if(nota===undefined || nota===null || nota==='' || nota==='S' || nota==='-') return null;
-  const n = Number(nota);
-  if(Number.isNaN(n)) return null;
-  if(n>=TL_PASS) return 'ok';
-  if(rec===undefined || rec===null || rec==='' || rec==='X' || rec==='-') return 'bad';
-  const r = Number(rec);
-  if(Number.isNaN(r)) return 'bad';
-  return r>=TL_PASS ? 'ok' : 'bad';
-}
-
-async function carregarLinhaDoTempoModal(idx, nome, estudanteId, matricula){
-  const box = document.getElementById('modalTimelineBox');
-  if(!box) return;
-  const key = 'id:'+(estudanteId||'')+'|mat:'+(matricula||'')+'|nome:'+(nome||'').trim().toLowerCase();
-  if(_timelineCache[key]){
-    renderTimelineBox(_timelineCache[key], idx);
-  }
-  try{
-    const nomeNorm = normalizarNomeAluno(nome);
-    const nomeQ = encodeURIComponent((nome||'').trim());
-    const matQ = matricula!=null ? encodeURIComponent(String(matricula)) : null;
-    const reqs = {
-      // Boletins — chave primária é a matrícula (rme no PDF = numero_matricula do aluno),
-      // mais confiável que nome. estudante_id é mantido como segunda via (linkagem
-      // feita por nome no momento do upload) para não perder registros antigos sem rme.
-      notasPorMatricula: matQ
-        ? fetch(`${SUPABASE_URL}/rest/v1/analise_trimestral_alunos?select=*,analise_trimestral_turmas(turma,ano,disciplinas,mes_ano)&rme=eq.${matQ}`, { headers: sbHeaders() })
-        : null,
-      notasPorId: estudanteId
-        ? fetch(`${SUPABASE_URL}/rest/v1/analise_trimestral_alunos?select=*,analise_trimestral_turmas(turma,ano,disciplinas,mes_ano)&estudante_id=eq.${estudanteId}`, { headers: sbHeaders() })
-        : null,
-      notasFallback: fetch(`${SUPABASE_URL}/rest/v1/analise_trimestral_alunos?select=*,analise_trimestral_turmas(turma,ano,disciplinas,mes_ano)&estudante_id=is.null&nome=ilike.${nomeQ}`, { headers: sbHeaders() }),
-      periodos: fetch(`${SUPABASE_URL}/rest/v1/analise_trimestral_periodos?select=ano,trimestre,data_inicio,data_fim`, { headers: sbHeaders() }),
-      // Fluência de leitura — pipleitura.html vincula por estudante_matricula
-      // (não por estudante_id, que essa tabela nem chega a receber).
-      fluenciaPorMatricula: matQ
-        ? fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=eq.${matQ}&order=importado_em.desc`, { headers: sbHeaders() })
-        : null,
-      fluenciaFallback: fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=is.null&nome=ilike.${nomeQ}&order=importado_em.desc`, { headers: sbHeaders() }),
-      atas: fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?select=turma,trimestre,data,remanejamento_alunos,remanejamento_obs,baixo_alunos,baixo_obs,disciplina_alunos,disciplina_obs,destaque_alunos,destaque_obs,enc_ped_alunos,enc_familia_alunos,enc_medico_alunos`, { headers: sbHeaders() })
-    };
-
-    const resolved = {};
-    for(const k in reqs){ resolved[k] = reqs[k] ? await reqs[k] : null; }
-    Object.values(resolved).forEach(r=>{ if(r && !r.ok) throw new Error('Falha na consulta'); });
-
-    const notasRowsA = resolved.notasPorMatricula ? await resolved.notasPorMatricula.json() : [];
-    const notasRowsB = resolved.notasPorId ? await resolved.notasPorId.json() : [];
-    const notasRowsC = await resolved.notasFallback.json();
-    const periodos = await resolved.periodos.json();
-    const fluRowsA = resolved.fluenciaPorMatricula ? await resolved.fluenciaPorMatricula.json() : [];
-    const fluRowsB = await resolved.fluenciaFallback.json();
-    const atas = await resolved.atas.json();
-
-    const seenNotas = new Set();
-    const notasRows = [];
-    [...notasRowsA, ...notasRowsB, ...notasRowsC].forEach(r=>{ if(!seenNotas.has(r.id)){ seenNotas.add(r.id); notasRows.push(r); } });
-
-    const seenFlu = new Set();
-    const fluRows = [];
-    [...fluRowsA, ...fluRowsB].forEach(r=>{ if(!seenFlu.has(r.id)){ seenFlu.add(r.id); fluRows.push(r); } });
-
-    const periodosMap = {};
-    (periodos||[]).forEach(p=>{
-      periodosMap[p.ano] = periodosMap[p.ano] || {};
-      periodosMap[p.ano][p.trimestre] = { inicio:p.data_inicio, fim:p.data_fim };
-    });
-
-    const events = [];
-
-    // 1) Boletins — um evento por trimestre já preenchido (n1/n2/n3)
-    notasRows.forEach(row=>{
-      const turmaInfo = row.analise_trimestral_turmas || {};
-      const disciplinas = turmaInfo.disciplinas || [];
-      const ano = turmaInfo.ano;
-      const notas = row.notas || [];
-      for(let t=1; t<=3; t++){
-        const nKey='n'+t, rKey='r'+t;
-        const algumPreenchido = notas.some(s=> s && s[nKey]!==undefined && s[nKey]!==null && s[nKey]!=='-');
-        if(!algumPreenchido) continue;
-        const abaixo = [];
-        let preenchidas = 0;
-        notas.forEach((s,i)=>{
-          if(!s) return;
-          const st = tlStatus(s[nKey], s[rKey]);
-          if(st===null) return;
-          preenchidas++;
-          if(st==='bad') abaixo.push(disciplinas[i] || `Disciplina ${i+1}`);
-        });
-        const per = (periodosMap[ano] && periodosMap[ano][t]) || null;
-        const dateKey = (per && per.fim) ? per.fim : `${ano}-${String(t).padStart(2,'0')}`;
-        const dateLabel = (per && per.fim) ? tlFormatDateBR(per.fim) : `${t}º trim. ${ano}`;
-        events.push({
-          dateKey,
-          dateLabel,
-          cor:{bg:'#E6F1FB', fg:'#154F8A'},
-          titulo: `Boletim — ${turmaInfo.turma||'—'} (${ano}) · ${t}º trimestre`,
-          corpo: preenchidas===0
-            ? 'Sem notas lançadas neste trimestre.'
-            : (abaixo.length
-                ? `${abaixo.length} de ${preenchidas} disciplina${preenchidas>1?'s':''} abaixo da média: ${abaixo.join(', ')}.`
-                : `Todas as ${preenchidas} disciplina${preenchidas>1?'s':''} dentro da média.`)
-        });
-      }
-    });
-
-    // 2) Fluência de leitura
-    fluRows.forEach(r=>{
-      const dataRef = r.data_avaliacao || r.importado_em || '';
-      events.push({
-        dateKey: dataRef,
-        dateLabel: r.data_avaliacao ? tlFormatDateBR(r.data_avaliacao) : tlFormatDateBR((r.importado_em||'').slice(0,10)),
-        cor:{bg:'#E1F5EE', fg:'#0F6E56'},
-        titulo: `Fluência de leitura — ${r.classificacao||'—'}`,
-        corpo: `${r.ppm||'—'} PPM${r.prioridade?' · prioridade '+r.prioridade:''}${r.professor?' · '+r.professor:''}`
-      });
-    });
-
-    // 3) Ata do conselho — procura o nome do aluno em cada categoria
-    const ATA_CATS = [
-      {alunosKey:'remanejamento_alunos', obsKey:'remanejamento_obs', label:'Indicação de remanejamento',  cor:{bg:'#F1E9FB', fg:'#5B21B6'}},
-      {alunosKey:'baixo_alunos',         obsKey:'baixo_obs',         label:'Aproveitamento abaixo do esperado', cor:{bg:'#FEF3DC', fg:'#BA7517'}},
-      {alunosKey:'disciplina_alunos',    obsKey:'disciplina_obs',    label:'Problema disciplinar',         cor:{bg:'#FAECE7', fg:'#C0392B'}},
-      {alunosKey:'destaque_alunos',      obsKey:'destaque_obs',      label:'Aluno destaque',               cor:{bg:'#E1F5EE', fg:'#0F6E56'}},
-      {alunosKey:'enc_ped_alunos',       obsKey:null,                label:'Encaminhado — acompanhamento pedagógico individual', cor:{bg:'#F1E9FB', fg:'#5B21B6'}},
-      {alunosKey:'enc_familia_alunos',   obsKey:null,                label:'Encaminhado — acompanhamento familiar mais frequente', cor:{bg:'#F1E9FB', fg:'#5B21B6'}},
-      {alunosKey:'enc_medico_alunos',    obsKey:null,                label:'Encaminhado — avaliação médica/psicológica', cor:{bg:'#F1E9FB', fg:'#5B21B6'}},
-    ];
-    (atas||[]).forEach(row=>{
-      ATA_CATS.forEach(cat=>{
-        const alunos = row[cat.alunosKey] || [];
-        const presente = alunos.some(a => normalizarNomeAluno(a)===nomeNorm);
-        if(!presente) return;
-        const obs = cat.obsKey ? (row[cat.obsKey] || '') : '';
-        events.push({
-          dateKey: row.data || `${row.trimestre}`,
-          dateLabel: row.data ? tlFormatDateBR(row.data) : `${row.trimestre}º trimestre`,
-          cor: cat.cor,
-          titulo: `Ata do conselho — ${row.turma||'—'} · ${cat.label}`,
-          corpo: obs || 'Sem observação complementar registrada na ata.'
-        });
-      });
-    });
-
-    events.sort((a,b)=> String(b.dateKey).localeCompare(String(a.dateKey)));
-
-    _timelineCache[key] = events;
-    if(currentModalIdx === idx) renderTimelineBox(events, idx);
-  }catch(e){
-    if(currentModalIdx === idx && !_timelineCache[key]){
-      box.innerHTML = `<div style="font-size:12px;color:#D85A30">Não foi possível carregar a linha do tempo deste(a) estudante.</div>`;
-    }
-  }
-}
-
-function renderTimelineBox(events, idx){
-  const box = document.getElementById('modalTimelineBox');
-  if(!box) return;
-  const x = S[idx];
-  const advEvent = (x && x.ocn) ? [{
-    dateLabel: 'Registro atual',
-    cor:{bg:'#FAECE7', fg:'#D85A30'},
-    titulo: `Advertências registradas · ${x.ocn}`,
-    corpo: x.ocs || 'Sem síntese registrada.'
-  }] : [];
-  const all = [...advEvent, ...(events||[])];
-  if(!all.length){
-    box.innerHTML = `<div class="modal-text" style="color:#CCC;font-style:italic">Nenhum registro encontrado nas fontes cruzadas (boletins, fluência, ata do conselho, advertências) para este(a) estudante.</div>`;
-    return;
-  }
-  box.innerHTML = all.map(ev => `
-    <div style="padding:8px 10px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px;background:#FAFAF8">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-        <div style="font-size:12px;font-weight:600;color:#1A1916">${escapeHtmlPip(ev.titulo)}</div>
-        <span style="font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${ev.cor.bg};color:${ev.cor.fg};white-space:nowrap">${escapeHtmlPip(ev.dateLabel||'')}</span>
-      </div>
-      <div style="font-size:11.5px;color:#777;margin-top:4px;line-height:1.5">${escapeHtmlPip(ev.corpo||'')}</div>
-    </div>
-  `).join('');
 }
 
 /* ── PIP Leitura (Fluência de Leitura) — integrado ao card do aluno ─── */
@@ -4204,8 +3994,7 @@ async function carregarPipLeituraModal(idx, nome, matricula){
   try{
     const reqs = [];
     if(matricula!=null){
-      // pipleitura.html vincula por estudante_matricula (não por estudante_id)
-      reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=eq.${encodeURIComponent(String(matricula))}&order=importado_em.desc`, { headers: sbHeaders() }));
+      reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=eq.${encodeURIComponent(matricula)}&order=importado_em.desc`, { headers: sbHeaders() }));
     }
     // Fallback: registros ainda não vinculados a nenhum aluno, mas com nome igual
     // (útil para dados antigos/importados sem correspondência automática)
@@ -4663,7 +4452,7 @@ async function rejectPending(id){
 function abrirApproveEdit(id){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
-  const nome = ed.studentNome || (S.find(x=>x.id===ed.studentId)?.n) || '—';
+  const nome = ed.studentNome || (S.find(x=>x.matricula!=null && String(x.matricula)===String(ed.studentMatricula))?.n) || '—';
   document.getElementById('approveEditPendingId').value = id;
   document.getElementById('approveEditTitulo').textContent = `Editar e aprovar — ${nome}`;
   document.getElementById('approveEditSub').textContent = `Campo: ${ed.fieldLabel}`;
@@ -6239,21 +6028,21 @@ async function migrarAlunosOrfaosParaSupabase(alunos){
 // pequenos (Atípicos) e nos cards de impressão — sem precisar abrir o modal.
 async function carregarFluenciaLeituraResumo(){
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=estudante_id,nome,classificacao,prioridade,ppm,importado_em&order=importado_em.desc`, { headers: sbHeaders() });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=estudante_matricula,nome,classificacao,prioridade,ppm,importado_em&order=importado_em.desc`, { headers: sbHeaders() });
     const rows = await r.json();
     if (!r.ok || !Array.isArray(rows)) return;
 
     // Como veio ordenado do mais recente pro mais antigo, o primeiro
     // registro que encontrarmos por chave já é o mais recente daquele aluno.
-    const porId = {}, porNome = {};
+    const porMatricula = {}, porNome = {};
     rows.forEach(row=>{
-      if(row.estudante_id && !porId[row.estudante_id]) porId[row.estudante_id] = row;
+      if(row.estudante_matricula!=null && !porMatricula[row.estudante_matricula]) porMatricula[row.estudante_matricula] = row;
       const chave = normalizarNomeAluno(row.nome);
       if(chave && !porNome[chave]) porNome[chave] = row;
     });
 
     S.forEach(x=>{
-      const rec = (x.id && porId[x.id]) || porNome[normalizarNomeAluno(x.n)];
+      const rec = (x.matricula!=null && porMatricula[x.matricula]) || porNome[normalizarNomeAluno(x.n)];
       if(rec){
         x._leituraClass = rec.classificacao || '';
         x._leituraPrio  = rec.prioridade || '';
@@ -6936,9 +6725,12 @@ function executarGeracaoFichaProfessores(){
 }
 
 async function carregarPendentes(){
+  // O embed "estudantes(nome)" só existe por causa do estudante_id legado —
+  // mantido aqui só como fallback para registros antigos, criados antes desta
+  // correção, que não têm estudante_nome gravado diretamente na linha.
   const r = await fetch(`${SUPABASE_URL}/rest/v1/aprovacoes_pendentes?select=*,estudantes(nome)&order=created_at.asc`, { headers: sbHeaders() });
   const rows = await r.json();
-  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentNome:x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, status:x.status||'pendente', lidoPor:Array.isArray(x.lido_por)?x.lido_por:[], fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
+  pendingEdits = rows.map(x=>({ id:x.id, studentId:x.estudante_id, studentMatricula:x.estudante_matricula, studentNome:x.estudante_nome||x.estudantes?.nome||'', field:x.campo, oldVal:x.valor_antigo, newVal:x.valor_novo, role:x.role, label:x.label, status:x.status||'pendente', lidoPor:Array.isArray(x.lido_por)?x.lido_por:[], fieldLabel: FIELD_META[x.campo]?.label||x.campo, ts: new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) }));
   updatePendingBtn();
 }
 
@@ -6983,7 +6775,7 @@ const MATERIAIS_ITENS_PADRAO = {
   outro:    []
 };
 
-let materiaisLog = []; // linhas da tabela materiais_recebimento: {id, aluno_id, aluno_nome, turma, item_categoria, item_nome, status, data_recebimento}
+let materiaisLog = []; // linhas da tabela materiais_recebimento: {id, aluno_matricula, aluno_nome, turma, item_categoria, item_nome, status, data_recebimento}
 let materialFichaAlunoIdx = null; // índice do aluno em S cuja ficha está aberta
 
 async function carregarMateriaisItens(){
@@ -7039,19 +6831,17 @@ function todosItensMateriais(){
   return out;
 }
 
-// Casa um registro de materiais_recebimento com o aluno. Prioriza a matrícula
-// (estável mesmo se o cadastro do aluno for excluído e recriado no Supabase).
-// Para registros gravados antes desta correção (sem aluno_matricula), cai
-// para o casamento por aluno_id, que é o comportamento antigo.
 function getMaterialEntry(aluno, itemNome){
-  const matricula = aluno && (aluno.matricula ?? null);
-  const alunoId = aluno && (aluno.id ?? null);
-  return materiaisLog.find(m => {
-    if(m.item_nome !== itemNome) return false;
-    if(matricula!=null && m.aluno_matricula!=null) return String(m.aluno_matricula)===String(matricula);
-    if(alunoId!=null) return String(m.aluno_id)===String(alunoId);
-    return false;
-  });
+  // Recebe o objeto do aluno (não mais um id solto). Casa por matrícula
+  // quando disponível — estável mesmo se o cadastro for recriado no
+  // Supabase — e cai para o nome só em registros antigos sem matrícula.
+  const matricula = aluno && typeof aluno === 'object' ? aluno.matricula : null;
+  const nome = aluno && typeof aluno === 'object' ? aluno.n : aluno;
+  if(matricula!=null){
+    const byMat = materiaisLog.find(m => m.aluno_matricula!=null && String(m.aluno_matricula)===String(matricula) && m.item_nome===itemNome);
+    if(byMat) return byMat;
+  }
+  return materiaisLog.find(m => m.aluno_matricula==null && m.aluno_nome===nome && m.item_nome===itemNome);
 }
 
 // Calcula progresso de um aluno: {recebidos, total, pct, porCategoria:{cat:{recebidos,total}}}
@@ -7480,7 +7270,7 @@ async function updateMaterialItemDate(idx, categoria, itemNome, novaData){
 
 async function salvarMaterialItem(al, categoria, itemNome, status, dataRecebimento){
   const existente = getMaterialEntry(al, itemNome);
-  const payload = { aluno_id: al.id ?? null, aluno_matricula: al.matricula ?? null, aluno_nome: al.n, turma: al.t, item_categoria: categoria, item_nome: itemNome, status, data_recebimento: status==='recebido' ? dataRecebimento : null };
+  const payload = { aluno_matricula: al.matricula ?? null, aluno_nome: al.n, turma: al.t, item_categoria: categoria, item_nome: itemNome, status, data_recebimento: status==='recebido' ? dataRecebimento : null };
   try {
     if(existente && existente.id && al.id){
       const { data } = await sbPatch('materiais_recebimento', payload, [ `id=eq.${existente.id}` ]);
@@ -7590,23 +7380,27 @@ async function removerItemMaterial(cat, id){
    esses registros também (no banco e nas listas já carregadas).
    ════════════════════════════════════════════════════════════ */
 async function sincronizarNomeAlunoEmOutrasAbas(studentId, studentMatricula, oldName, newName){
+  // studentId (id interno) não é mais usado aqui — todo o casamento abaixo
+  // é feito por studentMatricula, com nome como fallback. Mantido como
+  // parâmetro só para não quebrar as chamadas existentes.
   if(!newName || newName===oldName) return;
 
-  // Materiais — agora guarda aluno_matricula, então vincula com segurança pela
-  // matrícula (estável mesmo se o cadastro do Supabase for recriado).
-  // Registros antigos (de antes desta correção) ainda não têm aluno_matricula;
-  // para esses, o casamento por aluno_id continua sendo o único jeito.
+  // Materiais — agora guarda aluno_matricula, então vincula com segurança
+  // pela matrícula (estável mesmo se o cadastro do Supabase for recriado).
+  // Registros antigos (de antes desta correção) ainda não têm
+  // aluno_matricula; para esses, o casamento pelo nome antigo continua
+  // sendo o único jeito de atualizá-los.
   if(studentMatricula!=null){
     try {
       await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_matricula=eq.${encodeURIComponent(studentMatricula)}`]);
     } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais (por matrícula).', e); }
     materiaisLog.forEach(m=>{ if(m.aluno_matricula!=null && String(m.aluno_matricula)===String(studentMatricula)) m.aluno_nome=newName; });
   }
-  if(studentId){
+  if(oldName){
     try {
-      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_matricula=is.null`, `aluno_id=eq.${studentId}`]);
-    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais (por id, registros antigos).', e); }
-    materiaisLog.forEach(m=>{ if(m.aluno_matricula==null && String(m.aluno_id)===String(studentId)) m.aluno_nome=newName; });
+      await sbPatch('materiais_recebimento', { aluno_nome:newName }, [`aluno_matricula=is.null`, `aluno_nome=eq.${encodeURIComponent(oldName)}`]);
+    } catch(e){ console.warn('Não foi possível sincronizar o nome em Materiais (por nome, registros antigos).', e); }
+    materiaisLog.forEach(m=>{ if(m.aluno_matricula==null && m.aluno_nome===oldName) m.aluno_nome=newName; });
   }
 
   // Relatórios Escolares — agora guarda aluno_matricula, então vincula com
@@ -7654,7 +7448,7 @@ async function submitEdit(){
   const needsApproval = ROLES[currentRole].needsApproval;
 
   if(needsApproval){
-    const { error } = await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'pendente' });
+    const { error } = await sbPost('aprovacoes_pendentes',{ estudante_matricula:x.matricula||null, estudante_nome:x.n, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'pendente' });
     if(error){ showToast('Erro ao enviar para aprovação.','coral'); return; }
     await carregarPendentes();
     renderPendingPanel();
@@ -7667,7 +7461,7 @@ async function submitEdit(){
     if(field==='n') await sincronizarNomeAlunoEmOutrasAbas(x.id, x.matricula, oldVal, newVal);
     // Registra notificação visível para todos os perfis: alteração feita
     // diretamente pela Coordenação Pedagógica
-    await sbPost('aprovacoes_pendentes',{ estudante_id:x.id, campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'aprovado' });
+    await sbPost('aprovacoes_pendentes',{ estudante_matricula:x.matricula||null, estudante_nome:(field==='n'?newVal:x.n), campo:field, valor_antigo:oldVal, valor_novo:newVal, role:currentRole, label:ROLES[currentRole].label, status:'aprovado' });
     await carregarPendentes();
     renderPendingPanel();
     // Registra no histórico de desfazer/refazer
@@ -7776,14 +7570,22 @@ function renderPendingPanel(){
 async function approvePending(id){
   const ed = pendingEdits.find(x=>x.id===id);
   if(!ed) return;
+  // Localiza o cadastro atual do aluno preferindo a matrícula estável
+  // gravada na pendência; cai para o nome só em registros antigos sem
+  // matrícula. Isso garante que usamos o id ATUAL do aluno em Estudantes
+  // (que pode ter mudado se o cadastro foi recriado), em vez de confiar
+  // num estudante_id potencialmente desatualizado.
+  const est = (ed.studentMatricula!=null && S.find(x=>x.matricula!=null && String(x.matricula)===String(ed.studentMatricula)))
+    || S.find(x=>x.n===ed.studentNome);
+  if(!est){ showToast('Não foi possível localizar o cadastro deste aluno.','coral'); return; }
   const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
-  await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${ed.studentId}` ]);
-  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(ed.studentId, S.find(x=>String(x.id)===String(ed.studentId))?.matricula, ed.oldVal, ed.newVal);
+  await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${est.id}` ]);
+  if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, ed.oldVal, ed.newVal);
   // Mantém o registro, marcando como aprovado, para que a alteração
   // apareça como notificação para todos os perfis
   await sbPatch('aprovacoes_pendentes',{ status:'aprovado' },[ `id=eq.${id}` ]);
   // Atualiza S local
-  const idx = S.findIndex(x=>x.id===ed.studentId);
+  const idx = S.indexOf(est);
   if(idx!==-1){
     const oldV = ed.field==='obs' ? (S[idx].o||'') : (ed.field==='ocn' ? (S[idx].ocn ?? 0) : (S[idx][ed.field]||''));
     pushHistory({ studentIdx:idx, field:ed.field, oldVal:oldV, newVal:ed.newVal, label:`${ed.fieldLabel||ed.field} de ${ed.studentNome}` });
