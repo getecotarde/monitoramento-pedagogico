@@ -522,6 +522,15 @@ select {
   flex-shrink: 0;
 }
 
+.ms-item .ms-nome { flex: 1; }
+.ms-mat, .tag-mat {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+.tag-mat { opacity: .75; }
+
 /* ──────────── CHECKBOXES ──────────── */
 .check-group { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -1379,7 +1388,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 let TURMAS = {};
 
 async function carregarTurmasDaPlataforma(){
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=turma,nome,sexo,transferido&order=turma.asc,nome.asc`, {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=turma,nome,sexo,transferido,numero_matricula&order=turma.asc,nome.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   });
   const rows = await r.json();
@@ -1390,9 +1399,26 @@ async function carregarTurmasDaPlataforma(){
     turmas[x.turma].total++;
     if(x.sexo === 'M') turmas[x.turma].meninos++;
     else if(x.sexo === 'F') turmas[x.turma].meninas++;
-    turmas[x.turma].alunos.push(x.nome);
+    // Guarda nome + matrícula juntos: a matrícula é o identificador estável
+    // do aluno (usado depois no Perfil Individual para cruzar com segurança).
+    turmas[x.turma].alunos.push({ nome: x.nome, matricula: x.numero_matricula ?? null });
   });
   TURMAS = turmas;
+}
+
+// Chave única de um aluno para fins de seleção/comparação: prioriza a
+// matrícula (estável mesmo se o nome for corrigido) e só cai para o nome
+// quando o aluno não tem matrícula cadastrada.
+function alunoKey(a){
+  if(!a) return 'n:';
+  return (a.matricula!=null && a.matricula!=='') ? ('m:'+a.matricula) : ('n:'+(a.nome||''));
+}
+
+// Normaliza uma entrada de aluno salva anteriormente (pode vir como string,
+// de fichas antigas gravadas antes desta mudança) para o formato {nome,matricula}.
+function normalizarAluno(a){
+  if(a && typeof a === 'object') return { nome: a.nome || '', matricula: a.matricula ?? null };
+  return { nome: a || '', matricula: null };
 }
 
 let fichas = {};           // fichas[trimestre][turma] = ficha
@@ -1609,26 +1635,35 @@ function onTurmaChange() {
 }
 
 // ========================== MULTISELECT ==========================
+// alunos: array de {nome, matricula} (matricula pode ser null para cadastros
+// sem número de matrícula). O checkbox de cada item é identificado pela
+// chave alunoKey() — pela matrícula quando existe, senão pelo nome — para
+// que nomes repetidos ou corrigidos não se percam nem se confundam.
 function buildList(key, alunos) {
   const list = document.getElementById(`list-${key}`);
   list.innerHTML = '';
-  alunos.forEach(nome => {
+  alunos.forEach(aluno => {
+    const k = alunoKey(aluno);
+    const safeId = k.replace(/[^a-zA-Z0-9_:-]/g, '_');
     const div = document.createElement('div');
     div.className = 'ms-item';
-    div.dataset.nome = nome;
-    div.innerHTML = `<input type="checkbox" id="chk-${key}-${nome.replace(/\s/g,'_')}"> <span>${nome}</span>`;
+    div.dataset.nome = aluno.nome;
+    div.dataset.key = k;
+    div.innerHTML = `<input type="checkbox" id="chk-${key}-${safeId}"> <span class="ms-nome">${aluno.nome}</span>${aluno.matricula!=null && aluno.matricula!=='' ? `<span class="ms-mat">${aluno.matricula}</span>` : ''}`;
     div.onclick = (e) => { if (e.target.tagName !== 'INPUT') div.querySelector('input').click(); };
     div.querySelector('input').addEventListener('change', function() {
-      toggleAluno(key, nome, this.checked);
+      toggleAluno(key, aluno, this.checked);
       div.classList.toggle('selected', this.checked);
     });
     list.appendChild(div);
   });
 }
 
-function toggleAluno(key, nome, add) {
-  if (add && !selectedAlunos[key].includes(nome)) selectedAlunos[key].push(nome);
-  if (!add) selectedAlunos[key] = selectedAlunos[key].filter(n => n !== nome);
+function toggleAluno(key, aluno, add) {
+  const k = alunoKey(aluno);
+  const jaSelecionado = selectedAlunos[key].some(a => alunoKey(a) === k);
+  if (add && !jaSelecionado) selectedAlunos[key].push({ nome: aluno.nome, matricula: aluno.matricula ?? null });
+  if (!add) selectedAlunos[key] = selectedAlunos[key].filter(a => alunoKey(a) !== k);
   renderTags(key);
 }
 
@@ -1639,16 +1674,23 @@ function renderTags(key) {
     box.innerHTML = '<span class="ms-placeholder">Clique para selecionar alunos...</span>';
     return;
   }
-  selectedAlunos[key].forEach(nome => {
+  selectedAlunos[key].forEach(aluno => {
+    const k = alunoKey(aluno);
     const tag = document.createElement('span');
     tag.className = 'tag';
-    tag.innerHTML = `${nome} <span class="rm" onclick="event.stopPropagation();toggleAluno('${key}','${nome}',false);uncheckItem('${key}','${nome}')">✕</span>`;
+    tag.innerHTML = `${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? `<span class="tag-mat">${aluno.matricula}</span>` : ''} <span class="rm">✕</span>`;
+    tag.querySelector('.rm').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAluno(key, aluno, false);
+      uncheckItem(key, k);
+    });
     box.appendChild(tag);
   });
 }
 
-function uncheckItem(key, nome) {
-  const chk = document.getElementById(`chk-${key}-${nome.replace(/\s/g,'_')}`);
+function uncheckItem(key, alunoK) {
+  const safeId = alunoK.replace(/[^a-zA-Z0-9_:-]/g, '_');
+  const chk = document.getElementById(`chk-${key}-${safeId}`);
   if (chk) { chk.checked = false; chk.closest('.ms-item').classList.remove('selected'); }
 }
 
@@ -1738,10 +1780,12 @@ function loadFicha(f) {
     disciplina: f.disciplina.alunos, destaque: f.destaque.alunos,
     ped: f.enc.ped.alunos, familia: f.enc.familia.alunos, medico: f.enc.medico.alunos};
   MS_KEYS.forEach(k => {
-    selectedAlunos[k] = [...(msMap[k]||[])];
+    // normalizarAluno cobre fichas antigas (salvas antes desta mudança, só com nomes em texto)
+    selectedAlunos[k] = (msMap[k]||[]).map(normalizarAluno);
     renderTags(k);
-    (msMap[k]||[]).forEach(nome => {
-      const chk = document.getElementById(`chk-${k}-${nome.replace(/\s/g,'_')}`);
+    selectedAlunos[k].forEach(aluno => {
+      const safeId = alunoKey(aluno).replace(/[^a-zA-Z0-9_:-]/g, '_');
+      const chk = document.getElementById(`chk-${k}-${safeId}`);
       if (chk) { chk.checked = true; chk.closest('.ms-item').classList.add('selected'); }
     });
   });
@@ -1783,7 +1827,10 @@ function renderPreview() {
 }
 
 function renderFichaHTML(f) {
-  const formatAlunos = arr => arr.length ? arr.map((a,i)=>`${i+1}. ${a}`).join('<br>') : '<em>Nenhum indicado</em>';
+  const formatAlunos = arr => arr.length ? arr.map((raw,i)=>{
+    const a = normalizarAluno(raw);
+    return `${i+1}. ${a.nome}${a.matricula!=null && a.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${a.matricula})</span>` : ''}`;
+  }).join('<br>') : '<em>Nenhum indicado</em>';
   const fmtDate = d => d ? new Date(d+'T00:00').toLocaleDateString('pt-BR') : '___/___/___';
   const encLabels = {ped_individual:'Acompanhamento pedagógico individual',familia:'Acompanhamento familiar mais frequente',medico:'Avaliação médica / psicológica',outros_enc:'Outros'};
   return `
@@ -1995,7 +2042,10 @@ function updateGeralStats() {
   const coletarAlunos = (categoria) => {
     const lista = [];
     saved.forEach(f => {
-      (f[categoria].alunos || []).forEach(nome => lista.push({ nome, turma: f.turma }));
+      (f[categoria].alunos || []).forEach(raw => {
+        const a = normalizarAluno(raw);
+        lista.push({ nome: a.nome, matricula: a.matricula, turma: f.turma });
+      });
     });
     return lista;
   };
@@ -2037,16 +2087,16 @@ function updateGeralStats() {
 
   const encMap = {'ped_individual':[],'familia':[],'medico':[]};
   saved.forEach(f => {
-    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:a, turma:f.turma}));
-    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:a, turma:f.turma}));
-    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:a, turma:f.turma}));
+    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:normalizarAluno(a), turma:f.turma}));
+    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:normalizarAluno(a), turma:f.turma}));
+    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:normalizarAluno(a), turma:f.turma}));
   });
 
   const encTitles = {ped_individual:'🎓 Acompanhamento Pedagógico Individual', familia:'👨‍👩‍👧 Conversa com Família', medico:'🏥 Avaliação Médica / Psicológica'};
   let encHTML = '';
   Object.entries(encMap).forEach(([key,list]) => {
     if (!list.length) return;
-    const rows = list.map(({aluno,turma}) => `<tr><td>${aluno}</td><td><span class="badge badge-blue">${turma}</span></td></tr>`).join('');
+    const rows = list.map(({aluno,turma}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}</span></td></tr>`).join('');
     encHTML += `
       <p style="font-size:13px;font-weight:600;color:var(--blue);margin:16px 0 8px">${encTitles[key]} <span class="badge badge-blue">${list.length}</span></p>
       <table class="data-table"><thead><tr><th>Aluno</th><th>Turma</th></tr></thead><tbody>${rows}</tbody></table>`;
