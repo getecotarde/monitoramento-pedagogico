@@ -8989,7 +8989,6 @@ function montarEventosLinhaDoTempo(x){
   if(x.a && x.a!=='N/A') perfilPartes.push(`AEE: ${x.a}`);
   if(x.pip && x.pip!=='N/A') perfilPartes.push(`PIP: ${x.pip}`);
   if(x.e && x.e!=='REGULAR') perfilPartes.push(`Encaminhamento: ${x.e}`);
-  if(x.r) perfilPartes.push(`Rotina/recomendações: ${x.r}`);
   eventos.push({
     data: null,
     tipo: 'Perfil / atipicidade',
@@ -8997,6 +8996,13 @@ function montarEventosLinhaDoTempo(x){
     por: '—',
     categoria: 'perfil'
   });
+
+  // Rotina Escolar — bloco próprio, separado do Perfil de Atipicidade pela
+  // importância que tem: é onde ficam registradas as rotinas e recomendações
+  // específicas, sobretudo de estudantes atípicos. Só aparece quando preenchida.
+  if(x.r){
+    eventos.push({ data:null, tipo:'Rotina Escolar', desc: x.r, por:'—', categoria:'rotina' });
+  }
 
   // Advertências / ocorrências — número e síntese (mesmo que a síntese esteja vazia)
   if((x.ocn && x.ocn>0) || x.ocs){
@@ -9205,6 +9211,7 @@ function ltBadgePerfil(x){
 // que o encaixa em uma destas áreas — o perfil não é mais organizado por data.
 const LT_SECOES = [
   { categoria:'perfil',       titulo:'Perfil de Atipicidade' },
+  { categoria:'rotina',       titulo:'Rotina Escolar' },
   { categoria:'fluencia',     titulo:'Fluência de Leitura' },
   { categoria:'advertencias', titulo:'Síntese de Advertências' },
   { categoria:'ata',          titulo:'Ata de Conselho' },
@@ -9239,7 +9246,10 @@ function ltRenderEventos(eventos, carregando){
     // estudante tem uma classificação) e "Ata de Conselho" (mostra um aviso).
     if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
     let linhas;
-    if(sec.categoria==='advertencias' && sec.itens.length){
+    if(sec.categoria==='rotina' && sec.itens.length){
+      linhas = sec.itens.map(ev=>`
+        <div style="padding:9px 12px;background:#E6F1FB;border-left:3px solid #2B7FD4;border-radius:4px;font-size:12.5px;color:#154F8A;line-height:1.55">${ltEsc(ev.desc)}</div>`).join('');
+    } else if(sec.categoria==='advertencias' && sec.itens.length){
       linhas = sec.itens.map(ev=>`
         <div style="padding:7px 0 2px">
           <div style="font-size:12.5px;color:#333;font-weight:600;margin-bottom:8px">${ltEsc(ev.desc)}</div>
@@ -9350,7 +9360,12 @@ async function imprimirLinhaDoTempo(){
     const blocosSecoes = secoes.map(sec=>{
       if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
       let itensHtml;
-      if(sec.categoria==='advertencias' && sec.itens.length){
+      if(sec.categoria==='rotina' && sec.itens.length){
+        itensHtml = sec.itens.map(ev=>`
+          <div class="lt-secao-item" style="border-bottom:none;background:#E6F1FB;border-left:3px solid #2B7FD4;border-radius:4px;color:#154F8A">
+            <div class="lt-secao-item-desc" style="color:#154F8A">${ltEsc(ev.desc)}</div>
+          </div>`).join('');
+      } else if(sec.categoria==='advertencias' && sec.itens.length){
         itensHtml = sec.itens.map(ev=>`
           <div class="lt-secao-item" style="border-bottom:none">
             <div class="lt-secao-item-desc" style="font-weight:700;margin-bottom:6px">${ltEsc(ev.desc)}</div>
