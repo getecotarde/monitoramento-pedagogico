@@ -1802,6 +1802,10 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
         Perfil Individual
       </button>
+      <button class="nav-item" onclick="showView('geradorcsv', this)" id="navGeradorCSV" style="font-size:12.5px">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        Gerador CSV Advertências
+      </button>
     </div>
     <button class="nav-item" onclick="showView('atipicos', this)">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
@@ -2465,6 +2469,23 @@
           <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para visualizar o perfil individual em tela ou gerar a prévia de impressão.</div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: GERADOR CSV DE ADVERTÊNCIAS (sub-aba de Todos os estudantes) ─────────────────────────────────── -->
+  <div id="view-geradorcsv" class="view">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h1>Gerador CSV de Advertências</h1>
+        <p>Cruza a planilha de registros de ocorrências com a base atual de estudantes e gera o CSV de advertências por trimestre para importar no Monitoramento</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="recarregarGeradorCSVIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
+        <a href="gerador-csv-advertencias.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
+      </div>
+    </div>
+    <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
+      <iframe id="geradorCSVIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Gerador CSV de Advertências"></iframe>
     </div>
   </div>
 
@@ -7907,6 +7928,11 @@ function showView(id, btn){
   }
   if(id === 'timeline') initLinhaDoTempo();
   if(id === 'students') initTodosEstudantesNav();
+  if(id === 'geradorcsv'){
+    initTodosEstudantesNav();
+    const f=document.getElementById('geradorCSVIframe');
+    if(f && !f.src) f.src='gerador-csv-advertencias.html';
+  }
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
     const sidebar = document.querySelector('.sidebar');
@@ -7925,6 +7951,11 @@ function recarregarAtaIframe(){
 function recarregarPipleituraIframe(){
   const f=document.getElementById('pipleituraIframe');
   if(f) f.src='pipleitura.html?_='+Date.now();
+}
+
+function recarregarGeradorCSVIframe(){
+  const f=document.getElementById('geradorCSVIframe');
+  if(f) f.src='gerador-csv-advertencias.html?_='+Date.now();
 }
 
 // ─── Subabas de Eventos (Getecultura / Interclasse) ───────────────────────
