@@ -1800,7 +1800,7 @@
       </button>
       <button class="nav-item" onclick="showView('timeline', this)" id="navLinhaDoTempo" style="font-size:12.5px">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
-        Linha do Tempo
+        Perfil Individual
       </button>
     </div>
     <button class="nav-item" onclick="showView('atipicos', this)">
@@ -2381,11 +2381,11 @@
     </div>
   </div>
 
-  <!-- ─── VIEW: LINHA DO TEMPO ─────────────────────────────────── -->
+  <!-- ─── VIEW: PERFIL INDIVIDUAL ─────────────────────────────────── -->
   <div id="view-timeline" class="view">
     <div class="page-header">
-      <h1>Linha do Tempo</h1>
-      <p>Busque um ou mais estudantes por nome ou turma e gere um relatório cronológico, pronto para impressão, com todo o histórico registrado na plataforma.</p>
+      <h1>Perfil Individual</h1>
+      <p>Busque um ou mais estudantes por nome ou turma e gere uma ficha por estudante, pronta para impressão, organizada por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais.</p>
     </div>
 
     <div class="detail-card" style="margin-bottom:1.5rem">
@@ -2431,14 +2431,14 @@
     <div class="detail-card">
       <div class="detail-card-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
-          <h2 style="font-size:15px;font-weight:700">Prévia da linha do tempo</h2>
+          <h2 style="font-size:15px;font-weight:700">Prévia do perfil individual</h2>
           <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="imprimirLinhaDoTempo()" style="display:inline-flex;align-items:center;gap:6px" disabled>
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Gerar relatório para impressão
           </button>
         </div>
         <div id="ltPreview">
-          <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo.</div>
+          <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia do perfil individual.</div>
         </div>
       </div>
     </div>
@@ -8686,12 +8686,16 @@ window.addEventListener('beforeprint', fitPrintCards);
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   LINHA DO TEMPO — busca de estudante(s) e relatório cronológico
+   PERFIL INDIVIDUAL — busca de estudante(s) e ficha por área
+   (Perfil de Atipicidade, Fluência de Leitura, Síntese de
+   Advertências, Ata de Conselho e Materiais), sem organizar por data.
+   Os prefixos "lt" nos identificadores internos vêm do nome anterior
+   da funcionalidade ("Linha do Tempo").
    ════════════════════════════════════════════════════════════ */
 let ltSelecionados = new Set(); // guarda x.matricula (ou x.n como fallback) dos selecionados
 let ltTurmasAtivas = new Set(); // turmas marcadas no filtro (vazio = todas)
 let ltGruposAbertos = new Set(); // turmas com o grupo recolhível expandido na lista
-const _ltPipCache = {}; // cache de eventos de fluência de leitura por aluno, para a Linha do Tempo
+const _ltPipCache = {}; // cache de eventos de fluência de leitura por aluno, para o Perfil Individual
 let _ltRenderToken = 0; // evita que uma busca assíncrona antiga sobrescreva a prévia atual
 
 function toggleTodosEstudantesNav(e){
@@ -8704,7 +8708,7 @@ function toggleTodosEstudantesNav(e){
 }
 
 // Mantém a subaba "Todos os estudantes" aberta e o botão pai marcado como
-// ativo sempre que a view exibida for "Ver todos" ou "Linha do Tempo".
+// ativo sempre que a view exibida for "Ver todos" ou "Perfil Individual".
 function initTodosEstudantesNav(){
   const sub = document.getElementById('navTodosEstudantesSub');
   const chevron = document.getElementById('navTodosEstudantesChevron');
@@ -8838,7 +8842,7 @@ function montarEventosLinhaDoTempo(x){
 
   // Matrícula / entrada no turno
   if(x._dataMatricula){
-    eventos.push({ data:x._dataMatricula, tipo:'Matrícula', desc:`Entrada no turno tarde — turma ${x.t}`, por:'—' });
+    eventos.push({ data:x._dataMatricula, tipo:'Matrícula', desc:`Entrada no turno tarde — turma ${x.t}`, por:'—', categoria:'matricula' });
   }
 
   // Movimentações
@@ -8849,7 +8853,7 @@ function montarEventosLinhaDoTempo(x){
       if(m.turma_de && m.turma_ate && m.turma_de!=='—' && m.turma_ate!=='—') desc += ` — de ${m.turma_de} para ${m.turma_ate}`;
       else if(m.turma_ate && m.turma_ate!=='—') desc += ` — turma ${m.turma_ate}`;
       if(m.motivo) desc += ` · ${m.motivo}`;
-      eventos.push({ data:m.data, tipo:label, desc, por:m.registrado_por||'—' });
+      eventos.push({ data:m.data, tipo:label, desc, por:m.registrado_por||'—', categoria:'matricula' });
     }
   });
 
@@ -8860,7 +8864,7 @@ function montarEventosLinhaDoTempo(x){
       if(r.motivo) desc += ` · ${r.motivo}`;
       const statusLbl = (typeof relEscStatusLabel==='function') ? relEscStatusLabel(r) : (r.status||'');
       if(statusLbl) desc += ` (${statusLbl})`;
-      eventos.push({ data:r.data_solicitacao, tipo:'Relatório escolar', desc, por:r.solicitante||'—' });
+      eventos.push({ data:r.data_solicitacao, tipo:'Relatório escolar', desc, por:r.solicitante||'—', categoria:'relatorios' });
     }
   });
 
@@ -8868,7 +8872,7 @@ function montarEventosLinhaDoTempo(x){
   (typeof materiaisLog!=='undefined'?materiaisLog:[]).forEach(m=>{
     if(pertence(m.aluno_matricula, m.aluno_nome)){
       const desc = `${m.item_categoria||'Material'}${m.item_nome?' — '+m.item_nome:''} · ${m.status==='recebido'?'Recebido':'Pendente'}`;
-      eventos.push({ data:m.data_recebimento||null, tipo:'Material', desc, por:'—' });
+      eventos.push({ data:m.data_recebimento||null, tipo:'Material', desc, por:'—', categoria:'materiais' });
     }
   });
 
@@ -8883,13 +8887,14 @@ function montarEventosLinhaDoTempo(x){
     data: null,
     tipo: 'Perfil / atipicidade',
     desc: `Classificação: ${perfilLbl}${perfilPartes.length ? ' · '+perfilPartes.join(' · ') : ''}`,
-    por: '—'
+    por: '—',
+    categoria: 'perfil'
   });
 
   // Advertências / ocorrências — número e síntese (mesmo que a síntese esteja vazia)
   if((x.ocn && x.ocn>0) || x.ocs){
     const qtd = x.ocn ? `${x.ocn} ocorrência${x.ocn>1?'s':''}/advertência${x.ocn>1?'s':''} registrada${x.ocn>1?'s':''}` : 'Ocorrências/advertências registradas';
-    eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: x.ocs ? `${qtd} · ${x.ocs}` : qtd, por:'—' });
+    eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: x.ocs ? `${qtd} · ${x.ocs}` : qtd, por:'—', categoria:'advertencias' });
   }
 
   // Ordena cronologicamente; itens sem data vão para o final
@@ -8924,7 +8929,8 @@ async function buscarEventosPipLeituraLT(x){
       data: rec.data_avaliacao || null,
       tipo: 'Fluência de leitura',
       desc: `${rec.classificacao||'—'}${rec.ppm!=null && rec.ppm!==''?' · '+rec.ppm+' PPM':''}${rec.professor?' · '+rec.professor:''}${!rec.estudante_matricula?' · (correspondência por nome — não vinculado)':''}`,
-      por: rec.professor||'—'
+      por: rec.professor||'—',
+      categoria: 'fluencia'
     }));
     _ltPipCache[key] = eventos;
     return eventos;
@@ -8964,21 +8970,71 @@ function ltBadgePerfil(x){
   return `<span class="badge ${cls}">${lbl}</span>`;
 }
 
+// Seções do Perfil Individual, na ordem em que devem aparecer. Cada evento
+// carrega uma "categoria" (ver montarEventosLinhaDoTempo / buscarEventosPipLeituraLT)
+// que o encaixa em uma destas áreas — o perfil não é mais organizado por data.
+const LT_SECOES = [
+  { categoria:'perfil',       titulo:'Perfil de Atipicidade' },
+  { categoria:'fluencia',     titulo:'Fluência de Leitura' },
+  { categoria:'advertencias', titulo:'Síntese de Advertências' },
+  { categoria:'ata',          titulo:'Ata de Conselho' },
+  { categoria:'materiais',    titulo:'Materiais' },
+  { categoria:'matricula',    titulo:'Matrícula e Movimentações' },
+  { categoria:'relatorios',   titulo:'Relatórios Escolares' },
+];
+
+// Agrupa os eventos (já coletados por montarEventosLinhaDoTempo/…Completo) nas
+// seções fixas acima. Dentro de cada seção os itens ficam em ordem cronológica
+// apenas como critério de desempate — a data deixa de ser o eixo organizador.
+function ltAgruparPorSecao(eventos){
+  const porCategoria = new Map();
+  eventos.forEach(ev=>{
+    const cat = ev.categoria || 'outros';
+    if(!porCategoria.has(cat)) porCategoria.set(cat, []);
+    porCategoria.get(cat).push(ev);
+  });
+  porCategoria.forEach(lista=>{
+    lista.sort((a,b)=>{
+      const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
+      const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
+      return da - db;
+    });
+  });
+  return LT_SECOES.map(sec=>({ titulo:sec.titulo, categoria:sec.categoria, itens: porCategoria.get(sec.categoria) || [] }));
+}
+
 function ltRenderEventos(eventos, carregandoPip){
-  const itens = eventos.length
-    ? eventos.map(ev=>`
-      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0EFEA">
-        <div style="width:88px;flex-shrink:0;font-size:11px;color:#999;font-family:'DM Mono',monospace">${ltFmtData(ev.data)}</div>
-        <div style="flex:1">
-          <span style="font-size:11.5px;font-weight:600;color:var(--verde-dark)">${ltEsc(ev.tipo)}</span>
-          <div style="font-size:12.5px;color:#333;margin-top:2px">${ltEsc(ev.desc)}</div>
-        </div>
-      </div>`).join('')
-    : `<div style="font-size:12px;color:#BBB;padding:8px 0">Nenhum evento registrado para este estudante.</div>`;
+  const secoes = ltAgruparPorSecao(eventos);
+  const blocos = secoes.map(sec=>{
+    // Ata de Conselho não tem dado vinculado à matrícula nesta ficha — as atas
+    // são registradas por turma, em outra área do sistema.
+    if(sec.categoria==='ata'){
+      return `
+        <div class="lt-secao" style="margin-bottom:14px">
+          <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--verde-dark);margin-bottom:4px">${sec.titulo}</div>
+          <div style="font-size:12px;color:#999;padding:4px 0 2px">As atas de conselho de classe são registradas por turma, não individualmente. <a href="ata.html" target="_blank" rel="noopener" style="color:var(--verde-dark);font-weight:600;text-decoration:none">Abrir Ata do Conselho de Classe ↗</a></div>
+        </div>`;
+    }
+    // Seções sem nenhum item ficam ocultas — exceto "Perfil de Atipicidade",
+    // que sempre existe (todo estudante tem uma classificação).
+    if(!sec.itens.length && sec.categoria!=='perfil') return '';
+    const linhas = sec.itens.length
+      ? sec.itens.map(ev=>`
+        <div style="padding:7px 0;border-bottom:1px solid #F0EFEA">
+          <div style="font-size:12.5px;color:#333">${ltEsc(ev.desc)}</div>
+          <div style="font-size:10.5px;color:#AAA;margin-top:2px">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
+        </div>`).join('')
+      : `<div style="font-size:12px;color:#BBB;padding:6px 0">Nenhum registro nesta área.</div>`;
+    return `
+      <div class="lt-secao" style="margin-bottom:14px">
+        <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--verde-dark);margin-bottom:4px">${sec.titulo}</div>
+        ${linhas}
+      </div>`;
+  }).join('');
   const loading = carregandoPip
     ? `<div style="font-size:11.5px;color:#AAA;padding:8px 0;font-style:italic">Carregando dados de fluência de leitura…</div>`
     : '';
-  return itens + loading;
+  return blocos + loading;
 }
 
 function ltRenderCabecalho(x){
@@ -9004,7 +9060,7 @@ function renderLinhaDoTempoPreview(){
 
   if(!previewDiv) return;
   if(!selecionados.length){
-    previewDiv.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo, com destaque para todas as informações vinculadas à sua matrícula.</div>`;
+    previewDiv.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia do perfil individual, organizado por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais.</div>`;
     return;
   }
 
@@ -9055,21 +9111,36 @@ async function imprimirLinhaDoTempo(){
 
   const paginas = selecionados.map((x,idx)=>{
     const eventos = eventosPorAluno[idx];
-    const linhas = eventos.length
-      ? eventos.map(ev=>`
-        <tr>
-          <td style="white-space:nowrap">${ltFmtData(ev.data)}</td>
-          <td><b>${ltEsc(ev.tipo)}</b></td>
-          <td>${ltEsc(ev.desc)}</td>
-          <td style="white-space:nowrap;color:#666">${ltEsc(ev.por||'—')}</td>
-        </tr>`).join('')
-      : `<tr><td colspan="4" style="text-align:center;color:#999;padding:14px 0">Nenhum evento registrado para este estudante.</td></tr>`;
+    const secoes = ltAgruparPorSecao(eventos);
+
+    const blocosSecoes = secoes.map(sec=>{
+      if(sec.categoria==='ata'){
+        return `
+          <div class="lt-secao">
+            <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
+            <div class="lt-secao-vazia">As atas de conselho de classe são registradas por turma, não individualmente — consulte a Ata do Conselho de Classe da turma ${ltEsc(x.t)}.</div>
+          </div>`;
+      }
+      if(!sec.itens.length && sec.categoria!=='perfil') return '';
+      const itensHtml = sec.itens.length
+        ? sec.itens.map(ev=>`
+          <div class="lt-secao-item">
+            <div class="lt-secao-item-desc">${ltEsc(ev.desc)}</div>
+            <div class="lt-secao-item-meta">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
+          </div>`).join('')
+        : `<div class="lt-secao-vazia">Nenhum registro nesta área.</div>`;
+      return `
+        <div class="lt-secao">
+          <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
+          ${itensHtml}
+        </div>`;
+    }).join('');
 
     return `
     <div class="lt-page" style="${idx>0?'page-break-before:always;':''}">
       <div class="doc-header">
         <div>
-          <div class="doc-title">Linha do Tempo do Estudante</div>
+          <div class="doc-title">Perfil Individual do Estudante</div>
           <div class="doc-sub">
             E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Coord. Pedagógico: ${ltEsc(pedagogo)}<br>
             Estudante: <b>${ltEsc(x.n)}</b> &nbsp;·&nbsp; Turma: <b>${ltEsc(x.t)}</b>${x.matricula?' &nbsp;·&nbsp; Matrícula: '+ltEsc(x.matricula):''}
@@ -9081,11 +9152,7 @@ async function imprimirLinhaDoTempo(){
         </div>
       </div>
 
-      <table class="lt-table">
-        <colgroup><col style="width:12%"><col style="width:18%"><col style="width:52%"><col style="width:18%"></colgroup>
-        <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Registrado por</th></tr></thead>
-        <tbody>${linhas}</tbody>
-      </table>
+      ${blocosSecoes}
 
       <div class="lt-assinaturas">
         <div class="lt-assin-col">
@@ -9109,7 +9176,7 @@ async function imprimirLinhaDoTempo(){
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Linha do Tempo — Relatório</title>
+<title>Perfil Individual — Relatório</title>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   @page{size:portrait A4;margin:1.4cm 1.4cm 1.6cm 1.4cm}
@@ -9121,10 +9188,13 @@ async function imprimirLinhaDoTempo(){
   .doc-badge{background:#fff;border:1px solid #999;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#333;line-height:1.7;white-space:nowrap}
   .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1A1916}
 
-  .lt-table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:28px}
-  .lt-table thead th{background:#F2F2EF;color:#1A1916;padding:7px 9px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;border-bottom:1.5px solid #1A1916}
-  .lt-table tbody td{padding:7px 9px;border-bottom:1px solid #ECEAE4;vertical-align:top;font-size:10.5px;word-break:break-word}
-  .lt-table tbody tr:nth-child(even){background:#F9F8F5}
+  .lt-secao{margin-bottom:16px;page-break-inside:avoid}
+  .lt-secao-titulo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1A1916;background:#F2F2EF;padding:6px 9px;border-bottom:1.5px solid #1A1916}
+  .lt-secao-item{padding:6px 9px;border-bottom:1px solid #ECEAE4}
+  .lt-secao-item:nth-child(even){background:#F9F8F5}
+  .lt-secao-item-desc{font-size:10.5px;color:#1A1916}
+  .lt-secao-item-meta{font-size:9px;color:#999;margin-top:2px}
+  .lt-secao-vazia{font-size:10px;color:#999;padding:7px 9px;font-style:italic}
 
   .lt-assinaturas{display:flex;gap:40px;margin-top:34px;margin-bottom:8px}
   .lt-assin-col{flex:1;text-align:center}
