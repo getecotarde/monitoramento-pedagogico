@@ -2398,46 +2398,62 @@
           <button onclick="toggleAllLtAlunos(false)" style="font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid #E8E7E3;background:#FAFAF8;cursor:pointer;color:#555;font-family:inherit">Limpar seleção</button>
         </div>
 
-        <!-- Filtro por turma -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Filtrar por turma (uma ou mais)</div>
-        <div id="ltTurmaFiltro" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+        <!-- Filtro por turma (recolhível — economiza espaço quando não está em uso) -->
+        <details id="ltTurmaFiltroDetails" style="margin-bottom:12px">
+          <summary style="cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;padding:2px 0">
+            Filtrar por turma (uma ou mais) <span id="ltTurmaFiltroResumo" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span>
+          </summary>
+          <div id="ltTurmaFiltro" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+        </details>
 
         <!-- Lista de resultados (recolhível por turma) -->
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span></div>
-        <div id="ltResultList" style="max-height:420px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
+        <div id="ltResultList" style="max-height:260px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
       </div>
     </div>
 
-    <!-- Dados do relatório -->
-    <div class="detail-card" style="margin-bottom:1.5rem">
-      <div class="detail-card-inner">
-        <h2 style="font-size:15px;font-weight:700;margin-bottom:.9rem">Dados para o relatório impresso</h2>
+    <!-- Dados do relatório (recolhível — condensado por padrão para dar mais espaço à prévia) -->
+    <details style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+      <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
+        <span style="font-size:13px;font-weight:700">Dados para o relatório impresso</span>
+        <span id="ltDadosRelatorioResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
+      </summary>
+      <div class="detail-card-inner" style="padding-top:0">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px">
           <label style="font-size:12px;color:#888">
             Pedagogo(a) / Coord. Pedagógico
-            <input type="text" id="ltPedagogo" value="Prof. Everton Corrêa Alves"
+            <input type="text" id="ltPedagogo" value="Prof. Everton Corrêa Alves" oninput="atualizarResumoDadosRelatorio()"
               style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:7px;font-size:13px;font-family:inherit">
           </label>
           <label style="font-size:12px;color:#888">
             Professor(a) referência da sala <span style="color:#BBB">(opcional — deixe em branco para assinatura manual)</span>
-            <input type="text" id="ltProfessorRef" placeholder="Nome do(a) professor(a) regente"
+            <input type="text" id="ltProfessorRef" placeholder="Nome do(a) professor(a) regente" oninput="atualizarResumoDadosRelatorio()"
               style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:7px;font-size:13px;font-family:inherit">
           </label>
         </div>
       </div>
-    </div>
+    </details>
 
     <!-- Prévia + ação -->
     <div class="detail-card">
       <div class="detail-card-inner">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
           <h2 style="font-size:15px;font-weight:700">Prévia do perfil individual</h2>
           <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="imprimirLinhaDoTempo()" style="display:inline-flex;align-items:center;gap:6px" disabled>
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Gerar relatório para impressão
           </button>
         </div>
-        <div id="ltPreview">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#FAFAF8;border:1px solid #E8E7E3;border-radius:7px">
+          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#BBB">Impressão</span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
+            <input type="radio" name="ltModoImpressao" value="pagina" checked style="accent-color:var(--verde)"> Um perfil por página
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
+            <input type="radio" name="ltModoImpressao" value="lista" style="accent-color:var(--verde)"> Listagem da turma (vários alunos por página)
+          </label>
+        </div>
+        <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px">
           <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia do perfil individual.</div>
         </div>
       </div>
@@ -8731,12 +8747,25 @@ function initLinhaDoTempo(){
       </label>
     `).join('');
   }
+  atualizarResumoDadosRelatorio();
   renderLinhaDoTempoResultados();
 }
 
 function onLtTurmaFiltroChange(){
   ltTurmasAtivas = new Set([...document.querySelectorAll('.lt-turma-chk:checked')].map(c=>c.value));
+  const resumo = document.getElementById('ltTurmaFiltroResumo');
+  if(resumo) resumo.textContent = ltTurmasAtivas.size ? `— ${[...ltTurmasAtivas].sort((a,b)=>a.localeCompare(b,'pt-BR')).join(', ')}` : '';
   renderLinhaDoTempoResultados();
+}
+
+// Mantém visível, mesmo com o card recolhido, um resumo do que já foi
+// preenchido em "Dados para o relatório impresso".
+function atualizarResumoDadosRelatorio(){
+  const resumo = document.getElementById('ltDadosRelatorioResumo');
+  if(!resumo) return;
+  const pedagogo = (document.getElementById('ltPedagogo')?.value||'').trim();
+  const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
+  resumo.textContent = `— ${pedagogo || 'pedagogo(a) não preenchido'}${professorRef ? ' · '+professorRef : ''}`;
 }
 
 function renderLinhaDoTempoResultados(){
@@ -9158,6 +9187,7 @@ async function imprimirLinhaDoTempo(){
   const selecionados = getLtAlunosSelecionados();
   if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
 
+  const modoImpressao = document.querySelector('input[name="ltModoImpressao"]:checked')?.value || 'pagina';
   const pedagogo = (document.getElementById('ltPedagogo')?.value||'').trim() || '—';
   const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
   const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -9198,7 +9228,7 @@ async function imprimirLinhaDoTempo(){
     }).join('');
 
     return `
-    <div class="lt-page" style="${idx>0?'page-break-before:always;':''}">
+    <div class="lt-page lt-modo-${modoImpressao}" style="${idx>0 && modoImpressao==='pagina'?'page-break-before:always;':''}">
       <div class="doc-header">
         <div>
           <div class="doc-title">Perfil Individual do Estudante</div>
@@ -9263,7 +9293,15 @@ async function imprimirLinhaDoTempo(){
   .lt-assin-label{font-size:9.5px;color:#555}
 
   .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
-  .lt-page{page-break-inside:avoid}
+  .lt-page{page-break-inside:avoid;break-inside:avoid}
+
+  /* Modo "listagem da turma": vários perfis na mesma folha, sem forçar nova
+     página a cada aluno — mas cada bloco continua protegido contra quebra
+     no meio (herdado de .lt-page acima), então, se não couber inteiro no
+     que resta da folha, o bloco inteiro passa para a próxima. */
+  .lt-modo-lista{margin-bottom:22px;padding-bottom:16px;border-bottom:1px dashed #ccc}
+  .lt-modo-lista:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .lt-modo-lista .lt-assinaturas{margin-top:20px}
 </style>
 </head>
 <body>
