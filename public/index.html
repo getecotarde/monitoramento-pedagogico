@@ -258,6 +258,7 @@
 
     /* Larguras de coluna para caber em landscape */
     col.col-turma  { width: 48px !important; }
+    col.col-matricula { width: 70px !important; }
     col.col-nome   { width: 21% !important; }
     col.col-sexo   { display: none !important; }
     col.col-perfil { width: 82px !important; }
@@ -274,6 +275,7 @@
 
     .badge { font-size: 8px !important; padding: 2px 5px !important; }
     .td-turma { text-align: center !important; }
+    .td-matricula { text-align: center !important; font-size: 9px !important; }
     .td-sexo, .td-pip { text-align: center !important; }
     .td-nome { white-space: normal !important; }
     .td-turma { font-size: 9px !important; }
@@ -1076,6 +1078,7 @@
 
   /* ── Larguras calibradas por conteúdo real ── */
   col.col-turma   { width: 62px;  }   /* "8ºB" — estreito */
+  col.col-matricula { width: 90px; }  /* nº de matrícula */
   col.col-nome    { width: 22%;   }   /* nome completo — maior */
   col.col-sexo    { display: none; }  /* oculto */
   col.col-perfil  { width: 100px; }   /* badge curto */
@@ -1136,6 +1139,11 @@
     font-family: 'DM Mono', monospace; font-size: 11.5px;
     color: #999; white-space: nowrap;
     font-weight: 600; letter-spacing: .03em;
+    text-align: center;
+  }
+  .td-matricula {
+    font-family: 'DM Mono', monospace; font-size: 11.5px;
+    color: #999; white-space: nowrap;
     text-align: center;
   }
   .td-nome {
@@ -2017,6 +2025,7 @@
         <table>
           <colgroup>
             <col class="col-turma">
+            <col class="col-matricula">
             <col class="col-nome">
             <col class="col-sexo">
             <col class="col-perfil">
@@ -2031,6 +2040,7 @@
           <thead>
             <tr>
               <th class="th-turma">Turma</th>
+              <th class="th-matricula">Matrícula</th>
               <th class="th-nome">Nome do estudante</th>
               <th class="th-sexo">Sx</th>
               <th class="th-perfil">Perfil</th>
@@ -3883,11 +3893,12 @@ function renderTable(){
   const tbody = document.getElementById('tableBody');
 
   if(!slice.length){
-    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado.</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado.</td></tr>`;
   } else {
     tbody.innerHTML = slice.map((x,i)=>`
       <tr style="cursor:pointer" onclick="openModal(${S.indexOf(x)})">
         <td class="td-turma">${x.t}</td>
+        <td class="td-matricula">${x.matricula!=null && x.matricula!==''?x.matricula:'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-nome" title="${x.n}">${x.n}</td>
         <td class="td-sexo"><span class="badge ${x.s==='M'?'b-m':'b-f'}" style="padding:2px 6px">${x.s}</span></td>
         <td>${perfilBadge(x.p)}</td>
@@ -4690,6 +4701,7 @@ function exportCSV(){
 // ── PRINT COLUMNS CONFIG ───────────────────────────────────
 const PRINT_COLS = [
   { key:'turma',  label:'Turma',                 default:true  },
+  { key:'matricula', label:'Matrícula',          default:true  },
   { key:'nome',   label:'Nome',                  default:true  },
   { key:'sexo',   label:'Sexo',                  default:false },
   { key:'perfil', label:'Perfil',                default:true  },
@@ -4784,13 +4796,14 @@ function executePrint(){
   const activeCols = PRINT_COLS.filter(c=>active[c.key]);
 
   // Larguras relativas por coluna
-  const colWidths = {turma:'5%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%'};
+  const colWidths = {turma:'5%',matricula:'8%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%'};
 
   function buildRow(x, idx){
     const bg = idx%2===0 ? '#fff' : '#F7F6F2';
     return `<tr style="background:${bg}">` + activeCols.map(c=>{
       let val = '';
       if(c.key==='turma')  val = `<b>${x.t}</b>`;
+      else if(c.key==='matricula') val = (x.matricula!=null && x.matricula!=='') ? x.matricula : '—';
       else if(c.key==='nome')   val = x.n;
       else if(c.key==='sexo')   val = x.s;
       else if(c.key==='perfil') val = x.p||'—';
@@ -8988,7 +9001,7 @@ function montarEventosLinhaDoTempo(x){
   // Advertências / ocorrências — número e síntese (mesmo que a síntese esteja vazia)
   if((x.ocn && x.ocn>0) || x.ocs){
     const qtd = x.ocn ? `${x.ocn} ocorrência${x.ocn>1?'s':''}/advertência${x.ocn>1?'s':''} registrada${x.ocn>1?'s':''}` : 'Ocorrências/advertências registradas';
-    eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: x.ocs ? `${qtd} · ${x.ocs}` : qtd, por:'—', categoria:'advertencias' });
+    eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: qtd, ocsRaw: x.ocs||'', por:'—', categoria:'advertencias' });
   }
 
   // Ordena cronologicamente; itens sem data vão para o final
@@ -9123,6 +9136,63 @@ function ltEsc(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// Reorganiza a Síntese das Advertências (string única, ex.:
+// "1º Trimestre (3 advertências): motivo (2x); motivo (1x) | 2º Trimestre (...): ... | Fora do período (...): ...")
+// em blocos visuais, um por período — cada um com um título em destaque e a
+// lista de tipos de advertência logo abaixo. Os períodos aparecem na mesma
+// ordem em que estiverem no texto (o formato é gerado pelo Gerador de CSV de
+// Advertências, mas o campo também pode ter sido editado manualmente — por
+// isso, qualquer trecho que não bata com o padrão esperado é exibido como
+// texto simples, sem quebrar o layout).
+function ltFormatSinteseAdvertencias(ocsRaw){
+  const texto = (ocsRaw||'').trim();
+  if(!texto) return `<div style="font-size:12px;color:#BBB;font-style:italic;padding:2px 0">Sem advertências registradas.</div>`;
+
+  const blocos = texto.split('|').map(s=>s.trim()).filter(Boolean);
+
+  return blocos.map(bloco=>{
+    const m = bloco.match(/^(.+?):\s*([\s\S]*)$/);
+    if(!m){
+      // Não bate com o padrão "Título: itens" — exibe como texto corrido, sem quebrar o layout.
+      return `<div style="margin-bottom:8px;padding:8px 10px;background:#F3F2EF;border-left:3px solid #B8B7B0;border-radius:4px;font-size:11.5px;color:#555">${ltEsc(bloco)}</div>`;
+    }
+
+    let titulo = m[1].trim();
+    const corpo = m[2].trim();
+
+    // Separa o contador "(N advertências)" do título, para exibir como selo à parte.
+    let contador = '';
+    const mc = titulo.match(/^(.*?)\s*\((\d+\s*advert[êe]ncias?)\)$/i);
+    if(mc){ titulo = mc[1].trim(); contador = mc[2].trim(); }
+
+    const foraDoPeriodo = /^fora do per[íi]odo$/i.test(titulo);
+    const corBorda   = foraDoPeriodo ? '#B8B7B0' : '#BA7517';
+    const corBg      = foraDoPeriodo ? '#F3F2EF' : '#FEF3DC';
+    const corTitulo  = foraDoPeriodo ? '#555'    : '#7A4A08';
+    const corSelo    = foraDoPeriodo ? '#888'    : '#BA7517';
+    const corItem    = foraDoPeriodo ? '#555'    : '#5A4A2E';
+
+    const itens = corpo ? corpo.split(';').map(s=>s.trim()).filter(Boolean) : [];
+    const listaHtml = itens.length
+      ? `<ul style="margin:0;padding-left:16px;font-size:11.5px;color:${corItem};line-height:1.65">${itens.map(it=>{
+          const mi = it.match(/^(.*?)(\s*\(\d+x\))$/i);
+          return mi
+            ? `<li>${ltEsc(mi[1].trim())} <span style="color:#AAA;font-size:10.5px">${ltEsc(mi[2].trim())}</span></li>`
+            : `<li>${ltEsc(it)}</li>`;
+        }).join('')}</ul>`
+      : `<div style="font-size:11px;color:#AAA;font-style:italic">Sem detalhamento dos tipos.</div>`;
+
+    return `
+      <div style="margin-bottom:8px;padding:8px 10px;background:${corBg};border-left:3px solid ${corBorda};border-radius:4px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${corTitulo}">${ltEsc(titulo)}</span>
+          ${contador ? `<span style="font-size:9.5px;font-weight:600;color:${corSelo};background:#fff;padding:1px 7px;border-radius:10px">${ltEsc(contador)}</span>` : ''}
+        </div>
+        ${listaHtml}
+      </div>`;
+  }).join('');
+}
+
 function ltBadgePerfil(x){
   const p = x.p || 'TÍPICO';
   const cls = p==='ATÍPICO' ? 'b-atipico' : p==='EM ANÁLISE' ? 'b-analise' : 'b-tipico';
@@ -9169,7 +9239,13 @@ function ltRenderEventos(eventos, carregando){
     // estudante tem uma classificação) e "Ata de Conselho" (mostra um aviso).
     if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
     let linhas;
-    if(sec.itens.length){
+    if(sec.categoria==='advertencias' && sec.itens.length){
+      linhas = sec.itens.map(ev=>`
+        <div style="padding:7px 0 2px">
+          <div style="font-size:12.5px;color:#333;font-weight:600;margin-bottom:8px">${ltEsc(ev.desc)}</div>
+          ${ltFormatSinteseAdvertencias(ev.ocsRaw)}
+        </div>`).join('');
+    } else if(sec.itens.length){
       linhas = sec.itens.map(ev=>`
         <div style="padding:7px 0;border-bottom:1px solid #F0EFEA">
           <div style="font-size:12.5px;color:#333">${ltEsc(ev.desc)}</div>
@@ -9274,7 +9350,13 @@ async function imprimirLinhaDoTempo(){
     const blocosSecoes = secoes.map(sec=>{
       if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
       let itensHtml;
-      if(sec.itens.length){
+      if(sec.categoria==='advertencias' && sec.itens.length){
+        itensHtml = sec.itens.map(ev=>`
+          <div class="lt-secao-item" style="border-bottom:none">
+            <div class="lt-secao-item-desc" style="font-weight:700;margin-bottom:6px">${ltEsc(ev.desc)}</div>
+            ${ltFormatSinteseAdvertencias(ev.ocsRaw)}
+          </div>`).join('');
+      } else if(sec.itens.length){
         itensHtml = sec.itens.map(ev=>`
           <div class="lt-secao-item">
             <div class="lt-secao-item-desc">${ltEsc(ev.desc)}</div>
