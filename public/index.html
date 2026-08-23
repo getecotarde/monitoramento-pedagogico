@@ -8939,13 +8939,64 @@ async function buscarEventosPipLeituraLT(x){
   }
 }
 
+// Busca (assíncrona) as indicações da Ata do Conselho de Classe vinculadas ao
+// estudante — a tabela "atas_conselho" guarda um registro por (turma,
+// trimestre), com listas de nomes de alunos em cada categoria (remanejamento,
+// baixo aproveitamento, disciplina, destaque, encaminhamentos). Aqui buscamos
+// todas as atas da turma do estudante e filtramos as categorias em que o
+// nome dele aparece, em todos os trimestres já registrados.
+const _ltAtaCache = {};
+const LT_ATA_CATEGORIAS = [
+  { chave:'remanejamento', alunosCampo:'remanejamento_alunos', obsCampo:'remanejamento_obs', titulo:'Indicação de remanejamento' },
+  { chave:'baixo',         alunosCampo:'baixo_alunos',         obsCampo:'baixo_obs',         titulo:'Aproveitamento abaixo do esperado' },
+  { chave:'disciplina',    alunosCampo:'disciplina_alunos',    obsCampo:'disciplina_obs',    titulo:'Problema disciplinar' },
+  { chave:'destaque',      alunosCampo:'destaque_alunos',      obsCampo:'destaque_obs',      titulo:'Aluno destaque' },
+  { chave:'ped',           alunosCampo:'enc_ped_alunos',       obsCampo:null,                titulo:'Encaminhamento — acompanhamento pedagógico individual' },
+  { chave:'familia',       alunosCampo:'enc_familia_alunos',   obsCampo:null,                titulo:'Encaminhamento — conversa com a família' },
+  { chave:'medico',        alunosCampo:'enc_medico_alunos',    obsCampo:null,                titulo:'Encaminhamento — avaliação médica/psicológica' },
+];
+function ltNomeBateAta(nomeAluno, nomeNaLista){
+  return (nomeAluno||'').trim().toLowerCase() === (nomeNaLista||'').trim().toLowerCase();
+}
+async function buscarEventosAtaLT(x){
+  const key = 'ata:'+(x.t||'').trim().toLowerCase();
+  if(_ltAtaCache[key]) return _ltAtaCache[key].then(rows=>ltFiltrarAtaPorAluno(rows, x));
+  const promessa = (async ()=>{
+    try{
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?select=*&turma=eq.${encodeURIComponent(x.t)}&order=trimestre.asc`, { headers: sbHeaders() });
+      if(!r.ok) throw new Error('Falha na consulta da Ata do Conselho');
+      return await r.json();
+    }catch(e){
+      return [];
+    }
+  })();
+  _ltAtaCache[key] = promessa;
+  const rows = await promessa;
+  return ltFiltrarAtaPorAluno(rows, x);
+}
+function ltFiltrarAtaPorAluno(rows, x){
+  const eventos = [];
+  (rows||[]).forEach(row=>{
+    LT_ATA_CATEGORIAS.forEach(cat=>{
+      const lista = row[cat.alunosCampo] || [];
+      const bateu = lista.some(nome=>ltNomeBateAta(x.n, nome));
+      if(!bateu) return;
+      const obs = cat.obsCampo ? (row[cat.obsCampo]||'') : '';
+      const desc = `${cat.titulo} — ${row.trimestre}º trimestre${obs ? ' · '+obs : ''}`;
+      eventos.push({ data: row.data||null, tipo: cat.titulo, desc, por: row.professor||'—', categoria:'ata' });
+    });
+  });
+  return eventos;
+}
+
+
 // Versão completa: eventos síncronos (matrícula, movimentações, relatórios,
 // materiais, perfil, ocorrências) + eventos assíncronos de fluência de
-// leitura, já mesclados e ordenados cronologicamente.
+// leitura e da Ata do Conselho, já mesclados e ordenados cronologicamente.
 async function montarEventosLinhaDoTempoCompleto(x){
   const sincronos = montarEventosLinhaDoTempo(x);
-  const pipEventos = await buscarEventosPipLeituraLT(x);
-  const eventos = sincronos.concat(pipEventos);
+  const [pipEventos, ataEventos] = await Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x)]);
+  const eventos = sincronos.concat(pipEventos, ataEventos);
   eventos.sort((a,b)=>{
     const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
     const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
@@ -9002,36 +9053,34 @@ function ltAgruparPorSecao(eventos){
   return LT_SECOES.map(sec=>({ titulo:sec.titulo, categoria:sec.categoria, itens: porCategoria.get(sec.categoria) || [] }));
 }
 
-function ltRenderEventos(eventos, carregandoPip){
+function ltRenderEventos(eventos, carregando){
   const secoes = ltAgruparPorSecao(eventos);
   const blocos = secoes.map(sec=>{
-    // Ata de Conselho não tem dado vinculado à matrícula nesta ficha — as atas
-    // são registradas por turma, em outra área do sistema.
-    if(sec.categoria==='ata'){
-      return `
-        <div class="lt-secao" style="margin-bottom:14px">
-          <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--verde-dark);margin-bottom:4px">${sec.titulo}</div>
-          <div style="font-size:12px;color:#999;padding:4px 0 2px">As atas de conselho de classe são registradas por turma, não individualmente. <a href="ata.html" target="_blank" rel="noopener" style="color:var(--verde-dark);font-weight:600;text-decoration:none">Abrir Ata do Conselho de Classe ↗</a></div>
-        </div>`;
-    }
-    // Seções sem nenhum item ficam ocultas — exceto "Perfil de Atipicidade",
-    // que sempre existe (todo estudante tem uma classificação).
-    if(!sec.itens.length && sec.categoria!=='perfil') return '';
-    const linhas = sec.itens.length
-      ? sec.itens.map(ev=>`
+    // Seções sem nenhum item ficam ocultas — exceto "Perfil de Atipicidade" (todo
+    // estudante tem uma classificação) e "Ata de Conselho" (mostra um aviso).
+    if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
+    let linhas;
+    if(sec.itens.length){
+      linhas = sec.itens.map(ev=>`
         <div style="padding:7px 0;border-bottom:1px solid #F0EFEA">
           <div style="font-size:12.5px;color:#333">${ltEsc(ev.desc)}</div>
           <div style="font-size:10.5px;color:#AAA;margin-top:2px">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
-        </div>`).join('')
-      : `<div style="font-size:12px;color:#BBB;padding:6px 0">Nenhum registro nesta área.</div>`;
+        </div>`).join('');
+    } else if(sec.categoria==='ata'){
+      // Nenhuma indicação encontrada com o nome do estudante nas atas da turma
+      // (ou a Ata do Conselho da turma ainda não foi salva neste sistema).
+      linhas = `<div style="font-size:12px;color:#999;padding:6px 0">Nenhuma indicação encontrada para este estudante nas atas de conselho da turma. <a href="ata.html" target="_blank" rel="noopener" style="color:var(--verde-dark);font-weight:600;text-decoration:none">Abrir Ata do Conselho de Classe ↗</a></div>`;
+    } else {
+      linhas = `<div style="font-size:12px;color:#BBB;padding:6px 0">Nenhum registro nesta área.</div>`;
+    }
     return `
       <div class="lt-secao" style="margin-bottom:14px">
         <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--verde-dark);margin-bottom:4px">${sec.titulo}</div>
         ${linhas}
       </div>`;
   }).join('');
-  const loading = carregandoPip
-    ? `<div style="font-size:11.5px;color:#AAA;padding:8px 0;font-style:italic">Carregando dados de fluência de leitura…</div>`
+  const loading = carregando
+    ? `<div style="font-size:11.5px;color:#AAA;padding:8px 0;font-style:italic">Carregando dados de fluência de leitura e da Ata do Conselho…</div>`
     : '';
   return blocos + loading;
 }
@@ -9049,8 +9098,8 @@ function ltRenderCabecalho(x){
 // Renderiza a prévia: mostra imediatamente os eventos já disponíveis em
 // memória (matrícula, movimentações, relatórios, materiais, perfil e
 // ocorrências) e, em seguida, busca de forma assíncrona os registros de
-// fluência de leitura de cada estudante selecionado, mesclando-os assim que
-// chegam — sem travar a tela enquanto isso.
+// fluência de leitura e da Ata do Conselho de cada estudante selecionado,
+// mesclando-os assim que chegam — sem travar a tela enquanto isso.
 function renderLinhaDoTempoPreview(){
   const selecionados = getLtAlunosSelecionados();
   const previewDiv = document.getElementById('ltPreview');
@@ -9074,12 +9123,12 @@ function renderLinhaDoTempoPreview(){
     </div>`
   ).join('<hr style="border:none;border-top:1px solid #E8E7E3;margin:6px 0 16px">');
 
-  // 2ª passada: busca fluência de leitura de cada estudante e injeta no bloco correspondente
+  // 2ª passada: busca fluência de leitura e Ata do Conselho de cada estudante e injeta no bloco correspondente
   selecionados.forEach(x=>{
-    buscarEventosPipLeituraLT(x).then(pipEventos=>{
+    Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x)]).then(([pipEventos, ataEventos])=>{
       if(token !== _ltRenderToken) return; // seleção mudou nesse meio-tempo, ignora
       const sincronos = montarEventosLinhaDoTempo(x);
-      const completos = sincronos.concat(pipEventos).sort((a,b)=>{
+      const completos = sincronos.concat(pipEventos, ataEventos).sort((a,b)=>{
         const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
         const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
         return da - db;
@@ -9103,7 +9152,7 @@ async function imprimirLinhaDoTempo(){
   if(btnImprimir){ btnImprimir.disabled = true; btnImprimir.innerHTML = 'Reunindo dados…'; }
 
   // Busca, para cada estudante, TODOS os eventos vinculados à matrícula —
-  // incluindo a fluência de leitura, que vem de uma consulta assíncrona.
+  // incluindo a fluência de leitura e a Ata do Conselho, que vêm de consultas assíncronas.
   const eventosPorAluno = await Promise.all(selecionados.map(x=>montarEventosLinhaDoTempoCompleto(x)));
 
   if(btnImprimir){ btnImprimir.disabled = false; btnImprimir.innerHTML = textoOriginalBtn; }
@@ -9113,21 +9162,19 @@ async function imprimirLinhaDoTempo(){
     const secoes = ltAgruparPorSecao(eventos);
 
     const blocosSecoes = secoes.map(sec=>{
-      if(sec.categoria==='ata'){
-        return `
-          <div class="lt-secao">
-            <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
-            <div class="lt-secao-vazia">As atas de conselho de classe são registradas por turma, não individualmente — consulte a Ata do Conselho de Classe da turma ${ltEsc(x.t)}.</div>
-          </div>`;
-      }
-      if(!sec.itens.length && sec.categoria!=='perfil') return '';
-      const itensHtml = sec.itens.length
-        ? sec.itens.map(ev=>`
+      if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
+      let itensHtml;
+      if(sec.itens.length){
+        itensHtml = sec.itens.map(ev=>`
           <div class="lt-secao-item">
             <div class="lt-secao-item-desc">${ltEsc(ev.desc)}</div>
             <div class="lt-secao-item-meta">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
-          </div>`).join('')
-        : `<div class="lt-secao-vazia">Nenhum registro nesta área.</div>`;
+          </div>`).join('');
+      } else if(sec.categoria==='ata'){
+        itensHtml = `<div class="lt-secao-vazia">Nenhuma indicação encontrada para este estudante nas atas de conselho da turma ${ltEsc(x.t)}.</div>`;
+      } else {
+        itensHtml = `<div class="lt-secao-vazia">Nenhum registro nesta área.</div>`;
+      }
       return `
         <div class="lt-secao">
           <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
