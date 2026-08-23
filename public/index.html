@@ -2402,9 +2402,9 @@
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Filtrar por turma (uma ou mais)</div>
         <div id="ltTurmaFiltro" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
 
-        <!-- Lista de resultados -->
+        <!-- Lista de resultados (recolhível por turma) -->
         <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;margin-bottom:8px">Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span></div>
-        <div id="ltResultList" style="max-height:320px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
+        <div id="ltResultList" style="max-height:420px;overflow-y:auto;border:1px solid #E8E7E3;border-radius:8px;padding:6px"></div>
       </div>
     </div>
 
@@ -8689,6 +8689,9 @@ window.addEventListener('beforeprint', fitPrintCards);
    ════════════════════════════════════════════════════════════ */
 let ltSelecionados = new Set(); // guarda x.matricula (ou x.n como fallback) dos selecionados
 let ltTurmasAtivas = new Set(); // turmas marcadas no filtro (vazio = todas)
+let ltGruposAbertos = new Set(); // turmas com o grupo recolhível expandido na lista
+const _ltPipCache = {}; // cache de eventos de fluência de leitura por aluno, para a Linha do Tempo
+let _ltRenderToken = 0; // evita que uma busca assíncrona antiga sobrescreva a prévia atual
 
 function toggleLinhaDoTempoNav(e){
   e.stopPropagation();
@@ -8743,25 +8746,62 @@ function renderLinhaDoTempoResultados(){
   if(!listDiv) return;
   if(!candidatos.length){
     listDiv.innerHTML = `<div style="font-size:12px;color:#AAA;padding:10px;text-align:center">Nenhum estudante encontrado com esses critérios.</div>`;
-  } else {
-    listDiv.innerHTML = candidatos.map(x=>{
-      const chave = ltChaveAluno(x);
-      const checked = ltSelecionados.has(chave) ? 'checked' : '';
-      return `
-        <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;padding:7px 8px;border-radius:6px;user-select:none" onmouseover="this.style.background='#FAFAF8'" onmouseout="this.style.background='transparent'">
-          <input type="checkbox" class="lt-aluno-chk" value="${chave}" ${checked} onchange="onLtAlunoToggle(this)" style="accent-color:var(--verde);width:14px;height:14px;cursor:pointer;flex-shrink:0">
-          <span style="flex:1">${x.n}</span>
-          <span style="color:#AAA;font-size:11px">${x.t}</span>
-        </label>`;
-    }).join('');
+    renderLinhaDoTempoPreview();
+    return;
   }
+
+  // Agrupa por turma, mantendo a ordem alfabética das turmas
+  const grupos = new Map();
+  candidatos.forEach(x=>{
+    if(!grupos.has(x.t)) grupos.set(x.t, []);
+    grupos.get(x.t).push(x);
+  });
+  const turmasOrdenadas = [...grupos.keys()].sort((a,b)=> a.localeCompare(b,'pt-BR'));
+
+  // Quando há busca por nome ou filtro de turma ativo, expande automaticamente
+  // os grupos que contêm resultados (para não esconder o que o usuário procurou).
+  const forcarAberto = !!termo || ltTurmasAtivas.size>0;
+
+  listDiv.innerHTML = turmasOrdenadas.map(turma=>{
+    const alunos = grupos.get(turma);
+    const selecionadosNoGrupo = alunos.filter(x=>ltSelecionados.has(ltChaveAluno(x))).length;
+    const aberto = forcarAberto || ltGruposAbertos.has(turma);
+    const grupoIdSeguro = turma.replace(/[^a-zA-Z0-9]/g,'_');
+    return `
+      <div class="lt-grupo-turma" style="margin-bottom:4px">
+        <div onclick="toggleLtGrupoTurma('${turma.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:6px;cursor:pointer;user-select:none;background:${aberto?'#F3F2EF':'transparent'}" onmouseover="this.style.background='#F3F2EF'" onmouseout="this.style.background='${aberto?'#F3F2EF':'transparent'}'">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12" style="flex-shrink:0;transition:transform .15s;transform:rotate(${aberto?'90':'0'}deg)"><polyline points="9 18 15 12 9 6"/></svg>
+          <span style="font-size:13px;font-weight:700;flex:1">Turma ${ltEsc(turma)}</span>
+          ${selecionadosNoGrupo ? `<span style="font-size:10.5px;font-weight:700;color:#0F6E56;background:#E1F5EE;border-radius:10px;padding:1px 8px">${selecionadosNoGrupo} selecionado${selecionadosNoGrupo>1?'s':''}</span>` : ''}
+          <span style="color:#AAA;font-size:11px">${alunos.length} aluno${alunos.length>1?'s':''}</span>
+        </div>
+        <div id="ltGrupo_${grupoIdSeguro}" style="display:${aberto?'block':'none'};padding-left:6px">
+          ${alunos.map(x=>{
+            const chave = ltChaveAluno(x);
+            const checked = ltSelecionados.has(chave);
+            return `
+              <label style="display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer;padding:7px 8px;border-radius:6px;user-select:none;background:${checked?'#EAF6F1':'transparent'};border-left:3px solid ${checked?'var(--verde)':'transparent'}" onmouseover="if(!this.classList.contains('lt-checked'))this.style.background='#FAFAF8'" onmouseout="this.style.background='${checked?'#EAF6F1':'transparent'}'">
+                <input type="checkbox" class="lt-aluno-chk" value="${chave}" ${checked?'checked':''} onchange="onLtAlunoToggle(this)" style="accent-color:var(--verde);width:14px;height:14px;cursor:pointer;flex-shrink:0">
+                <span style="flex:1;${checked?'font-weight:600':''}">${ltEsc(x.n)}</span>
+                ${x.matricula ? `<span style="color:#CCC;font-size:10.5px;font-family:'DM Mono',monospace">${ltEsc(x.matricula)}</span>` : ''}
+              </label>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
   renderLinhaDoTempoPreview();
+}
+
+function toggleLtGrupoTurma(turma){
+  if(ltGruposAbertos.has(turma)) ltGruposAbertos.delete(turma);
+  else ltGruposAbertos.add(turma);
+  renderLinhaDoTempoResultados();
 }
 
 function onLtAlunoToggle(el){
   if(el.checked) ltSelecionados.add(el.value);
   else ltSelecionados.delete(el.value);
-  renderLinhaDoTempoPreview();
+  renderLinhaDoTempoResultados();
 }
 
 function toggleAllLtAlunos(marcar){
@@ -8769,7 +8809,7 @@ function toggleAllLtAlunos(marcar){
     c.checked = marcar;
     if(marcar) ltSelecionados.add(c.value); else ltSelecionados.delete(c.value);
   });
-  renderLinhaDoTempoPreview();
+  renderLinhaDoTempoResultados();
 }
 
 function getLtAlunosSelecionados(){
@@ -8777,9 +8817,12 @@ function getLtAlunosSelecionados(){
   return ativos.filter(x=> ltSelecionados.has(ltChaveAluno(x)));
 }
 
-// Reúne, para um estudante, todos os eventos disponíveis nos registros da
-// plataforma (movimentações, relatórios escolares e materiais), ordenados
-// cronologicamente.
+// Reúne, para um estudante, TODOS os eventos disponíveis vinculados à sua
+// matrícula nos registros da plataforma: matrícula/entrada, movimentações,
+// relatórios escolares, materiais (todas as situações), advertências/
+// ocorrências e perfil de atipicidade (AEE, PIP, encaminhamento, rotina).
+// A fluência de leitura (pipleitura) é buscada à parte, de forma assíncrona,
+// por vir de uma tabela externa — ver buscarEventosPipLeituraLT().
 function montarEventosLinhaDoTempo(x){
   const eventos = [];
   const pertence = (matricula, nome) =>
@@ -8815,20 +8858,82 @@ function montarEventosLinhaDoTempo(x){
     }
   });
 
-  // Materiais
+  // Materiais — TODAS as situações registradas (recebidos e pendentes)
   (typeof materiaisLog!=='undefined'?materiaisLog:[]).forEach(m=>{
     if(pertence(m.aluno_matricula, m.aluno_nome)){
       const desc = `${m.item_categoria||'Material'}${m.item_nome?' — '+m.item_nome:''} · ${m.status==='recebido'?'Recebido':'Pendente'}`;
-      eventos.push({ data:m.data_recebimento, tipo:'Material', desc, por:'—' });
+      eventos.push({ data:m.data_recebimento||null, tipo:'Material', desc, por:'—' });
     }
   });
 
-  // Síntese geral de ocorrências (sem data específica)
-  if(x.ocs){
-    eventos.push({ data:null, tipo:'Síntese de ocorrências', desc:x.ocs, por:'—' });
+  // Perfil de atipicidade — típico / atípico / em análise, com AEE, PIP e encaminhamento
+  const perfilLbl = x.p || 'TÍPICO';
+  const perfilPartes = [];
+  if(x.a && x.a!=='N/A') perfilPartes.push(`AEE: ${x.a}`);
+  if(x.pip && x.pip!=='N/A') perfilPartes.push(`PIP: ${x.pip}`);
+  if(x.e && x.e!=='REGULAR') perfilPartes.push(`Encaminhamento: ${x.e}`);
+  if(x.r) perfilPartes.push(`Rotina/recomendações: ${x.r}`);
+  eventos.push({
+    data: null,
+    tipo: 'Perfil / atipicidade',
+    desc: `Classificação: ${perfilLbl}${perfilPartes.length ? ' · '+perfilPartes.join(' · ') : ''}`,
+    por: '—'
+  });
+
+  // Advertências / ocorrências — número e síntese (mesmo que a síntese esteja vazia)
+  if((x.ocn && x.ocn>0) || x.ocs){
+    const qtd = x.ocn ? `${x.ocn} ocorrência${x.ocn>1?'s':''}/advertência${x.ocn>1?'s':''} registrada${x.ocn>1?'s':''}` : 'Ocorrências/advertências registradas';
+    eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: x.ocs ? `${qtd} · ${x.ocs}` : qtd, por:'—' });
   }
 
   // Ordena cronologicamente; itens sem data vão para o final
+  eventos.sort((a,b)=>{
+    const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
+    const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
+    return da - db;
+  });
+  return eventos;
+}
+
+// Busca (assíncrona) os registros de fluência de leitura (pipleitura) vinculados
+// à matrícula do estudante — inclui também registros antigos que só batem por
+// nome (ainda não vinculados a nenhuma matrícula), do mesmo jeito que o modal
+// de perfil do estudante já faz.
+async function buscarEventosPipLeituraLT(x){
+  const key = 'lt:'+(x.matricula||'')+'|'+(x.n||'').trim().toLowerCase();
+  if(_ltPipCache[key]) return _ltPipCache[key];
+  try{
+    const reqs = [];
+    if(x.matricula!=null){
+      reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=eq.${encodeURIComponent(x.matricula)}&order=data_avaliacao.desc`, { headers: sbHeaders() }));
+    }
+    reqs.push(fetch(`${SUPABASE_URL}/rest/v1/fluencia_leitura?select=*&estudante_matricula=is.null&nome=ilike.${encodeURIComponent((x.n||'').trim())}&order=data_avaliacao.desc`, { headers: sbHeaders() }));
+    const responses = await Promise.all(reqs);
+    responses.forEach(r=>{ if(!r.ok) throw new Error('Falha na consulta de fluência de leitura'); });
+    const datasets = await Promise.all(responses.map(r=>r.json()));
+    const seen = new Set();
+    const rows = [];
+    datasets.forEach(arr=>arr.forEach(row=>{ if(!seen.has(row.id)){ seen.add(row.id); rows.push(row); } }));
+    const eventos = rows.map(rec=>({
+      data: rec.data_avaliacao || null,
+      tipo: 'Fluência de leitura',
+      desc: `${rec.classificacao||'—'}${rec.ppm!=null && rec.ppm!==''?' · '+rec.ppm+' PPM':''}${rec.professor?' · '+rec.professor:''}${!rec.estudante_matricula?' · (correspondência por nome — não vinculado)':''}`,
+      por: rec.professor||'—'
+    }));
+    _ltPipCache[key] = eventos;
+    return eventos;
+  }catch(e){
+    return [];
+  }
+}
+
+// Versão completa: eventos síncronos (matrícula, movimentações, relatórios,
+// materiais, perfil, ocorrências) + eventos assíncronos de fluência de
+// leitura, já mesclados e ordenados cronologicamente.
+async function montarEventosLinhaDoTempoCompleto(x){
+  const sincronos = montarEventosLinhaDoTempo(x);
+  const pipEventos = await buscarEventosPipLeituraLT(x);
+  const eventos = sincronos.concat(pipEventos);
   eventos.sort((a,b)=>{
     const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
     const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
@@ -8846,6 +8951,45 @@ function ltEsc(s){
   return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function ltBadgePerfil(x){
+  const p = x.p || 'TÍPICO';
+  const cls = p==='ATÍPICO' ? 'b-atipico' : p==='EM ANÁLISE' ? 'b-analise' : 'b-tipico';
+  const lbl = p==='ATÍPICO' ? 'Atípico' : p==='EM ANÁLISE' ? 'Em análise' : 'Típico';
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+function ltRenderEventos(eventos, carregandoPip){
+  const itens = eventos.length
+    ? eventos.map(ev=>`
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0EFEA">
+        <div style="width:88px;flex-shrink:0;font-size:11px;color:#999;font-family:'DM Mono',monospace">${ltFmtData(ev.data)}</div>
+        <div style="flex:1">
+          <span style="font-size:11.5px;font-weight:600;color:var(--verde-dark)">${ltEsc(ev.tipo)}</span>
+          <div style="font-size:12.5px;color:#444;margin-top:2px">${ltEsc(ev.desc)}</div>
+        </div>
+      </div>`).join('')
+    : `<div style="font-size:12px;color:#BBB;padding:8px 0">Nenhum evento registrado para este estudante.</div>`;
+  const loading = carregandoPip
+    ? `<div style="font-size:11.5px;color:#AAA;padding:8px 0;font-style:italic">Carregando dados de fluência de leitura…</div>`
+    : '';
+  return itens + loading;
+}
+
+function ltRenderCabecalho(x){
+  return `
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <span style="font-size:14px;font-weight:700">${ltEsc(x.n)}</span>
+      ${ltBadgePerfil(x)}
+      <span style="font-size:11.5px;color:#999">Turma ${ltEsc(x.t)}</span>
+      ${x.matricula ? `<span style="font-size:11px;color:#BBB;font-family:'DM Mono',monospace">Matrícula ${ltEsc(x.matricula)}</span>` : ''}
+    </div>`;
+}
+
+// Renderiza a prévia: mostra imediatamente os eventos já disponíveis em
+// memória (matrícula, movimentações, relatórios, materiais, perfil e
+// ocorrências) e, em seguida, busca de forma assíncrona os registros de
+// fluência de leitura de cada estudante selecionado, mesclando-os assim que
+// chegam — sem travar a tela enquanto isso.
 function renderLinhaDoTempoPreview(){
   const selecionados = getLtAlunosSelecionados();
   const previewDiv = document.getElementById('ltPreview');
@@ -8854,35 +8998,38 @@ function renderLinhaDoTempoPreview(){
 
   if(!previewDiv) return;
   if(!selecionados.length){
-    previewDiv.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo.</div>`;
+    previewDiv.innerHTML = `<div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para ver a prévia da linha do tempo, com destaque para todas as informações vinculadas à sua matrícula.</div>`;
     return;
   }
 
-  previewDiv.innerHTML = selecionados.map(x=>{
-    const eventos = montarEventosLinhaDoTempo(x);
-    const itens = eventos.length
-      ? eventos.map(ev=>`
-        <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F0EFEA">
-          <div style="width:88px;flex-shrink:0;font-size:11px;color:#999;font-family:'DM Mono',monospace">${ltFmtData(ev.data)}</div>
-          <div style="flex:1">
-            <span style="font-size:11.5px;font-weight:600;color:var(--verde-dark)">${ltEsc(ev.tipo)}</span>
-            <div style="font-size:12.5px;color:#444;margin-top:2px">${ltEsc(ev.desc)}</div>
-          </div>
-        </div>`).join('')
-      : `<div style="font-size:12px;color:#BBB;padding:8px 0">Nenhum evento registrado para este estudante.</div>`;
+  const token = ++_ltRenderToken;
+  const chaves = selecionados.map(x=>ltChaveAluno(x));
 
-    return `
-      <div style="margin-bottom:18px;padding-bottom:12px">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
-          <span style="font-size:14px;font-weight:700">${ltEsc(x.n)}</span>
-          <span style="font-size:11.5px;color:#999">Turma ${ltEsc(x.t)}</span>
-        </div>
-        ${itens}
-      </div>`;
-  }).join('<hr style="border:none;border-top:1px solid #E8E7E3;margin:6px 0 16px">');
+  // 1ª passada: eventos síncronos, imediatos
+  previewDiv.innerHTML = selecionados.map(x=>`
+    <div class="lt-preview-card" data-lt-chave="${ltChaveAluno(x)}" style="margin-bottom:18px;padding-bottom:12px">
+      ${ltRenderCabecalho(x)}
+      <div class="lt-preview-eventos">${ltRenderEventos(montarEventosLinhaDoTempo(x), true)}</div>
+    </div>`
+  ).join('<hr style="border:none;border-top:1px solid #E8E7E3;margin:6px 0 16px">');
+
+  // 2ª passada: busca fluência de leitura de cada estudante e injeta no bloco correspondente
+  selecionados.forEach(x=>{
+    buscarEventosPipLeituraLT(x).then(pipEventos=>{
+      if(token !== _ltRenderToken) return; // seleção mudou nesse meio-tempo, ignora
+      const sincronos = montarEventosLinhaDoTempo(x);
+      const completos = sincronos.concat(pipEventos).sort((a,b)=>{
+        const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
+        const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
+        return da - db;
+      });
+      const card = previewDiv.querySelector(`.lt-preview-card[data-lt-chave="${CSS.escape(ltChaveAluno(x))}"] .lt-preview-eventos`);
+      if(card) card.innerHTML = ltRenderEventos(completos, false);
+    });
+  });
 }
 
-function imprimirLinhaDoTempo(){
+async function imprimirLinhaDoTempo(){
   const selecionados = getLtAlunosSelecionados();
   if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
 
@@ -8890,8 +9037,18 @@ function imprimirLinhaDoTempo(){
   const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
   const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
+  const btnImprimir = document.getElementById('btnImprimirLinhaDoTempo');
+  const textoOriginalBtn = btnImprimir ? btnImprimir.innerHTML : null;
+  if(btnImprimir){ btnImprimir.disabled = true; btnImprimir.innerHTML = 'Reunindo dados…'; }
+
+  // Busca, para cada estudante, TODOS os eventos vinculados à matrícula —
+  // incluindo a fluência de leitura, que vem de uma consulta assíncrona.
+  const eventosPorAluno = await Promise.all(selecionados.map(x=>montarEventosLinhaDoTempoCompleto(x)));
+
+  if(btnImprimir){ btnImprimir.disabled = false; btnImprimir.innerHTML = textoOriginalBtn; }
+
   const paginas = selecionados.map((x,idx)=>{
-    const eventos = montarEventosLinhaDoTempo(x);
+    const eventos = eventosPorAluno[idx];
     const linhas = eventos.length
       ? eventos.map(ev=>`
         <tr>
