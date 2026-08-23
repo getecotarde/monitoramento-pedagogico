@@ -100,10 +100,32 @@
   #printModalOverlay .modal-close  { background: #F3F2EF !important; }
   #printModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
   #printModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
+  #printModalOverlay button[style*="background:#FAFAF8"],
+  #printModalOverlay div[style*="background:#FAFAF8"]     { background: #FAFAF8 !important; border-color: #E8E7E3 !important; }
+  #printModalOverlay button[style*="color:#555"]          { color: #555 !important; }
   #printModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; border-color: #E8E7E3 !important; }
   #printModalOverlay div[style*="background:#F3F2EF"] { background: #F3F2EF !important; color: #888 !important; }
   #printModalOverlay strong        { color: #555 !important; }
   #printModalOverlay div[style*="color:#BBB"] { color: #BBB !important; }
+
+  /* ── Rede de segurança: elementos com fundo/texto claro fixo via style
+     inline, usados em chips, botões de alternância e campos auxiliares em
+     qualquer aba do app. Sem isso, o texto herda a cor clara do modo
+     escuro sobre um fundo que continua claro por estar fixado via inline
+     style, ficando invisível. Os modais de impressão (sempre claros) têm
+     prioridade via seletor de ID nas regras acima e não são afetados. ── */
+  [data-theme="dark"] [style*="background:#FAFAF8"],
+  [data-theme="dark"] [style*="background: #FAFAF8"] {
+    background: #232320 !important; border-color: #2E2E2B !important;
+  }
+  [data-theme="dark"] [style*="background:#fff"]:not(img),
+  [data-theme="dark"] [style*="background: #fff"]:not(img) {
+    background: #1C1C1A !important; border-color: #2E2E2B !important;
+  }
+  [data-theme="dark"] [style*="color:#555"]  { color: #B8B7B0 !important; }
+  [data-theme="dark"] [style*="color:#333"]  { color: #D8D7CE !important; }
+  [data-theme="dark"] [style*="color: #555"] { color: #B8B7B0 !important; }
+  [data-theme="dark"] [style*="color: #333"] { color: #D8D7CE !important; }
 
   [data-theme="dark"] .modal-box,
   [data-theme="dark"] .edit-modal-box { background: #1C1C1A !important; color: #F0EFE9 !important; }
@@ -393,6 +415,10 @@
   #cardPrintModalOverlay .modal-close  { background: #F3F2EF !important; }
   #cardPrintModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
   #cardPrintModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; }
+  #cardPrintModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
+  #cardPrintModalOverlay button[style*="background:#FAFAF8"],
+  #cardPrintModalOverlay div[style*="background:#FAFAF8"]     { background: #FAFAF8 !important; border-color: #E8E7E3 !important; }
+  #cardPrintModalOverlay button[style*="color:#555"]          { color: #555 !important; }
 
   #fichaProfDiscModalOverlay .modal-box,
   #fichaProfDiscModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
@@ -401,6 +427,9 @@
   #fichaProfDiscModalOverlay .modal-close  { background: #F3F2EF !important; }
   #fichaProfDiscModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
   #fichaProfDiscModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
+  #fichaProfDiscModalOverlay button[style*="background:#FAFAF8"],
+  #fichaProfDiscModalOverlay div[style*="background:#FAFAF8"]     { background: #FAFAF8 !important; border-color: #E8E7E3 !important; }
+  #fichaProfDiscModalOverlay button[style*="color:#555"]          { color: #555 !important; }
   #fichaProfDiscModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; border-color: #E8E7E3 !important; }
 
   /* ── WRAP DE IMPRESSÃO DOS CARDS (oculto na tela) ── */
