@@ -32,6 +32,10 @@
 
   /* FORM */
   .form-section{margin-bottom:22px;}
+  .form-section.collapsible .sec-head{cursor:pointer;user-select:none;}
+  .sec-caret{margin-left:auto;font-size:12px;color:var(--gold);transition:transform .15s;flex-shrink:0;}
+  .form-section.collapsed .sec-caret{transform:rotate(-90deg);}
+  .form-section.collapsed .sec-body{display:none;}
   .sec-head{display:flex;align-items:center;gap:9px;margin-bottom:10px;}
   .sec-num{width:22px;height:22px;background:var(--rust);color:#fff;font-size:10px;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .sec-head h2{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--ink);}
@@ -106,39 +110,121 @@
   .tab-btn:hover{color:var(--paper);border-color:rgba(250,248,244,.45);}
   .tab-btn.active{background:var(--paper);color:var(--ink);border-color:var(--paper);}
 
-  /* QUADRO GERAL */
-  .qg-toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:18px;}
-  .qg-filters{display:flex;gap:9px;flex-wrap:wrap;flex:1;}
-  .qg-filters input,.qg-filters select{padding:8px 12px;border:1.5px solid var(--divider);border-radius:4px;background:#fff;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--ink);outline:none;}
-  .qg-filters input{flex:1;min-width:180px;}
-  .qg-filters input:focus,.qg-filters select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,135,42,.1);}
-  .qg-stats{display:flex;gap:18px;margin-bottom:18px;flex-wrap:wrap;}
-  .qg-stat{background:var(--cream);border:1px solid var(--divider);border-radius:5px;padding:9px 16px;text-align:center;min-width:90px;}
-  .qg-stat b{display:block;font-family:'Playfair Display',serif;font-size:20px;color:var(--rust);}
-  .qg-stat span{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
-  .prof-group{border:1px solid var(--divider);border-radius:6px;margin-bottom:14px;overflow:hidden;background:#fff;}
-  .prof-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;background:var(--cream);border-bottom:2px solid var(--gold);cursor:pointer;}
-  .prof-group-head .pg-name{font-family:'Playfair Display',serif;font-weight:700;font-size:14.5px;color:var(--ink);}
-  .prof-group-head .pg-count{font-size:10.5px;color:var(--muted);letter-spacing:.03em;}
-  .prof-group-head .pg-caret{font-size:11px;color:var(--gold);transition:transform .15s;}
-  .prof-group.collapsed .pg-caret{transform:rotate(-90deg);}
-  .prof-group.collapsed table{display:none;}
-  .qg-table{width:100%;border-collapse:collapse;}
-  .qg-table th{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5a4e3e;padding:7px 14px;text-align:left;border-bottom:1px solid var(--divider);background:#fbf9f5;}
-  .qg-table td{padding:9px 14px;font-size:12.5px;border-bottom:1px solid var(--divider);vertical-align:top;}
-  .qg-table tr:last-child td{border-bottom:none;}
-  .qg-tag{display:inline-block;background:var(--cream);border:1px solid var(--divider);color:#5a4e3e;font-size:10px;padding:2px 6px;border-radius:3px;margin:1px 3px 1px 0;white-space:nowrap;}
+  /* QUADRO GERAL — layout barra lateral + quadro grande */
+  .qg-layout{display:flex;gap:22px;align-items:flex-start;}
+  .qg-sidebar{width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;position:sticky;top:20px;}
+  .qg-main{flex:1;min-width:0;}
+
+  .qg-filters-side{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--divider);border-radius:6px;padding:12px;}
+  .qg-filters-side input,.qg-filters-side select{width:100%;padding:8px 11px;border:1.5px solid var(--divider);border-radius:4px;background:#fff;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--ink);outline:none;}
+  .qg-filters-side input:focus,.qg-filters-side select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,135,42,.1);}
+  .qg-filters-side-btns{display:flex;gap:7px;}
+  .qg-filters-side-btns button{flex:1;padding:8px 10px;font-size:11.5px;}
+
+  .qg-prof-nav{border:1px solid var(--divider);border-radius:6px;background:#fff;overflow:hidden;}
+  .qg-prof-nav-head{padding:10px 14px;background:var(--ink);color:var(--paper);border-bottom:2px solid var(--gold);font-family:'Playfair Display',serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;}
+  .qg-prof-nav-head span{font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:rgba(250,248,244,.55);margin-left:4px;}
+  .qg-prof-nav-caret{font-size:11px;color:var(--gold);transition:transform .15s;flex-shrink:0;}
+  .qg-prof-nav-head .qg-prof-nav-caret{color:var(--gold);}
+  .qg-prof-nav.collapsed .qg-prof-nav-caret{transform:rotate(-90deg);}
+  .qg-prof-nav.collapsed #qgProfNavList{display:none;}
+  #qgProfNavList{max-height:420px;overflow-y:auto;}
+  .qg-prof-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;font-size:12.5px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--divider);transition:background .15s;}
+  .qg-prof-item:last-child{border-bottom:none;}
+  .qg-prof-item:hover{background:var(--cream);}
+  .qg-prof-item.all{font-weight:700;font-style:italic;color:var(--muted);}
+  .qg-prof-item.active{background:var(--rust);color:#fff;}
+  .qg-prof-item.active .qg-prof-count{color:rgba(255,255,255,.75);}
+  .qg-prof-count{font-size:10.5px;color:var(--muted);flex-shrink:0;}
+  .qg-prof-empty{padding:14px;font-size:11.5px;color:var(--muted);text-align:center;}
+
+  .qg-board{border:1px solid var(--divider);border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 3px 14px rgba(26,22,18,.05);}
+  .qg-board-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .qg-board-table thead th{background:var(--ink);color:var(--paper);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 16px;text-align:left;}
+  .qg-board-table th:nth-child(1){width:19%;} .qg-board-table th:nth-child(2){width:17%;}
+  .qg-board-table th:nth-child(3){width:27%;} .qg-board-table th:nth-child(4){width:13%;}
+  .qg-board-table th:nth-child(5){width:24%;}
+  .qg-board-table td{padding:14px 16px;font-size:12.5px;border-bottom:1px solid var(--divider);vertical-align:top;line-height:1.5;word-wrap:break-word;}
+  .qg-board-table tbody tr:last-child td{border-bottom:none;}
+  .qg-board-table tbody tr:hover td{background:var(--cream);}
+  .qg-board-title{font-family:'Playfair Display',serif;font-weight:700;font-size:14px;color:var(--ink);margin-bottom:3px;}
+  .qg-board-area{display:flex;flex-wrap:wrap;gap:3px;}
+  .qg-board-profs{display:flex;flex-direction:column;gap:3px;}
+  .qg-board-prof-tag{font-size:12px;color:#4a3f30;}
+  .qg-board-prof-tag::before{content:'— ';color:var(--gold);}
+
+  .qg-tag{display:inline-block;background:var(--cream);border:1px solid var(--divider);color:#5a4e3e;font-size:10px;padding:2px 6px;border-radius:3px;white-space:nowrap;}
   .qg-tag-mod{background:rgba(184,135,42,.12);border-color:rgba(184,135,42,.3);color:#8a6520;}
   .qg-muted{color:var(--muted);}
-  .qg-atividade{font-weight:600;color:var(--ink);}
   .qg-status{padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;}
   .qg-status.err{color:#c0392b;}
-  .qg-actions-row{display:flex;gap:10px;margin-bottom:16px;}
+
+  @media(max-width:900px){
+    .qg-layout{flex-direction:column;}
+    .qg-sidebar{width:100%;position:static;}
+    .qg-board-table{table-layout:auto;}
+  }
+
+  /* REGISTROS SALVOS — cartões recolhíveis */
+  .reg-card{border:1px solid var(--divider);border-radius:5px;overflow:hidden;background:#fff;}
+  .reg-card.editing{border-color:var(--gold);box-shadow:0 0 0 2px rgba(184,135,42,.15);}
+  .reg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--cream);cursor:pointer;}
+  .reg-head-main{min-width:0;}
+  .reg-head .rh-title{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .reg-head .rh-sub{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .reg-head-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
+  .reg-date{font-size:10px;color:#bbb;white-space:nowrap;}
+  .reg-caret{font-size:11px;color:var(--gold);transition:transform .15s;flex-shrink:0;}
+  .reg-card.collapsed .reg-caret{transform:rotate(-90deg);}
+  .reg-card.collapsed .reg-body{display:none;}
+  .reg-body{padding:12px 14px;border-top:1px solid var(--divider);}
+  .reg-body table{width:100%;border-collapse:collapse;}
+  .reg-body th{width:32%;background:#f5f1eb;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5a4e3e;padding:5px 8px;border:1px solid #d0c8bc;text-align:left;vertical-align:top;}
+  .reg-body td{font-size:12px;color:var(--ink);padding:5px 8px;border:1px solid #d0c8bc;vertical-align:top;line-height:1.45;}
+  .reg-body .reg-empty{color:#bbb;}
+  .reg-body-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .btn-tiny{padding:6px 12px;border-radius:4px;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--divider);background:transparent;color:var(--ink);transition:border-color .15s,background .15s;}
+  .btn-tiny:hover{border-color:var(--ink);background:var(--cream);}
+  .btn-tiny.edit{border-color:var(--gold);color:var(--gold);}
+  .btn-tiny.edit:hover{background:rgba(184,135,42,.09);}
+  .btn-tiny.del{border-color:#c0392b;color:#c0392b;}
+  .btn-tiny.del:hover{background:rgba(192,57,43,.08);}
+  .edit-banner{display:none;align-items:center;justify-content:space-between;gap:10px;background:rgba(184,135,42,.1);border:1.5px solid var(--gold);border-radius:4px;padding:9px 14px;margin-bottom:14px;font-size:12.5px;color:#6e5320;}
+  .edit-banner.show{display:flex;}
+  .edit-banner button{flex-shrink:0;}
 
   @media print{
+    /* margem superior de página reservada para o cabeçalho fixo — vale para TODAS as páginas, não só a primeira */
+    @page{ size: landscape; margin: 10mm; margin-top: 22mm; }
+
+    /* título GETECULTURA fixo, repetindo em todas as páginas impressas */
+    header{
+      background:transparent;color:var(--ink);padding:8px 0;margin:0;height:26px;
+      border-bottom:2px solid var(--gold);position:fixed;top:0;left:0;right:0;
+      display:flex;align-items:center;
+    }
     header::before{display:none;}
-    .tabs,.qg-toolbar{display:none;}
-    .prof-group{break-inside:avoid;}
+    .header-inner{max-width:none;align-items:center;gap:12px;}
+    .event-badge{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;}
+    .header-text h1{color:var(--ink);font-size:18px;line-height:1;}
+    .header-text h1 span{color:var(--gold);}
+    .header-text p{display:none;}
+    .tabs{display:none;}
+    main{max-width:none;padding:0;}
+
+    /* texto introdutório do quadro não sai na impressão */
+    .intro{display:none;}
+
+    .qg-sidebar{display:none;}
+    .qg-layout{display:block;}
+    .qg-main{width:100%;}
+    .qg-board{box-shadow:none;}
+
+    /* grade completa (linhas e colunas) levemente marcada */
+    .qg-board-table{font-size:11px;border:1px solid var(--divider);}
+    .qg-board-table th,.qg-board-table td{border:1px solid var(--divider);padding:8px 10px;}
+    .qg-board-table thead th{border-color:#5a4e3e;}
+    .qg-board-table tr{break-inside:avoid;}
   }
 </style>
 </head>
@@ -163,9 +249,15 @@
     <p>Preencha os campos e clique em <strong>Visualizar</strong> para conferir antes de gerar o PDF — o documento terá <strong>duas fichas por folha A4</strong>, em formato retrato.</p>
   </div>
 
+  <div class="edit-banner" id="editBanner">
+    <span>✎ Editando registro salvo — as alterações vão <strong>atualizar</strong> este registro, não criar um novo.</span>
+    <button class="btn-tiny" onclick="cancelarEdicao()">Cancelar edição</button>
+  </div>
+
   <!-- 1 Identificação -->
-  <div class="form-section">
-    <div class="sec-head"><div class="sec-num">1</div><h2>Identificação da Atividade</h2></div>
+  <div class="form-section collapsible">
+    <div class="sec-head" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sec-num">1</div><h2>Identificação da Atividade</h2><span class="sec-caret">▾</span></div>
+    <div class="sec-body">
     <div class="field"><label for="titulo">Título / Nome da Atividade</label>
       <input type="text" id="titulo" placeholder="Ex.: Instalação Poética — Vozes do Cerrado"></div>
     <div class="field"><label for="descricao">Descrição Breve</label>
@@ -181,13 +273,15 @@
           <option>Oficina</option><option>Sarau / Leitura</option><option>Audiovisual</option><option>Outra</option>
         </select></div>
     </div>
+    </div>
   </div>
 
   <hr class="div">
 
   <!-- 2 Turmas -->
-  <div class="form-section">
-    <div class="sec-head"><div class="sec-num">2</div><h2>Turmas / Alunos Envolvidos</h2></div>
+  <div class="form-section collapsible">
+    <div class="sec-head" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sec-num">2</div><h2>Turmas / Alunos Envolvidos</h2><span class="sec-caret">▾</span></div>
+    <div class="sec-body">
     <div class="dyn-wrapper" id="turmas-wrap">
       <div class="dyn-row">
         <input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp">
@@ -195,33 +289,39 @@
       </div>
     </div>
     <button class="btn-add" onclick="addTurma()">＋ Adicionar turma</button>
+    </div>
   </div>
 
   <hr class="div">
 
   <!-- 3 Local -->
-  <div class="form-section">
-    <div class="sec-head"><div class="sec-num">3</div><h2>Local de Instalação / Apresentação</h2></div>
+  <div class="form-section collapsible">
+    <div class="sec-head" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sec-num">3</div><h2>Local de Instalação / Apresentação</h2><span class="sec-caret">▾</span></div>
+    <div class="sec-body">
     <div class="field"><label for="local">Local da Instalação</label>
       <input type="text" id="local" placeholder="Ex.: Pátio coberto, Corredor Bloco B…"></div>
     <div class="field"><label for="obs-local">Observações sobre o espaço</label>
       <textarea id="obs-local" rows="2" placeholder="Tomadas elétricas, escurecimento, necessidades especiais…"></textarea></div>
+    </div>
   </div>
 
   <hr class="div">
 
   <!-- 4 Materialidade -->
-  <div class="form-section">
-    <div class="sec-head"><div class="sec-num">4</div><h2>Materialidade Necessária</h2></div>
+  <div class="form-section collapsible">
+    <div class="sec-head" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sec-num">4</div><h2>Materialidade Necessária</h2><span class="sec-caret">▾</span></div>
+    <div class="sec-body">
     <div class="field"><label for="materiais">Materiais, equipamentos e recursos</label>
       <textarea id="materiais" rows="4" placeholder="Liste os materiais necessários, um por linha:&#10;— Tecido de algodão cru (5 m)&#10;— Projetor multimídia&#10;— Tinta acrílica…"></textarea></div>
+    </div>
   </div>
 
   <hr class="div">
 
   <!-- 5 Professores -->
-  <div class="form-section">
-    <div class="sec-head"><div class="sec-num">5</div><h2>Professores Responsáveis</h2></div>
+  <div class="form-section collapsible">
+    <div class="sec-head" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sec-num">5</div><h2>Professores Responsáveis</h2><span class="sec-caret">▾</span></div>
+    <div class="sec-body">
     <div class="dyn-wrapper" id="profs-wrap">
       <div class="dyn-row prof-row">
         <input type="text" placeholder="Nome completo" class="prof-nome">
@@ -229,6 +329,7 @@
       </div>
     </div>
     <button class="btn-add" onclick="addProf()">＋ Adicionar professor</button>
+    </div>
   </div>
 
   <div class="actions">
@@ -239,7 +340,7 @@
     </button>
     <button class="btn-primary" id="btnSalvarSistema" onclick="salvarRegistro()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Salvar no Sistema
+      <span id="btnSalvarLabel">Salvar no Sistema</span>
     </button>
     <button class="btn-primary" onclick="abrirPreview()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -252,38 +353,61 @@
   <!-- 6 Registros salvos nesta sessão -->
   <div class="form-section">
     <div class="sec-head"><div class="sec-num">6</div><h2>Registros Salvos no Sistema</h2></div>
+    <p style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Clique em um registro para ver os itens 1 a 5 completos, editar ou excluir.</p>
     <div id="registros-lista" style="display:flex;flex-direction:column;gap:8px">
       <p style="font-size:12px;color:var(--muted)">Carregando registros…</p>
     </div>
   </div>
 </main>
 
-<!-- QUADRO GERAL — atividades registradas, agrupadas por professor -->
-<main id="viewQuadro" style="display:none;max-width:980px">
+<!-- QUADRO GERAL — quadro central de eventos + barra lateral de navegação -->
+<main id="viewQuadro" style="display:none;max-width:1200px">
   <div class="intro">
-    <p>Quadro consolidado de todas as atividades registradas, <strong>organizado por professor responsável</strong>. Cada bloco mostra as atividades daquele professor, com turmas, local e demandas de materialidade.</p>
+    <p>Quadro consolidado de todas as atividades registradas. Use a barra lateral para <strong>filtrar por professor, buscar ou filtrar por modalidade</strong> — o quadro à direita traz título, professores responsáveis, descrição, local e materialidade demandada de cada evento.</p>
   </div>
 
-  <div class="qg-stats">
-    <div class="qg-stat"><b id="qgTotal">—</b><span>Atividades</span></div>
-    <div class="qg-stat"><b id="qgProfs">—</b><span>Professores</span></div>
-    <div class="qg-stat"><b id="qgTurmas">—</b><span>Turmas</span></div>
-    <div class="qg-stat"><b id="qgModalidades">—</b><span>Modalidades</span></div>
-  </div>
+  <div class="qg-layout">
 
-  <div class="qg-toolbar">
-    <div class="qg-filters">
-      <input type="text" id="qgBusca" placeholder="Buscar por professor, atividade, turma, local ou material…">
-      <select id="qgModalidade"><option value="">— Modalidade —</option></select>
-    </div>
-    <div style="display:flex;gap:9px;">
-      <button class="btn-secondary" onclick="carregarQuadro()">↻ Atualizar</button>
-      <button class="btn-primary" style="flex:0 1 auto;padding:8px 16px" onclick="window.print()">🖶 Imprimir</button>
-    </div>
-  </div>
+    <!-- BARRA LATERAL -->
+    <aside class="qg-sidebar">
+      <div class="qg-filters-side no-print">
+        <input type="text" id="qgBusca" placeholder="Buscar evento, local, material…">
+        <select id="qgModalidade"><option value="">— Modalidade —</option></select>
+        <div class="qg-filters-side-btns">
+          <button class="btn-secondary" onclick="carregarQuadro()">↻ Atualizar</button>
+          <button class="btn-primary" onclick="window.print()">🖶 Imprimir</button>
+        </div>
+      </div>
 
-  <div id="qgConteudo"></div>
-  <div id="qgStatus" class="qg-status">Carregando atividades registradas…</div>
+      <div class="qg-prof-nav" id="qgProfNav">
+        <div class="qg-prof-nav-head" onclick="document.getElementById('qgProfNav').classList.toggle('collapsed')">
+          <span>Professores <span id="qgProfNavCount"></span></span>
+          <span class="qg-prof-nav-caret">▾</span>
+        </div>
+        <div id="qgProfNavList"></div>
+      </div>
+    </aside>
+
+    <!-- QUADRO PRINCIPAL -->
+    <section class="qg-main">
+      <div class="qg-board">
+        <table class="qg-board-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Professores Responsáveis</th>
+              <th>Descrição</th>
+              <th>Local</th>
+              <th>Materialidade Demandada</th>
+            </tr>
+          </thead>
+          <tbody id="qgBoardBody"></tbody>
+        </table>
+      </div>
+      <div id="qgStatus" class="qg-status">Carregando atividades registradas…</div>
+    </section>
+
+  </div>
 </main>
 
 <!-- MODAL PREVIEW -->
@@ -327,14 +451,18 @@ function sbHeaders(extra={}){
   };
 }
 
+let EDITANDO_ID = null;
+let REGISTROS_DATA = [];
+
 async function salvarRegistro(){
   const d = dados();
   if(!d.titulo){ toast('Preencha ao menos o título da atividade.'); return; }
 
   const btn = document.getElementById('btnSalvarSistema');
-  const originalHTML = btn.innerHTML;
+  const label = document.getElementById('btnSalvarLabel');
+  const originalLabel = label.textContent;
   btn.disabled = true;
-  btn.innerHTML = 'Salvando…';
+  label.textContent = EDITANDO_ID ? 'Atualizando…' : 'Salvando…';
 
   const row = {
     titulo:      d.titulo,
@@ -349,53 +477,135 @@ async function salvarRegistro(){
   };
 
   try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}`, {
-      method: 'POST', headers: sbHeaders(), body: JSON.stringify([row])
-    });
+    let r;
+    if(EDITANDO_ID){
+      r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?id=eq.${encodeURIComponent(EDITANDO_ID)}`, {
+        method: 'PATCH', headers: sbHeaders(), body: JSON.stringify(row)
+      });
+    } else {
+      r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}`, {
+        method: 'POST', headers: sbHeaders(), body: JSON.stringify([row])
+      });
+    }
     if(!r.ok){
       const err = await r.json().catch(()=>({}));
       throw new Error(err.message || 'Falha ao salvar');
     }
-    toast('Registro salvo no sistema com sucesso!');
+    toast(EDITANDO_ID ? 'Registro atualizado com sucesso!' : 'Registro salvo no sistema com sucesso!');
+    if(EDITANDO_ID) sairModoEdicao(); else limparCamposSemConfirmar();
     carregarRegistros();
   }catch(err){
     console.error(err);
     toast('Não foi possível salvar. Verifique a conexão.');
   }finally{
     btn.disabled = false;
-    btn.innerHTML = originalHTML;
+    label.textContent = originalLabel;
   }
+}
+
+function entrarModoEdicao(){
+  document.getElementById('editBanner').classList.add('show');
+  document.getElementById('btnSalvarLabel').textContent = 'Atualizar Registro';
+  document.getElementById('titulo').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function sairModoEdicao(){
+  EDITANDO_ID = null;
+  document.getElementById('editBanner').classList.remove('show');
+  document.getElementById('btnSalvarLabel').textContent = 'Salvar no Sistema';
+}
+function cancelarEdicao(){
+  sairModoEdicao();
+  limparCamposSemConfirmar();
+  toast('Edição cancelada.');
+}
+
+function editarRegistro(id){
+  const row = REGISTROS_DATA.find(r => String(r.id) === String(id));
+  if(!row) return;
+
+  document.getElementById('titulo').value = row.titulo || '';
+  document.getElementById('descricao').value = row.descricao || '';
+  document.getElementById('disciplina').value = row.disciplina || '';
+  document.getElementById('modalidade').value = row.modalidade || '';
+  document.getElementById('local').value = row.local || '';
+  document.getElementById('obs-local').value = row.obs_local || '';
+  document.getElementById('materiais').value = row.materiais || '';
+
+  const turmasWrap = document.getElementById('turmas-wrap');
+  const turmas = (row.turmas && row.turmas.length) ? row.turmas : [''];
+  turmasWrap.innerHTML = turmas.map(t => `<div class="dyn-row"><input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp" value="${escHtml(t)}"><button class="btn-icon" onclick="remTurma(this)">×</button></div>`).join('');
+
+  const profsWrap = document.getElementById('profs-wrap');
+  const profs = (row.professores && row.professores.length) ? row.professores : [''];
+  profsWrap.innerHTML = profs.map(p => {
+    const [nome, disc] = p.split(' — ');
+    return `<div class="dyn-row prof-row"><input type="text" placeholder="Nome completo" class="prof-nome" value="${escHtml((nome||'').trim())}"><input type="text" placeholder="Disciplina / cargo" class="prof-disc" value="${escHtml((disc||'').trim())}"></div>`;
+  }).join('');
+
+  EDITANDO_ID = row.id;
+  entrarModoEdicao();
+  mudarAba('form');
+}
+
+function limparCamposSemConfirmar(){
+  document.querySelectorAll('input,textarea,select').forEach(el=>el.value='');
+  document.getElementById('turmas-wrap').innerHTML=`<div class="dyn-row"><input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp"><button class="btn-icon" onclick="remTurma(this)">×</button></div>`;
+  document.getElementById('profs-wrap').innerHTML=`<div class="dyn-row prof-row"><input type="text" placeholder="Nome completo" class="prof-nome"><input type="text" placeholder="Disciplina / cargo" class="prof-disc"></div>`;
 }
 
 async function carregarRegistros(){
   const box = document.getElementById('registros-lista');
   try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc&limit=20`, { headers: sbHeaders() });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc&limit=50`, { headers: sbHeaders() });
     const rows = await r.json();
     if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
-    if(!Array.isArray(rows) || rows.length === 0){
+    REGISTROS_DATA = Array.isArray(rows) ? rows : [];
+    if(REGISTROS_DATA.length === 0){
       box.innerHTML = `<p style="font-size:12px;color:var(--muted)">Nenhum registro salvo ainda.</p>`;
       return;
     }
-    box.innerHTML = rows.map(row => `
-      <div style="border:1px solid var(--divider);border-radius:4px;padding:9px 12px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--ink)">${escHtml(row.titulo || '(sem título)')}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">
-            ${[row.disciplina, row.modalidade].filter(Boolean).map(escHtml).join(' · ')}
-            ${row.turmas && row.turmas.length ? ' — ' + row.turmas.map(escHtml).join(', ') : ''}
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span style="font-size:10px;color:#bbb;white-space:nowrap">${row.created_at ? new Date(row.created_at).toLocaleDateString('pt-BR') : ''}</span>
-          <button onclick="excluirRegistro('${row.id}')" title="Excluir" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:13px">✕</button>
-        </div>
-      </div>
-    `).join('');
+    box.innerHTML = REGISTROS_DATA.map(row => renderRegistroCard(row)).join('');
   }catch(err){
     console.error(err);
     box.innerHTML = `<p style="font-size:12px;color:#c0392b">Não foi possível carregar os registros salvos.</p>`;
   }
+}
+
+function renderRegistroCard(row){
+  const val = v => v ? escHtml(v).replace(/\n/g,'<br>') : '<span class="reg-empty">—</span>';
+  const listVal = arr => (arr && arr.length) ? arr.map(escHtml).join('<br>') : '<span class="reg-empty">—</span>';
+  const local = [row.local, row.obs_local].filter(Boolean).length
+    ? [row.local ? escHtml(row.local) : '', row.obs_local ? `<span style="color:#7a7060;font-size:10.5px">${escHtml(row.obs_local)}</span>` : ''].filter(Boolean).join('<br>')
+    : '<span class="reg-empty">—</span>';
+
+  return `<div class="reg-card collapsed" id="reg-${row.id}">
+    <div class="reg-head" onclick="document.getElementById('reg-${row.id}').classList.toggle('collapsed')">
+      <div class="reg-head-main">
+        <div class="rh-title">${escHtml(row.titulo || '(sem título)')}</div>
+        <div class="rh-sub">${[row.disciplina, row.modalidade].filter(Boolean).map(escHtml).join(' · ') || '—'}${row.turmas && row.turmas.length ? ' — ' + row.turmas.map(escHtml).join(', ') : ''}</div>
+      </div>
+      <div class="reg-head-right">
+        <span class="reg-date">${row.created_at ? new Date(row.created_at).toLocaleDateString('pt-BR') : ''}</span>
+        <span class="reg-caret">▾</span>
+      </div>
+    </div>
+    <div class="reg-body">
+      <table>
+        <tr><th>1 · Título</th><td>${val(row.titulo)}</td></tr>
+        <tr><th>1 · Descrição</th><td>${val(row.descricao)}</td></tr>
+        <tr><th>1 · Área / Disciplina</th><td>${val(row.disciplina)}</td></tr>
+        <tr><th>1 · Modalidade</th><td>${val(row.modalidade)}</td></tr>
+        <tr><th>2 · Turmas / Alunos</th><td>${listVal(row.turmas)}</td></tr>
+        <tr><th>3 · Local</th><td>${local}</td></tr>
+        <tr><th>4 · Materialidade</th><td>${val(row.materiais)}</td></tr>
+        <tr><th>5 · Professores</th><td>${listVal(row.professores)}</td></tr>
+      </table>
+      <div class="reg-body-actions">
+        <button class="btn-tiny edit" onclick="event.stopPropagation(); editarRegistro('${row.id}')">✎ Editar</button>
+        <button class="btn-tiny del" onclick="event.stopPropagation(); excluirRegistro('${row.id}')">✕ Excluir</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 async function excluirRegistro(id){
@@ -405,6 +615,7 @@ async function excluirRegistro(id){
       method: 'DELETE', headers: sbHeaders()
     });
     if(!r.ok) throw new Error('Falha ao excluir');
+    if(String(EDITANDO_ID) === String(id)){ sairModoEdicao(); limparCamposSemConfirmar(); }
     carregarRegistros();
   }catch(err){
     console.error(err);
@@ -502,9 +713,8 @@ function clickOverlay(e){ if(e.target===document.getElementById('overlay')) fech
 
 function limpar(){
   if(!confirm('Limpar todos os campos?')) return;
-  document.querySelectorAll('input,textarea,select').forEach(el=>el.value='');
-  document.getElementById('turmas-wrap').innerHTML=`<div class="dyn-row"><input type="text" placeholder="Ex.: 2º Ano A — 32 alunos" class="turma-inp"><button class="btn-icon" onclick="remTurma(this)">×</button></div>`;
-  document.getElementById('profs-wrap').innerHTML=`<div class="dyn-row prof-row"><input type="text" placeholder="Nome completo" class="prof-nome"><input type="text" placeholder="Disciplina / cargo" class="prof-disc"></div>`;
+  if(EDITANDO_ID) sairModoEdicao();
+  limparCamposSemConfirmar();
 }
 
 /* ════════════════════════════════════════
@@ -642,6 +852,7 @@ function toast(msg){
 ════════════════════════════════════════ */
 let QG_DATA = [];
 let QG_CARREGADO = false;
+let QG_PROF_ATIVO = null; // nome do professor selecionado na barra lateral (null = todos)
 
 function mudarAba(aba){
   const isForm = aba==='form';
@@ -654,9 +865,9 @@ function mudarAba(aba){
 
 async function carregarQuadro(){
   const status = document.getElementById('qgStatus');
-  const conteudo = document.getElementById('qgConteudo');
+  const board = document.getElementById('qgBoardBody');
   status.style.display='block'; status.className='qg-status'; status.textContent='Carregando atividades registradas…';
-  conteudo.innerHTML='';
+  board.innerHTML='';
   try{
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc`, { headers: sbHeaders() });
     const rows = await r.json();
@@ -680,94 +891,113 @@ function montarFiltroModalidadeQG(){
   sel.value = atual;
 }
 
+function escAttr(s){
+  return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function renderQuadro(){
   const status = document.getElementById('qgStatus');
-  const conteudo = document.getElementById('qgConteudo');
+  const board = document.getElementById('qgBoardBody');
   const busca = document.getElementById('qgBusca').value.trim().toLowerCase();
   const modalidade = document.getElementById('qgModalidade').value;
 
-  // filtra as atividades
+  // filtra por busca + modalidade
   const filtradas = QG_DATA.filter(r=>{
     if(modalidade && r.modalidade!==modalidade) return false;
     if(!busca) return true;
-    const hay = [r.titulo, (r.professores||[]).join(' '), (r.turmas||[]).join(' '), r.local, r.disciplina, r.materiais]
+    const hay = [r.titulo, r.descricao, (r.professores||[]).join(' '), (r.turmas||[]).join(' '), r.local, r.disciplina, r.materiais]
       .filter(Boolean).join(' ').toLowerCase();
     return hay.includes(busca);
   });
 
-  // estatísticas gerais (sobre o total, não sobre o filtro)
-  document.getElementById('qgTotal').textContent = QG_DATA.length;
-  document.getElementById('qgProfs').textContent = new Set(QG_DATA.flatMap(r=>r.professores||[])).size;
-  document.getElementById('qgTurmas').textContent = new Set(QG_DATA.flatMap(r=>r.turmas||[])).size;
-  document.getElementById('qgModalidades').textContent = new Set(QG_DATA.map(r=>r.modalidade).filter(Boolean)).size;
+  // monta a navegação de professores na barra lateral (a partir do conjunto já filtrado por busca/modalidade)
+  montarProfNav(filtradas);
+
+  // aplica o filtro de professor selecionado, se houver
+  const linhas = QG_PROF_ATIVO
+    ? filtradas.filter(r => (r.professores||[]).some(p => (p.split(' — ')[0].trim() || '— Sem professor indicado —') === QG_PROF_ATIVO))
+    : filtradas;
 
   if(QG_DATA.length===0){
     status.style.display='block'; status.className='qg-status';
     status.textContent='Nenhuma atividade registrada ainda. Preencha e salve pelo Formulário para que apareça aqui.';
-    conteudo.innerHTML=''; return;
+    board.innerHTML=''; return;
   }
-  if(filtradas.length===0){
+  if(linhas.length===0){
     status.style.display='block'; status.className='qg-status';
     status.textContent='Nenhuma atividade corresponde ao filtro aplicado.';
-    conteudo.innerHTML=''; return;
+    board.innerHTML=''; return;
   }
   status.style.display='none';
 
-  // agrupa por professor — cada atividade aparece sob TODOS os professores responsáveis
-  const grupos = {};
+  board.innerHTML = linhas.map(r=>{
+    const areaTags = [
+      r.modalidade ? `<span class="qg-tag qg-tag-mod">${escHtml(r.modalidade)}</span>` : '',
+      r.disciplina ? `<span class="qg-tag">${escHtml(r.disciplina)}</span>` : ''
+    ].filter(Boolean).join(' ');
+
+    const profs = (r.professores && r.professores.length)
+      ? r.professores.map(p=>`<div class="qg-board-prof-tag">${escHtml(p.split(' — ')[0].trim())}</div>`).join('')
+      : '<span class="qg-muted">—</span>';
+
+    const descricao = r.descricao ? escHtml(r.descricao).replace(/\n/g,'<br>') : '<span class="qg-muted">—</span>';
+    const materiais = r.materiais ? escHtml(r.materiais).replace(/\n/g,'<br>') : '<span class="qg-muted">—</span>';
+
+    return `<tr>
+      <td>
+        <div class="qg-board-title">${escHtml(r.titulo||'(sem título)')}</div>
+        ${areaTags ? `<div class="qg-board-area">${areaTags}</div>` : ''}
+      </td>
+      <td><div class="qg-board-profs">${profs}</div></td>
+      <td>${descricao}</td>
+      <td class="qg-muted">${escHtml(r.local||'—')}</td>
+      <td>${materiais}</td>
+    </tr>`;
+  }).join('');
+}
+
+function montarProfNav(filtradas){
+  const wrap = document.getElementById('qgProfNavList');
+  const countLabel = document.getElementById('qgProfNavCount');
+
+  // conta atividades por professor dentro do conjunto já filtrado por busca/modalidade
+  const contagem = {};
   filtradas.forEach(r=>{
     const profs = (r.professores && r.professores.length) ? r.professores : ['— Sem professor indicado —'];
     profs.forEach(p=>{
-      const nome = p.split(' — ')[0].trim(); // separa nome de "Nome — Disciplina/cargo"
-      const chave = nome || '— Sem professor indicado —';
-      if(!grupos[chave]) grupos[chave]=[];
-      grupos[chave].push(r);
+      const nome = p.split(' — ')[0].trim() || '— Sem professor indicado —';
+      contagem[nome] = (contagem[nome]||0) + 1;
     });
   });
+  const nomes = Object.keys(contagem).sort((a,b)=>a.localeCompare(b,'pt-BR'));
 
-  const nomesOrdenados = Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  // se o professor ativo saiu do filtro atual, volta para "Todos"
+  if(QG_PROF_ATIVO && !contagem[QG_PROF_ATIVO]) QG_PROF_ATIVO = null;
 
-  conteudo.innerHTML = nomesOrdenados.map(nome=>{
-    const atividades = grupos[nome];
-    const linhas = atividades.map(r=>{
-      const areaModalidade = [
-        r.modalidade ? `<span class="qg-tag qg-tag-mod">${escHtml(r.modalidade)}</span>` : '',
-        r.disciplina ? `<span class="qg-tag">${escHtml(r.disciplina)}</span>` : ''
-      ].filter(Boolean).join(' ') || '<span class="qg-muted">—</span>';
+  countLabel.textContent = `(${nomes.length})`;
 
-      const turmas = (r.turmas && r.turmas.length)
-        ? r.turmas.map(t=>`<span class="qg-tag">${escHtml(t)}</span>`).join(' ')
-        : '<span class="qg-muted">—</span>';
+  if(nomes.length===0){
+    wrap.innerHTML = `<div class="qg-prof-empty">Nenhum professor no filtro atual.</div>`;
+    return;
+  }
 
-      const demandas = r.materiais
-        ? escHtml(r.materiais).replace(/\n/g,'<br>')
-        : '<span class="qg-muted">—</span>';
+  wrap.innerHTML = [
+    `<div class="qg-prof-item all${QG_PROF_ATIVO ? '' : ' active'}" data-prof="">
+       <span>Todos</span><span class="qg-prof-count">${filtradas.length}</span>
+     </div>`,
+    ...nomes.map(nome => `
+      <div class="qg-prof-item${QG_PROF_ATIVO===nome ? ' active' : ''}" data-prof="${escAttr(nome)}">
+        <span>${escHtml(nome)}</span><span class="qg-prof-count">${contagem[nome]}</span>
+      </div>`)
+  ].join('');
 
-      return `<tr>
-        <td class="qg-atividade">${escHtml(r.titulo||'(sem título)')}</td>
-        <td>${areaModalidade}</td>
-        <td>${turmas}</td>
-        <td class="qg-muted">${escHtml(r.local||'—')}</td>
-        <td>${demandas}</td>
-      </tr>`;
-    }).join('');
-
-    return `<div class="prof-group">
-      <div class="prof-group-head" onclick="this.parentElement.classList.toggle('collapsed')">
-        <div>
-          <span class="pg-name">${escHtml(nome)}</span>
-          <span class="pg-count"> — ${atividades.length} atividade${atividades.length>1?'s':''}</span>
-        </div>
-        <span class="pg-caret">▾</span>
-      </div>
-      <table class="qg-table">
-        <thead><tr>
-          <th>Atividade</th><th>Área / Modalidade</th><th>Turmas</th><th>Local</th><th>Demandas / Materialidade</th>
-        </tr></thead>
-        <tbody>${linhas}</tbody>
-      </table>
-    </div>`;
-  }).join('');
+  wrap.querySelectorAll('.qg-prof-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const nome = el.dataset.prof;
+      QG_PROF_ATIVO = nome ? nome : null;
+      renderQuadro();
+    });
+  });
 }
 
 document.getElementById('qgBusca').addEventListener('input', renderQuadro);
