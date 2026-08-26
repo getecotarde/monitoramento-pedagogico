@@ -7122,13 +7122,14 @@ function montarPromptRelatorioIA(item, campos){
   linhas.push('- Título centralizado: "Relatório Escolar"');
   linhas.push('- Parágrafo de abertura explicando o propósito do documento (baseado em observações contínuas do corpo docente e coordenação pedagógica) e, se aplicável, o motivo específico do relatório.');
   linhas.push('- Parágrafo(s) sobre comportamento, com base nas informações fornecidas.');
-  linhas.push('- Parágrafo(s) sobre desempenho acadêmico, citando disciplinas e conteúdos específicos quando houver informação.');
+  linhas.push('- Parágrafo(s) sobre desempenho acadêmico, descrevendo o rendimento e as dificuldades/avanços de forma geral, SEM citar nomes de disciplinas ou matérias específicas (ex.: não escrever "em Matemática" ou "em Português"), mesmo que estejam mencionadas nas informações abaixo — trate o desempenho acadêmico como um todo.');
   linhas.push('- Parágrafo(s) sobre o aspecto socioemocional/convívio social, quando houver informação.');
   linhas.push('- Se o caso for mais complexo (encaminhamento para avaliação especializada, PIP etc.), usar subtítulos em negrito como "Estratégias Desenvolvidas pela Escola" e "Considerações Finais".');
   linhas.push('- Parágrafo final reafirmando que a escola permanece à disposição da família para alinhar estratégias e fornecer informações complementares.');
   linhas.push(`- Fechar com: "Belo Horizonte, ${dataRelatorioExtenso}." e, abaixo, um espaço para assinatura com a linha "Coord. Pedagógico Anos Finais – ${campos.coord || ''}".`);
   linhas.push('- Tom: formal, técnico-pedagógico, na terceira pessoa, evitando julgamentos pessoais e mantendo respeito ao aluno mesmo ao descrever dificuldades.');
   linhas.push('- Não inventar informações que não foram fornecidas acima.');
+  linhas.push('- Escreva de forma coesa e fluida, conectando as informações em um texto corrido e natural (evite frases soltas ou aparência de lista de tópicos colados) — mas SEM OMITIR nenhuma informação relevante fornecida no bloco acima; todo o conteúdo relatado pelos professores deve estar refletido no texto final, apenas reorganizado com boa costura entre as ideias.');
   linhas.push('- O relatório deve ser entregue como um texto corrido único (não separe em seções soltas nem use marcadores de lista) pronto para ser copiado e impresso.');
   linhas.push('- Responda APENAS com o texto final do relatório, sem comentários adicionais e sem markdown (não use #, ** ou similares).');
   return linhas.join('\n');
