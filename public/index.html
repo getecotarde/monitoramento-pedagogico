@@ -5669,6 +5669,35 @@ function sbHeaders(extra={}){
     ...extra
   };
 }
+
+/* ────────────────────────────────────────────────────────────
+   IA (Claude) — chamada via Edge Function do Supabase.
+   A chave da Anthropic fica guardada como secret no projeto
+   Supabase (nunca no navegador). Esta função é genérica: pode
+   ser usada por QUALQUER recurso de IA do app, não só o
+   relatório escolar — basta montar o prompt e chamar.
+   Requer a função "claude" publicada em:
+     supabase/functions/claude
+   ──────────────────────────────────────────────────────────── */
+async function chamarClaude(prompt, opts={}){
+  const resp = await fetch(`${SUPABASE_URL}/functions/v1/claude`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    },
+    body: JSON.stringify({ prompt, ...opts })
+  });
+  let data;
+  try { data = await resp.json(); } catch(e){ data = null; }
+  if(!resp.ok){
+    throw new Error(data?.error || `Erro ${resp.status} ao chamar a função de IA. Verifique se a Edge Function "claude" está publicada no Supabase.`);
+  }
+  if(!data?.text) throw new Error('A IA não retornou texto. Tente novamente.');
+  return data.text;
+}
+
 async function sbPost(table, rows){
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method:'POST', headers: sbHeaders(),
@@ -6616,6 +6645,9 @@ function renderRelEscolaresLog(){
         <button onclick="gerarDocumentoProfessores(${idx})" title="Gerar ficha para professores" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 8px;cursor:pointer;color:#3C3489;margin-right:4px">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </button>
+        ${ef!=='concluido' ? `<button onclick="abrirGeracaoRelatorioIA(${idx})" title="Gerar relatório com IA" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 8px;cursor:pointer;color:#7A2E10;margin-right:4px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="vertical-align:middle"><path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4z"/></svg>
+        </button>` : ''}
         <button onclick="excluirRelEscolar(${idx})" title="Excluir" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:5px 8px;cursor:pointer;color:#D85A30">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13" height="13" style="vertical-align:middle"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         </button>
@@ -6900,6 +6932,234 @@ function executarGeracaoFichaProfessores(){
   window.onafterprint = function(){ window.close(); };
 <\/script>`;
   html += `</body></html>`;
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+/* ════════════════════════════════════════════════════════════
+   RELATÓRIO ESCOLAR — GERAÇÃO COM IA (Claude API, chamada direto
+   do navegador). A chave de API fica salva apenas em localStorage,
+   neste navegador — nunca é enviada ao Supabase nem a terceiros
+   além da própria Anthropic.
+   ════════════════════════════════════════════════════════════ */
+let relIAIdx = null;
+
+// Rascunho dos campos preenchidos manualmente por aluno, para não perder
+// o que já foi digitado se o modal for fechado sem gerar o relatório.
+function relIARascunhoKey(item){
+  return `rel_ia_rascunho_${item.id || item.aluno_matricula || item.aluno_nome}`;
+}
+function salvarRascunhoRelIA(item){
+  const rascunho = {
+    professorRef: document.getElementById('relIAProfRef').value,
+    coord: document.getElementById('relIACoord').value,
+    motivo: document.getElementById('relIAMotivo').value,
+    infoAluno: document.getElementById('relIAInfoAluno').value,
+    textoGerado: document.getElementById('relIATextoGerado').value
+  };
+  try { localStorage.setItem(relIARascunhoKey(item), JSON.stringify(rascunho)); } catch(e){}
+}
+function carregarRascunhoRelIA(item){
+  try {
+    const raw = localStorage.getItem(relIARascunhoKey(item));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+
+function abrirGeracaoRelatorioIA(idx){
+  const item = relEscolaresLog[idx];
+  if(!item) return;
+  relIAIdx = idx;
+
+  document.getElementById('relIAModalSub').textContent = `${item.aluno_nome}${item.turma?' · '+item.turma:''}`;
+  document.getElementById('relIAErro').style.display = 'none';
+  document.getElementById('relIAErro').textContent = '';
+  document.getElementById('relIASalvoMsg').style.display = 'none';
+
+  const rascunho = carregarRascunhoRelIA(item);
+  document.getElementById('relIAProfRef').value = rascunho?.professorRef ?? '';
+  document.getElementById('relIACoord').value = rascunho?.coord ?? 'Everton Corrêa Alves';
+  document.getElementById('relIAMotivo').value = rascunho?.motivo ?? (item.motivo || '');
+  document.getElementById('relIAInfoAluno').value = rascunho?.infoAluno ?? '';
+  document.getElementById('relIATextoGerado').value = rascunho?.textoGerado ?? (item.relatorio_texto_gerado || '');
+
+  if(document.getElementById('relIATextoGerado').value.trim()){
+    document.getElementById('relIAStep1').style.display = 'none';
+    document.getElementById('relIAStep2').style.display = '';
+  } else {
+    document.getElementById('relIAStep1').style.display = '';
+    document.getElementById('relIAStep2').style.display = 'none';
+  }
+
+  document.getElementById('relIAModalOverlay').classList.add('open');
+}
+function voltarRelIAStep1(){
+  document.getElementById('relIAStep1').style.display = '';
+  document.getElementById('relIAStep2').style.display = 'none';
+}
+function closeRelIAModal(e){ if(e.target===document.getElementById('relIAModalOverlay')) closeRelIAModalBtn(); }
+function closeRelIAModalBtn(){
+  const item = relEscolaresLog[relIAIdx];
+  if(item) salvarRascunhoRelIA(item);
+  document.getElementById('relIAModalOverlay').classList.remove('open');
+  relIAIdx = null;
+}
+
+// Monta o prompt completo enviado à IA, seguindo o padrão descrito em
+// prompt_relatorio_escolar.md — sem inventar informações que não constam
+// no bloco de informações preenchido.
+function montarPromptRelatorioIA(item, campos){
+  const fmtData = d => d ? new Date(d.length>10?d:d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}) : '';
+  const hoje = new Date();
+  const dataRelatorioExtenso = hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const linhas = [];
+  linhas.push('Gere um Relatório Escolar seguindo EXATAMENTE a estrutura, tom formal e formatação do modelo abaixo, usado pela Escola Municipal Geraldo Teixeira da Costa.');
+  linhas.push('');
+  linhas.push('DADOS DO ALUNO:');
+  linhas.push(`- Nome completo: ${item.aluno_nome || ''}`);
+  linhas.push(`- Ano/Turma: ${item.turma || ''}`);
+  linhas.push(`- Professor(a) referência: ${campos.professorRef || 'não informar'}`);
+  linhas.push(`- Coord. Pedagógica: ${campos.coord || ''}`);
+  linhas.push('- Ano letivo: 2026');
+  linhas.push(`- Data do relatório: ${dataRelatorioExtenso}`);
+  linhas.push('- Cidade: Belo Horizonte');
+  linhas.push('');
+  linhas.push('MOTIVO DO RELATÓRIO:');
+  linhas.push(campos.motivo || item.motivo || 'Acompanhamento pedagógico de rotina');
+  if(item.data_previsao) linhas.push(`(Previsão de entrega registrada no sistema: ${fmtData(item.data_previsao)})`);
+  linhas.push('');
+  linhas.push('INFORMAÇÕES SOBRE O ALUNO, levantadas com os professores e a coordenação (organize o relatório distribuindo estas informações nos parágrafos de comportamento, desempenho acadêmico e aspecto socioemocional, conforme se aplicar; não invente nada além do que está descrito abaixo):');
+  linhas.push('');
+  linhas.push(campos.infoAluno || '(não informado)');
+  linhas.push('');
+  linhas.push('INSTRUÇÕES DE FORMATAÇÃO E ESTILO:');
+  linhas.push('- Comece com o cabeçalho: "ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA" e o ano letivo.');
+  linhas.push('- Em seguida, os dados do aluno (Nome, Ano, Professor(a) referência se houver, Coord. Pedagógica), cada um em uma linha.');
+  linhas.push('- Título centralizado: "Relatório Escolar"');
+  linhas.push('- Parágrafo de abertura explicando o propósito do documento (baseado em observações contínuas do corpo docente e coordenação pedagógica) e, se aplicável, o motivo específico do relatório.');
+  linhas.push('- Parágrafo(s) sobre comportamento, com base nas informações fornecidas.');
+  linhas.push('- Parágrafo(s) sobre desempenho acadêmico, citando disciplinas e conteúdos específicos quando houver informação.');
+  linhas.push('- Parágrafo(s) sobre o aspecto socioemocional/convívio social, quando houver informação.');
+  linhas.push('- Se o caso for mais complexo (encaminhamento para avaliação especializada, PIP etc.), usar subtítulos em negrito como "Estratégias Desenvolvidas pela Escola" e "Considerações Finais".');
+  linhas.push('- Parágrafo final reafirmando que a escola permanece à disposição da família para alinhar estratégias e fornecer informações complementares.');
+  linhas.push(`- Fechar com: "Belo Horizonte, ${dataRelatorioExtenso}." e, abaixo, um espaço para assinatura com a linha "Coord. Pedagógico Anos Finais – ${campos.coord || ''}".`);
+  linhas.push('- Tom: formal, técnico-pedagógico, na terceira pessoa, evitando julgamentos pessoais e mantendo respeito ao aluno mesmo ao descrever dificuldades.');
+  linhas.push('- Não inventar informações que não foram fornecidas acima.');
+  linhas.push('- O relatório deve ser entregue como um texto corrido único (não separe em seções soltas nem use marcadores de lista) pronto para ser copiado e impresso.');
+  linhas.push('- Responda APENAS com o texto final do relatório, sem comentários adicionais e sem markdown (não use #, ** ou similares).');
+  return linhas.join('\n');
+}
+
+async function gerarRelatorioComIA(){
+  const item = relEscolaresLog[relIAIdx];
+  if(!item) return;
+
+  const erroEl = document.getElementById('relIAErro');
+  erroEl.style.display = 'none';
+
+  const campos = {
+    professorRef: document.getElementById('relIAProfRef').value.trim(),
+    coord: document.getElementById('relIACoord').value.trim(),
+    motivo: document.getElementById('relIAMotivo').value.trim(),
+    infoAluno: document.getElementById('relIAInfoAluno').value.trim()
+  };
+
+  if(!campos.infoAluno){
+    erroEl.textContent = 'Preencha o bloco "Informações sobre o aluno" com o que foi levantado junto aos professores.';
+    erroEl.style.display = '';
+    return;
+  }
+
+  const btn = document.getElementById('relIAGerarBtn');
+  const btnHtmlOriginal = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = 'Gerando...';
+
+  try {
+    const prompt = montarPromptRelatorioIA(item, campos);
+    const texto = await chamarClaude(prompt, { max_tokens: 2000 });
+
+    document.getElementById('relIATextoGerado').value = texto;
+    document.getElementById('relIASalvoMsg').style.display = 'none';
+    salvarRascunhoRelIA(item);
+
+    document.getElementById('relIAStep1').style.display = 'none';
+    document.getElementById('relIAStep2').style.display = '';
+  } catch(err){
+    console.error('Erro ao gerar relatório com IA:', err);
+    erroEl.textContent = `Não foi possível gerar o relatório: ${err.message || err}`;
+    erroEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = btnHtmlOriginal;
+  }
+}
+
+// Salva apenas o texto final do relatório (editado ou não) no item —
+// é o único dado persistido de fato, tanto localmente quanto no Supabase
+// (coluna relatorio_texto_gerado da tabela rel_escolares).
+async function salvarRelatorioIA(){
+  const item = relEscolaresLog[relIAIdx];
+  if(!item) return;
+  const texto = document.getElementById('relIATextoGerado').value;
+  if(!texto.trim()){ alert('O relatório está vazio.'); return; }
+
+  const btn = document.getElementById('relIASalvarBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  item.relatorio_texto_gerado = texto;
+  try {
+    if(item.id){
+      await sbPatch('rel_escolares', { relatorio_texto_gerado: texto }, [`id=eq.${item.id}`]);
+    }
+    try { localStorage.removeItem(relIARascunhoKey(item)); } catch(e){}
+    document.getElementById('relIASalvoMsg').style.display = '';
+    showMovNotification(`Relatório de ${item.aluno_nome} salvo.`,'verde');
+  } catch(e){
+    console.warn('Não foi possível salvar o relatório no Supabase (verifique se a coluna relatorio_texto_gerado existe na tabela rel_escolares). O texto continua salvo neste navegador.', e);
+    alert('Não foi possível salvar no servidor agora. O texto foi mantido aqui neste navegador — tente salvar novamente em instantes.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+}
+
+function copiarRelatorioIA(){
+  const texto = document.getElementById('relIATextoGerado').value;
+  navigator.clipboard.writeText(texto).then(()=>{
+    showMovNotification('Texto do relatório copiado.','verde');
+  }).catch(()=>{
+    alert('Não foi possível copiar automaticamente. Selecione o texto e copie manualmente (Ctrl+C).');
+  });
+}
+
+function abrirRelatorioIAParaImpressao(){
+  const item = relEscolaresLog[relIAIdx];
+  if(!item) return;
+  const texto = document.getElementById('relIATextoGerado').value;
+  const paragrafos = texto.split(/\n{2,}/).map(p=>p.trim()).filter(Boolean)
+    .map(p=>`<p>${p.replace(/\n/g,'<br>').replace(/</g,'&lt;')}</p>`).join('\n');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<title>Relatório Escolar — ${item.aluno_nome}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Georgia',serif; font-size:12pt; color:#1a1a1a; background:#fff; line-height:1.5; padding:2.4cm 2.2cm; }
+  p { margin-bottom:0.9em; text-align:justify; }
+  @media print { @page { margin:2cm; } }
+</style>
+</head><body>
+${paragrafos}
+<script>
+  window.onload = function(){ window.print(); };
+<\/script>
+</body></html>`;
 
   const win = window.open('','_blank');
   win.document.write(html);
@@ -9611,6 +9871,79 @@ ${paginas}
           Gerar e imprimir
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RELATÓRIO ESCOLAR — GERAÇÃO COM IA (Claude API) ═══════════ -->
+<div class="modal-overlay" id="relIAModalOverlay" onclick="closeRelIAModal(event)" style="z-index:340">
+  <div class="modal-box" id="relIAModalBox" style="max-width:720px">
+    <div class="modal-header" style="position:sticky;top:0;background:#fff;z-index:1;border-bottom:1px solid #E8E7E3;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:12px">
+      <div class="modal-avatar" style="background:#EEEDFE;color:#3C3489">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4z"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:700">Gerar Relatório Escolar com IA</div>
+        <div style="font-size:12px;color:#999" id="relIAModalSub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeRelIAModalBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:1.25rem 1.5rem;max-height:75vh;overflow-y:auto" id="relIAModalBody">
+
+      <div id="relIAStep1">
+        <div style="background:#FEF3DC;border-radius:6px;padding:10px 12px;font-size:12px;color:#7A4A08;margin-bottom:1rem">
+          Cole ou digite abaixo, em um único bloco, as informações levantadas junto aos professores e coordenação. A IA não deve inventar dados que não forem informados aqui.
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+          <div>
+            <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Professor(a) referência</label>
+            <input type="text" id="relIAProfRef" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Nome ou deixar em branco">
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Coord. Pedagógica</label>
+            <input type="text" id="relIACoord" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="Everton Corrêa Alves">
+          </div>
+        </div>
+
+        <div style="margin-bottom:1rem">
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo do relatório</label>
+          <textarea id="relIAMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea>
+        </div>
+
+        <div style="margin-bottom:1rem">
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:2px">Informações sobre o aluno</label>
+          <div style="font-size:11px;color:#AAA;margin-bottom:4px">Cole aqui, em um bloco só, tudo o que foi levantado: comportamento, desempenho acadêmico, aspecto socioemocional/convívio, medidas já adotadas pela escola etc. A IA organiza o texto no formato do relatório.</div>
+          <textarea id="relIAInfoAluno" rows="10" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical" placeholder="Ex: Aluno cordial, porém disperso em algumas aulas; 2 advertências por conversa em sala. Dificuldade em interpretação de texto e geometria; bom desempenho em Ciências. Bom relacionamento com colegas. Já houve conversa com a família e encaminhamento para reforço escolar..."></textarea>
+        </div>
+
+        <div id="relIAErro" style="display:none;background:#FAECE7;color:#7A2E10;border-radius:6px;padding:10px 12px;font-size:12px;margin-bottom:1rem"></div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-cancel" onclick="closeRelIAModalBtn()">Cancelar</button>
+          <button class="btn-save" id="relIAGerarBtn" onclick="gerarRelatorioComIA()" style="background:var(--roxo);display:inline-flex;align-items:center;gap:6px">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l1.8 5.6L19 9l-5.2 1.4L12 16l-1.8-5.6L5 9l5.2-1.4z"/></svg>
+            Gerar relatório
+          </button>
+        </div>
+      </div>
+
+      <div id="relIAStep2" style="display:none">
+        <div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px">Relatório gerado — revise, edite e salve</div>
+        <textarea id="relIATextoGerado" rows="20" style="width:100%;padding:10px;border:1px solid #E8E7E3;border-radius:6px;font-size:12.5px;font-family:'Georgia',serif;line-height:1.5;resize:vertical"></textarea>
+        <div id="relIASalvoMsg" style="display:none;font-size:11px;color:#0F6E56;margin-top:6px">✓ Relatório salvo.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+          <button class="btn-cancel" onclick="voltarRelIAStep1()">← Ajustar informações e gerar de novo</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn-cancel" onclick="copiarRelatorioIA()">Copiar texto</button>
+            <button class="btn-cancel" onclick="abrirRelatorioIAParaImpressao()">Abrir para impressão/PDF</button>
+            <button class="btn-save" id="relIASalvarBtn" onclick="salvarRelatorioIA()" style="background:var(--verde)">Salvar relatório</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
