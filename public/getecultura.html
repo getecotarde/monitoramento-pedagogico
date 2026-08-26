@@ -142,7 +142,7 @@
   .qg-board-table{width:100%;border-collapse:collapse;table-layout:fixed;}
   .qg-board-table thead th{background:var(--ink);color:var(--paper);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:13px 16px;text-align:left;}
   .qg-board-table th:nth-child(1){width:19%;} .qg-board-table th:nth-child(2){width:17%;}
-  .qg-board-table th:nth-child(3){width:27%;} .qg-board-table th:nth-child(4){width:13%;}
+  .qg-board-table th:nth-child(3){width:24%;} .qg-board-table th:nth-child(4){width:16%;}
   .qg-board-table th:nth-child(5){width:24%;}
   .qg-board-table td{padding:14px 16px;font-size:12.5px;border-bottom:1px solid var(--divider);vertical-align:top;line-height:1.5;word-wrap:break-word;}
   .qg-board-table tbody tr:last-child td{border-bottom:none;}
@@ -195,18 +195,21 @@
 
   @media print{
     /* margem superior de página reservada para o cabeçalho fixo — vale para TODAS as páginas, não só a primeira */
-    @page{ size: landscape; margin: 10mm; margin-top: 22mm; }
+    @page{ size: landscape; margin: 10mm; margin-top: 20mm; }
 
-    /* título GETECULTURA fixo, repetindo em todas as páginas impressas */
+    /* título GETECULTURA fixo, repetindo em todas as páginas impressas.
+       altura em "auto" (sem height fixo) para o conteúdo nunca ultrapassar
+       a caixa e invadir a margem reservada — isso é o que causava a
+       sobreposição com o cabeçalho da tabela. */
     header{
-      background:transparent;color:var(--ink);padding:8px 0;margin:0;height:26px;
+      background:transparent;color:var(--ink);padding:5px 0;margin:0;
       border-bottom:2px solid var(--gold);position:fixed;top:0;left:0;right:0;
-      display:flex;align-items:center;
+      display:flex;align-items:center;line-height:1.15;min-height:0;
     }
     header::before{display:none;}
     .header-inner{max-width:none;align-items:center;gap:12px;}
-    .event-badge{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;}
-    .header-text h1{color:var(--ink);font-size:18px;line-height:1;}
+    .event-badge{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;padding:3px 8px;line-height:1.2;}
+    .header-text h1{color:var(--ink);font-size:15px;line-height:1;}
     .header-text h1 span{color:var(--gold);}
     .header-text p{display:none;}
     .tabs{display:none;}
@@ -219,6 +222,10 @@
     .qg-layout{display:block;}
     .qg-main{width:100%;}
     .qg-board{box-shadow:none;}
+
+    /* respiro extra entre o cabeçalho fixo e a primeira linha da tabela,
+       garantindo folga mesmo se o cabeçalho variar de altura entre navegadores */
+    .qg-board{margin-top:5mm;}
 
     /* grade completa (linhas e colunas) levemente marcada */
     .qg-board-table{font-size:11px;border:1px solid var(--divider);}
@@ -363,7 +370,7 @@
 <!-- QUADRO GERAL — quadro central de eventos + barra lateral de navegação -->
 <main id="viewQuadro" style="display:none;max-width:1200px">
   <div class="intro">
-    <p>Quadro consolidado de todas as atividades registradas. Use a barra lateral para <strong>filtrar por professor, buscar ou filtrar por modalidade</strong> — o quadro à direita traz título, professores responsáveis, descrição, local e materialidade demandada de cada evento.</p>
+    <p>Quadro consolidado de todas as atividades registradas. Use a barra lateral para <strong>filtrar por professor, buscar ou filtrar por modalidade</strong> — o quadro à direita traz título, professores responsáveis, descrição, local/modalidade e materialidade demandada de cada evento.</p>
   </div>
 
   <div class="qg-layout">
@@ -397,7 +404,7 @@
               <th>Título</th>
               <th>Professores Responsáveis</th>
               <th>Descrição</th>
-              <th>Local</th>
+              <th>Local/Modalidade</th>
               <th>Materialidade Demandada</th>
             </tr>
           </thead>
@@ -931,10 +938,7 @@ function renderQuadro(){
   status.style.display='none';
 
   board.innerHTML = linhas.map(r=>{
-    const areaTags = [
-      r.modalidade ? `<span class="qg-tag qg-tag-mod">${escHtml(r.modalidade)}</span>` : '',
-      r.disciplina ? `<span class="qg-tag">${escHtml(r.disciplina)}</span>` : ''
-    ].filter(Boolean).join(' ');
+    const areaTags = r.disciplina ? `<span class="qg-tag">${escHtml(r.disciplina)}</span>` : '';
 
     const profs = (r.professores && r.professores.length)
       ? r.professores.map(p=>`<div class="qg-board-prof-tag">${escHtml(p.split(' — ')[0].trim())}</div>`).join('')
@@ -943,6 +947,11 @@ function renderQuadro(){
     const descricao = r.descricao ? escHtml(r.descricao).replace(/\n/g,'<br>') : '<span class="qg-muted">—</span>';
     const materiais = r.materiais ? escHtml(r.materiais).replace(/\n/g,'<br>') : '<span class="qg-muted">—</span>';
 
+    const localMod = [
+      r.local ? escHtml(r.local) : '',
+      r.modalidade ? `<span class="qg-tag qg-tag-mod">${escHtml(r.modalidade)}</span>` : ''
+    ].filter(Boolean).join('<br>') || '<span class="qg-muted">—</span>';
+
     return `<tr>
       <td>
         <div class="qg-board-title">${escHtml(r.titulo||'(sem título)')}</div>
@@ -950,7 +959,7 @@ function renderQuadro(){
       </td>
       <td><div class="qg-board-profs">${profs}</div></td>
       <td>${descricao}</td>
-      <td class="qg-muted">${escHtml(r.local||'—')}</td>
+      <td>${localMod}</td>
       <td>${materiais}</td>
     </tr>`;
   }).join('');
