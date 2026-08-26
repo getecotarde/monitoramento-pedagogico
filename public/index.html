@@ -2406,7 +2406,7 @@
       <p>Busque um ou mais estudantes por nome ou turma para visualizar o perfil completo em tela ou gerar uma ficha pronta para impressão, organizada por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais. Recolha as guias de busca abaixo para dar mais espaço à área de visualização.</p>
     </div>
 
-    <details id="ltBuscaDetails" open ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+    <details id="ltBuscaDetails" open ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
       <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
         <span style="font-size:13px;font-weight:700">Buscar e selecionar estudantes</span>
         <span id="ltBuscaResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
@@ -2421,7 +2421,7 @@
         </div>
 
         <!-- Filtro por turma (recolhível — economiza espaço quando não está em uso) -->
-        <details id="ltTurmaFiltroDetails" ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:12px">
+        <details id="ltTurmaFiltroDetails" ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:12px">
           <summary style="cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;padding:2px 0">
             Filtrar por turma (uma ou mais) <span id="ltTurmaFiltroResumo" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span>
           </summary>
@@ -2429,7 +2429,7 @@
         </details>
 
         <!-- Lista de resultados (guia recolhível, agrupada por turma) -->
-        <details id="ltEncontradosDetails" open ontoggle="ajustarAlturaPreviewLt()">
+        <details id="ltEncontradosDetails" open ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()">
           <summary style="cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#BBB;padding:2px 0">
             Estudantes encontrados <span id="ltResultCount" style="color:#999;text-transform:none;font-weight:400;letter-spacing:0"></span>
           </summary>
@@ -2439,7 +2439,7 @@
     </details>
 
     <!-- Dados do relatório (recolhível — condensado por padrão para dar mais espaço à prévia) -->
-    <details id="ltDadosRelatorioDetails" ontoggle="ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+    <details id="ltDadosRelatorioDetails" ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
       <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
         <span style="font-size:13px;font-weight:700">Dados para o relatório impresso</span>
         <span id="ltDadosRelatorioResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
