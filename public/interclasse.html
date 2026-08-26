@@ -1,758 +1,3581 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade de Disponibilidade — Interclasse 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --green:#1a7a3c;--green2:#23a050;--green3:#e8f5ee;--green4:#0f5a2a;
-  --gold:#d4a017;--gold3:#f5c842;
-  --red:#c0392b;--blue:#1565c0;--purple:#7b1fa2;
-  --gray1:#f0f0ed;--gray2:#d8d8d4;--gray3:#888;--gray4:#444;
-  --dark:#111;--white:#fff;
-  --font-head:'Bebas Neue',sans-serif;
-  --font:'Barlow',sans-serif;
-  --font-cond:'Barlow Condensed',sans-serif;
-  --brd:2px solid #333;
-  --brd-light:1.5px solid #bbb;
-  --brd-day:3px solid;
-}
-body{font-family:var(--font);background:var(--gray1);color:var(--dark)}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogos Estudantis do GETECO 2026</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0d9488;
+            --accent: #f59e0b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
 
-/* ── TOOLBAR ── */
-.toolbar{background:var(--green4);position:sticky;top:0;z-index:50;box-shadow:0 3px 12px rgba(0,0,0,.35)}
-.stripe{height:5px;background:repeating-linear-gradient(90deg,var(--gold3) 0,var(--gold3) 16px,var(--green2) 16px,var(--green2) 32px)}
-.tb{display:flex;align-items:center;gap:8px;padding:9px 16px;flex-wrap:wrap}
-.tb-title{font-family:var(--font-head);font-size:18px;color:#fff;letter-spacing:2px;line-height:1}
-.tb-sub{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--font-cond);letter-spacing:.8px;margin-top:1px}
-.sp{flex:1}
-.btn{padding:6px 12px;border-radius:5px;font-family:var(--font-cond);font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;transition:.15s;white-space:nowrap}
-.btn-gold{background:var(--gold3);color:var(--dark)}.btn-gold:hover{background:var(--gold)}
-.btn-ghost{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.22)}.btn-ghost:hover{background:rgba(255,255,255,.22)}
-.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.1)}
-.orient-toggle{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px}
-.ot-btn{padding:5px 9px;border-radius:4px;font-family:var(--font-cond);font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.6);transition:.15s}
-.ot-btn.active{background:rgba(255,255,255,.25);color:#fff}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-/* ── PAGE ── */
-.page{padding:12px 16px;max-width:1080px;margin:0 auto}
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
 
-/* ── LEGENDA ── */
-.legend{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;align-items:center}
-.leg-label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin-right:3px}
-.leg-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-cond);font-weight:700;padding:3px 9px;border-radius:3px;border:2px solid transparent}
+        header {
+            background: linear-gradient(135deg, var(--primary), #1e1b4b);
+            color: white;
+            padding: 0.9rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
 
-/* ── TABELA ── */
-.wrap{overflow-x:auto;border-radius:4px;border:var(--brd);box-shadow:0 3px 14px rgba(0,0,0,.13)}
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.3px;
+        }
 
-table{
-  width:100%;border-collapse:collapse;background:#fff;
-  table-layout:fixed
-}
+        header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-/* cabeçalho */
-th{
-  background:var(--dark);color:#fff;
-  font-family:var(--font-cond);font-weight:700;letter-spacing:.4px;
-  padding:10px 8px;text-align:center;
-  border-right:var(--brd);
-}
-th:last-child{border-right:none}
-th.th-hora{text-align:left;width:92px;font-size:12px;border-right:var(--brd)}
-th.th-dia .dn{font-family:var(--font-head);font-size:22px;line-height:1;display:block}
-th.th-dia .ds{font-size:11px;opacity:.75;font-weight:600;display:block}
-th.th-dia .dt{font-size:9px;opacity:.45;font-style:italic;display:block;margin-top:1px}
+        .container {
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+        }
 
-/* células de horário (col esquerda) */
-td.td-hora{
-  background:#f7f7f5;
-  font-family:var(--font-cond);font-size:13px;font-weight:700;
-  padding:0;vertical-align:top;
-  border-right:var(--brd);border-bottom:var(--brd);
-  width:92px
-}
-.hora-inner{padding:9px 10px}
-.hora-id{font-size:15px;color:var(--dark);font-weight:700;line-height:1}
-.hora-range{font-size:9px;color:var(--gray3);display:block;margin-top:2px;line-height:1.3;font-weight:500}
+        /* Nav Tabs — faixa lateral fixa */
+        .tabs {
+            display: flex;
+            flex-direction: column;
+            flex: 0 0 240px;
+            width: 240px;
+            gap: 0.35rem;
+            background: #ffffff;
+            padding: 0.75rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            position: sticky;
+            top: calc(var(--header-height, 0px) + 1rem);
+            max-height: calc(100vh - var(--header-height, 0px) - 2rem);
+            overflow-y: auto;
+        }
 
-/* linha de recreio */
-tr.rec-row td{
-  background:#e0e0dc;text-align:center;padding:5px;
-  font-family:var(--font-cond);font-size:11px;color:#666;
-  font-style:italic;letter-spacing:.3px;
-  border-bottom:var(--brd);border-top:var(--brd)
-}
+        .tab-btn {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            line-height: 1.3;
+        }
 
-/* separador entre horários */
-tr.h-sep td{height:1px;background:#ccc;padding:0;border:none}
+        .tab-btn:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
 
-/* célula dia×hora */
-td.td-cell{
-  padding:4px 5px;
-  border-right:var(--brd-light);border-bottom:var(--brd);
-  vertical-align:top
-}
-td.td-cell:last-child{border-right:none}
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
+        }
 
-/* espaço dentro da célula */
-.esp-row{
-  display:flex;align-items:stretch;
-  border:2px solid #bbb;border-radius:3px;
-  margin-bottom:3px;cursor:pointer;
-  overflow:hidden;transition:filter .1s
-}
-.esp-row:last-child{margin-bottom:0}
-.esp-row:hover{filter:brightness(.93)}
+        /* Área de conteúdo — ocupa o restante do espaço à direita das abas */
+        .main-content {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
 
-.esp-tag{
-  writing-mode:vertical-rl;text-orientation:mixed;
-  transform:rotate(180deg);
-  font-family:var(--font-cond);font-size:9px;font-weight:700;
-  letter-spacing:.5px;
-  padding:3px 2px;display:flex;align-items:center;justify-content:center;
-  white-space:nowrap;min-width:16px;flex-shrink:0;
-  color:#fff
-}
-.esp-tag.fut  {background:#1a3a20}
-.esp-tag.volei{background:#5a4000}
-.esp-tag.esp3 {background:#0d2f6e}
-.esp-tag.esp4 {background:#3d0060}
+        @media (max-width: 1024px) {
+            .tabs {
+                flex: 0 0 200px;
+                width: 200px;
+            }
+            .tab-btn {
+                font-size: 0.88rem;
+                padding: 0.7rem 0.8rem;
+            }
+        }
 
-.esp-slot{
-  flex:1;padding:3px 6px;font-family:var(--font-cond);font-size:11px;
-  display:flex;flex-direction:column;justify-content:center;line-height:1.3;
-  min-height:38px
-}
-.esp-slot.livre{color:#bbb;font-style:italic;font-size:10px}
-.esp-slot.futsal  {background:#e4f3ea;border-left:2px solid #23a050;color:#0f5a2a}
-.esp-slot.volei   {background:#fffbe6;border-left:2px solid var(--gold);color:#7a4a00}
-.esp-slot.basquete{background:#e0eeff;border-left:2px solid var(--blue);color:#0d3d7a}
-.esp-slot.final   {background:#fff3cd;border-left:3px solid var(--gold3);color:#7a4a00;font-weight:700}
-.esp-slot.reservado{background:#f0f0f0;border-left:2px solid #aaa;color:#666}
-.s-espaco{font-size:9px;opacity:.6;font-weight:500}
+        @media (max-width: 860px) {
+            .container {
+                flex-direction: column;
+                margin: 1rem auto;
+                gap: 1rem;
+            }
+            .tabs {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                width: 100%;
+                position: sticky;
+                top: var(--header-height, 0px);
+                z-index: 20;
+                max-height: none;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                gap: 0.4rem;
+            }
+            .tab-btn {
+                flex: 0 0 auto;
+                min-width: auto;
+                white-space: nowrap;
+                text-align: center;
+                font-size: 0.85rem;
+                padding: 0.7rem 0.9rem;
+            }
+        }
 
-.s-mod  {font-weight:700;font-size:11px;line-height:1.2}
-.s-times{font-size:10px;line-height:1.2}
-.s-fase {font-size:9px;opacity:.65;margin-top:1px}
+        @media (max-width: 600px) {
+            header { padding: 0.7rem 0.8rem; }
+            header h1 { font-size: 1.1rem; letter-spacing: 0; }
+            header p { font-size: 0.8rem; }
 
-/* ── TOTAIS ── */
-.totais{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.tot{background:#fff;border-radius:4px;padding:10px 12px;text-align:center;border:var(--brd-light);border-top-width:4px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
-.tot-n{font-family:var(--font-head);font-size:28px;line-height:1}
-.tot-bar-bg{background:var(--gray2);border-radius:20px;height:5px;margin:5px 0 3px;overflow:hidden}
-.tot-bar{height:5px;border-radius:20px;transition:.4s}
-.tot-l{font-size:10px;font-family:var(--font-cond);color:var(--gray3)}
+            .container { padding: 0 0.6rem; }
 
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;align-items:center;justify-content:center;z-index:200;padding:14px}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:8px;padding:20px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.28);position:relative;max-height:92vh;overflow-y:auto;border-top:4px solid var(--green2)}
-.modal-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:var(--gray3);font-size:20px;line-height:1}
-.modal-title{font-family:var(--font-head);font-size:17px;letter-spacing:1px;color:var(--dark);margin-bottom:2px}
-.modal-sub{font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-bottom:14px;line-height:1.4}
-.fg{margin-bottom:10px}
-.fg label{display:block;font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
-.fg input,.fg select{width:100%;padding:8px 10px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
-.fg input:focus,.fg select:focus{border-color:var(--green2);outline:none}
-.preview{border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;transition:.2s;border:2px solid #eee;color:#aaa}
-.m-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
-.mb{padding:7px 12px;border-radius:4px;font-family:var(--font-cond);font-size:12px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
-.mb-green{background:var(--green2);color:#fff}.mb-green:hover{background:var(--green)}
-.mb-del{background:#fee;color:var(--red);border:1.5px solid #fcc}.mb-del:hover{background:#fdd}
-.mb-ghost{background:var(--gray2);color:var(--gray4)}.mb-ghost:hover{background:#ccc;color:#111}
+            .card { padding: 1rem; border-radius: 10px; }
+            .card h2 { font-size: 1.15rem; }
+            .card h3 { font-size: 1rem; }
 
-/* ── MODAL ESPAÇOS ── */
-.modal-esp{max-width:440px}
-.esp-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.esp-edit-row .esp-color{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.esp-edit-row label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;width:90px;flex-shrink:0}
-.esp-edit-row input{flex:1;padding:6px 9px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
-.esp-edit-row input:focus{border-color:var(--green2);outline:none}
-.esp-preview-tag{display:inline-block;font-family:var(--font-cond);font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:#fff;letter-spacing:.5px;min-width:36px;text-align:center}
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+                gap: 0.9rem;
+            }
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:8px 18px;border-radius:20px;font-family:var(--font-cond);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:500;white-space:nowrap}
-.toast.show{opacity:1}
+            .stat-card .num { font-size: 1.6rem; }
 
-/* ══════════════════════════════════
-   IMPRESSÃO — página única, economia de tinta
-══════════════════════════════════ */
-@media print{
-  @page { margin: 5mm; }
-  @page retrato  { size: A4 portrait;  margin: 5mm; }
-  @page paisagem { size: A4 landscape; margin: 5mm; }
+            table { font-size: 0.85rem; }
+            th, td { padding: 0.55rem 0.6rem; }
 
-  .toolbar,.legend,.totais,.modal-bg,.toast{ display:none!important }
+            .form-actions-row {
+                flex-direction: column;
+            }
+        }
 
-  /* forçar tudo numa página */
-  html,body{ height:auto!important; overflow:visible!important; }
-  body{
-    background:#fff;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
-  .page{ padding:0; max-width:100%; }
+        @media (max-width: 420px) {
+            .tab-btn {
+                font-size: 0.78rem;
+                padding: 0.6rem 0.7rem;
+            }
+        }
 
-  /* tabela ocupa toda a largura e altura disponível */
-  .wrap{
-    border-radius:0; box-shadow:none; overflow:visible;
-    border:1px solid #666;
-    width:100%; display:block;
-  }
-  table{ width:100%; table-layout:fixed; }
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
 
-  /* ECONOMIA DE TINTA */
-  th{
-    background:#fff!important; color:#111!important;
-    border:1px solid #888!important;
-    padding:3px 3px; font-size:9px;
-  }
-  th.th-hora{ width:58px!important; }
-  th.th-dia .dn{ font-size:13px; color:#111!important; }
-  th.th-dia .ds{ font-size:8px; }
-  th.th-dia .dt{ font-size:7px; }
+        .tab-content.active {
+            display: block;
+        }
 
-  td.td-hora{
-    background:#f5f5f5!important; width:58px!important;
-    border:1px solid #aaa!important;
-  }
-  .hora-inner{ padding:3px 5px; }
-  .hora-id{ font-size:11px; }
-  .hora-range{ font-size:7px; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-  td.td-cell{
-    padding:2px 3px;
-    border:1px solid #bbb!important;
-    border-left:none!important;
-  }
+        /* Cards & Grid */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
 
-  /* tag lateral — só borda, sem fundo escuro */
-  .esp-tag{
-    font-size:7px; min-width:12px; padding:2px 1px;
-    background:#fff!important; color:#111!important;
-    border-right:1px solid #ccc;
-    writing-mode:vertical-rl;
-  }
-  .esp-tag.fut  { border-right-color:#1a3a20!important; color:#1a3a20!important; }
-  .esp-tag.volei{ border-right-color:#5a4000!important; color:#5a4000!important; }
-  .esp-tag.esp3 { border-right-color:#0d2f6e!important; color:#0d2f6e!important; }
+        .card h2 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-  /* slots — sem fundo, só borda colorida à esquerda */
-  .esp-row{
-    margin-bottom:1px; border:1px solid #ccc!important;
-    page-break-inside:avoid;
-  }
-  .esp-slot{
-    background:#fff!important; min-height:22px; padding:1px 4px;
-    border-left-width:2px!important;
-  }
-  .esp-slot.livre{ color:#ccc!important; }
-  .esp-slot.futsal  { border-left-color:#23a050!important; color:#0f5a2a!important; }
-  .esp-slot.volei   { border-left-color:#d4a017!important; color:#7a4a00!important; }
-  .esp-slot.basquete{ border-left-color:#1565c0!important; color:#0d3d7a!important; }
-  .esp-slot.final   { border-left-color:#d4a017!important; color:#7a4a00!important; font-weight:700!important; }
-  .esp-slot.reservado{ border-left-color:#aaa!important; color:#666!important; }
+        .card h3 {
+            color: var(--secondary);
+            font-size: 1.15rem;
+            margin: 1.2rem 0 0.6rem 0;
+        }
 
-  .s-mod{ font-size:8px; font-weight:700; }
-  .s-times{ font-size:7px; }
-  .s-fase{ font-size:6px; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
 
-  tr.rec-row td{
-    background:#eee!important; padding:2px;
-    font-size:8px; color:#666!important;
-    border:1px solid #bbb!important;
-  }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
 
-  /* cabeçalho de dia sem cor de fundo — só texto */
-  th.th-dia{ border-bottom:2px solid #555!important; }
+        /* Faixa de resumo (Modalidades/Anos/Período) — mais estreita e fixa logo abaixo do cabeçalho */
+        .stat-row {
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+            position: sticky;
+            top: calc(var(--sticky-offset, 0px) + 0.5rem);
+            z-index: 25;
+            background: var(--bg);
+            padding: 0.4rem 0;
+        }
 
-  /* ORIENTAÇÃO controlada por JS via classe no <html> */
-  html.retrato  { page: retrato;  }
-  html.paisagem { page: paisagem; }
+        .stat-row .stat-card {
+            padding: 0.7rem 1rem;
+        }
 
-  /* modo transposto na impressão: col de dia mais larga */
-  html.transposto td.td-hora{ width:78px!important; }
-  html.transposto th.th-hora{ width:78px!important; }
+        .stat-row .stat-card .num {
+            font-size: 1.4rem;
+        }
 
-  /* versão em branco */
-  body.print-blank .s-mod,
-  body.print-blank .s-times,
-  body.print-blank .s-fase{ visibility:hidden }
-  body.print-blank .esp-slot:not(.livre){
-    background:#fff!important;
-    color:transparent!important;
-  }
+        .stat-row .stat-card .label {
+            font-size: 0.75rem;
+        }
 
-  /* cabeçalho de impressão */
-  .print-header{ display:block!important; text-align:center; margin-bottom:6px; font-family:'Barlow Condensed',sans-serif; }
-  .print-header h1{ font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:#111; }
-  .print-header p{ font-size:10px; color:#666; letter-spacing:.5px; }
-  .print-header .print-mode{ font-size:9px; color:#999; font-style:italic; margin-top:2px; }
-}
-/* esconder cabeçalho de impressão na tela */
-.print-header{ display:none }
-</style>
+        /* Stats & Highlights */
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border-left: 4px solid var(--primary-light);
+            padding: 1.2rem;
+            border-radius: 8px;
+        }
+
+        .stat-card .num {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Badges & Tags */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-orange { background: #ffedd5; color: #9a3412; }
+        .badge-purple { background: #f3e8ff; color: #6b21a8; }
+
+        /* Forms & Inputs */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        button.btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.btn:hover {
+            background: #1d4ed8;
+        }
+
+        button.btn-success {
+            background: var(--success);
+        }
+
+        /* Toggle de Modalidade (Sim/Não) */
+        .mod-toggle {
+            border: none;
+            padding: 0.4rem 1rem;
+            min-width: 72px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+
+        .mod-toggle.mod-nao {
+            background: var(--danger);
+        }
+
+        .mod-toggle.mod-sim {
+            background: var(--success);
+        }
+
+        .mod-toggle:hover {
+            filter: brightness(0.92);
+        }
+
+        .mod-toggle:active {
+            transform: scale(0.95);
+        }
+
+        button.btn-success:hover {
+            background: #059669;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: #fffbebf5;
+            border-color: var(--accent);
+            color: #92400e;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: var(--primary-light);
+            color: #1e40af;
+        }
+
+        /* Print Style */
+        @media print {
+            .tabs, .btn, .no-print { display: none !important; }
+            .tab-content { display: block !important; opacity: 1 !important; transform: none !important; margin-bottom: 2rem; }
+            body { background: white; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- TOOLBAR -->
-<div class="toolbar">
-  <div class="stripe"></div>
-  <div class="tb">
-    <div>
-      <div class="tb-title">INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</div>
-      <div class="tb-sub">08 A 11 DE SETEMBRO · GETECO · PROF. MARCELO · ED. FÍSICA</div>
+    <header>
+        <h1>ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA - GETECO</h1>
+        <p>Projeto Multidisciplinar • Jogos Estudantis do GETECO 2026</p>
+    </header>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="switchTab('resumo')">📌 Resumo Geral</button>
+            <button class="tab-btn" onclick="switchTab('relatorio')">📄 Relatório Apresentado</button>
+            <button class="tab-btn" onclick="switchTab('modalidades')">🏆 Modalidades & Regras</button>
+            <button class="tab-btn" onclick="switchTab('organizacao')">📅 Organização & Cronograma</button>
+            <button class="tab-btn" onclick="switchTab('fases')">⚡ Fases do Campeonato</button>
+            <button class="tab-btn" onclick="switchTab('registro')">🗂️ Organização dos Grupos</button>
+            <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Resultados</button>
+            <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Listagem & Fichas (Alunos)</button>
+        </nav>
+
+        <div class="main-content">
+
+        <!-- TAB 1: RESUMO GERAL -->
+        <div id="resumo" class="tab-content active">
+            <div class="grid-3 stat-row">
+                <div class="stat-card">
+                    <div class="num">5</div>
+                    <div class="label">Modalidades Esportivas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num">6º e 7º</div>
+                    <div class="label">Anos Atendidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="num">08 a 11/09</div>
+                    <div class="label">Período dos Jogos</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Objetivos dos Jogos Estudantis GETECO 2026</h2>
+                <p>Os <strong>Jogos Estudantis do GETECO 2026</strong> têm o caráter pedagógico e integrador de estimular a participação coletiva de todas e todos os estudantes, com o intuito de desenvolver:</p>
+                <ul style="margin: 1rem 0 1rem 2rem; color: var(--text);">
+                    <li><strong>Sociabilidade e Respeito Mútuo:</strong> Fortalecimento de vínculos interpessoais e fair play.</li>
+                    <li><strong>Múltiplas Experiências Corporais:</strong> Vivência das modalidades trabalhadas nas aulas de Educação Física.</li>
+                    <li><strong>Cultura Esportiva Competitiva Consciente:</strong> Vivência de um evento estruturado, respeitando as regras, características e habilidades individuais e coletivas.</li>
+                </ul>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>👥 Das Equipes e Organização</h2>
+                    <p><strong>Composição:</strong> As equipes serão formadas por turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Identificação e Liderança:</strong></p>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.3rem;">
+                        <li>Definição de nome da equipe (pode reutilizar o nome do país/seleção da Gincana escolar).</li>
+                        <li>Eleição de um(a) <strong>Capitão/Capitã</strong> representante no Congresso Técnico, preenchimento de fichas e decisões organizacionais.</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>🎉 Abertura, Protocolo e Encerramento</h2>
+                    <p><strong>Cerimônia de Abertura:</strong> Desfile oficial das equipes seguidas do protocolo formal do evento.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Juramento do Atleta:</strong> Um atleta representante conduzirá o juramento com o braço direito erguido, sendo acompanhado por todos os demais participantes em sinal de respeito.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Encerramento & Premiação:</strong> Dia <strong>11/09</strong>, logo após o término das últimas partidas, seguido pelo recreio e limpeza coletiva da quadra.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RELATÓRIO APRESENTADO -->
+        <div id="relatorio" class="tab-content">
+            <div class="card">
+                <h2>📋 Relatório de Apresentação do Projeto</h2>
+                <div class="table-responsive">
+                    <table>
+                        <tr>
+                            <th width="30%">Instituição</th>
+                            <td>Escola Municipal Geraldo Teixeira Costa (GETECO)</td>
+                        </tr>
+                        <tr>
+                            <th>Projeto</th>
+                            <td>Projeto Multidisciplinar - Jogos Estudantis GETECO 2026</td>
+                        </tr>
+                        <tr>
+                            <th>Componente Curricular</th>
+                            <td>Educação Física</td>
+                        </tr>
+                        <tr>
+                            <th>Professores Responsáveis</th>
+                            <td>Dênis José, Mello, Ramon</td>
+                        </tr>
+                        <tr>
+                            <th>Público Alvo</th>
+                            <td>Estudantes do 6º e 7º anos do Ensino Fundamental</td>
+                        </tr>
+                        <tr>
+                            <th>Caráter do Evento</th>
+                            <td>Educacional, Competitivo, Inclusivo e Integrador</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📌 Princípios Pedagógicos & Diretrizes de Inscrição</h2>
+                <div class="alert alert-info">
+                    <strong>Participação Ampla e Igualitária:</strong> Todos os estudantes inscritos na súmula têm o direito e o dever de jogar. As regras foram adaptadas especificamente para impedir a exclusão de estudantes reservas ou menos experientes.
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <h3>Regras de Inscrição Intermodalidades</h3>
+                        <p>O estudante poderá participar de mais de uma modalidade esportiva, desde que haja acordo com a turma e não ocorra simultaneidade de partidas entre modalidades diferentes nas quais esteja inscrito.</p>
+                    </div>
+                    <div>
+                        <h3>Prazos e Fichas Finais</h3>
+                        <p>As inscrições devem ser oficializadas impreterivelmente até o prazo limite estipulado pela Comissão Organizadora, utilizando as fichas oficiais (Anexo) devidamente assinadas pelo Capitão e Professor Referência.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: MODALIDADES & REGRAS -->
+        <div id="modalidades" class="tab-content">
+            <div class="card">
+                <h2>⚽ Futsal (Masculino e Feminino)</h2>
+                <p><strong>Base Regulamentar:</strong> Regras Oficiais da FIFA/CBFS com adaptações escolares.</p>
+                <div class="grid-2" style="margin-top: 1rem;">
+                    <div>
+                        <p><strong>Atletas por Equipe:</strong> Mínimo 6 e Máximo 12 inscritos. <i>Sem substituição na ficha no dia dos jogos.</i></p>
+                        <p><strong>Tempo de Jogo:</strong></p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Masculino: 2 tempos de 15 min (tempo corrido).</li>
+                            <li>Feminino: 2 tempos de 10 min (tempo corrido).</li>
+                            <li>Intervalo: 5 minutos.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p><strong>Obrigatoriedade de Rodízio / Substituição:</strong></p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>No intervalo, é obrigatório realizar no mínimo <strong>3 substituições</strong>.</li>
+                            <li>No 2º tempo, é obrigatório substituir quem ainda não jogou.</li>
+                            <li><strong>Todos</strong> os atletas em súmula devem jogar um período razoável (exceto lesão ou goleiro único).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔥 Queimada (Mista)</h2>
+                <p><strong>Base Regulamentar:</strong> Regras vivenciadas e construídas nas aulas de Educação Física.</p>
+                <ul style="margin: 0.8rem 0 0.8rem 1.5rem;">
+                    <li><strong>Atletas por Equipe:</strong> Mínimo 12 e Máximo 14 atletas (composição obrigatória de <strong>50% masculino e 50% feminino</strong>).</li>
+                    <li><strong>Duração:</strong> Partida única com tempo limite de <strong>20 minutos</strong>.</li>
+                    <li><strong>Substituições:</strong> Proibida a troca de nomes da ficha no dia do jogo.</li>
+                </ul>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>🏀 Basquete de Trilha (Masc. e Fem.)</h2>
+                    <ul style="margin-left: 1.2rem;">
+                        <li><strong>Regras:</strong> Construídas nas aulas de Educação Física.</li>
+                        <li><strong>Composição:</strong> 3 Duplas Masculinas e 3 Duplas Femininas por turma (Total: 6 masc. e 6 fem.).</li>
+                        <li><strong>Duração:</strong> Partida única de até <strong>10 minutos</strong>.</li>
+                        <li><strong>Sistema:</strong> Eliminatória simples (derrota elimina a dupla). Duplas da mesma turma podem se enfrentar por sorteio.</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>♟️ Jogos de Tabuleiro - Damas (Mista)</h2>
+                    <ul style="margin-left: 1.2rem;">
+                        <li><strong>Regras:</strong> Construídas nas aulas de Educação Física.</li>
+                        <li><strong>Composição:</strong> 4 participantes por turma (2 Masculinos e 2 Femininos).</li>
+                        <li><strong>Duração:</strong> Partida única por bateria.</li>
+                        <li><strong>Sistema:</strong> Eliminatória simples por bateria. Confrontos diretos da mesma turma permitidos via sorteio.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏃 Atletismo - Corrida de Velocidade (Masc. e Fem.)</h2>
+                <p><strong>Base:</strong> IAAF / CBAt adaptado para quadra poliesportiva.</p>
+                <div class="grid-2" style="margin-top: 0.8rem;">
+                    <div>
+                        <p><strong>Composição:</strong> 6 participantes por turma (3 Femininos e 3 Masculinos).</p>
+                        <p><strong>Provas:</strong></p>
+                        <ul style="margin-left: 1.5rem;">
+                            <li>Feminino: 15 metros</li>
+                            <li>Masculino: 20 metros</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p><strong>Pista & Regras:</strong> Pista adaptada com até 6 raias. Permite-se saída sem bloco de partida. Apuração por <i>photo finish</i> / cronometragem eletrônica.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>👕 VESTIMENTA OBRIGATÓRIA PARA TODAS AS MODALIDADES:</strong><br>
+                Shorts/bermuda leve, camiseta da equipe/colete e tênis. <br>
+                <span style="color: var(--danger); font-weight: bold;">É EXPRESSAMENTE PROIBIDO:</span> Uso de calça/short jeans, jogar descalço ou com roupas curtas.
+            </div>
+        </div>
+
+        <!-- TAB 4: ORGANIZAÇÃO & CRONOGRAMA -->
+        <div id="organizacao" class="tab-content">
+            <div class="card">
+                <h2>📅 Cronograma Geral dos Jogos</h2>
+                <p>Nos dias de jogos, as turmas correspondentes permanecerão na quadra durante todos os horários de aula.</p>
+                
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ano/Ciclo</th>
+                                <th>Data</th>
+                                <th>Fases Programadas</th>
+                                <th>Modalidades</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2"><strong>6ºs Anos</strong></td>
+                                <td><span class="badge badge-blue">08/09</span></td>
+                                <td>Fase de Grupos / Eliminatórias Iniciais</td>
+                                <td>Futsal (M/F), Basquete de Trilha, Damas</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-blue">09/09</span></td>
+                                <td>Semifinais e Finais</td>
+                                <td>Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="2"><strong>7ºs Anos</strong></td>
+                                <td><span class="badge badge-orange">10/09</span></td>
+                                <td>Fase de Grupos / Eliminatórias Iniciais</td>
+                                <td>Futsal (M/F), Basquete de Trilha, Damas</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-orange">11/09</span></td>
+                                <td>Semifinais e Finais</td>
+                                <td>Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Dinâmica Operacional dos Dias de Jogos</h2>
+                <div class="grid-2">
+                    <div>
+                        <h3>Permanência e Vivência</h3>
+                        <p>Os estudantes do ano contemplado no dia ficam dedicados integralmente às atividades na quadra de esportes, vivenciando o ambiente de torcida, arbitragem pedagógica e competição saudável.</p>
+                    </div>
+                    <div>
+                        <h3>Congresso Técnico e Sorteios</h3>
+                        <p>Todos os chaveamentos de modalidades individuais/duplas (Basquete de Trilha, Damas e Atletismo) e definição das tabelas serão efetuados por sorteio com a presença do(a) Capitão/Capitã de cada turma.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: FASES DO CAMPEONATO -->
+        <div id="fases" class="tab-content">
+            <div class="card">
+                <h2>📊 Formato da Competição & Fases de Disputa</h2>
+                
+                <h3>1. Sistema de Disputa do FUTSAL e QUEIMADA</h3>
+                <p>O campeonato será realizado em <strong>2 Fases</strong>:</p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>1ª Fase (Fase de Grupos):</strong> Classificam-se as 2 equipes mais bem pontuadas do grupo.</li>
+                    <li><strong>2ª Fase (Mata-Mata / Eliminatória Simples):</strong> Semifinais, Disputa de 3º Lugar e Grande Final.</li>
+                </ul>
+
+                <div class="alert alert-info" style="margin-top: 1rem;">
+                    <strong>📌 ESTRUTURA DOS GRUPOS POR ANO:</strong><br>
+                    • <strong>6ºs Anos (6 Turmas: A, B, C, D, E, F):</strong> 2 Grupos de 3 equipes cada — Classificam-se 2 de cada grupo para as Semifinais.<br>
+                    • <strong>7ºs Anos (5 Turmas: A, B, C, D, E):</strong> 1 Grupo de 3 equipes (classificam 2) + 1 Grupo de 2 equipes (classifica 1 equipe para as Semifinais/Final).<br>
+                    • Os grupos ainda não foram formados — a definição de qual turma entra em cada grupo é feita na aba <strong>🗂️ Organização dos Grupos</strong>.
+                </div>
+
+                <h3>2. Sistema de Disputa de BASQUETE DE TRILHA, DAMAS E ATLETISMO</h3>
+                <p>Disputados em <strong>Eliminatória Simples (Mata-Mata)</strong> desde a primeira rodada/bateria. Quem perder está eliminado. É permitido o confronto entre estudantes/duplas da mesma turma devido ao sorteio livre.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>💯 Tabela de Pontuação (Futsal)</h2>
+                    <table>
+                        <tr>
+                            <th>Resultado</th>
+                            <th>Pontuação</th>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-green">Vitória</span></td>
+                            <td><strong>3 pontos</strong></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-blue">Empate</span></td>
+                            <td><strong>2 pontos</strong></td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-orange">Derrota</span></td>
+                            <td><strong>0 ponto</strong></td>
+                        </tr>
+                    </table>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        * Exceção: No grupo de 2 equipes dos 7ºs anos, em caso de empate haverá decisão obrigatória por pênaltis para apontar o vencedor.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h2>⚖️ Critérios de Desempate</h2>
+                    <h3>a) Na Fase de Grupos (Classificação)</h3>
+                    <ol style="margin-left: 1.2rem;">
+                        <li>Confronto Direto</li>
+                        <li>Saldo de Gols</li>
+                        <li>Menor número de Faltas e Cartões</li>
+                    </ol>
+
+                    <h3>b) Nas Fases Eliminatórias (Mata-Mata)</h3>
+                    <p><strong>Disputa de Pênaltis:</strong> Cada equipe terá direito a <strong>3 cobranças</strong> iniciais. Persistindo o empate, haverá cobranças alternadas até a definição do vencedor.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: ORGANIZAÇÃO DOS GRUPOS, HORÁRIOS E REGISTRO DE JOGOS (INTERATIVO) -->
+        <div id="registro" class="tab-content">
+
+            <div class="card" id="editLockCard">
+                <h2>🔒 Área Restrita de Edição</h2>
+                <div class="alert alert-warning">
+                    A <strong>montagem dos grupos</strong>, o <strong>cadastro de horários</strong> e o <strong>registro de partidas/placares</strong> (incluindo espaço utilizado) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida por código de acesso.
+                </div>
+
+                <div id="lockedView">
+                    <p style="margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">Consultar os grupos, horários e resultados já cadastrados não exige código — role a página para visualizá-los. Para <strong>editar</strong>, insira o código de acesso abaixo:</p>
+                    <form id="unlockForm" onsubmit="tryUnlockEditing(event)" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
+                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                            <label for="editCodeInput">Código de acesso</label>
+                            <input type="password" id="editCodeInput" placeholder="Digite o código" autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn">🔓 Liberar Edição</button>
+                    </form>
+                    <p id="unlockErrorMsg" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Código incorreto. Consulte a coordenação ou o professor de Educação Física.</p>
+                </div>
+
+                <div id="unlockedView" style="display: none;">
+                    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <span>🔓 <strong>Edição liberada</strong> para esta sessão de navegação.</span>
+                        <button type="button" class="btn" style="background: var(--text-muted);" onclick="lockEditing()">🔒 Bloquear Novamente</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🗂️ Organização e Lançamento dos Grupos</h2>
+                <p>Este painel serve para organizar as turmas nos Grupos A e B (fase de grupos de Futsal e Queimada). Utilize os seletores abaixo para montar cada grupo.</p>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Nenhum grupo formado até o momento.</strong> Defina o grupo de cada turma nas tabelas abaixo.
+                </div>
+
+                <div id="groupSelectLockedMsg" class="alert alert-info" style="display: none;">🔒 Os seletores abaixo estão bloqueados. Insira o código de acesso no topo desta aba para editar a montagem dos grupos.</div>
+
+                <div class="grid-2">
+                    <div>
+                        <h3>6ºs Anos — 6 turmas (2 grupos de 3 equipes)</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Turma</th>
+                                        <th style="width: 160px;">Grupo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groupTable6"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>7ºs Anos — 5 turmas (grupo de 3 + grupo de 2 equipes)</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Turma</th>
+                                        <th style="width: 160px;">Grupo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groupTable7"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Resumo dos Grupos Formados</h2>
+                <div class="grid-2">
+                    <div>
+                        <h3>6ºs Anos</h3>
+                        <div id="summary6"></div>
+                    </div>
+                    <div>
+                        <h3>7ºs Anos</h3>
+                        <div id="summary7"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⏱️ Horários Disponíveis para os Jogos</h2>
+                <p>Cadastre aqui os <strong>intervalos</strong> de horário (por data) em que as partidas poderão ser realizadas — por exemplo, "08:00 - 09:30". Um intervalo <strong>não representa um único jogo</strong>: vários jogos podem acontecer dentro do mesmo intervalo, cada um com seu próprio horário específico.</p>
+
+                <div id="slotFormGate">
+                    <form id="slotForm" onsubmit="addTimeSlot(event)" style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px;">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Data</label>
+                                <input type="date" id="slotDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Horário Inicial</label>
+                                <input type="time" id="slotStart" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Horário Final</label>
+                                <input type="time" id="slotEnd" required>
+                            </div>
+                        </div>
+                        <div class="form-actions-row" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button type="submit" id="slotSubmitBtn" class="btn" style="flex: 1;">➕ Adicionar Horário Disponível</button>
+                            <button type="button" class="btn" style="background: var(--text-muted);" onclick="cancelEditSlot()">Cancelar</button>
+                        </div>
+                    </form>
+
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.6rem;">💡 Use <strong>✎ Editar</strong> para corrigir um horário já cadastrado, ou <strong>⧉ Duplicar</strong> para criar uma cópia rápida (útil quando muda pouca coisa entre um intervalo e outro).</p>
+                </div>
+
+                <div id="slotFormLockedMsg" class="alert alert-info" style="display: none; margin-top: 1rem;">🔒 O cadastro de novos horários é restrito à coordenação e ao professor de Educação Física. Insira o código de acesso no início desta aba para editar.</div>
+
+                <div class="table-responsive" style="margin-top: 1rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Intervalo</th>
+                                <th style="width: 130px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="slotsBody">
+                            <tr id="emptySlotsRow">
+                                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">Nenhum horário cadastrado até o momento.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>✍️ Registro de Partidas & Lançamento de Placares</h2>
+                <p>Registre aqui os jogos realizados, com data, horário específico, espaço, turmas e placar. Os resultados ficam disponíveis publicamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>, para acompanhamento de estudantes e da comunidade escolar.</p>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Regras de ocupação:</strong>
+                    <ul style="margin: 0.4rem 0 0 1.2rem;">
+                        <li>Um mesmo <strong>espaço</strong> (Futsal 01, Futsal 02, Vôlei, Basquete, Área Livre ou Jogos de Tabuleiro) não pode ser utilizado em <strong>horários concomitantes</strong> — não é permitido registrar dois jogos no mesmo espaço, na mesma data e no mesmo horário.</li>
+                        <li>Uma mesma <strong>turma</strong> não pode atuar em <strong>mais de dois jogos coletivos</strong> no mesmo horário.</li>
+                    </ul>
+                </div>
+
+                <div id="gameFormGate">
+                    <form id="gameForm" onsubmit="addGame(event)" style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px;">
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Data</label>
+                                <select id="gameDate" required onchange="updateIntervalsInfo()">
+                                    <option value="">Selecione a data</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Horário do Jogo</label>
+                                <input type="time" id="gameTime" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria/Ano</label>
+                                <select id="gameYear" required>
+                                    <option value="6º Ano">6º Ano</option>
+                                    <option value="7º Ano">7º Ano</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Espaço</label>
+                                <select id="gameSpace" required>
+                                    <option value="">Selecione o espaço</option>
+                                    <option value="Futsal 01">Futsal 01</option>
+                                    <option value="Futsal 02">Futsal 02</option>
+                                    <option value="Vôlei">Vôlei</option>
+                                    <option value="Basquete">Basquete</option>
+                                    <option value="Área Livre">Área Livre</option>
+                                    <option value="Jogos de Tabuleiro">Jogos de Tabuleiro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="dateIntervalsInfo" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;"></div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label>Modalidade</label>
+                                <select id="gameModal" required>
+                                    <option value="Futsal Masc.">Futsal Masculino</option>
+                                    <option value="Futsal Fem.">Futsal Feminino</option>
+                                    <option value="Queimada Mista">Queimada Mista</option>
+                                    <option value="Basquete Trilha">Basquete de Trilha</option>
+                                    <option value="Damas">Damas</option>
+                                    <option value="Atletismo">Atletismo</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Fase do Campeonato</label>
+                                <select id="gamePhase" required>
+                                    <option value="Fase de Grupos">Fase de Grupos</option>
+                                    <option value="Quartas de Final">Quartas de Final</option>
+                                    <option value="Semifinal">Semifinal</option>
+                                    <option value="3º Lugar">3º Lugar</option>
+                                    <option value="Final">Grande Final</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Placar / Resultado</label>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <input type="number" id="score1" min="0" placeholder="0" required style="text-align: center;">
+                                    <span>X</span>
+                                    <input type="number" id="score2" min="0" placeholder="0" required style="text-align: center;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Equipe / Atleta 1</label>
+                                <input type="text" id="team1" placeholder="Ex: 6º Ano A" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Equipe / Atleta 2</label>
+                                <input type="text" id="team2" placeholder="Ex: 6º Ano B" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 0.5rem;">➕ Registrar Resultado da Partida</button>
+                    </form>
+                </div>
+
+                <div id="gameFormLockedMsg" class="alert alert-info" style="display: none; margin-top: 1rem;">🔒 O registro de novas partidas e placares é restrito à coordenação e ao professor de Educação Física. Insira o código de acesso no início desta aba para editar.</div>
+            </div>
+
+            <div class="card">
+                <h2>🏆 Registro Geral de Jogos Cadastrados</h2>
+                <div class="table-responsive">
+                    <table id="gamesTable">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Ano</th>
+                                <th>Modalidade</th>
+                                <th>Fase</th>
+                                <th>Espaço</th>
+                                <th>Confronto</th>
+                                <th>Placar</th>
+                                <th>Status / Vencedor</th>
+                                <th style="width: 70px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamesBody">
+                            <tr id="emptyGamesRow">
+                                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                    Nenhum jogo foi registrado até o momento. Os resultados aparecerão aqui assim que as partidas forem realizadas.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6b: GRADE DE HORÁRIOS & RESULTADOS (PÚBLICA) -->
+        <div id="grade" class="tab-content">
+            <div class="card">
+                <h2>🗓️ Grade de Horários & Resultados dos Jogos</h2>
+                <p>Consulte aqui os dias, horários e modalidades dos Jogos Estudantis do GETECO 2026, com os resultados já registrados. Esta tabela é de acompanhamento público para estudantes, professores e famílias.</p>
+                <div id="scheduleContainer"></div>
+            </div>
+        </div>
+
+        <!-- TAB 7: LISTAGEM DE INSCRIÇÃO / FICHAS DOS ALUNOS -->
+        <div id="inscricoes" class="tab-content">
+            <div class="card">
+                <h2>📋 Inscrição e Mapeamento Oficial de Atletas por Turma</h2>
+                <p>Selecione a turma para carregar a listagem oficial de alunos importada do sistema e indicar a participação (<strong>Sim</strong> / <strong>Não</strong>) em cada modalidade esportiva.</p>
+                
+                <div style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; background: #f1f5f9; padding: 1rem; border-radius: 8px;">
+                    <label for="classSelect" style="font-weight: 700; font-size: 1rem; margin: 0;">Selecione a Turma:</label>
+                    <select id="classSelect" onchange="renderStudentTable()" style="max-width: 320px; font-weight: 600; padding: 0.5rem;">
+                        <optgroup label="6ºs Anos (6 Turmas)">
+                            <option value="601">6º Ano A</option>
+                            <option value="602">6º Ano B</option>
+                            <option value="603">6º Ano C</option>
+                            <option value="604">6º Ano D</option>
+                            <option value="605">6º Ano E</option>
+                            <option value="606">6º Ano F</option>
+                        </optgroup>
+                        <optgroup label="7ºs Anos (5 Turmas)">
+                            <option value="701">7º Ano A</option>
+                            <option value="702">7º Ano B</option>
+                            <option value="703">7º Ano C</option>
+                            <option value="704">7º Ano D</option>
+                            <option value="705">7º Ano E</option>
+                        </optgroup>
+                    </select>
+                    <span id="classInfoBadge" class="badge badge-blue" style="font-size: 0.95rem; padding: 0.5rem 1rem;">6º Ano A - 33 Alunos</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="studentRosterTable">
+                        <thead>
+                            <tr>
+                                <th width="4%">Nº</th>
+                                <th width="10%">Matrícula</th>
+                                <th width="28%">Nome do Aluno / Atleta</th>
+                                <th width="11.6%" style="text-align: center;">Futsal</th>
+                                <th width="11.6%" style="text-align: center;">Queimada</th>
+                                <th width="11.6%" style="text-align: center;">Basquete</th>
+                                <th width="11.6%" style="text-align: center;">Damas</th>
+                                <th width="11.6%" style="text-align: center;">Atletismo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentRosterBody">
+                            <!-- Preenchido dinamicamente via JavaScript com os alunos da planilha -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📑 Resumo do Mapeamento de Vagas & Cotas por Modalidade</h2>
+                <div class="grid-2">
+                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                        <h3>⚽ Futsal (Masc. / Fem.)</h3>
+                        <p><strong>Cota:</strong> 6 a 12 inscritos por naipe por turma.</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">* Rodízio obrigatório no intervalo (mínimo 3 substituições) e todos jogam.</p>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                        <h3>🔥 Queimada (Mista)</h3>
+                        <p><strong>Cota:</strong> 12 a 14 atletas (50% Masc. / 50% Fem.).</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">* Composição paritária obrigatória entre meninos e meninas.</p>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top: 1rem;">
+                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                        <h3>🏀 Basquete de Trilha</h3>
+                        <p><strong>Cota:</strong> 3 Duplas Fem. + 3 Duplas Masc. (12 alunos).</p>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                        <h3>♟️ Damas (Mista)</h3>
+                        <p><strong>Cota:</strong> 4 Atletas (2 Masc. / 2 Fem.).</p>
+                    </div>
+
+                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                        <h3>🏃 Atletismo</h3>
+                        <p><strong>Cota:</strong> 6 Atletas (3 Fem. - 15m / 3 Masc. - 20m).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
     </div>
-    <div class="sp"></div>
-    <div class="orient-toggle">
-      <button class="ot-btn active" id="ot-p" onclick="setOrient('retrato',this)">▯ Retrato</button>
-      <button class="ot-btn"        id="ot-l" onclick="setOrient('paisagem',this)">▭ Paisagem</button>
-    </div>
-    <button class="btn btn-ghost" id="btn-transp" onclick="toggleTranspose()">⇄ Transpor tabela</button>
-    <button class="btn btn-ghost"   onclick="abrirModalEspacos()">✏️ Espaços</button>
-    <button class="btn btn-ghost"   onclick="limparGrade()">🗑 Limpar</button>
-    <button class="btn btn-gold"    onclick="imprimir(false)">🖨 Imprimir preenchido</button>
-    <button class="btn btn-outline" onclick="imprimir(true)">🖨 Em branco</button>
-  </div>
-</div>
 
-<!-- CONTEÚDO -->
-<div class="page">
+    <script>
 
-  <!-- Legenda (só na tela) -->
-  <div class="legend">
-    <span class="leg-label">Modalidades:</span>
-    <span class="leg-chip" style="background:#e4f3ea;border-color:#23a050;color:#0f5a2a">⚽ Futsal</span>
-    <span class="leg-chip" style="background:#fffbe6;border-color:#d4a017;color:#7a4a00">🏐 Vôlei</span>
-    <span class="leg-chip" style="background:#e0eeff;border-color:#1565c0;color:#0d3d7a">🏀 Basquete</span>
-    <span class="leg-chip" style="background:#fff3cd;border-color:#d4a017;color:#7a4a00;font-weight:700">🏆 Final</span>
-    <span class="leg-chip" style="background:#f0f0f0;border-color:#aaa;color:#666">⏸ Reservado</span>
-    <span style="font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-left:4px">· Clique num espaço para editar</span>
-  </div>
-
-  <!-- Cabeçalho só na impressão -->
-  <div class="print-header">
-    <h1>INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</h1>
-    <p>08 A 11 DE SETEMBRO &nbsp;·&nbsp; GETECO &nbsp;·&nbsp; Prof. Marcelo — Educação Física</p>
-    <p class="print-mode" id="print-mode-label"></p>
-  </div>
-
-  <!-- Tabela -->
-  <div class="wrap">
-    <table id="main-table">
-      <colgroup id="colgroup"></colgroup>
-      <thead id="thead"></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-
-  <!-- Totalizadores (só na tela) -->
-  <div class="totais" id="totais"></div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-bg" id="modal">
-  <div class="modal">
-    <button class="modal-close" onclick="fecharModal()">✕</button>
-    <div class="modal-title" id="m-title"></div>
-    <div class="modal-sub"   id="m-sub"></div>
-    <input type="hidden" id="m-esp">
-    <input type="hidden" id="m-dia">
-    <input type="hidden" id="m-hora">
-    <div class="fg">
-      <label>Modalidade / Esporte</label>
-      <select id="m-mod" onchange="atualizarPreview()">
-        <option value="">— Livre / Vazio —</option>
-        <option value="futsal">⚽ Futsal</option>
-        <option value="volei">🏐 Vôlei</option>
-        <option value="basquete">🏀 Basquete</option>
-        <option value="final">🏆 Final</option>
-        <option value="reservado">⏸ Reservado / Pausa</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Espaço / Local</label>
-      <select id="m-espaco" onchange="atualizarPreview()">
-        <option value="">— não definido —</option>
-        <option value="Q1">Q1 — Quadra 1</option>
-        <option value="Q2">Q2 — Quadra 2</option>
-        <option value="B1">B1 — Basquete 1</option>
-        <option value="V1">V1 — Vôlei 1</option>
-      </select>
-    </div>
-    <div class="preview" id="m-preview">— livre —</div>
-    <div class="fg"><label>Time A / Turma A</label><input id="m-tA" placeholder="Ex: 7º A" oninput="atualizarPreview()"></div>
-    <div class="fg"><label>Time B / Turma B</label><input id="m-tB" placeholder="Ex: 7º B" oninput="atualizarPreview()"></div>
-    <div class="fg"><label>Fase / Observação</label><input id="m-fase" placeholder="Ex: Triangular J1, Chave, Final..." oninput="atualizarPreview()"></div>
-    <div class="m-act">
-      <button class="mb mb-green" onclick="salvar()">💾 Salvar</button>
-      <button class="mb mb-del"   onclick="limparSlot()">✕ Limpar slot</button>
-      <button class="mb mb-ghost" onclick="fecharModal()">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL ESPAÇOS -->
-<div class="modal-bg" id="modal-espacos">
-  <div class="modal modal-esp">
-    <button class="modal-close" onclick="fecharModalEspacos()">✕</button>
-    <div class="modal-title">✏️ EDITAR ESPAÇOS</div>
-    <div class="modal-sub" style="margin-bottom:16px">Personalize os nomes exibidos na tag lateral de cada espaço</div>
-    <div id="esp-edit-list"></div>
-    <div class="m-act" style="margin-top:14px">
-      <button class="mb mb-green" onclick="salvarEspacos()">💾 Salvar</button>
-      <button class="mb mb-ghost" onclick="fecharModalEspacos()">Cancelar</button>
-      <button class="mb mb-del"   onclick="resetarEspacos()">↩ Restaurar padrão</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const DIAS = [
-  {key:'d08',num:'08',nome:'TERÇA',   data:'2026-09-08',turma:'',cor:'#23a050'},
-  {key:'d09',num:'09',nome:'QUARTA',  data:'2026-09-09',turma:'',cor:'#1565c0'},
-  {key:'d10',num:'10',nome:'QUINTA',  data:'2026-09-10',turma:'',cor:'#d4a017'},
-  {key:'d11',num:'11',nome:'SEXTA',   data:'2026-09-11',turma:'',cor:'#c0392b'},
-];
-const HORAS = [
-  {id:'H1',label:'H1',range:'13:20 – 14:00',rec:false},
-  {id:'H2',label:'H2',range:'14:00 – 14:40',rec:false},
-  {id:'H3',label:'H3',range:'14:40 – 15:20',rec:false},
-  {id:'R0',label:'RECREIO',range:'15:20 – 16:00',rec:true},
-  {id:'H4',label:'H4',range:'16:00 – 16:40',rec:false},
-  {id:'H5',label:'H5',range:'16:40 – 17:20',rec:false},
-];
-const ESPACOS_DEFAULT = [
-  {key:'q1', lbl:'Q1', css:'fut',  icon:'⚽',nome:'Quadra 1 (Futsal)'},
-  {key:'q2', lbl:'Q2', css:'fut',  icon:'⚽',nome:'Quadra 2 (Futsal)'},
-  {key:'b1', lbl:'B1', css:'esp3', icon:'🏅',nome:'Basquete 1'},
-  {key:'v1', lbl:'V1', css:'volei',icon:'🏐',nome:'Vôlei 1'},
-];
-// Labels editáveis — carregados do localStorage
-const LS_LBL='ic26_lbls';
-let _lbls={};
-function loadLbls(){try{const s=localStorage.getItem(LS_LBL);if(s)_lbls=JSON.parse(s);}catch(e){}}
-function saveLbls(){try{localStorage.setItem(LS_LBL,JSON.stringify(_lbls));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
-function getLbl(key){return _lbls[key]||ESPACOS_DEFAULT.find(e=>e.key===key)?.lbl||key;}
-// ESPACOS é gerado dinamicamente com os labels atuais
-function getEspacos(){return ESPACOS_DEFAULT.map(e=>({...e,lbl:getLbl(e.key)}));}
-
-// ─ MODAL ESPAÇOS ─
-const ESP_COLORS={fut:'#1a3a20',volei:'#5a4000',esp3:'#0d2f6e',esp4:'#3d0060'};
-function abrirModalEspacos(){
-  const list=document.getElementById('esp-edit-list');
-  list.innerHTML=ESPACOS_DEFAULT.map(e=>{
-    const cur=getLbl(e.key);
-    const col=ESP_COLORS[e.css]||'#333';
-    return `<div class="esp-edit-row">
-      <span class="esp-preview-tag" style="background:${col}">${cur}</span>
-      <label>${e.icon} ${e.nome}</label>
-      <input id="elbl-${e.key}" value="${cur}" placeholder="${e.lbl}" maxlength="18"
-        oninput="document.querySelector('#esp-edit-list .esp-edit-row:nth-child(${ESPACOS_DEFAULT.indexOf(e)+1}) .esp-preview-tag').textContent=this.value||'${e.lbl}'">
-    </div>`;
-  }).join('');
-  document.getElementById('modal-espacos').classList.add('open');
-}
-function fecharModalEspacos(){document.getElementById('modal-espacos').classList.remove('open');}
-function salvarEspacos(){
-  ESPACOS_DEFAULT.forEach(e=>{
-    const v=document.getElementById('elbl-'+e.key)?.value.trim();
-    if(v)_lbls[e.key]=v; else delete _lbls[e.key];
-  });
-  saveLbls();fecharModalEspacos();render();toast('✅ Espaços atualizados!');
-}
-function resetarEspacos(){
-  _lbls={};saveLbls();fecharModalEspacos();render();toast('↩ Nomes restaurados.');
-}
-let ESPACOS=getEspacos();
-const MOD = {
-  futsal:   {bg:'#e4f3ea',brd:'#23a050',txt:'#0f5a2a',icon:'⚽',nome:'Futsal'},
-  volei:    {bg:'#fffbe6',brd:'#d4a017',txt:'#7a4a00',icon:'🏐',nome:'Vôlei'},
-  basquete: {bg:'#e0eeff',brd:'#1565c0',txt:'#0d3d7a',icon:'🏀',nome:'Basquete'},
-  final:    {bg:'#fff3cd',brd:'#d4a017',txt:'#7a4a00',icon:'🏆',nome:'Final'},
-  reservado:{bg:'#f0f0f0',brd:'#aaa',   txt:'#666',   icon:'⏸',nome:'Reservado'},
+        // Dados oficiais das turmas e alunos importados da planilha LISTAGEM 20 08 MODIFICADA.xlsx
+        const officialStudentsData = {
+  "601": {
+    "code": "601",
+    "label": "6º Ano A",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2021423",
+        "nome": "ALICE MANUELLA DE OLIVEIRA FELIX LIMA"
+      },
+      {
+        "num": 2,
+        "mat": "2016646",
+        "nome": "KAIQUE EDUARDO DE SOUZA LOPES"
+      },
+      {
+        "num": 3,
+        "mat": "2015854",
+        "nome": "LORENZO SANTOS DIAS CASTRO"
+      },
+      {
+        "num": 4,
+        "mat": "20181337",
+        "nome": "BRYAN FELIPE DE CARIA TEIXEIRA"
+      },
+      {
+        "num": 5,
+        "mat": "20151910",
+        "nome": "KAUA CASTRO OLIVEIRA"
+      },
+      {
+        "num": 6,
+        "mat": "20192446",
+        "nome": "RAYSSA DE OLIVEIRA DAMASCENO"
+      },
+      {
+        "num": 7,
+        "mat": "20172957",
+        "nome": "CLARA ALVES SCARAMELO CUPERTINO"
+      },
+      {
+        "num": 8,
+        "mat": "20175814",
+        "nome": "DIULIA VICTORIA LIMA DA CRUZ"
+      },
+      {
+        "num": 9,
+        "mat": "20255999",
+        "nome": "PEDRO TIAGO PINHEIRO"
+      },
+      {
+        "num": 10,
+        "mat": "20256400",
+        "nome": "ANA JULIA SOUZA OLIVEIRA"
+      },
+      {
+        "num": 11,
+        "mat": "20258404",
+        "nome": "CATARINA PENIDO DE SOUZA"
+      },
+      {
+        "num": 12,
+        "mat": "201710115",
+        "nome": "HELOISA CAROLINE RODRIGUES MOREIRA"
+      },
+      {
+        "num": 13,
+        "mat": "201812534",
+        "nome": "DANIEL SERGIO LOBO"
+      },
+      {
+        "num": 14,
+        "mat": "201812608",
+        "nome": "ELIZABETH CRISTINA FERREIRA BARBOSA"
+      },
+      {
+        "num": 15,
+        "mat": "202513632",
+        "nome": "KAUA VICTOR NUNES SILVA"
+      },
+      {
+        "num": 16,
+        "mat": "202415640",
+        "nome": "ESTHER SOARES ALCANTARA"
+      },
+      {
+        "num": 17,
+        "mat": "201815786",
+        "nome": "CHRISTOPHER FERREIRA CAMPOS"
+      },
+      {
+        "num": 18,
+        "mat": "201816229",
+        "nome": "KAUAN ROBSON MOREIRA COSTA DA SILVA"
+      },
+      {
+        "num": 19,
+        "mat": "202516945",
+        "nome": "ESTHER ALMEIDA BRITO"
+      },
+      {
+        "num": 20,
+        "mat": "202517916",
+        "nome": "DAVI NATHAN SILVA NASCIMENTO"
+      },
+      {
+        "num": 21,
+        "mat": "202118514",
+        "nome": "MARIA EDUARDA DE JESUS SOUZA"
+      },
+      {
+        "num": 22,
+        "mat": "202419191",
+        "nome": "BERNARDO MARTINS EMIGDIO DE SOUSA"
+      },
+      {
+        "num": 23,
+        "mat": "201719699",
+        "nome": "LUARA VALENTINA BARBOSA PINTO CAMILO"
+      },
+      {
+        "num": 24,
+        "mat": "202019833",
+        "nome": "LUCCA CAMPOS SALDANHA"
+      },
+      {
+        "num": 25,
+        "mat": "201820590",
+        "nome": "ALEPH ANDRADE SIMOES"
+      },
+      {
+        "num": 26,
+        "mat": "202622673",
+        "nome": "KEVEN HENRIQUE DE OLIVEIRA SOARES"
+      },
+      {
+        "num": 27,
+        "mat": "202124532",
+        "nome": "AGATA SANTOS TEIXEIRA SILVA"
+      },
+      {
+        "num": 28,
+        "mat": "201925999",
+        "nome": "VITOR MIGUEL OLIVEIRA DA SILVA"
+      },
+      {
+        "num": 29,
+        "mat": "202127679",
+        "nome": "ANDRE XAVIER DA SILVA BISPO"
+      },
+      {
+        "num": 30,
+        "mat": "202428979",
+        "nome": "MIGUEL GONCALVES FREITAS"
+      },
+      {
+        "num": 31,
+        "mat": "201634557",
+        "nome": "VITORIA BEATRIZ DE OLIVEIRA FARIA"
+      },
+      {
+        "num": 32,
+        "mat": "201840417",
+        "nome": "LUCAS DAMIAN BARBOSA GONCALVES"
+      },
+      {
+        "num": 33,
+        "mat": "201840260",
+        "nome": "SARAH ALVES DOS SANTOS"
+      }
+    ]
+  },
+  "602": {
+    "code": "602",
+    "label": "6º Ano B",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2021196",
+        "nome": "ALICE PIMENTA CAMPOS RODRIGUES"
+      },
+      {
+        "num": 2,
+        "mat": "2014705",
+        "nome": "MATHEUS MICHAEL FERREIRA VALENTIM"
+      },
+      {
+        "num": 3,
+        "mat": "20201779",
+        "nome": "LAUANE ESTER SILVA MARTINS ROSA"
+      },
+      {
+        "num": 4,
+        "mat": "20194096",
+        "nome": "CLARA RIOS FRIAS"
+      },
+      {
+        "num": 5,
+        "mat": "20194344",
+        "nome": "ANNA VICTORIA NEDES VIEIRA"
+      },
+      {
+        "num": 6,
+        "mat": "20184828",
+        "nome": "ESTHER BRASILEIRO WACHA"
+      },
+      {
+        "num": 7,
+        "mat": "20184958",
+        "nome": "ISABELLY GABRIELY FREIRE SOUZA"
+      },
+      {
+        "num": 8,
+        "mat": "20186792",
+        "nome": "BERNARD ALVES PARREIRAS PERONI"
+      },
+      {
+        "num": 9,
+        "mat": "20208052",
+        "nome": "RODRIGO MARQUES NASCIMENTO CARDOSO"
+      },
+      {
+        "num": 10,
+        "mat": "20239995",
+        "nome": "LORENZO DE PAULA SANTOS DE ALMEIDA"
+      },
+      {
+        "num": 11,
+        "mat": "202410479",
+        "nome": "CHRISTOPHER ALEJANDRO ALVES DE OLIVEIRA"
+      },
+      {
+        "num": 12,
+        "mat": "201910880",
+        "nome": "DIOGO DE SOUZA SILVA"
+      },
+      {
+        "num": 13,
+        "mat": "201811572",
+        "nome": "ESTÊVÃO MIGUEL ALVES DOS SANTOS"
+      },
+      {
+        "num": 14,
+        "mat": "202612062",
+        "nome": "ANA VITORIA ANTUNES DE SOUZA"
+      },
+      {
+        "num": 15,
+        "mat": "202415995",
+        "nome": "LARA GULARTE DUARTE"
+      },
+      {
+        "num": 16,
+        "mat": "201816226",
+        "nome": "ISABELLA VITORIA MORAES RODRIGUES"
+      },
+      {
+        "num": 17,
+        "mat": "202519141",
+        "nome": "KAUANY CRISTINA LOPES NASCIMENTO"
+      },
+      {
+        "num": 18,
+        "mat": "202221330",
+        "nome": "HEITOR VITOR SILVA SANTOS"
+      },
+      {
+        "num": 19,
+        "mat": "202022346",
+        "nome": "THAUANY ESTER RODRIGUES SILVA"
+      },
+      {
+        "num": 20,
+        "mat": "201922666",
+        "nome": "ALICE PERENNE DE OLIVEIRA"
+      },
+      {
+        "num": 21,
+        "mat": "201922887",
+        "nome": "VALENTINA ALMEIDA MAGALHAES"
+      },
+      {
+        "num": 22,
+        "mat": "201922981",
+        "nome": "NATHAN HENRIQUE COUTINHO MACIEL"
+      },
+      {
+        "num": 23,
+        "mat": "201723765",
+        "nome": "SARA VITORIA DOS ANJOS SILVA"
+      },
+      {
+        "num": 24,
+        "mat": "202524850",
+        "nome": "SOFIA ESTER ALMEIDA DE MENEZES"
+      },
+      {
+        "num": 25,
+        "mat": "202325179",
+        "nome": "BEATRIZ EDUARDA DO NASCIMENTO AMARAL"
+      },
+      {
+        "num": 26,
+        "mat": "201726799",
+        "nome": "MANUELA HELENA XAVIER LOPES"
+      },
+      {
+        "num": 27,
+        "mat": "201832542",
+        "nome": "DAVI VILAS BOAS MORAIS"
+      },
+      {
+        "num": 28,
+        "mat": "201735586",
+        "nome": "BERNARDO ALVES DE SOUZA"
+      },
+      {
+        "num": 29,
+        "mat": "202236045",
+        "nome": "BARBARA VICTORIA QUINONEZ RAMOS"
+      },
+      {
+        "num": 30,
+        "mat": "201831456",
+        "nome": "SOPHIA OLIVEIRA VIANA"
+      },
+      {
+        "num": 31,
+        "mat": "20188541",
+        "nome": "KAILLANY EVILLYN FLORENÇO LABOURE DA SILVA"
+      },
+      {
+        "num": 32,
+        "mat": "202417658",
+        "nome": "ARTHUR OLIVEIRA DE FREITAS"
+      }
+    ]
+  },
+  "603": {
+    "code": "603",
+    "label": "6º Ano C",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2023222",
+        "nome": "ESTHER LOPES ROCHA DE ABREU"
+      },
+      {
+        "num": 2,
+        "mat": "20201985",
+        "nome": "ARTHUR VINICIUS OLIVEIRA DE PAIVA"
+      },
+      {
+        "num": 3,
+        "mat": "20153522",
+        "nome": "GABRIELLE RODRIGUES DA SILVA"
+      },
+      {
+        "num": 4,
+        "mat": "20185310",
+        "nome": "BRUNO WILLIAM SILVA DA COSTA"
+      },
+      {
+        "num": 5,
+        "mat": "20185463",
+        "nome": "LUIZA VITÓRIA FERNANDES SANTOS"
+      },
+      {
+        "num": 6,
+        "mat": "20256106",
+        "nome": "ESTER LUIZA FELIX DE OLIVEIRA"
+      },
+      {
+        "num": 7,
+        "mat": "20186128",
+        "nome": "ZION ROBERTO BANDEIRA"
+      },
+      {
+        "num": 8,
+        "mat": "202511890",
+        "nome": "SOFIA PEREIRA DE CARVALHO"
+      },
+      {
+        "num": 9,
+        "mat": "202612152",
+        "nome": "ENZO NEVES DE SOUZA"
+      },
+      {
+        "num": 10,
+        "mat": "202513079",
+        "nome": "LUIS MIGUEL PINHEIRO MOREIRA"
+      },
+      {
+        "num": 11,
+        "mat": "202215268",
+        "nome": "PEROLA MARIA PIRES SANTANA"
+      },
+      {
+        "num": 12,
+        "mat": "201815321",
+        "nome": "GUSTAVO FELIPE CAETANO MIRANDA"
+      },
+      {
+        "num": 13,
+        "mat": "201815636",
+        "nome": "AGATHA RAFAELLY VIEIRA DE SOUZA"
+      },
+      {
+        "num": 14,
+        "mat": "201816291",
+        "nome": "YURI CANDIDA MEDEIROS"
+      },
+      {
+        "num": 15,
+        "mat": "201716510",
+        "nome": "JULIA VITALINO DE CARVALHO"
+      },
+      {
+        "num": 16,
+        "mat": "202516769",
+        "nome": "ANA BEATRIZ CASTRO APOSTOLO"
+      },
+      {
+        "num": 17,
+        "mat": "202017684",
+        "nome": "GIOVANA VENTURA SILVA"
+      },
+      {
+        "num": 18,
+        "mat": "202118000",
+        "nome": "KAUA FELIPE DE OLIVEIRA ALVARENGA"
+      },
+      {
+        "num": 19,
+        "mat": "202018977",
+        "nome": "LUIZ CLÁUDIO SILVA CUNHA PEREIRA"
+      },
+      {
+        "num": 20,
+        "mat": "201819053",
+        "nome": "BERNARDO BRAGANÇA DO NASCIMENTO"
+      },
+      {
+        "num": 21,
+        "mat": "202019833",
+        "nome": "LUCCA CAMPOS SALDANHA"
+      },
+      {
+        "num": 22,
+        "mat": "201919852",
+        "nome": "ALICE YASMIN MARTINS SILVA"
+      },
+      {
+        "num": 23,
+        "mat": "201822170",
+        "nome": "EMANUELLE BITTENCOURT SOARES"
+      },
+      {
+        "num": 24,
+        "mat": "201923212",
+        "nome": "EMANUELLY VITORIA PEREIRA FELICIANO"
+      },
+      {
+        "num": 25,
+        "mat": "202525958",
+        "nome": "DAVI VICTOR DIAS DUQUES"
+      },
+      {
+        "num": 26,
+        "mat": "201826754",
+        "nome": "DAVI CARVALHO DE OLIVEIRA"
+      },
+      {
+        "num": 27,
+        "mat": "201928308",
+        "nome": "SOPHIA ALMEIDA PEREIRA DA CRUZ"
+      },
+      {
+        "num": 28,
+        "mat": "201532860",
+        "nome": "ALVARO GABRIEL SILVA FERNANDES"
+      },
+      {
+        "num": 29,
+        "mat": "201835664",
+        "nome": "ARTHUR VENTURA DA SILVA ARAUJO"
+      },
+      {
+        "num": 30,
+        "mat": "202237633",
+        "nome": "DAVI PIETRO SILVA SANTOS"
+      },
+      {
+        "num": 31,
+        "mat": "201838479",
+        "nome": "LARA SOFIA ALMEIDA VIEIRA"
+      }
+    ]
+  },
+  "604": {
+    "code": "604",
+    "label": "6º Ano D",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2018701",
+        "nome": "VITORIA REGINA DA SILVA VEIGA"
+      },
+      {
+        "num": 2,
+        "mat": "20202051",
+        "nome": "CECILIA DE OLIVEIRA TAVARES"
+      },
+      {
+        "num": 3,
+        "mat": "20202164",
+        "nome": "MILENA CAROLINA ANTUNES ESTEVES"
+      },
+      {
+        "num": 4,
+        "mat": "20192451",
+        "nome": "SOPHIA STEFANI CAMPOS FERREIRA"
+      },
+      {
+        "num": 5,
+        "mat": "20192561",
+        "nome": "HEITOR ALVES MEDEIROS"
+      },
+      {
+        "num": 6,
+        "mat": "20192643",
+        "nome": "NICOLAS MARTINS GOMES"
+      },
+      {
+        "num": 7,
+        "mat": "20192724",
+        "nome": "LETICIA EMANUELLY PEREIRA DE SOUZA"
+      },
+      {
+        "num": 8,
+        "mat": "20193741",
+        "nome": "MARIA EDUARDA BATISTA DE SOUZA"
+      },
+      {
+        "num": 9,
+        "mat": "20183906",
+        "nome": "GUSTAVO JUNIO DA SILVA PEREIRA"
+      },
+      {
+        "num": 10,
+        "mat": "20264618",
+        "nome": "SOPHIA BARBOSA DOS SANTOS"
+      },
+      {
+        "num": 11,
+        "mat": "20247228",
+        "nome": "LUCAS EDUARDO LIMA ROCHA"
+      },
+      {
+        "num": 12,
+        "mat": "20189088",
+        "nome": "RAUL SALES COSTA"
+      },
+      {
+        "num": 13,
+        "mat": "20189908",
+        "nome": "BRYAN FILIPE PIRES"
+      },
+      {
+        "num": 14,
+        "mat": "201811814",
+        "nome": "GIULIA NUNES DA SILVA MACEDO"
+      },
+      {
+        "num": 15,
+        "mat": "201813659",
+        "nome": "YASMIN VITORIA RIBEIRO GONCALVES"
+      },
+      {
+        "num": 16,
+        "mat": "202014355",
+        "nome": "VALENTINA AMARAL SALES BISPO"
+      },
+      {
+        "num": 17,
+        "mat": "202118652",
+        "nome": "ANDRE MIGUEL DE OLIVEIRA DA SILVA"
+      },
+      {
+        "num": 18,
+        "mat": "202418913",
+        "nome": "MARCO ANTONIO GONCALVES LIMA"
+      },
+      {
+        "num": 19,
+        "mat": "201819388",
+        "nome": "MATHEUS RESENDE SANTOS"
+      },
+      {
+        "num": 20,
+        "mat": "201920318",
+        "nome": "PYETRO JUNIO SOUZA DE OLIVEIRA"
+      },
+      {
+        "num": 21,
+        "mat": "202521043",
+        "nome": "GABRIELLY CORREA LIMA"
+      },
+      {
+        "num": 22,
+        "mat": "202222381",
+        "nome": "ARTHUR ANDRE DA SILVA"
+      },
+      {
+        "num": 23,
+        "mat": "201726733",
+        "nome": "DAVI GREGIO MACIEL ROSA"
+      },
+      {
+        "num": 24,
+        "mat": "201828318",
+        "nome": "MARIA ALICE BARBOSA DE SOUZA"
+      },
+      {
+        "num": 25,
+        "mat": "202330269",
+        "nome": "DANIEL CAETANO DA CUNHA"
+      },
+      {
+        "num": 26,
+        "mat": "202330620",
+        "nome": "EDUARDO AUGUSTO SOARES SILVA"
+      },
+      {
+        "num": 27,
+        "mat": "201732271",
+        "nome": "PIETRA OLIVEIRA RAMOS"
+      },
+      {
+        "num": 28,
+        "mat": "201534806",
+        "nome": "JENNIFER VITORIA DA CRUZ AGUIAR"
+      },
+      {
+        "num": 29,
+        "mat": "201835265",
+        "nome": "QUEZIA DANIELLY MOURA DA SILVA"
+      },
+      {
+        "num": 30,
+        "mat": "201737856",
+        "nome": "LEVI BENJAMIN COSTA"
+      },
+      {
+        "num": 31,
+        "mat": "201839622",
+        "nome": "DAVI KENEDY DO ESPIRITO SANTO AZEVEDO"
+      },
+      {
+        "num": 32,
+        "mat": "201940660",
+        "nome": "MIGUEL REIS ROMULO DE OLIVEIRA"
+      }
+    ]
+  },
+  "605": {
+    "code": "605",
+    "label": "6º Ano E",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2021263",
+        "nome": "LARA EMANUELLY ARAUJO DA SILVA"
+      },
+      {
+        "num": 2,
+        "mat": "2021441",
+        "nome": "PEDRO LUCAS RODRIGUES DOS REIS"
+      },
+      {
+        "num": 3,
+        "mat": "2019977",
+        "nome": "HELENA LOPES ANTUNES"
+      },
+      {
+        "num": 4,
+        "mat": "20162418",
+        "nome": "ISAAC AUGUSTO MOREIRA DEZIDERIO"
+      },
+      {
+        "num": 5,
+        "mat": "20194079",
+        "nome": "LARA SARA ALVES CIRIACO"
+      },
+      {
+        "num": 6,
+        "mat": "20184668",
+        "nome": "DAVI DE ALCANTARA ANDRADE"
+      },
+      {
+        "num": 7,
+        "mat": "20185273",
+        "nome": "ARTHUR GOMES CABRAL SILVA"
+      },
+      {
+        "num": 8,
+        "mat": "20216423",
+        "nome": "MARIA CLARA DE JESUS ALVES"
+      },
+      {
+        "num": 9,
+        "mat": "201810858",
+        "nome": "MARIA EDUARDA SILVA PEREIRA"
+      },
+      {
+        "num": 10,
+        "mat": "201811033",
+        "nome": "HENRIQUE DA SILVA JARDIM"
+      },
+      {
+        "num": 11,
+        "mat": "201811914",
+        "nome": "ANA BEATRIZ MOURA COSTA"
+      },
+      {
+        "num": 12,
+        "mat": "202011987",
+        "nome": "LUDMYLA AGUIAR FONSECA"
+      },
+      {
+        "num": 13,
+        "mat": "202612081",
+        "nome": "MARIA CLARA ALVES COSTA"
+      },
+      {
+        "num": 14,
+        "mat": "201812431",
+        "nome": "SOPHIA VICTORIA SANTOS DO NASCIMENTO"
+      },
+      {
+        "num": 15,
+        "mat": "201813193",
+        "nome": "LUCAS GABRIEL DE OLIVEIRA CAMPOS"
+      },
+      {
+        "num": 16,
+        "mat": "201815659",
+        "nome": "BRYAN THALES SIMOES DE ASSUMPCAO"
+      },
+      {
+        "num": 17,
+        "mat": "202615661",
+        "nome": "CARLOS EDUARDO MARTINS DE FREITAS"
+      },
+      {
+        "num": 18,
+        "mat": "201815758",
+        "nome": "DAVI LEONARDO DE SOUSA MAGALHAES"
+      },
+      {
+        "num": 19,
+        "mat": "202315789",
+        "nome": "LUCAS ALBERTO FERREIRA DE OLIVEIRA"
+      },
+      {
+        "num": 20,
+        "mat": "202318793",
+        "nome": "LARA GONCALVES CASSIANO"
+      },
+      {
+        "num": 21,
+        "mat": "201819204",
+        "nome": "LEONARDO HENRIQUE QUEIROGA ROCHA DOS SANTOS"
+      },
+      {
+        "num": 22,
+        "mat": "202019618",
+        "nome": "KALLEB WILLIAN GONCALVES ROSSI"
+      },
+      {
+        "num": 23,
+        "mat": "202319795",
+        "nome": "ALICE MENDES ALVES"
+      },
+      {
+        "num": 24,
+        "mat": "201821639",
+        "nome": "GUILHERME OLIVEIRA MELO"
+      },
+      {
+        "num": 25,
+        "mat": "201923784",
+        "nome": "TIAGO RUAN SILVEIRA MENDES"
+      },
+      {
+        "num": 26,
+        "mat": "201825327",
+        "nome": "MARIA EDUARDA DE OLIVEIRA TEIXEIRA"
+      },
+      {
+        "num": 27,
+        "mat": "201828855",
+        "nome": "DAVI LUCAS ALMEIDA FONSECA"
+      },
+      {
+        "num": 28,
+        "mat": "201829042",
+        "nome": "ENZO GABRIEL FREITAS"
+      },
+      {
+        "num": 29,
+        "mat": "201829084",
+        "nome": "ESTER LUIZA DOS SANTOS"
+      },
+      {
+        "num": 30,
+        "mat": "202231298",
+        "nome": "GABRIELA VITORIA DOS SANTOS"
+      },
+      {
+        "num": 31,
+        "mat": "201934273",
+        "nome": "CECILIA SILVA SOARES"
+      },
+      {
+        "num": 32,
+        "mat": "201937303",
+        "nome": "RAUL HENRIQUE ARAUJO TEIXEIRA DE FARIA"
+      },
+      {
+        "num": 33,
+        "mat": "201839357",
+        "nome": "CLARISSE DE ALMEIDA CARVALHO"
+      }
+    ]
+  },
+  "606": {
+    "code": "606",
+    "label": "6º Ano F",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2022772",
+        "nome": "MIGUEL MARTINS DE ALMEIDA"
+      },
+      {
+        "num": 2,
+        "mat": "2022789",
+        "nome": "RITHA GABRIELLY GONCALVES DA SILVA"
+      },
+      {
+        "num": 3,
+        "mat": "20193083",
+        "nome": "LUIZ PHILIPE VALE TEIXEIRA"
+      },
+      {
+        "num": 4,
+        "mat": "20263257",
+        "nome": "ISADORA LUIZA DE BRITO SOARES"
+      },
+      {
+        "num": 5,
+        "mat": "20173527",
+        "nome": "ISABELLY DE SOUZA XAVIER"
+      },
+      {
+        "num": 6,
+        "mat": "20194091",
+        "nome": "MARIA FERNANDA DA SILVEIRA SANTOS"
+      },
+      {
+        "num": 7,
+        "mat": "20264172",
+        "nome": "GIOVANNA APARECIDA DO CARMO BATISTA"
+      },
+      {
+        "num": 8,
+        "mat": "20185102",
+        "nome": "MARIA LUIZA NUNES FLOR DE LIMA"
+      },
+      {
+        "num": 9,
+        "mat": "20216423",
+        "nome": "MARIA CLARA DE JESUS ALVES"
+      },
+      {
+        "num": 10,
+        "mat": "20188019",
+        "nome": "ANNY MARIE VICTORIA DE SOUZA OLIVEIRA"
+      },
+      {
+        "num": 11,
+        "mat": "202610585",
+        "nome": "SAMUEL LUCCA DE SOUSA PEREIRA"
+      },
+      {
+        "num": 12,
+        "mat": "201811140",
+        "nome": "LEANDRO LESSA RESENDE"
+      },
+      {
+        "num": 13,
+        "mat": "201811189",
+        "nome": "GABRIEL RODRIGUES DE CALDAS"
+      },
+      {
+        "num": 14,
+        "mat": "201812709",
+        "nome": "CECILIA AMARAL TOMAZ"
+      },
+      {
+        "num": 15,
+        "mat": "202314061",
+        "nome": "IZABELLE ALICE DOS SANTOS GANDRA"
+      },
+      {
+        "num": 16,
+        "mat": "202114170",
+        "nome": "RAFAEL SOARES DE OLIVEIRA"
+      },
+      {
+        "num": 17,
+        "mat": "202215529",
+        "nome": "MARIA LUIZA LOPES DA SILVA"
+      },
+      {
+        "num": 18,
+        "mat": "201816276",
+        "nome": "PIETRA JULIA JESUS FRANCA"
+      },
+      {
+        "num": 19,
+        "mat": "202416320",
+        "nome": "ANNA CLARA SILVA DE OLIVEIRA"
+      },
+      {
+        "num": 20,
+        "mat": "201816568",
+        "nome": "JOAO GUILHERME SALES RODRIGUES"
+      },
+      {
+        "num": 21,
+        "mat": "202018717",
+        "nome": "ARTHUR GUIMARAES GOMES FERREIRA"
+      },
+      {
+        "num": 22,
+        "mat": "202019072",
+        "nome": "DAVI LUCCA COUTINHO LOPES"
+      },
+      {
+        "num": 23,
+        "mat": "202319538",
+        "nome": "MIGUEL DA SILVA GOMES"
+      },
+      {
+        "num": 24,
+        "mat": "201821686",
+        "nome": "ISAQUE EMANUEL MEDINA DE SOUZA"
+      },
+      {
+        "num": 25,
+        "mat": "202123425",
+        "nome": "CLAUDIO CALIXTO FERNANDES JUNIOR"
+      },
+      {
+        "num": 26,
+        "mat": "202423743",
+        "nome": "SARA EMANUELLE SOUZA E SOUZA"
+      },
+      {
+        "num": 27,
+        "mat": "202227097",
+        "nome": "KETULLY GABRIELLA RAMALHO GOMES"
+      },
+      {
+        "num": 28,
+        "mat": "201830046",
+        "nome": "JULIA MARIA SILVA DE JESUS"
+      },
+      {
+        "num": 29,
+        "mat": "201934272",
+        "nome": "GABRIELA SILVA SOARES"
+      },
+      {
+        "num": 30,
+        "mat": "201735289",
+        "nome": "LUCAS CARDOSO DOS SANTOS"
+      },
+      {
+        "num": 31,
+        "mat": "202015349",
+        "nome": "PEDRO GAEL DA SILVA MARQUES"
+      },
+      {
+        "num": 32,
+        "mat": "202011987",
+        "nome": "LUDMYLA AGUIAR FONSECA"
+      }
+    ]
+  },
+  "701": {
+    "code": "701",
+    "label": "7º Ano A",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2017545",
+        "nome": "GABRIELLY FERREIRA DE CARVALHO"
+      },
+      {
+        "num": 2,
+        "mat": "2017710",
+        "nome": "MIGUEL ÍTALO MONTEIRO AMARAL"
+      },
+      {
+        "num": 3,
+        "mat": "20262665",
+        "nome": "PIETRO DE ANDRADE PEREIRA AMARAL"
+      },
+      {
+        "num": 4,
+        "mat": "20177682",
+        "nome": "LUAN JESUS FRANCA"
+      },
+      {
+        "num": 5,
+        "mat": "20177830",
+        "nome": "NICOLLY MAIRA TEIXEIRA DA SILVA VIANA"
+      },
+      {
+        "num": 6,
+        "mat": "20257838",
+        "nome": "MARIA RITA RODRIGUES BRAZ DE SOUSA"
+      },
+      {
+        "num": 7,
+        "mat": "202612677",
+        "nome": "JESSICA NICOLLY DA CUNHA DE SOUZA"
+      },
+      {
+        "num": 8,
+        "mat": "201612935",
+        "nome": "YASMIN GONCALVES DA SILVA"
+      },
+      {
+        "num": 9,
+        "mat": "201612984",
+        "nome": "CLARA MARIA RODRIGUES DOS SANTOS"
+      },
+      {
+        "num": 10,
+        "mat": "202013070",
+        "nome": "ISAQUY ANTÔNIO VIEIRA DIAS"
+      },
+      {
+        "num": 11,
+        "mat": "201714312",
+        "nome": "SOPHIA GABRIELE PEREIRA DOS SANTOS"
+      },
+      {
+        "num": 12,
+        "mat": "202615132",
+        "nome": "HEITOR VITOR DE ALMEIDA VALADARES"
+      },
+      {
+        "num": 13,
+        "mat": "201715464",
+        "nome": "SAMUEL LUCAS COSTA DE AGUIAR"
+      },
+      {
+        "num": 14,
+        "mat": "201815791",
+        "nome": "MAYARA OLIVEIRA SOUZA"
+      },
+      {
+        "num": 15,
+        "mat": "202516785",
+        "nome": "VITORIA HANNA CASTRO APOSTOLO"
+      },
+      {
+        "num": 16,
+        "mat": "202616946",
+        "nome": "ANNA CLARA SOUSA COSTA"
+      },
+      {
+        "num": 17,
+        "mat": "201817084",
+        "nome": "GIOVANA LAYLA GOMES DA COSTA CORREIA"
+      },
+      {
+        "num": 18,
+        "mat": "202020135",
+        "nome": "ENZO DAMASCENO SALVADOR"
+      },
+      {
+        "num": 19,
+        "mat": "202020849",
+        "nome": "ALLYCE YEVINA MARTINS DOS SANTOS"
+      },
+      {
+        "num": 20,
+        "mat": "202221221",
+        "nome": "ALICE RODRIGUES AMORIM"
+      },
+      {
+        "num": 21,
+        "mat": "201921487",
+        "nome": "DAVI LUCCA DA SILVA SOARES"
+      },
+      {
+        "num": 22,
+        "mat": "201921495",
+        "nome": "PEDRO HENRIQUE ALVES BUENO"
+      },
+      {
+        "num": 23,
+        "mat": "201721590",
+        "nome": "MIGUEL GONÇALVES DE OLIVEIRA"
+      },
+      {
+        "num": 24,
+        "mat": "201921590",
+        "nome": "GABRIEL RODRIGO FERREIRA DE AQUINO"
+      },
+      {
+        "num": 25,
+        "mat": "202222430",
+        "nome": "RAISSA GOMES DIAS DOS SANTOS"
+      },
+      {
+        "num": 26,
+        "mat": "201924851",
+        "nome": "GABRIEL DE ASSIS FURTADO BRANDÃO"
+      },
+      {
+        "num": 27,
+        "mat": "201625007",
+        "nome": "SAMUEL DE ARAUJO MAGALHAES"
+      },
+      {
+        "num": 28,
+        "mat": "201728841",
+        "nome": "ANTONELLY ALVES MARCOLINO DE SOUZA"
+      },
+      {
+        "num": 29,
+        "mat": "202130313",
+        "nome": "VIVIAN FERREIRA FERNANDES"
+      },
+      {
+        "num": 30,
+        "mat": "201837075",
+        "nome": "NIKOLAS MATHEUS NUNES CURVELANO"
+      },
+      {
+        "num": 31,
+        "mat": "202325986",
+        "nome": "ALICE COSSO GUIMARÃES DE SOUZA SIMÕES"
+      },
+      {
+        "num": 32,
+        "mat": "202022333",
+        "nome": "STHEPHANY KATLEN DE ALMEIDA LAPA"
+      }
+    ]
+  },
+  "702": {
+    "code": "702",
+    "label": "7º Ano B",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2019688",
+        "nome": "MIGUEL COELHO DIAS"
+      },
+      {
+        "num": 2,
+        "mat": "20183859",
+        "nome": "EDUARDO AUGUSTO SILVA DA ANUNCIACAO"
+      },
+      {
+        "num": 3,
+        "mat": "20174263",
+        "nome": "DAVI PHILLIP PEREIRA DA SILVA"
+      },
+      {
+        "num": 4,
+        "mat": "202010104",
+        "nome": "MARIA ALICE SANTOS COSTA"
+      },
+      {
+        "num": 5,
+        "mat": "202010279",
+        "nome": "CAROLINA FREIRE BORGES"
+      },
+      {
+        "num": 6,
+        "mat": "202010314",
+        "nome": "RAPHAEL DA SILVA LOBO"
+      },
+      {
+        "num": 7,
+        "mat": "202012467",
+        "nome": "BERNARDO DINIZ DE SOUZA"
+      },
+      {
+        "num": 8,
+        "mat": "202513748",
+        "nome": "MARIA RITA NUNES SILVA"
+      },
+      {
+        "num": 9,
+        "mat": "202013782",
+        "nome": "BRUNA FRAGOSO QUEIROZ"
+      },
+      {
+        "num": 10,
+        "mat": "201814139",
+        "nome": "GIOVANA JULIANE ANIZIO SANTOS"
+      },
+      {
+        "num": 11,
+        "mat": "201814216",
+        "nome": "MARIA EDUARDA DOS SANTOS SOUZA"
+      },
+      {
+        "num": 12,
+        "mat": "201715423",
+        "nome": "MARIA ALICE BRAGA LEONEL"
+      },
+      {
+        "num": 13,
+        "mat": "202516803",
+        "nome": "LEONARDO MIGUEL CAMPOS"
+      },
+      {
+        "num": 14,
+        "mat": "202320064",
+        "nome": "JULIA MARIA CRISPIM SANTANA"
+      },
+      {
+        "num": 15,
+        "mat": "202020183",
+        "nome": "NICOLAS DAMASCENO SALVADOR"
+      },
+      {
+        "num": 16,
+        "mat": "202621155",
+        "nome": "EDUARDO GONCALVES FERNANDES"
+      },
+      {
+        "num": 17,
+        "mat": "202122464",
+        "nome": "SARA NICACIO NICOLAU"
+      },
+      {
+        "num": 18,
+        "mat": "201722893",
+        "nome": "SARAH EMANUELLY GONÇALVES DE DEUS"
+      },
+      {
+        "num": 19,
+        "mat": "201823263",
+        "nome": "PIETRA MENDES ALVES"
+      },
+      {
+        "num": 20,
+        "mat": "201724727",
+        "nome": "JÚLIA DE CARVALHO SOARES"
+      },
+      {
+        "num": 21,
+        "mat": "201724913",
+        "nome": "ARTHUR PIETRO VELOSO CONRADO"
+      },
+      {
+        "num": 22,
+        "mat": "201925240",
+        "nome": "JOSE GABRIEL MENEZES GUERRA"
+      },
+      {
+        "num": 23,
+        "mat": "201827024",
+        "nome": "KAYO CRISTIANO RODRIGUES SILVA"
+      },
+      {
+        "num": 24,
+        "mat": "202227092",
+        "nome": "DANIEL DE ARAUJO SILVA"
+      },
+      {
+        "num": 25,
+        "mat": "202427674",
+        "nome": "NICOLLE ESTER DE OLIVEIRA GUIMARAES"
+      },
+      {
+        "num": 26,
+        "mat": "201528749",
+        "nome": "ANA CLARA VITORINO SANTOS CARVALHO"
+      },
+      {
+        "num": 27,
+        "mat": "201729024",
+        "nome": "SOPHYA GABRIELLY VIEIRA SOUZA"
+      },
+      {
+        "num": 28,
+        "mat": "201933112",
+        "nome": "OLIVER ADRIANE ARAÚJO MENDONÇA"
+      },
+      {
+        "num": 29,
+        "mat": "201833760",
+        "nome": "DERICK ALEJANDRO DOS SANTOS"
+      },
+      {
+        "num": 30,
+        "mat": "201534628",
+        "nome": "AYLA OLIVEIRA RODRIGUES"
+      },
+      {
+        "num": 31,
+        "mat": "201839318",
+        "nome": "DAVI ALVES RESENDE"
+      }
+    ]
+  },
+  "703": {
+    "code": "703",
+    "label": "7º Ano C",
+    "students": [
+      {
+        "num": 1,
+        "mat": "202181",
+        "nome": "ITALO HENRIQUE OLIVEIRA SOUZA"
+      },
+      {
+        "num": 2,
+        "mat": "20192445",
+        "nome": "THALITA EMANUELLE SOUZA LIMA"
+      },
+      {
+        "num": 3,
+        "mat": "20173023",
+        "nome": "ENZO REIS PAULINO"
+      },
+      {
+        "num": 4,
+        "mat": "20174494",
+        "nome": "ALICE GONÇALVES LAMAS"
+      },
+      {
+        "num": 5,
+        "mat": "20237659",
+        "nome": "ANNA LAURA FERREIRA DE MORAIS"
+      },
+      {
+        "num": 6,
+        "mat": "202612095",
+        "nome": "GABRIELLE STEFANNY SANTANA COSTA"
+      },
+      {
+        "num": 7,
+        "mat": "202512216",
+        "nome": "JULIA VITORIA TIMOTEO DE PAULA"
+      },
+      {
+        "num": 8,
+        "mat": "202612827",
+        "nome": "AUGUSTO NOVAIS ASSIS XAVIER SILVA"
+      },
+      {
+        "num": 9,
+        "mat": "201612885",
+        "nome": "EMANUELLE GONÇALVES DA SILVA"
+      },
+      {
+        "num": 10,
+        "mat": "202614547",
+        "nome": "ESTHER SILVA DINIZ"
+      },
+      {
+        "num": 11,
+        "mat": "202615170",
+        "nome": "VICTOR LUCAS CARDOSO MENDES"
+      },
+      {
+        "num": 12,
+        "mat": "201815207",
+        "nome": "FABIO BATISTA SANTOS"
+      },
+      {
+        "num": 13,
+        "mat": "202115586",
+        "nome": "ARTHUR BORGES MONTEIRO"
+      },
+      {
+        "num": 14,
+        "mat": "201816185",
+        "nome": "MANUELA VITÓRIA DINIZ LOURENÇO"
+      },
+      {
+        "num": 15,
+        "mat": "202418025",
+        "nome": "ARTHUR GABRIEL DE PAULA MOREIRA"
+      },
+      {
+        "num": 16,
+        "mat": "202022700",
+        "nome": "HADASSA GABRIELLE ALVES DE ARAUJO"
+      },
+      {
+        "num": 17,
+        "mat": "202023499",
+        "nome": "ARTHUR ANGELO FERNANDES CABRAL"
+      },
+      {
+        "num": 18,
+        "mat": "201624985",
+        "nome": "KAUAN HENRIQUE MARINHO SOUZA"
+      },
+      {
+        "num": 19,
+        "mat": "202325988",
+        "nome": "SOFIA COSSO GUIMARAES DE SOUZA SIMOES"
+      },
+      {
+        "num": 20,
+        "mat": "201629774",
+        "nome": "BERNARDO MIGUEL SILVA PEREIRA"
+      },
+      {
+        "num": 21,
+        "mat": "201630800",
+        "nome": "PIETRO FRANCISCO ANDRADE DE PAULA"
+      },
+      {
+        "num": 22,
+        "mat": "202131342",
+        "nome": "MARCELLA SOPHIA ROSA AVELAR LIMA"
+      },
+      {
+        "num": 23,
+        "mat": "201732615",
+        "nome": "JOAO LUCAS SOARES ALVES"
+      },
+      {
+        "num": 24,
+        "mat": "201735139",
+        "nome": "MELYSSA ROSA GOMES MOREIRA"
+      },
+      {
+        "num": 25,
+        "mat": "202237194",
+        "nome": "AGATHA AMARAL DA SILVA"
+      },
+      {
+        "num": 26,
+        "mat": "201721550",
+        "nome": "SAMUEL DIAS FIDELIS ROSA"
+      },
+      {
+        "num": 27,
+        "mat": "202317875",
+        "nome": "LAURA GOMES GUIMARAES"
+      },
+      {
+        "num": 28,
+        "mat": "202619448",
+        "nome": "LORENZO GABRIEL SILVA LOPES"
+      },
+      {
+        "num": 29,
+        "mat": "201633336",
+        "nome": "LARA OLIVEIRA DE SOUZA"
+      },
+      {
+        "num": 30,
+        "mat": "201721523",
+        "nome": "LUCCA FELICIO PORTO"
+      }
+    ]
+  },
+  "704": {
+    "code": "704",
+    "label": "7º Ano D",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2019820",
+        "nome": "MARCELLO HENRIQUE FORTES COSTA"
+      },
+      {
+        "num": 2,
+        "mat": "20171806",
+        "nome": "ANNA CLARA PEREIRA LIMA"
+      },
+      {
+        "num": 3,
+        "mat": "20162205",
+        "nome": "DAVI SOARES DE SOUSA"
+      },
+      {
+        "num": 4,
+        "mat": "20172977",
+        "nome": "CLARICE KELLY VIVEIROS BARBOSA"
+      },
+      {
+        "num": 5,
+        "mat": "20228784",
+        "nome": "MARCELLO LIMA NOGUEIRA"
+      },
+      {
+        "num": 6,
+        "mat": "202010746",
+        "nome": "LAURA MANUELA BRACARENSE AVILA DE SA"
+      },
+      {
+        "num": 7,
+        "mat": "202511260",
+        "nome": "ALANA LARISSA PEREIRA DE SA SILVA"
+      },
+      {
+        "num": 8,
+        "mat": "201711605",
+        "nome": "RYAN RAFAEL GUIMARAES DA SILVA"
+      },
+      {
+        "num": 9,
+        "mat": "201711941",
+        "nome": "HENRIQUE MEIRA URSINE"
+      },
+      {
+        "num": 10,
+        "mat": "202314422",
+        "nome": "LHUANNY GABRIELLE QUEIROZ"
+      },
+      {
+        "num": 11,
+        "mat": "202215524",
+        "nome": "BERNARDO LIMA VIANA DE CARVALHO"
+      },
+      {
+        "num": 12,
+        "mat": "202415729",
+        "nome": "YASMIN MAGALHÃES KELER DIAS"
+      },
+      {
+        "num": 13,
+        "mat": "201816513",
+        "nome": "ISABELA ROCHA FERREIRA"
+      },
+      {
+        "num": 14,
+        "mat": "202518658",
+        "nome": "ISADORA DA COSTA TELES"
+      },
+      {
+        "num": 15,
+        "mat": "202619929",
+        "nome": "CAIO NASCIMENTO DANTAS DE PAULA"
+      },
+      {
+        "num": 16,
+        "mat": "201720489",
+        "nome": "DANIEL SILVEIRA SANTOS"
+      },
+      {
+        "num": 17,
+        "mat": "201720551",
+        "nome": "NICOLAS RODRIGUES VIEIRA"
+      },
+      {
+        "num": 18,
+        "mat": "202220625",
+        "nome": "BEATRIZ ALVES DE SOUZA"
+      },
+      {
+        "num": 19,
+        "mat": "201820650",
+        "nome": "THIAGO MAGALHAES DA SILVA"
+      },
+      {
+        "num": 20,
+        "mat": "202022362",
+        "nome": "SKARLETT GABRIELLY DE ALMEIDA LAPA"
+      },
+      {
+        "num": 21,
+        "mat": "202523284",
+        "nome": "ISIS EDUARDA MENEZES LATALISA"
+      },
+      {
+        "num": 22,
+        "mat": "201623744",
+        "nome": "LUCAS JUNIO VIEIRA ASSIS"
+      },
+      {
+        "num": 23,
+        "mat": "202324424",
+        "nome": "WALLACE BRAYAN DOS SANTOS ALVES"
+      },
+      {
+        "num": 24,
+        "mat": "201628135",
+        "nome": "KAMILY GOMES SILVA LEITE"
+      },
+      {
+        "num": 25,
+        "mat": "201728453",
+        "nome": "SAMUEL SILVA NUNES SANTOS ROCHA"
+      },
+      {
+        "num": 26,
+        "mat": "201628612",
+        "nome": "LUCAS RAFAEL BRAGANÇA DO NASCIMENTO"
+      },
+      {
+        "num": 27,
+        "mat": "201828870",
+        "nome": "ARTHUR GONÇALVES FERREIRA"
+      },
+      {
+        "num": 28,
+        "mat": "201932669",
+        "nome": "JUAN GUILHERME PEREIRA DA SILVA"
+      },
+      {
+        "num": 29,
+        "mat": "201533496",
+        "nome": "MARIA JULIA DE SOUZA AZEVEDO"
+      },
+      {
+        "num": 30,
+        "mat": "201534042",
+        "nome": "BIANKA VITÓRIA REIS DE MENDONÇA"
+      },
+      {
+        "num": 31,
+        "mat": "201735389",
+        "nome": "VALENTINA SANTANA TORRES"
+      },
+      {
+        "num": 32,
+        "mat": "201837798",
+        "nome": "PIETRO AUGUSTO DE SOUZA RIBEIRO"
+      },
+      {
+        "num": 33,
+        "mat": "201639139",
+        "nome": "HITALO HENRIQUE DA SILVA VIEIRA"
+      }
+    ]
+  },
+  "705": {
+    "code": "705",
+    "label": "7º Ano E",
+    "students": [
+      {
+        "num": 1,
+        "mat": "2019490",
+        "nome": "MAYCON VITOR SILVA SANTOS"
+      },
+      {
+        "num": 2,
+        "mat": "20191018",
+        "nome": "LUCCA HENRIQUE DA COSTA NEVES SILVA"
+      },
+      {
+        "num": 3,
+        "mat": "20192442",
+        "nome": "CAIO BITENCORTE DINIZ"
+      },
+      {
+        "num": 4,
+        "mat": "20173678",
+        "nome": "GABRIEL XISTO DE JESUS OLIVEIRA"
+      },
+      {
+        "num": 5,
+        "mat": "20173871",
+        "nome": "BERNARDO HENRIQUE DA SILVA MANGABEIRA"
+      },
+      {
+        "num": 6,
+        "mat": "20246926",
+        "nome": "REBECA VITORIA CANGUSSU DE MIRANDA"
+      },
+      {
+        "num": 7,
+        "mat": "20187594",
+        "nome": "MARIA FLOR FERNANDES DE SOUZA"
+      },
+      {
+        "num": 8,
+        "mat": "20258294",
+        "nome": "LORENZO FONSECA ALVES"
+      },
+      {
+        "num": 9,
+        "mat": "20259251",
+        "nome": "BRYAN EMANUEL PEREIRA COSTA"
+      },
+      {
+        "num": 10,
+        "mat": "20249777",
+        "nome": "EMANUELLY VITORIA GOMES DE PAULA"
+      },
+      {
+        "num": 11,
+        "mat": "20179986",
+        "nome": "FERNANDA LIMA APARECIDA DE SOUZA"
+      },
+      {
+        "num": 12,
+        "mat": "202010347",
+        "nome": "BERNARDO MIGUEL DE ALMEIDA"
+      },
+      {
+        "num": 13,
+        "mat": "201710717",
+        "nome": "GIOVANNA SOUZA DUARTE"
+      },
+      {
+        "num": 14,
+        "mat": "202012166",
+        "nome": "ISAAC EMMANUEL SABINO FERNANDES"
+      },
+      {
+        "num": 15,
+        "mat": "202612906",
+        "nome": "GEOVANA RODRIGUES ALVES"
+      },
+      {
+        "num": 16,
+        "mat": "202413574",
+        "nome": "GABRIELLY VITORIA FERREIRA PINTO"
+      },
+      {
+        "num": 17,
+        "mat": "201814003",
+        "nome": "KAIQUE CAMPOS ANDRADE"
+      },
+      {
+        "num": 18,
+        "mat": "201815553",
+        "nome": "TALLES ARTHUR DE LIMA REIS"
+      },
+      {
+        "num": 19,
+        "mat": "201816289",
+        "nome": "MELISSA SANTARELLI SANTOS"
+      },
+      {
+        "num": 20,
+        "mat": "201817159",
+        "nome": "ROBERT TAYLOR DOS SANTOS MONTEIRO PINTO"
+      },
+      {
+        "num": 21,
+        "mat": "201718040",
+        "nome": "LUIZ FERNANDO SILVA CRUZ"
+      },
+      {
+        "num": 22,
+        "mat": "201818345",
+        "nome": "ISABELLA LIMA DE SOUZA"
+      },
+      {
+        "num": 23,
+        "mat": "201720502",
+        "nome": "ANA LUIZA GOMES ROSA"
+      },
+      {
+        "num": 24,
+        "mat": "202521131",
+        "nome": "EMANUELLE BEATRIZ GUIMARÃES REIS"
+      },
+      {
+        "num": 25,
+        "mat": "201823701",
+        "nome": "VITOR JUNIO MARTINS DE OLIVEIRA"
+      },
+      {
+        "num": 26,
+        "mat": "201723808",
+        "nome": "GIOVANNA VITORIA RODRIGUES DE FREITAS"
+      },
+      {
+        "num": 27,
+        "mat": "202424186",
+        "nome": "MARIA ELISA SILVA PINTO"
+      },
+      {
+        "num": 28,
+        "mat": "201726051",
+        "nome": "LAURA LUÍSA FREITAS SANTOS"
+      },
+      {
+        "num": 29,
+        "mat": "201730060",
+        "nome": "SARAH MARIA BARBOSA SANTOS"
+      },
+      {
+        "num": 30,
+        "mat": "201830385",
+        "nome": "BERNARDO DE PAULA GERMANO MOREIRA"
+      },
+      {
+        "num": 31,
+        "mat": "202332237",
+        "nome": "PEDRO HENRIQUE DE PAULA PEREIRA"
+      },
+      {
+        "num": 32,
+        "mat": "201534518",
+        "nome": "IZABEL ROCHA PAGLIONI"
+      },
+      {
+        "num": 33,
+        "mat": "201635742",
+        "nome": "MARIA JULIA RIBEIRO VASCONCELOS"
+      }
+    ]
+  }
 };
 
-// ─ STORAGE ─
-const LS='ic26_grade3';
-let G={};
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            if(event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+                if (window.innerWidth <= 860) {
+                    event.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+        }
 
-/* ── Integração com Supabase (mesmo projeto do Monitoramento Pedagógico) ── */
-const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
-const INTERCLASSE_TABLE = 'eventos_interclasse';
-const INTERCLASSE_ROW_ID = 1; // grade única (singleton) — sempre a mesma linha
+        // Nomes das turmas por ano (nomenclatura por letras, sem códigos numéricos)
+        const turmas6 = ['6º Ano A', '6º Ano B', '6º Ano C', '6º Ano D', '6º Ano E', '6º Ano F'];
+        const turmas7 = ['7º Ano A', '7º Ano B', '7º Ano C', '7º Ano D', '7º Ano E'];
 
-function sbHeaders(extra={}){
-  return {
-    'apikey': SUPABASE_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_KEY,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation',
-    ...extra
-  };
-}
+        // ---------------------------------------------------------------
+        // BLOQUEIO DE EDIÇÃO POR CÓDIGO DE ACESSO
+        // A montagem dos grupos, o cadastro de horários e o registro de
+        // partidas/placares são de responsabilidade da Coordenação e do
+        // Professor de Educação Física. Por padrão, ao acessar a página,
+        // essas áreas ficam bloqueadas para a comunidade escolar; a edição
+        // só é liberada após a digitação do código de acesso correto.
+        // (Trava de interface: reduz o risco de edição indevida por acesso
+        // casual, mas não substitui um controle de acesso real de servidor.)
+        // ---------------------------------------------------------------
+        const EDIT_CODE = '15948263';
+        let editUnlocked = false;
 
-let _syncTimer=null, _syncing=false;
-function agendarSyncSupabase(){
-  clearTimeout(_syncTimer);
-  _syncTimer=setTimeout(syncSupabase, 600); // debounce: evita chamada a cada clique
-}
+        function tryUnlockEditing(e) {
+            e.preventDefault();
+            const input = document.getElementById('editCodeInput');
+            const errorMsg = document.getElementById('unlockErrorMsg');
+            if (input.value === EDIT_CODE) {
+                editUnlocked = true;
+                errorMsg.style.display = 'none';
+                input.value = '';
+                applyEditLockUI();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
 
-async function syncSupabase(){
-  if(_syncing) return;
-  _syncing=true;
-  try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${INTERCLASSE_TABLE}?on_conflict=id`, {
-      method:'POST',
-      headers: sbHeaders({'Prefer':'resolution=merge-duplicates,return=representation'}),
-      body: JSON.stringify([{ id: INTERCLASSE_ROW_ID, grade: G, labels: _lbls, updated_at: new Date().toISOString() }])
-    });
-    if(!r.ok){
-      const err = await r.json().catch(()=>({}));
-      throw new Error(err.message || 'Falha ao sincronizar');
-    }
-  }catch(err){
-    console.error(err);
-    toast('⚠ Não foi possível sincronizar com o servidor (salvo apenas neste dispositivo).','warn');
-  }finally{
-    _syncing=false;
-  }
-}
+        function lockEditing() {
+            editUnlocked = false;
+            applyEditLockUI();
+        }
 
-async function carregarDoSupabase(){
-  try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${INTERCLASSE_TABLE}?id=eq.${INTERCLASSE_ROW_ID}&select=grade,labels`, { headers: sbHeaders() });
-    const rows = await r.json();
-    if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
-    if(Array.isArray(rows) && rows.length){
-      if(rows[0].grade) G = rows[0].grade;
-      if(rows[0].labels) _lbls = rows[0].labels;
-      save(); saveLbls(); // mantém cache local sincronizado
-      return true;
-    }
-    return false;
-  }catch(err){
-    console.error(err);
-    return false;
-  }
-}
+        function applyEditLockUI() {
+            const lockedView = document.getElementById('lockedView');
+            const unlockedView = document.getElementById('unlockedView');
+            if (lockedView) lockedView.style.display = editUnlocked ? 'none' : 'block';
+            if (unlockedView) unlockedView.style.display = editUnlocked ? 'block' : 'none';
 
-function load(){try{const s=localStorage.getItem(LS);if(s)G=JSON.parse(s);}catch(e){}}
-function save(){try{localStorage.setItem(LS,JSON.stringify(G));}catch(e){} agendarSyncSupabase();}
-function get(e,d,h){return G[e]?.[d]?.[h]||null;}
-function put(e,d,h,v){
-  if(!G[e])G[e]={};if(!G[e][d])G[e][d]={};
-  if(!v||!v.mod)delete G[e][d][h];else G[e][d][h]=v;
-  save();
-}
+            const slotFormGate = document.getElementById('slotFormGate');
+            const slotFormLockedMsg = document.getElementById('slotFormLockedMsg');
+            if (slotFormGate) slotFormGate.style.display = editUnlocked ? 'block' : 'none';
+            if (slotFormLockedMsg) slotFormLockedMsg.style.display = editUnlocked ? 'none' : 'block';
 
-// ─ RENDER ─
-function cellHTML(esp, d, h){
-  const ESPACOS=getEspacos();
-  const espObj=ESPACOS.find(e=>e.key===esp.key)||esp;
-  const s=get(esp.key,d.key,h.id);
-  const m=s?.mod?MOD[s.mod]:null;
-  return `<div class="esp-row" onclick="abrirModal('${esp.key}','${d.key}','${h.id}')">
-    <div class="esp-tag ${esp.css}">${espObj.lbl}</div>
-    <div class="esp-slot ${s?.mod||'livre'}">
-      ${m
-        ?`<div class="s-mod">${m.icon} ${m.nome}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
-          ${s.timeA||s.timeB?`<div class="s-times">${s.timeA||''}${s.timeB?' × '+s.timeB:''}</div>`:''}
-          ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
-        :`<span>livre</span>`}
-    </div>
-  </div>`;
-}
+            const gameFormGate = document.getElementById('gameFormGate');
+            const gameFormLockedMsg = document.getElementById('gameFormLockedMsg');
+            if (gameFormGate) gameFormGate.style.display = editUnlocked ? 'block' : 'none';
+            if (gameFormLockedMsg) gameFormLockedMsg.style.display = editUnlocked ? 'none' : 'block';
 
-function render(){
-  const ESPACOS=getEspacos();
-  const HORAS_REAIS=HORAS.filter(h=>!h.rec);
+            const groupSelectLockedMsg = document.getElementById('groupSelectLockedMsg');
+            if (groupSelectLockedMsg) groupSelectLockedMsg.style.display = editUnlocked ? 'none' : 'block';
 
-  if(!_transposed){
-    // ── MODO NORMAL: linhas=horários, colunas=dias ──
-    document.getElementById('colgroup').innerHTML =
-      `<col style="width:92px">` + DIAS.map(()=>`<col>`).join('');
+            // Reconstrói os elementos dinâmicos para refletir o novo estado (habilitado/desabilitado)
+            buildGroupTable('groupTable6', turmas6);
+            buildGroupTable('groupTable7', turmas7);
+            renderSlotsTable();
+            renderGamesTable();
+        }
 
-    document.getElementById('thead').innerHTML = `<tr>
-      <th class="th-hora" style="border-bottom:3px solid #444">Horário</th>
-      ${DIAS.map(d=>`
-        <th class="th-dia" style="border-bottom:4px solid ${d.cor};border-right:2px solid #333">
-          <span class="dn" style="color:${d.cor}">${d.num}/Set</span>
-          <span class="ds">${d.nome}</span>
-          <span class="dt">${d.turma}</span>
-        </th>`).join('')}
-    </tr>`;
+        // Guarda a atribuição de grupo de cada turma (vazio = ainda não definido)
+        const groupAssignments = {};
 
-    let html='';
-    HORAS.forEach(h=>{
-      if(h.rec){
-        html+=`<tr class="rec-row"><td colspan="${DIAS.length+1}">⏸ &nbsp; RECREIO / INTERVALO &nbsp;·&nbsp; ${h.range} &nbsp; ⏸</td></tr>`;
-        return;
-      }
-      html+=`<tr>
-        <td class="td-hora" style="border-bottom:2px solid #bbb">
-          <div class="hora-inner">
-            <div class="hora-id">${h.label}</div>
-            <span class="hora-range">${h.range}</span>
-          </div>
-        </td>`;
-      DIAS.forEach(d=>{
-        html+=`<td class="td-cell" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
-        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
-        html+=`</td>`;
-      });
-      html+=`</tr>`;
-    });
-    document.getElementById('tbody').innerHTML=html;
+        function buildGroupTable(tbodyId, turmas) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            turmas.forEach(turma => {
+                if (!(turma in groupAssignments)) groupAssignments[turma] = '';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${turma}</strong></td>
+                    <td>
+                        <select class="group-select" onchange="setGroup('${turma}', this.value)" style="padding: 0.4rem;" ${editUnlocked ? '' : 'disabled'}>
+                            <option value="" ${groupAssignments[turma] === '' ? 'selected' : ''}>Não definido</option>
+                            <option value="A" ${groupAssignments[turma] === 'A' ? 'selected' : ''}>Grupo A</option>
+                            <option value="B" ${groupAssignments[turma] === 'B' ? 'selected' : ''}>Grupo B</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
 
-  } else {
-    // ── MODO TRANSPOSTO: linhas=dias, colunas=horários ──
-    document.getElementById('colgroup').innerHTML =
-      `<col style="width:110px">` + HORAS_REAIS.map(()=>`<col>`).join('');
+        function setGroup(turma, valor) {
+            groupAssignments[turma] = valor;
+            renderGroupSummary();
+        }
 
-    document.getElementById('thead').innerHTML = `<tr>
-      <th class="th-hora" style="border-bottom:3px solid #444">Dia</th>
-      ${HORAS_REAIS.map(h=>`
-        <th class="th-dia" style="border-bottom:3px solid #444;border-right:2px solid #333">
-          <span class="dn" style="color:#fff;font-size:16px">${h.label}</span>
-          <span class="ds" style="font-size:9px;opacity:.7">${h.range}</span>
-        </th>`).join('')}
-    </tr>`;
+        function renderGroupSummary() {
+            renderSummaryFor('summary6', turmas6);
+            renderSummaryFor('summary7', turmas7);
+        }
 
-    let html='';
-    DIAS.forEach(d=>{
-      html+=`<tr>
-        <td class="td-hora" style="border-bottom:2px solid #bbb;border-top:3px solid ${d.cor}">
-          <div class="hora-inner">
-            <div class="hora-id" style="color:${d.cor}">${d.num}/Set</div>
-            <span class="hora-range">${d.nome}</span>
-            <span class="hora-range" style="font-size:8px">${d.turma}</span>
-          </div>
-        </td>`;
-      HORAS_REAIS.forEach(h=>{
-        html+=`<td class="td-cell" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
-        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
-        html+=`</td>`;
-      });
-      html+=`</tr>`;
-    });
-    document.getElementById('tbody').innerHTML=html;
-  }
+        function renderSummaryFor(containerId, turmas) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-  // totais
-  document.getElementById('totais').innerHTML=DIAS.map(d=>{
-    let t=0,f=0;
-    ESPACOS.forEach(esp=>HORAS_REAIS.forEach(h=>{t++;if(get(esp.key,d.key,h.id)?.mod)f++;}));
-    const pct=t?Math.round(f/t*100):0;
-    return `<div class="tot" style="border-top-color:${d.cor}">
-      <div class="tot-n" style="color:${d.cor}">${f}<span style="font-size:14px;opacity:.4">/${t}</span></div>
-      <div class="tot-bar-bg"><div class="tot-bar" style="width:${pct}%;background:${d.cor}"></div></div>
-      <div class="tot-l">${d.nome} ${d.num}/Set — ${pct}% ocupado</div>
-    </div>`;
-  }).join('');
-}
+            const grupoA = turmas.filter(t => groupAssignments[t] === 'A');
+            const grupoB = turmas.filter(t => groupAssignments[t] === 'B');
+            const semGrupo = turmas.filter(t => !groupAssignments[t]);
 
-// ─ TRANSPOR ─
-let _transposed=false;
-function toggleTranspose(){
-  _transposed=!_transposed;
-  const btn=document.getElementById('btn-transp');
-  btn.style.background=_transposed?'rgba(255,255,255,.35)':'';
-  btn.style.outline=_transposed?'2px solid var(--gold3)':'';
-  btn.textContent=_transposed?'⇅ Vista normal':'⇄ Transpor tabela';
-  render();
-}
+            const lista = (arr) => arr.length
+                ? arr.map(t => `<span class="badge badge-blue" style="margin: 0.2rem;">${t}</span>`).join('')
+                : '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhuma turma ainda</span>';
 
-// ─ ORIENTAÇÃO ─
-let _orient='retrato';
-function setOrient(o,btn){
-  _orient=o;
-  document.querySelectorAll('.ot-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
+            container.innerHTML = `
+                <p style="font-weight: 600; margin-bottom: 0.4rem;">Grupo A</p>
+                <div style="margin-bottom: 0.8rem;">${lista(grupoA)}</div>
+                <p style="font-weight: 600; margin-bottom: 0.4rem;">Grupo B</p>
+                <div style="margin-bottom: 0.8rem;">${lista(grupoB)}</div>
+                ${semGrupo.length ? `<p style="font-weight: 600; margin-bottom: 0.4rem; color: var(--accent);">Ainda sem grupo</p><div>${lista(semGrupo)}</div>` : ''}
+            `;
+        }
 
-// ─ MODAL ─
-let _e,_d,_h;
-function abrirModal(esp,dia,hora){
-  _e=esp;_d=dia;_h=hora;
-  const eO=ESPACOS_DEFAULT.find(e=>e.key===esp);
-  const dO=DIAS.find(d=>d.key===dia);
-  const hO=HORAS.find(h=>h.id===hora);
-  const s=get(esp,dia,hora)||{};
-  document.getElementById('m-title').textContent=`${eO.icon} ${eO.nome}`;
-  document.getElementById('m-sub').textContent=`${dO.nome} ${dO.num}/Set · ${hO.label} · ${hO.range} · ${dO.turma}`;
-  document.getElementById('m-esp').value=esp;
-  document.getElementById('m-dia').value=dia;
-  document.getElementById('m-hora').value=hora;
-  document.getElementById('m-mod').value=s.mod||'';
-  document.getElementById('m-espaco').value=s.espaco||'';
-  document.getElementById('m-tA').value=s.timeA||'';
-  document.getElementById('m-tB').value=s.timeB||'';
-  document.getElementById('m-fase').value=s.fase||'';
-  atualizarPreview();
-  document.getElementById('modal').classList.add('open');
-}
-function fecharModal(){document.getElementById('modal').classList.remove('open');}
-function atualizarPreview(){
-  const mod=document.getElementById('m-mod').value;
-  const espaco=document.getElementById('m-espaco').value;
-  const tA=document.getElementById('m-tA').value.trim();
-  const tB=document.getElementById('m-tB').value.trim();
-  const fase=document.getElementById('m-fase').value.trim();
-  const el=document.getElementById('m-preview');
-  if(!mod){el.style.cssText='border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;border:2px solid #eee;color:#aaa';el.textContent='— livre —';return;}
-  const m=MOD[mod];
-  el.style.cssText=`border-radius:4px;padding:7px 10px;margin-bottom:10px;font-family:var(--font-cond);font-size:12px;font-weight:700;min-height:32px;background:${m.bg};border:2px solid ${m.brd};color:${m.txt}`;
-  el.innerHTML=`${m.icon} ${m.nome}${espaco?` <span style="opacity:.6;font-size:10px">[${espaco}]</span>`:''}${tA||tB?` · ${tA}${tB?' × '+tB:''}`:''}${fase?`<span style="font-size:10px;opacity:.7;display:block;font-weight:400;margin-top:2px">${fase}</span>`:''}`;
-}
-function salvar(){
-  const mod=document.getElementById('m-mod').value;
-  const espaco=document.getElementById('m-espaco').value;
-  const tA=document.getElementById('m-tA').value.trim();
-  const tB=document.getElementById('m-tB').value.trim();
-  const fase=document.getElementById('m-fase').value.trim();
-  put(_e,_d,_h,mod?{mod,espaco,timeA:tA,timeB:tB,fase}:null);
-  fecharModal();render();toast(mod?'✅ Slot salvo!':'🗑 Slot limpo.');
-}
-function limparSlot(){put(_e,_d,_h,null);fecharModal();render();toast('🗑 Slot limpo.');}
-function limparGrade(){if(!confirm('Limpar toda a grade?'))return;G={};save();render();toast('Grade limpa.','warn');}
+        function initGroupOrganization() {
+            buildGroupTable('groupTable6', turmas6);
+            buildGroupTable('groupTable7', turmas7);
+            renderGroupSummary();
+        }
 
-// ─ IMPRESSÃO ─
-function imprimir(branco){
-  const html=document.documentElement;
-  // orientação + transposto
-  html.className=[_orient, _transposed?'transposto':''].filter(Boolean).join(' ');
-  if(branco)document.body.classList.add('print-blank');
-  else document.body.classList.remove('print-blank');
-  // atualiza label de modo no cabeçalho
-  const lbl=document.getElementById('print-mode-label');
-  if(lbl){
-    const modoOrient=_orient==='paisagem'?'Paisagem':'Retrato';
-    const modoTabela=_transposed?'Dias nas linhas · Horários nas colunas':'Horários nas linhas · Dias nas colunas';
-    lbl.textContent=`${modoOrient} · ${modoTabela}${branco?' · Versão em branco':''}`;
-  }
-  setTimeout(()=>{window.print();html.className='';document.body.classList.remove('print-blank');},80);
-}
+        // ---------------------------------------------------------------
+        // HORÁRIOS DISPONÍVEIS PARA OS JOGOS (INTERVALOS)
+        // Um intervalo é uma janela de tempo (ex.: 08:00 - 09:30) dentro da
+        // qual VÁRIOS jogos podem acontecer, cada um com seu próprio horário.
+        // O intervalo não representa um único jogo.
+        // ---------------------------------------------------------------
+        const availableSlots = []; // { date: 'YYYY-MM-DD', start: 'HH:MM', end: 'HH:MM' }
+        let editingSlotIndex = null;
 
-// ─ TOAST ─
-let _tid;
-function toast(msg,tipo){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.style.background=tipo==='warn'?'#555':'#111';
-  el.classList.add('show');clearTimeout(_tid);
-  _tid=setTimeout(()=>el.classList.remove('show'),2200);
-}
+        function formatDateBr(isoDate) {
+            if (!isoDate) return '';
+            const [y, m, d] = isoDate.split('-');
+            return `${d}/${m}/${y}`;
+        }
 
-// ─ INIT ─
-load();loadLbls();render();
-carregarDoSupabase().then(ok=>{ if(ok) render(); }); // sobrescreve com dados do servidor quando disponível
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
-document.getElementById('modal-espacos').addEventListener('click',function(e){if(e.target===this)fecharModalEspacos();});
-</script>
+        function addTimeSlot(e) {
+            e.preventDefault();
+            const date = document.getElementById('slotDate').value;
+            const start = document.getElementById('slotStart').value;
+            const end = document.getElementById('slotEnd').value;
+
+            if (editingSlotIndex !== null) {
+                availableSlots[editingSlotIndex] = { date, start, end };
+                editingSlotIndex = null;
+                document.getElementById('slotSubmitBtn').textContent = '➕ Adicionar Horário Disponível';
+            } else {
+                availableSlots.push({ date, start, end });
+            }
+
+            availableSlots.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+
+            document.getElementById('slotForm').reset();
+            renderSlotsTable();
+            updateDateOptions();
+        }
+
+        function editTimeSlot(index) {
+            const slot = availableSlots[index];
+            document.getElementById('slotDate').value = slot.date;
+            document.getElementById('slotStart').value = slot.start;
+            document.getElementById('slotEnd').value = slot.end;
+            editingSlotIndex = index;
+            document.getElementById('slotSubmitBtn').textContent = '💾 Salvar Alterações do Horário';
+            document.getElementById('slotForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelEditSlot() {
+            editingSlotIndex = null;
+            document.getElementById('slotForm').reset();
+            document.getElementById('slotSubmitBtn').textContent = '➕ Adicionar Horário Disponível';
+        }
+
+        function duplicateTimeSlot(index) {
+            const slot = availableSlots[index];
+            availableSlots.push({ date: slot.date, start: slot.start, end: slot.end });
+            availableSlots.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+            renderSlotsTable();
+            updateDateOptions();
+        }
+
+        function removeTimeSlot(index) {
+            availableSlots.splice(index, 1);
+            if (editingSlotIndex === index) cancelEditSlot();
+            renderSlotsTable();
+            updateDateOptions();
+        }
+
+        function renderSlotsTable() {
+            const tbody = document.getElementById('slotsBody');
+            if (!tbody) return;
+
+            if (availableSlots.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="emptySlotsRow">
+                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">Nenhum horário cadastrado até o momento.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = availableSlots.map((slot, i) => `
+                <tr>
+                    <td>${formatDateBr(slot.date)}</td>
+                    <td><span class="badge badge-blue">${slot.start} - ${slot.end}</span></td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        ${editUnlocked ? `
+                            <button type="button" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="editTimeSlot(${i})" title="Editar">✎</button>
+                            <button type="button" class="btn" style="background: var(--secondary); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="duplicateTimeSlot(${i})" title="Duplicar">⧉</button>
+                            <button type="button" class="btn" style="background: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="removeTimeSlot(${i})" title="Remover">✕</button>
+                        ` : `<span style="color: var(--text-muted); font-size: 0.8rem;">🔒</span>`}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Atualiza o select de "Data" no formulário de registro de jogos
+        function updateDateOptions() {
+            const dateSelect = document.getElementById('gameDate');
+            if (!dateSelect) return;
+
+            const uniqueDates = [...new Set(availableSlots.map(s => s.date))];
+            const currentValue = dateSelect.value;
+
+            dateSelect.innerHTML = '<option value="">Selecione a data</option>' +
+                uniqueDates.map(d => `<option value="${d}">${formatDateBr(d)}</option>`).join('');
+
+            if (uniqueDates.includes(currentValue)) {
+                dateSelect.value = currentValue;
+            }
+            updateIntervalsInfo();
+        }
+
+        // Mostra (só informativamente) os intervalos cadastrados para a data escolhida.
+        // O horário do jogo é digitado livremente, pois vários jogos ocorrem dentro do mesmo intervalo.
+        function updateIntervalsInfo() {
+            const dateSelect = document.getElementById('gameDate');
+            const infoEl = document.getElementById('dateIntervalsInfo');
+            if (!dateSelect || !infoEl) return;
+
+            const selectedDate = dateSelect.value;
+            if (!selectedDate) {
+                infoEl.innerHTML = '';
+                return;
+            }
+
+            const slotsForDate = availableSlots.filter(s => s.date === selectedDate);
+            if (slotsForDate.length === 0) {
+                infoEl.innerHTML = `<span style="color: var(--danger);">Nenhum intervalo cadastrado para esta data. Cadastre um horário disponível acima.</span>`;
+                return;
+            }
+
+            infoEl.innerHTML = 'Intervalos cadastrados nesta data: ' +
+                slotsForDate.map(s => `<span class="badge badge-blue" style="margin: 0 0.2rem;">${s.start} - ${s.end}</span>`).join('') +
+                ' — escolha um horário de jogo dentro de um desses intervalos.';
+        }
+
+        // ---------------------------------------------------------------
+        // REGISTRO DE JOGOS E PLACARES
+        // Cada jogo tem seu PRÓPRIO horário (dentro de algum intervalo do dia).
+        // Vários jogos podem compartilhar o mesmo intervalo.
+        // ---------------------------------------------------------------
+        const gamesData = []; // { date, time, year, modal, phase, space, team1, team2, score1, score2 }
+
+        // Modalidades consideradas "jogos coletivos" para fins da regra de limite por turma.
+        // Damas e Atletismo são modalidades individuais e não entram nessa contagem.
+        const COLLECTIVE_MODALITIES = ['Futsal Masculino', 'Futsal Feminino', 'Queimada Mista', 'Basquete de Trilha'];
+
+        // Verifica os conflitos de agendamento antes de registrar um jogo.
+        // excludeIndex permite reaproveitar a função em uma futura edição de jogo já cadastrado.
+        function checkGameConflicts({ date, time, space, team1, team2, modal }, excludeIndex = null) {
+            const sameSlot = gamesData.filter((g, i) =>
+                i !== excludeIndex && g.date === date && g.time === time
+            );
+
+            // Regra 1: o mesmo espaço não pode ser usado duas vezes no mesmo horário/data.
+            const spaceConflict = sameSlot.find(g => g.space === space);
+            if (spaceConflict) {
+                return `O espaço "${space}" já está reservado em ${formatDateBr(date)} às ${time} (jogo: ${spaceConflict.team1} vs ${spaceConflict.team2}). Escolha outro espaço ou horário.`;
+            }
+
+            // Regra 2: uma turma não pode atuar em mais de 2 jogos coletivos no mesmo horário.
+            if (COLLECTIVE_MODALITIES.includes(modal)) {
+                for (const turma of [team1, team2]) {
+                    const jogosDaTurma = sameSlot.filter(g =>
+                        COLLECTIVE_MODALITIES.includes(g.modal) && (g.team1 === turma || g.team2 === turma)
+                    ).length;
+                    if (jogosDaTurma >= 2) {
+                        return `A turma "${turma}" já está escalada em 2 jogos coletivos em ${formatDateBr(date)} às ${time}. Não é possível registrar um terceiro jogo coletivo no mesmo horário para essa turma.`;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function addGame(e) {
+            e.preventDefault();
+
+            const game = {
+                date: document.getElementById('gameDate').value,
+                time: document.getElementById('gameTime').value,
+                year: document.getElementById('gameYear').value,
+                modal: document.getElementById('gameModal').selectedOptions[0].text,
+                phase: document.getElementById('gamePhase').value,
+                space: document.getElementById('gameSpace').value,
+                team1: document.getElementById('team1').value,
+                team2: document.getElementById('team2').value,
+                score1: parseInt(document.getElementById('score1').value),
+                score2: parseInt(document.getElementById('score2').value)
+            };
+
+            const conflictMessage = checkGameConflicts(game);
+            if (conflictMessage) {
+                alert('⚠️ Não foi possível registrar o jogo:\n\n' + conflictMessage);
+                return;
+            }
+
+            gamesData.push(game);
+            gamesData.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+            document.getElementById('gameForm').reset();
+            updateIntervalsInfo();
+            renderGamesTable();
+            renderScheduleTable();
+        }
+
+        function removeGame(index) {
+            gamesData.splice(index, 1);
+            renderGamesTable();
+            renderScheduleTable();
+        }
+
+        function gameWinnerLabel(game) {
+            if (game.score1 > game.score2) return { text: `Vencedor: ${game.team1}`, color: 'var(--success)' };
+            if (game.score2 > game.score1) return { text: `Vencedor: ${game.team2}`, color: 'var(--success)' };
+            return { text: 'Empate', color: 'var(--accent)' };
+        }
+
+        function renderGamesTable() {
+            const tbody = document.getElementById('gamesBody');
+            if (!tbody) return;
+
+            if (gamesData.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="emptyGamesRow">
+                        <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                            Nenhum jogo foi registrado até o momento. Os resultados aparecerão aqui assim que as partidas forem realizadas.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = gamesData.map((game, i) => {
+                const winner = gameWinnerLabel(game);
+                return `
+                    <tr>
+                        <td>${formatDateBr(game.date)}</td>
+                        <td>${game.time}</td>
+                        <td>${game.year}</td>
+                        <td>${game.modal}</td>
+                        <td>${game.phase}</td>
+                        <td><span class="badge badge-blue">${game.space || '—'}</span></td>
+                        <td>${game.team1} vs ${game.team2}</td>
+                        <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span></td>
+                        <td><strong style="color: ${winner.color};">${winner.text}</strong></td>
+                        <td style="text-align: center;">
+                            ${editUnlocked ? `<button type="button" class="btn" style="background: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="removeGame(${i})">✕</button>` : `<span style="color: var(--text-muted); font-size: 0.8rem;">🔒</span>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ---------------------------------------------------------------
+        // GRADE DE HORÁRIOS & RESULTADOS (VISÃO PÚBLICA)
+        // Cada intervalo do dia pode conter ZERO, UM ou VÁRIOS jogos,
+        // cada um no seu próprio horário dentro da janela do intervalo.
+        // ---------------------------------------------------------------
+        function renderScheduleTable() {
+            const container = document.getElementById('scheduleContainer');
+            if (!container) return;
+
+            if (availableSlots.length === 0 && gamesData.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-info">Os horários e resultados dos jogos serão publicados aqui assim que forem cadastrados pela organização.</div>
+                `;
+                return;
+            }
+
+            const allDates = [...new Set([
+                ...availableSlots.map(s => s.date),
+                ...gamesData.map(g => g.date)
+            ])].sort();
+
+            let html = '';
+
+            allDates.forEach(date => {
+                const slotsOfDate = availableSlots.filter(s => s.date === date)
+                    .sort((a, b) => a.start.localeCompare(b.start));
+                const gamesOfDate = gamesData.filter(g => g.date === date);
+
+                html += `<h3 style="margin-top: 1.5rem;">📅 ${formatDateBr(date)}</h3>`;
+
+                if (slotsOfDate.length === 0) {
+                    html += `<p style="color: var(--text-muted); margin-bottom: 1rem;">Nenhum intervalo cadastrado para este dia.</p>`;
+                }
+
+                // Jogos que não caem dentro de nenhum intervalo cadastrado (fora da janela)
+                const gamesUsados = new Set();
+
+                slotsOfDate.forEach(slot => {
+                    // Todos os jogos cujo horário cai dentro deste intervalo (pode haver vários)
+                    const gamesDoIntervalo = gamesOfDate
+                        .filter(g => g.time >= slot.start && g.time <= slot.end)
+                        .sort((a, b) => a.time.localeCompare(b.time));
+
+                    gamesDoIntervalo.forEach(g => gamesUsados.add(g));
+
+                    html += `
+                        <div class="table-responsive" style="margin-bottom: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th colspan="7" style="background: #eef2ff;">⏱️ Intervalo: ${slot.start} - ${slot.end}</th>
+                                    </tr>
+                                    <tr>
+                                        <th>Horário do Jogo</th>
+                                        <th>Ano</th>
+                                        <th>Modalidade</th>
+                                        <th>Fase</th>
+                                        <th>Espaço</th>
+                                        <th>Confronto</th>
+                                        <th>Placar / Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    if (gamesDoIntervalo.length === 0) {
+                        html += `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Nenhum jogo registrado ainda neste intervalo.</td></tr>`;
+                    } else {
+                        gamesDoIntervalo.forEach(game => {
+                            const winner = gameWinnerLabel(game);
+                            html += `
+                                <tr>
+                                    <td>${game.time}</td>
+                                    <td>${game.year}</td>
+                                    <td>${game.modal}</td>
+                                    <td>${game.phase}</td>
+                                    <td><span class="badge badge-blue">${game.space || '—'}</span></td>
+                                    <td>${game.team1} vs ${game.team2}</td>
+                                    <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span> <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong></td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    html += `</tbody></table></div>`;
+                });
+
+                // Jogos do dia cujo horário não caiu em nenhum intervalo cadastrado
+                const gamesForaDeIntervalo = gamesOfDate.filter(g => !gamesUsados.has(g));
+                if (gamesForaDeIntervalo.length > 0) {
+                    html += `
+                        <div class="table-responsive" style="margin-bottom: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr><th colspan="7" style="background: #fffbeb;">⚠️ Outros horários (fora dos intervalos cadastrados)</th></tr>
+                                    <tr>
+                                        <th>Horário do Jogo</th>
+                                        <th>Ano</th>
+                                        <th>Modalidade</th>
+                                        <th>Fase</th>
+                                        <th>Espaço</th>
+                                        <th>Confronto</th>
+                                        <th>Placar / Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    gamesForaDeIntervalo
+                        .sort((a, b) => a.time.localeCompare(b.time))
+                        .forEach(game => {
+                            const winner = gameWinnerLabel(game);
+                            html += `
+                                <tr>
+                                    <td>${game.time}</td>
+                                    <td>${game.year}</td>
+                                    <td>${game.modal}</td>
+                                    <td>${game.phase}</td>
+                                    <td><span class="badge badge-blue">${game.space || '—'}</span></td>
+                                    <td>${game.team1} vs ${game.team2}</td>
+                                    <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span> <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong></td>
+                                </tr>
+                            `;
+                        });
+                    html += `</tbody></table></div>`;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+
+        // Alterna o botão de inscrição por modalidade entre "Não" (vermelho) e "Sim" (verde)
+        function toggleModality(btn) {
+            const input = btn.nextElementSibling;
+            const ligado = btn.dataset.state === 'sim';
+
+            if (ligado) {
+                btn.dataset.state = 'nao';
+                btn.textContent = 'Não';
+                btn.classList.remove('mod-sim');
+                btn.classList.add('mod-nao');
+                if (input) input.value = 'nao';
+            } else {
+                btn.dataset.state = 'sim';
+                btn.textContent = 'Sim';
+                btn.classList.remove('mod-nao');
+                btn.classList.add('mod-sim');
+                if (input) input.value = 'sim';
+            }
+        }
+
+        // Render Student Roster Table dynamically with real student names and unselected options (Sim/Não)
+        function renderStudentTable() {
+            const select = document.getElementById('classSelect');
+            if (!select) return;
+            const selectedCode = select.value;
+            const classObj = officialStudentsData[selectedCode];
+            const badge = document.getElementById('classInfoBadge');
+            
+            if (classObj) {
+                badge.innerText = `${classObj.label} (Turma ${classObj.code}) — ${classObj.students.length} Alunos`;
+            }
+
+            const tbody = document.getElementById('studentRosterBody');
+            tbody.innerHTML = '';
+
+            const modalities = ['futsal', 'queimada', 'basquete', 'damas', 'atletismo'];
+
+            if (classObj && classObj.students) {
+                classObj.students.forEach((student) => {
+                    const numStr = student.num < 10 ? '0' + student.num : student.num;
+                    const tr = document.createElement('tr');
+                    
+                    let modsHtml = '';
+                    modalities.forEach(mod => {
+                        const fieldName = `st_${selectedCode}_${student.num}_${mod}`;
+                        modsHtml += `
+                            <td style="text-align: center; vertical-align: middle;">
+                                <button type="button"
+                                        class="mod-toggle mod-nao"
+                                        data-state="nao"
+                                        onclick="toggleModality(this)">Não</button>
+                                <input type="hidden" name="${fieldName}" value="nao">
+                            </td>
+                        `;
+                    });
+
+                    tr.innerHTML = `
+                        <td><strong>${numStr}</strong></td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">${student.mat}</td>
+                        <td><strong>${student.nome}</strong></td>
+                        ${modsHtml}
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // Calcula a altura real do cabeçalho fixo e disponibiliza como variável CSS,
+        // para que a barra de abas e a faixa de resumo se encaixem exatamente abaixo dele.
+        // Em telas estreitas a barra de abas vira uma faixa horizontal fixa, então a
+        // faixa de resumo precisa considerar também a altura dela para não se sobrepor.
+        function updateHeaderHeightVar() {
+            const header = document.querySelector('header');
+            const tabs = document.querySelector('.tabs');
+            if (!header) return;
+            const headerH = header.offsetHeight;
+            document.documentElement.style.setProperty('--header-height', headerH + 'px');
+
+            let stickyOffset = headerH;
+            if (window.innerWidth <= 860 && tabs) {
+                stickyOffset += tabs.offsetHeight;
+            }
+            document.documentElement.style.setProperty('--sticky-offset', stickyOffset + 'px');
+        }
+        window.addEventListener('resize', updateHeaderHeightVar);
+
+        // Initialize table on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateHeaderHeightVar();
+            renderStudentTable();
+            initGroupOrganization();
+            renderSlotsTable();
+            updateDateOptions();
+            renderGamesTable();
+            renderScheduleTable();
+            applyEditLockUI();
+        });
+    </script>
 </body>
 </html>
