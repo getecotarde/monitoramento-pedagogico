@@ -205,6 +205,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Sub-abas (usadas dentro da aba "Listagem & Fichas") */
+        .sub-tab-content { display: none; }
+        .sub-tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .sub-tab-btn { flex: 0 0 auto; }
+
         /* Cards & Grid */
         .card {
             background: var(--card-bg);
@@ -437,6 +442,47 @@
             body { background: white; }
             .card { box-shadow: none; border: 1px solid #ccc; }
         }
+
+        /* Impressão da Listagem por Turma (folha para marcação em sala) */
+        #rosterPrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-roster header,
+            body.printing-roster > .container { display: none !important; }
+            body.printing-roster #rosterPrintContainer.roster-print-only { display: block !important; }
+        }
+        .roster-print-page { page-break-after: always; padding: 8px 6px; }
+        .roster-print-page:last-child { page-break-after: auto; }
+        .roster-print-page table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .roster-print-page th, .roster-print-page td { border: 1px solid #333; padding: 3px 5px; }
+        .roster-print-page thead th { background: #e2e8f0; text-align: center; }
+        .roster-print-page .rp-check { display: inline-block; width: 13px; height: 13px; border: 1.3px solid #333; }
+        .roster-print-header { text-align: center; margin-bottom: 8px; }
+
+        /* Impressão do Resumo Geral — A4 paisagem, 2 páginas por folha, no
+           máximo 2 folhas (frente/verso), com traço mínimo de tinta. */
+        @page resumoPaisagem { size: A4 landscape; margin: 9mm; }
+        html.resumo-landscape { page: resumoPaisagem; }
+        #resumoPrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-resumo header,
+            body.printing-resumo > .container { display: none !important; }
+            body.printing-resumo #resumoPrintContainer.roster-print-only { display: block !important; }
+        }
+        .resumo-print-page { page-break-after: always; width: 100%; box-sizing: border-box; }
+        .resumo-print-page:last-child { page-break-after: auto; }
+        .resumo-print-columns { display: flex; gap: 10mm; align-items: stretch; }
+        .resumo-print-col { flex: 1; min-width: 0; border-right: 1px dashed #999; padding-right: 10mm; }
+        .resumo-print-col:last-child { border-right: none; padding-right: 0; }
+        .resumo-print-page h3 { font-size: 13px; border-bottom: 1.5px solid #333; padding-bottom: 3px; margin: 0 0 6px; color: #111; }
+        .resumo-print-page p, .resumo-print-page li { font-size: 10.5px; line-height: 1.35; color: #111; }
+        .resumo-print-page ul { margin: 0 0 6px 14px; }
+        .resumo-print-page table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 4px; }
+        .resumo-print-page th, .resumo-print-page td { border: 1px solid #333; padding: 2px 4px; text-align: left; }
+        .resumo-print-page thead th { background: #eee; }
+        .resumo-print-stats { display: flex; gap: 6px; margin-bottom: 8px; }
+        .resumo-print-stats > div { flex: 1; border: 1px solid #333; text-align: center; padding: 4px 2px; }
+        .resumo-print-stats .num { font-weight: 700; font-size: 13px; }
+        .resumo-print-stats .label { font-size: 8.5px; color: #444; }
     </style>
 </head>
 <body>
@@ -464,6 +510,9 @@
 
         <!-- TAB 1: RESUMO GERAL -->
         <div id="resumo" class="tab-content active">
+            <div class="card no-print" style="padding: 0.75rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem;">
+                <button type="button" class="tab-btn" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirResumoGeral()">🖨️ Gerar Resumo p/ Impressão (PDF A4 paisagem, 2 folhas)</button>
+            </div>
             <div class="grid-3 stat-row">
                 <div class="stat-card">
                     <div class="num">5</div>
@@ -489,13 +538,19 @@
                 </ul>
             </div>
 
+            <div class="card">
+                <h2>🌐 Turmas e Seleções</h2>
+                <p style="margin-bottom: 1rem; color: var(--text-muted);">Cada turma representa uma seleção, reaproveitando os países da Gincana escolar. Essa identificação é usada nos grupos, nos jogos e nas súmulas.</p>
+                <div class="grid-3" id="turmasSelecoesGrid" style="gap: 0.8rem;"></div>
+            </div>
+
             <div class="grid-2">
                 <div class="card">
                     <h2>👥 Das Equipes e Organização</h2>
                     <p><strong>Composição:</strong> As equipes serão formadas por turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
                     <p style="margin-top: 0.5rem;"><strong>Identificação e Liderança:</strong></p>
                     <ul style="margin-left: 1.5rem; margin-top: 0.3rem;">
-                        <li>Definição de nome da equipe (pode reutilizar o nome do país/seleção da Gincana escolar).</li>
+                        <li>O nome da equipe será o nome do país/seleção da Gincana escolar (ver associação completa em <strong>🌐 Turmas e Seleções</strong>, acima).</li>
                         <li>Eleição de um(a) <strong>Capitão/Capitã</strong> representante no Congresso Técnico, preenchimento de fichas e decisões organizacionais.</li>
                     </ul>
                 </div>
@@ -639,7 +694,8 @@
 
             <div class="alert alert-warning">
                 <strong>👕 VESTIMENTA OBRIGATÓRIA PARA TODAS AS MODALIDADES:</strong><br>
-                Shorts/bermuda leve, camiseta da equipe/colete e tênis. <br>
+                Shorts/bermuda leve, camiseta da equipe/colete <strong>ou a camisa do Interclasse</strong>, e tênis. <br>
+                <span style="color: var(--danger); font-weight: bold;">ATENÇÃO:</span> A camisa do Interclasse só poderá ser utilizada durante o próprio Interclasse e, após o evento, exclusivamente às sextas-feiras, como uniforme, e durante as aulas de Educação Física.<br>
                 <span style="color: var(--danger); font-weight: bold;">É EXPRESSAMENTE PROIBIDO:</span> Uso de calça/short jeans, jogar descalço ou com roupas curtas.
             </div>
         </div>
@@ -814,6 +870,7 @@
                                 <thead>
                                     <tr>
                                         <th>Turma</th>
+                                        <th>Seleção</th>
                                         <th style="width: 160px;">Grupo</th>
                                     </tr>
                                 </thead>
@@ -828,6 +885,7 @@
                                 <thead>
                                     <tr>
                                         <th>Turma</th>
+                                        <th>Seleção</th>
                                         <th style="width: 160px;">Grupo</th>
                                     </tr>
                                 </thead>
@@ -885,90 +943,149 @@
 
         <!-- TAB 7: LISTAGEM DE INSCRIÇÃO / FICHAS DOS ALUNOS -->
         <div id="inscricoes" class="tab-content">
-            <div class="card">
-                <h2>📋 Inscrição e Mapeamento Oficial de Atletas por Turma</h2>
-                <p>Selecione a turma para carregar a listagem oficial de alunos importada do sistema e indicar a participação (<strong>Sim</strong> / <strong>Não</strong>) em cada modalidade esportiva.</p>
-                
-                <div style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; background: #f1f5f9; padding: 1rem; border-radius: 8px;">
-                    <label for="classSelect" style="font-weight: 700; font-size: 1rem; margin: 0;">Selecione a Turma:</label>
-                    <select id="classSelect" onchange="renderStudentTable()" style="max-width: 320px; font-weight: 600; padding: 0.5rem;">
-                        <optgroup label="6ºs Anos (6 Turmas)">
-                            <option value="601">6º Ano A</option>
-                            <option value="602">6º Ano B</option>
-                            <option value="603">6º Ano C</option>
-                            <option value="604">6º Ano D</option>
-                            <option value="605">6º Ano E</option>
-                            <option value="606">6º Ano F</option>
-                        </optgroup>
-                        <optgroup label="7ºs Anos (5 Turmas)">
-                            <option value="701">7º Ano A</option>
-                            <option value="702">7º Ano B</option>
-                            <option value="703">7º Ano C</option>
-                            <option value="704">7º Ano D</option>
-                            <option value="705">7º Ano E</option>
-                        </optgroup>
-                    </select>
-                    <span id="classInfoBadge" class="badge badge-blue" style="font-size: 0.95rem; padding: 0.5rem 1rem;">6º Ano A - 33 Alunos</span>
-                </div>
 
-                <div class="table-responsive">
-                    <table id="studentRosterTable">
-                        <thead>
-                            <tr>
-                                <th width="4%">Nº</th>
-                                <th width="10%">Matrícula</th>
-                                <th width="28%">Nome do Aluno / Atleta</th>
-                                <th width="11.6%" style="text-align: center;">Futsal</th>
-                                <th width="11.6%" style="text-align: center;">Queimada</th>
-                                <th width="11.6%" style="text-align: center;">Basquete</th>
-                                <th width="11.6%" style="text-align: center;">Damas</th>
-                                <th width="11.6%" style="text-align: center;">Atletismo</th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentRosterBody">
-                            <!-- Preenchido dinamicamente via JavaScript com os alunos da planilha -->
-                        </tbody>
-                    </table>
+            <div class="card" style="padding: 0.75rem;">
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button type="button" class="tab-btn sub-tab-btn active" style="width: auto;" onclick="switchSubTab(event,'subListagem')">📋 Listagem por Turma</button>
+                    <button type="button" class="tab-btn sub-tab-btn" style="width: auto;" onclick="switchSubTab(event,'subDashboard')">📊 Dashboard das Fichas</button>
+                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirListagemPorTurma()">🖨️ Imprimir Listagem por Turma</button>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>📑 Resumo do Mapeamento de Vagas & Cotas por Modalidade</h2>
-                <div class="grid-2">
-                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                        <h3>⚽ Futsal (Masc. / Fem.)</h3>
-                        <p><strong>Cota:</strong> 6 a 12 inscritos por naipe por turma.</p>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">* Rodízio obrigatório no intervalo (mínimo 3 substituições) e todos jogam.</p>
+            <!-- SUB-ABA: LISTAGEM POR TURMA -->
+            <div id="subListagem" class="sub-tab-content active">
+                <div class="card">
+                    <h2>📋 Inscrição e Mapeamento Oficial de Atletas por Turma</h2>
+                    <p>Selecione a turma para carregar a listagem oficial de alunos importada do sistema, informar o sexo (<strong>M</strong>/<strong>F</strong>) de cada estudante e indicar a participação (<strong>Sim</strong> / <strong>Não</strong>) em cada modalidade esportiva.</p>
+
+                    <div style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; background: #f1f5f9; padding: 1rem; border-radius: 8px;">
+                        <label for="classSelect" style="font-weight: 700; font-size: 1rem; margin: 0;">Selecione a Turma:</label>
+                        <select id="classSelect" onchange="renderStudentTable()" style="max-width: 320px; font-weight: 600; padding: 0.5rem;">
+                            <optgroup label="6ºs Anos (6 Turmas)">
+                                <option value="601">6º Ano A — Argentina</option>
+                                <option value="602">6º Ano B — Espanha</option>
+                                <option value="603">6º Ano C — México</option>
+                                <option value="604">6º Ano D — Croácia</option>
+                                <option value="605">6º Ano E — Alemanha</option>
+                                <option value="606">6º Ano F — Noruega</option>
+                            </optgroup>
+                            <optgroup label="7ºs Anos (5 Turmas)">
+                                <option value="701">7º Ano A — Senegal</option>
+                                <option value="702">7º Ano B — Marrocos</option>
+                                <option value="703">7º Ano C — Colômbia</option>
+                                <option value="704">7º Ano D — Uruguai</option>
+                                <option value="705">7º Ano E — Estados Unidos</option>
+                            </optgroup>
+                        </select>
+                        <span id="classInfoBadge" class="badge badge-blue" style="font-size: 0.95rem; padding: 0.5rem 1rem;">6º Ano A - 33 Alunos</span>
                     </div>
 
-                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                        <h3>🔥 Queimada (Mista)</h3>
-                        <p><strong>Cota:</strong> 12 a 14 atletas (50% Masc. / 50% Fem.).</p>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">* Composição paritária obrigatória entre meninos e meninas.</p>
+                    <div class="table-responsive">
+                        <table id="studentRosterTable">
+                            <thead>
+                                <tr>
+                                    <th width="4%">Nº</th>
+                                    <th width="9%">Matrícula</th>
+                                    <th width="23%">Nome do Aluno / Atleta</th>
+                                    <th width="5%" style="text-align: center;">Sexo</th>
+                                    <th width="11.4%" style="text-align: center;">Futsal</th>
+                                    <th width="11.4%" style="text-align: center;">Queimada</th>
+                                    <th width="11.4%" style="text-align: center;">Basquete</th>
+                                    <th width="11.4%" style="text-align: center;">Damas</th>
+                                    <th width="11.4%" style="text-align: center;">Atletismo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentRosterBody">
+                                <!-- Preenchido dinamicamente via JavaScript com os alunos da planilha -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="grid-3" style="margin-top: 1rem;">
-                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                        <h3>🏀 Basquete de Trilha</h3>
-                        <p><strong>Cota:</strong> 3 Duplas Fem. + 3 Duplas Masc. (12 alunos).</p>
+                <div class="card">
+                    <h2>📑 Resumo do Mapeamento de Vagas & Cotas por Modalidade</h2>
+                    <div class="grid-2">
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                            <h3>⚽ Futsal (Masc. / Fem.)</h3>
+                            <p><strong>Cota:</strong> 6 a 12 inscritos por naipe por turma.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">* Rodízio obrigatório no intervalo (mínimo 3 substituições) e todos jogam.</p>
+                        </div>
+
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                            <h3>🔥 Queimada (Mista)</h3>
+                            <p><strong>Cota:</strong> 12 a 14 atletas (50% Masc. / 50% Fem.).</p>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">* Composição paritária obrigatória entre meninos e meninas.</p>
+                        </div>
                     </div>
 
-                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                        <h3>♟️ Damas (Mista)</h3>
-                        <p><strong>Cota:</strong> 4 Atletas (2 Masc. / 2 Fem.).</p>
-                    </div>
+                    <div class="grid-3" style="margin-top: 1rem;">
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                            <h3>🏀 Basquete de Trilha</h3>
+                            <p><strong>Cota:</strong> 3 Duplas Fem. + 3 Duplas Masc. (12 alunos).</p>
+                        </div>
 
-                    <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                        <h3>🏃 Atletismo</h3>
-                        <p><strong>Cota:</strong> 6 Atletas (3 Fem. - 15m / 3 Masc. - 20m).</p>
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                            <h3>♟️ Damas (Mista)</h3>
+                            <p><strong>Cota:</strong> 4 Atletas (2 Masc. / 2 Fem.).</p>
+                        </div>
+
+                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
+                            <h3>🏃 Atletismo</h3>
+                            <p><strong>Cota:</strong> 6 Atletas (3 Fem. - 15m / 3 Masc. - 20m).</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- SUB-ABA: DASHBOARD DAS FICHAS -->
+            <div id="subDashboard" class="sub-tab-content">
+                <div class="alert alert-info">
+                    ℹ️ Este painel é calculado automaticamente a partir do sexo (M/F) e das inscrições (Sim/Não) informados na sub-aba <strong>📋 Listagem por Turma</strong>. Ele não é salvo entre sessões — abra a Listagem por Turma de cada turma pelo menos uma vez para atualizar os números aqui.
+                </div>
+
+                <div class="card" style="padding: 1rem;">
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                        <div>
+                            <label for="dashboardFiltroAno" style="font-weight: 700; display: block; margin-bottom: 0.3rem;">Ano/Ciclo:</label>
+                            <select id="dashboardFiltroAno" onchange="preencherFiltroTurmasDashboard(); renderDashboardFichas();" style="padding: 0.5rem; font-weight: 600;">
+                                <option value="todos">Todos os anos</option>
+                                <option value="6">6º Ano</option>
+                                <option value="7">7º Ano</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="dashboardFiltroTurma" style="font-weight: 700; display: block; margin-bottom: 0.3rem;">Turma:</label>
+                            <select id="dashboardFiltroTurma" onchange="renderDashboardFichas();" style="padding: 0.5rem; font-weight: 600; min-width: 220px;">
+                                <option value="todas">Todas as turmas</option>
+                            </select>
+                        </div>
+                        <button type="button" class="tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirDashboardFichas()">🖨️ Imprimir Dashboard (conforme filtro)</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Duplas / Individuais × Modalidade — Consolidado Geral</h2>
+                    <p style="color: var(--text-muted);">Total de inscritos, por sexo, em cada modalidade — coletivas (Futsal, Queimada), em duplas (Basquete de Trilha) e individuais (Damas, Atletismo) — somando as turmas/seleções do filtro acima.</p>
+                    <div id="dashboardResumoModalidade"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🗂️ Fichas por Turma / Seleção × Modalidade</h2>
+                    <p style="color: var(--text-muted);">Situação da ficha de cada turma/seleção em cada modalidade, comparada com a cota exigida (turmas/seleções do filtro acima).</p>
+                    <div id="dashboardFichasGrid"></div>
+                </div>
+            </div>
+
         </div>
 
         </div>
     </div>
+
+    <!-- Conteúdo montado dinamicamente na hora de imprimir a Listagem por Turma (uma folha por turma) -->
+    <div id="rosterPrintContainer" class="roster-print-only"></div>
+
+    <!-- Conteúdo montado dinamicamente na hora de imprimir o Resumo Geral (paisagem, 2 folhas) -->
+    <div id="resumoPrintContainer" class="roster-print-only"></div>
 
     <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
          formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
@@ -4184,6 +4301,60 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         const turmas7 = ['7º Ano A', '7º Ano B', '7º Ano C', '7º Ano D', '7º Ano E'];
 
         // ---------------------------------------------------------------
+        // TURMAS × SELEÇÕES
+        // Cada turma reaproveita o nome/país de uma seleção da Gincana
+        // escolar (ver regra em "Das Equipes e Organização"). Este mapa é a
+        // fonte única dessa identificação e é usado nos grupos, no resumo,
+        // na listagem de alunos e em qualquer outro ponto que precise
+        // exibir a seleção correspondente a cada turma.
+        // ---------------------------------------------------------------
+        const SELECOES = {
+            '6º Ano A': { pais: 'Argentina',      flag: '🇦🇷' },
+            '6º Ano B': { pais: 'Espanha',        flag: '🇪🇸' },
+            '6º Ano C': { pais: 'México',         flag: '🇲🇽' },
+            '6º Ano D': { pais: 'Croácia',        flag: '🇭🇷' },
+            '6º Ano E': { pais: 'Alemanha',       flag: '🇩🇪' },
+            '6º Ano F': { pais: 'Noruega',        flag: '🇳🇴' },
+            '7º Ano A': { pais: 'Senegal',        flag: '🇸🇳' },
+            '7º Ano B': { pais: 'Marrocos',       flag: '🇲🇦' },
+            '7º Ano C': { pais: 'Colômbia',       flag: '🇨🇴' },
+            '7º Ano D': { pais: 'Uruguai',        flag: '🇺🇾' },
+            '7º Ano E': { pais: 'Estados Unidos', flag: '🇺🇸' },
+        };
+        // Seleção adicional/reserva informada junto com o mapeamento oficial,
+        // ainda sem turma correspondente entre os 6ºs e 7ºs anos cadastrados
+        // (útil caso uma nova turma seja incluída futuramente).
+        const SELECAO_RESERVA = { pais: 'Equador', flag: '🇪🇨', refTurma: 'Turma 8º X (reserva)' };
+
+        function selecaoDaTurma(turma) {
+            return SELECOES[turma] || null;
+        }
+
+        // Texto "🇦🇷 Argentina" (sem a turma) para uso em rótulos compactos
+        function selecaoLabel(turma) {
+            const s = selecaoDaTurma(turma);
+            return s ? `${s.flag} ${s.pais}` : '— seleção não definida —';
+        }
+
+        function renderTurmasSelecoesGrid() {
+            const box = document.getElementById('turmasSelecoesGrid');
+            if (!box) return;
+            const cardHTML = (turma, s) => `
+                <div style="display:flex;align-items:center;gap:0.7rem;border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.9rem;background:#fafafa;">
+                    <span style="font-size:1.6rem;line-height:1;">${s.flag}</span>
+                    <div>
+                        <div style="font-weight:700;color:var(--primary);font-size:0.95rem;">${s.pais}</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">${turma}</div>
+                    </div>
+                </div>`;
+            let html = '';
+            turmas6.forEach(t => { html += cardHTML(t, SELECOES[t]); });
+            turmas7.forEach(t => { html += cardHTML(t, SELECOES[t]); });
+            html += cardHTML(SELECAO_RESERVA.refTurma, SELECAO_RESERVA);
+            box.innerHTML = html;
+        }
+
+        // ---------------------------------------------------------------
         // BLOQUEIO DE EDIÇÃO POR CÓDIGO DE ACESSO
         // A montagem dos grupos, o cadastro de horários e o registro de
         // partidas/placares são de responsabilidade da Coordenação e do
@@ -4255,6 +4426,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${turma}</strong></td>
+                    <td>${selecaoLabel(turma)}</td>
                     <td>
                         <select class="group-select" onchange="setGroup('${turma}', this.value)" style="padding: 0.4rem;" ${editUnlocked ? '' : 'disabled'}>
                             <option value="" ${groupAssignments[turma] === '' ? 'selected' : ''}>Não definido</option>
@@ -4286,7 +4458,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             const semGrupo = turmas.filter(t => !groupAssignments[t]);
 
             const lista = (arr) => arr.length
-                ? arr.map(t => `<span class="badge badge-blue" style="margin: 0.2rem;">${t}</span>`).join('')
+                ? arr.map(t => `<span class="badge badge-blue" style="margin: 0.2rem;">${selecaoLabel(t)} · ${t}</span>`).join('')
                 : '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhuma turma ainda</span>';
 
             container.innerHTML = `
@@ -4505,27 +4677,149 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
 
+        // ---------------------------------------------------------------
+        // ARMAZENAMENTO CENTRAL DE PARTICIPAÇÃO (SEXO + MODALIDADES)
+        // Guarda, para TODAS as turmas (não só a que está aberta na tela),
+        // o sexo (M/F) informado e o Sim/Não de cada modalidade por aluno.
+        // É essa estrutura que alimenta o Dashboard das Fichas (sub-aba),
+        // permitindo cruzar Turma/Seleção × Modalidade e Duplas/Individuais
+        // × Modalidade sem depender do que está renderizado na tela no momento.
+        // ---------------------------------------------------------------
+        const MODALIDADES_LIST = ['futsal', 'queimada', 'basquete', 'damas', 'atletismo'];
+        const MODALIDADE_LABELS = { futsal: 'Futsal', queimada: 'Queimada', basquete: 'Basquete de Trilha', damas: 'Damas', atletismo: 'Atletismo' };
+        const MODALIDADE_TIPO = { futsal: 'coletiva', queimada: 'coletiva', basquete: 'dupla', damas: 'individual', atletismo: 'individual' };
+        const MODALIDADE_TIPO_LABEL = { coletiva: '👥 Coletiva', dupla: '🤝 Duplas', individual: '🙋 Individual' };
+        const QUOTAS_MODALIDADE = {
+            futsal:    { texto: '6–12 por naipe (M e F)', check: c => (c.m >= 6 && c.m <= 12) && (c.f >= 6 && c.f <= 12) },
+            queimada:  { texto: '12–14 no total, 50% M / 50% F', check: c => (c.total >= 12 && c.total <= 14) && c.m === c.f },
+            basquete:  { texto: '6M + 6F (3 duplas de cada)', check: c => c.m === 6 && c.f === 6 },
+            damas:     { texto: '2M + 2F', check: c => c.m === 2 && c.f === 2 },
+            atletismo: { texto: '3M + 3F', check: c => c.m === 3 && c.f === 3 },
+        };
+
+        // ---------------------------------------------------------------
+        // PREVISÃO AUTOMÁTICA DE SEXO (M/F) A PARTIR DO PRIMEIRO NOME
+        // Serve apenas como sugestão inicial (pré-visualização); o campo
+        // continua totalmente editável pelo seletor M/F de cada aluno.
+        // ---------------------------------------------------------------
+        function normalizarNome(txt) {
+            return (txt || '')
+                .toString()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .trim();
+        }
+
+        const NOMES_FEMININOS = new Set([
+            'AGATA','AGATHA','ALANA','ALICE','ALLYCE','AMANDA','ANA','ANNA','ANNY','ANTONELLA','ANTONELLY',
+            'AYLA','BARBARA','BEATRIZ','BIANCA','BIANKA','BRUNA','CAMILA','CAMILLA','CAROLINA','CATARINA',
+            'CECILIA','CLARA','CLARICE','CLARISSE','DEBORA','DIULIA','ELOA','ELOISA','ELIZABETH','EMANUELLE',
+            'EMANUELLY','ESTER','ESTHER','EVELIN','EVELYN','FERNANDA','FLAVIA','GABRIELA','GABRIELLE',
+            'GABRIELLY','GEOVANA','GIOVANA','GIOVANNA','GIULIA','HADASSA','HELENA','HELOISA','INGRID','IRIS',
+            'ISABELA','ISABELLA','ISABELLY','ISADORA','ISIS','IZABEL','IZABELLE','JENNIFER','JESSICA','JULIA',
+            'JULIANA','KAILLANY','KAMILY','KAROLINA','KAUANY','KETULLY','LARA','LARISSA','LAUANE','LAURA',
+            'LAVINIA','LETICIA','LHUANNY','LIVIA','LUANA','LUARA','LUDMYLA','LUIZA','MALU','MANUELA',
+            'MARCELLA','MARIA','MARIANA','MARINA','MAYARA','MEL','MELISSA','MELYSSA','MILENA','MIRELLA',
+            'NATALIA','NICOLLE','NICOLLY','PALOMA','PATRICIA','PAULA','PEROLA','PIETRA','PRISCILA','QUEZIA',
+            'RAISSA','RAQUEL','RAYSSA','REBECA','RENATA','RITHA','ROSA','SABRINA','SAMARA','SARA','SARAH',
+            'SKARLETT','SOFIA','SOPHIA','SOPHYA','STELLA','STHEPHANY','TAINA','THAIS','THALITA','THAUANY',
+            'VALENTINA','VANESSA','VITORIA','VIVIAN','YARA','YASMIN','ZOE'
+        ]);
+
+        const NOMES_MASCULINOS = new Set([
+            'ALEPH','ALVARO','ANDRE','ANTONIO','ARTHUR','AUGUSTO','BENICIO','BENJAMIN','BERNARD','BERNARDO',
+            'BRAYAN','BRENO','BRUNO','BRYAN','CAIO','CARLOS','CAUA','CAUE','CHRISTOPHER','CLAUDIO','CRISTIAN',
+            'CRISTIANO','DANIEL','DAVI','DERICK','DIEGO','DIOGO','DOUGLAS','EDUARDO','EMANOEL','EMANUEL',
+            'ENZO','ERIC','ERICK','ERIK','ESTEVAO','EZEQUIEL','FABIO','FELIPE','FERNANDO','FILIPE','FRANCISCO',
+            'GABRIEL','GUILHERME','GUSTAVO','HEITOR','HENRIQUE','HITALO','IGOR','ISAAC','ISAQUE','ISAQUY',
+            'ITALO','JOAO','JOAQUIM','JORGE','JOSE','JUAN','JULIO','KAIQUE','KALLEB','KAUA','KAUAN','KAUE',
+            'KAYO','KEVEN','LAEL','LEANDRO','LEONARDO','LEVI','LORENZO','LUAN','LUCA','LUCAS','LUCCA','LUIS',
+            'LUIZ','MARCELLO','MARCO','MARCOS','MARCUS','MATHEUS','MAYCON','MIGUEL','MURILO','NATHAN','NICOLAS',
+            'NIKOLAS','NOAH','OLIVER','OTAVIO','PAULO','PEDRO','PIETRO','PYETRO','RAFAEL','RAPHAEL','RAUL',
+            'ROBERT','RODRIGO','RYAN','SAMUEL','SANTIAGO','TALLES','TEO','THEO','THIAGO','TIAGO','VICTOR',
+            'VINICIUS','VITOR','WALLACE','WESLEY','WILLIAM','YURI','ZION'
+        ]);
+
+        function preverSexoPorNome(nomeCompleto) {
+            const primeiro = normalizarNome((nomeCompleto || '').split(/\s+/)[0]);
+            if (!primeiro) return '';
+            if (NOMES_FEMININOS.has(primeiro)) return 'F';
+            if (NOMES_MASCULINOS.has(primeiro)) return 'M';
+            // Fallback: heurística geral do português (nomes terminados em A/Ã tendem a ser femininos)
+            return /[AÃ]$/.test(primeiro) ? 'F' : 'M';
+        }
+
+        const participationStore = {}; // participationStore[classCode][num] = { sexo:'M'|'F'|'', mods:{futsal:'sim'|'nao', ...} }
+
+        function ensureParticipationEntry(classCode, num, nomeAluno) {
+            if (!participationStore[classCode]) participationStore[classCode] = {};
+            if (!participationStore[classCode][num]) {
+                const mods = {};
+                // Queimada já vem pré-marcada como "Sim", pois a maioria dos alunos disputa essa modalidade.
+                MODALIDADES_LIST.forEach(m => { mods[m] = (m === 'queimada') ? 'sim' : 'nao'; });
+
+                let nome = nomeAluno;
+                if (!nome && officialStudentsData[classCode]) {
+                    const st = officialStudentsData[classCode].students.find(s => s.num === Number(num));
+                    if (st) nome = st.nome;
+                }
+                participationStore[classCode][num] = { sexo: preverSexoPorNome(nome), mods };
+            }
+            return participationStore[classCode][num];
+        }
+
+        // Inicializa a estrutura para todos os alunos de todas as turmas, com
+        // valores padrão (sexo pré-previsto a partir do nome, Queimada "Sim"
+        // e as demais modalidades "Não").
+        function initParticipationStore() {
+            Object.keys(officialStudentsData).forEach(code => {
+                officialStudentsData[code].students.forEach(st => {
+                    ensureParticipationEntry(code, st.num, st.nome);
+                });
+            });
+        }
+
+        function atualizarDashboardSeAtivo() {
+            const painel = document.getElementById('subDashboard');
+            if (painel && painel.classList.contains('active')) renderDashboardFichas();
+        }
+
         // Alterna o botão de inscrição por modalidade entre "Não" (vermelho) e "Sim" (verde)
         function toggleModality(btn) {
-            const input = btn.nextElementSibling;
-            const ligado = btn.dataset.state === 'sim';
+            const classCode = btn.dataset.class;
+            const num = btn.dataset.num;
+            const mod = btn.dataset.mod;
+            const entry = ensureParticipationEntry(classCode, num);
+            const novoEstado = entry.mods[mod] === 'sim' ? 'nao' : 'sim';
+            entry.mods[mod] = novoEstado;
 
-            if (ligado) {
-                btn.dataset.state = 'nao';
-                btn.textContent = 'Não';
-                btn.classList.remove('mod-sim');
-                btn.classList.add('mod-nao');
-                if (input) input.value = 'nao';
-            } else {
+            const input = btn.nextElementSibling;
+            if (novoEstado === 'sim') {
                 btn.dataset.state = 'sim';
                 btn.textContent = 'Sim';
                 btn.classList.remove('mod-nao');
                 btn.classList.add('mod-sim');
-                if (input) input.value = 'sim';
+            } else {
+                btn.dataset.state = 'nao';
+                btn.textContent = 'Não';
+                btn.classList.remove('mod-sim');
+                btn.classList.add('mod-nao');
             }
+            if (input) input.value = novoEstado;
+            atualizarDashboardSeAtivo();
         }
 
-        // Render Student Roster Table dynamically with real student names and unselected options (Sim/Não)
+        // Grava o sexo (M/F) informado para o aluno na listagem
+        function setSexoAluno(selectEl) {
+            const classCode = selectEl.dataset.class;
+            const num = selectEl.dataset.num;
+            const entry = ensureParticipationEntry(classCode, num);
+            entry.sexo = selectEl.value;
+            atualizarDashboardSeAtivo();
+        }
+
+        // Render Student Roster Table dynamically with real student names,
+        // o campo de sexo (M/F) logo após o nome, e as opções Sim/Não por modalidade
         function renderStudentTable() {
             const select = document.getElementById('classSelect');
             if (!select) return;
@@ -4534,29 +4828,44 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             const badge = document.getElementById('classInfoBadge');
             
             if (classObj) {
-                badge.innerText = `${classObj.label} (Turma ${classObj.code}) — ${classObj.students.length} Alunos`;
+                const s = selecaoDaTurma(classObj.label);
+                const selecaoTxt = s ? ` — ${s.flag} ${s.pais}` : '';
+                badge.innerText = `${classObj.label}${selecaoTxt} — ${classObj.students.length} Alunos`;
             }
 
             const tbody = document.getElementById('studentRosterBody');
             tbody.innerHTML = '';
 
-            const modalities = ['futsal', 'queimada', 'basquete', 'damas', 'atletismo'];
-
             if (classObj && classObj.students) {
                 classObj.students.forEach((student) => {
                     const numStr = student.num < 10 ? '0' + student.num : student.num;
+                    const entry = ensureParticipationEntry(selectedCode, student.num);
                     const tr = document.createElement('tr');
-                    
+
+                    const sexoSelectHtml = `
+                        <select class="sexo-select" data-class="${selectedCode}" data-num="${student.num}" onchange="setSexoAluno(this)"
+                                style="font-weight: 700; padding: 0.2rem 0.4rem; width: auto; display: inline-block;">
+                            <option value="" ${entry.sexo === '' ? 'selected' : ''}>—</option>
+                            <option value="M" ${entry.sexo === 'M' ? 'selected' : ''}>M</option>
+                            <option value="F" ${entry.sexo === 'F' ? 'selected' : ''}>F</option>
+                        </select>`;
+
                     let modsHtml = '';
-                    modalities.forEach(mod => {
+                    MODALIDADES_LIST.forEach(mod => {
                         const fieldName = `st_${selectedCode}_${student.num}_${mod}`;
+                        const estado = entry.mods[mod];
+                        const label = estado === 'sim' ? 'Sim' : 'Não';
+                        const cls = estado === 'sim' ? 'mod-sim' : 'mod-nao';
                         modsHtml += `
                             <td style="text-align: center; vertical-align: middle;">
                                 <button type="button"
-                                        class="mod-toggle mod-nao"
-                                        data-state="nao"
-                                        onclick="toggleModality(this)">Não</button>
-                                <input type="hidden" name="${fieldName}" value="nao">
+                                        class="mod-toggle ${cls}"
+                                        data-state="${estado}"
+                                        data-class="${selectedCode}"
+                                        data-num="${student.num}"
+                                        data-mod="${mod}"
+                                        onclick="toggleModality(this)">${label}</button>
+                                <input type="hidden" name="${fieldName}" value="${estado}">
                             </td>
                         `;
                     });
@@ -4565,11 +4874,518 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         <td><strong>${numStr}</strong></td>
                         <td style="color: var(--text-muted); font-size: 0.85rem;">${student.mat}</td>
                         <td><strong>${student.nome}</strong></td>
+                        <td style="text-align: center;">${sexoSelectHtml}</td>
                         ${modsHtml}
                     `;
                     tbody.appendChild(tr);
                 });
             }
+        }
+
+        // ---------------------------------------------------------------
+        // IMPRESSÃO DA LISTAGEM POR TURMA — uma folha por turma, para levar
+        // às salas e marcar manualmente (a lápis/caneta) o check de cada
+        // aluno em cada modalidade.
+        // ---------------------------------------------------------------
+        function gerarPaginaImpressaoTurma(classCode) {
+            const classObj = officialStudentsData[classCode];
+            if (!classObj) return '';
+            const s = selecaoDaTurma(classObj.label);
+            const selecaoTxt = s ? ` — Seleção: ${s.flag} ${s.pais}` : '';
+
+            let linhas = '';
+            classObj.students.forEach(student => {
+                const numStr = student.num < 10 ? '0' + student.num : student.num;
+                const entry = ensureParticipationEntry(classCode, student.num, student.nome);
+                const sexoTxt = entry.sexo || '—';
+
+                let cols = '';
+                MODALIDADES_LIST.forEach(() => {
+                    cols += `<td style="text-align:center;"><span class="rp-check"></span></td>`;
+                });
+
+                linhas += `
+                    <tr>
+                        <td style="text-align:center;">${numStr}</td>
+                        <td>${student.mat}</td>
+                        <td style="text-align:left;">${student.nome}</td>
+                        <td style="text-align:center;">${sexoTxt}</td>
+                        ${cols}
+                    </tr>`;
+            });
+
+            let cabecalhoMods = '';
+            MODALIDADES_LIST.forEach(mod => {
+                cabecalhoMods += `<th>${MODALIDADE_LABELS[mod]}</th>`;
+            });
+
+            return `
+                <div class="roster-print-page">
+                    <div class="roster-print-header">
+                        <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                        <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Listagem de Confirmação de Participação por Modalidade</span><br>
+                        <span style="font-size:13px;"><strong>Turma: ${classObj.label}${selecaoTxt}</strong> — ${classObj.students.length} alunos</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Matrícula</th>
+                                <th style="text-align:left;">Nome do Aluno</th>
+                                <th>Sexo</th>
+                                ${cabecalhoMods}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${linhas}
+                        </tbody>
+                    </table>
+                    <p style="font-size:10px;color:#555;margin-top:8px;">
+                        Marcar com X o quadrado da(s) modalidade(s) em que o aluno vai participar. Sexo (M/F) pré-preenchido automaticamente a partir do nome — confira e corrija à mão se necessário.
+                    </p>
+                </div>`;
+        }
+
+        function imprimirListagemPorTurma() {
+            const container = document.getElementById('rosterPrintContainer');
+            if (!container) return;
+
+            let html = '';
+            Object.keys(officialStudentsData).forEach(code => {
+                html += gerarPaginaImpressaoTurma(code);
+            });
+            container.innerHTML = html;
+
+            document.body.classList.add('printing-roster');
+            setTimeout(() => window.print(), 50);
+        }
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('printing-roster');
+            document.body.classList.remove('printing-resumo');
+            document.documentElement.classList.remove('resumo-landscape');
+        });
+
+        // ---------------------------------------------------------------
+        // IMPRESSÃO DO RESUMO GERAL — PDF/impressão em A4 paisagem, com
+        // layout de 2 páginas (colunas) por folha, em no máximo 2 folhas
+        // (para permitir impressão frente/verso) e com traço mínimo de
+        // tinta (sem gradientes/fundos coloridos, só bordas finas em preto).
+        // ---------------------------------------------------------------
+        const RESUMO_MODALIDADES_IMPRESSAO = {
+            futsal:    { comp: '6 a 12 por naipe (M/F), sem substituição na ficha', duracao: 'Masc.: 2×15min • Fem.: 2×10min (intervalo 5min)' },
+            queimada:  { comp: '12 a 14 atletas, 50% M / 50% F',                    duracao: 'Partida única de até 20 minutos' },
+            basquete:  { comp: '3 duplas masc. + 3 duplas fem. (6M + 6F)',          duracao: 'Partida única de até 10 minutos' },
+            damas:     { comp: '4 participantes (2M + 2F)',                        duracao: 'Partida única por bateria' },
+            atletismo: { comp: '6 participantes (3F + 3M)',                        duracao: 'Feminino: 15m • Masculino: 20m' },
+        };
+
+        function gerarHtmlResumoImpressao() {
+            const linhasTurma = (arr) => arr.map(t => {
+                const s = SELECOES[t];
+                return `<tr><td>${t}</td><td>${s.flag} ${s.pais}</td></tr>`;
+            }).join('');
+
+            const linhasModalidades = MODALIDADES_LIST.map(mod => {
+                const info = RESUMO_MODALIDADES_IMPRESSAO[mod];
+                return `<tr>
+                    <td><strong>${MODALIDADE_LABELS[mod]}</strong></td>
+                    <td>${info.comp}</td>
+                    <td>${info.duracao}</td>
+                </tr>`;
+            }).join('');
+
+            return `
+                <div class="resumo-print-page">
+                    <div class="resumo-print-columns">
+                        <div class="resumo-print-col">
+                            <div class="roster-print-header" style="margin-bottom:8px;">
+                                <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                                <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Resumo Geral (1/2)</span>
+                            </div>
+                            <div class="resumo-print-stats">
+                                <div><div class="num">5</div><div class="label">MODALIDADES</div></div>
+                                <div><div class="num">6º e 7º</div><div class="label">ANOS ATENDIDOS</div></div>
+                                <div><div class="num">08 a 11/09</div><div class="label">PERÍODO</div></div>
+                            </div>
+                            <h3>🎯 Objetivos</h3>
+                            <ul>
+                                <li><strong>Sociabilidade e Respeito Mútuo:</strong> fortalecimento de vínculos interpessoais e fair play.</li>
+                                <li><strong>Múltiplas Experiências Corporais:</strong> vivência das modalidades trabalhadas nas aulas de Educação Física.</li>
+                                <li><strong>Cultura Esportiva Consciente:</strong> evento estruturado, respeitando regras e habilidades individuais e coletivas.</li>
+                            </ul>
+                            <h3>📋 Identificação do Projeto</h3>
+                            <p>
+                                <strong>Projeto:</strong> Multidisciplinar — Jogos Estudantis GETECO 2026<br>
+                                <strong>Componente Curricular:</strong> Educação Física<br>
+                                <strong>Professores Responsáveis:</strong> Dênis José, Mello, Ramon<br>
+                                <strong>Público-alvo:</strong> Estudantes do 6º e 7º anos do Ensino Fundamental<br>
+                                <strong>Caráter do Evento:</strong> Educacional, Competitivo, Inclusivo e Integrador
+                            </p>
+                        </div>
+                        <div class="resumo-print-col">
+                            <h3>🌐 Turmas e Seleções</h3>
+                            <table>
+                                <thead><tr><th>Turma</th><th>Seleção</th></tr></thead>
+                                <tbody>
+                                    ${linhasTurma(turmas6)}
+                                    ${linhasTurma(turmas7)}
+                                    <tr><td>${SELECAO_RESERVA.refTurma}</td><td>${SELECAO_RESERVA.flag} ${SELECAO_RESERVA.pais} (reserva)</td></tr>
+                                </tbody>
+                            </table>
+                            <h3 style="margin-top:10px;">📌 Diretrizes de Inscrição</h3>
+                            <p>Todos os estudantes inscritos na súmula têm o direito e o dever de jogar; as regras impedem a exclusão de reservas ou estudantes menos experientes.</p>
+                            <p>O estudante pode se inscrever em mais de uma modalidade, desde que não haja simultaneidade de partidas entre elas.</p>
+                            <p>Inscrições oficializadas até o prazo estipulado pela Comissão Organizadora, com fichas assinadas pelo Capitão e Professor Referência.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="resumo-print-page">
+                    <div class="resumo-print-columns">
+                        <div class="resumo-print-col">
+                            <div class="roster-print-header" style="margin-bottom:8px;">
+                                <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                                <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Equipes, Protocolo e Modalidades (2/2)</span>
+                            </div>
+                            <h3>👥 Das Equipes e Organização</h3>
+                            <p><strong>Composição:</strong> equipes formadas pelas turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
+                            <p><strong>Identificação:</strong> o nome da equipe é o nome do país/seleção da Gincana escolar (ver tabela de Turmas e Seleções ao lado).</p>
+                            <p><strong>Liderança:</strong> eleição de um(a) Capitão/Capitã, representante no Congresso Técnico, responsável pelo preenchimento de fichas e decisões organizacionais.</p>
+                            <h3>🎉 Abertura, Protocolo e Encerramento</h3>
+                            <p><strong>Abertura:</strong> desfile oficial das equipes seguido do protocolo formal do evento.</p>
+                            <p><strong>Juramento do Atleta:</strong> um atleta representante conduz o juramento com o braço direito erguido, acompanhado por todos os demais participantes.</p>
+                            <p><strong>Encerramento & Premiação:</strong> dia 11/09, logo após as últimas partidas, seguido de recreio e limpeza coletiva da quadra.</p>
+                        </div>
+                        <div class="resumo-print-col">
+                            <h3>🏆 Modalidades — Referência Rápida</h3>
+                            <table>
+                                <thead><tr><th>Modalidade</th><th>Composição / Cota</th><th>Duração</th></tr></thead>
+                                <tbody>${linhasModalidades}</tbody>
+                            </table>
+                            <p style="margin-top:8px; font-size:9.5px; color:#555;">
+                                Consulte a aba 🏆 Modalidades &amp; Regras no sistema para o regulamento completo de cada modalidade (rodízio obrigatório, sistema de pontuação, critérios de desempate etc.).
+                            </p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function imprimirResumoGeral() {
+            const container = document.getElementById('resumoPrintContainer');
+            if (!container) return;
+
+            container.innerHTML = gerarHtmlResumoImpressao();
+            document.documentElement.classList.add('resumo-landscape');
+            document.body.classList.add('printing-resumo');
+            setTimeout(() => window.print(), 50);
+        }
+
+        // ---------------------------------------------------------------
+        // SUB-ABAS DA ABA "LISTAGEM & FICHAS (ALUNOS)"
+        // ---------------------------------------------------------------
+        function switchSubTab(ev, subTabId) {
+            document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(subTabId).classList.add('active');
+            if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+            if (subTabId === 'subDashboard') renderDashboardFichas();
+        }
+
+        // Conta quantos alunos de uma turma estão "Sim" numa modalidade, por sexo
+        function contarModalidadePorTurma(classCode, mod) {
+            const alunos = participationStore[classCode] || {};
+            let m = 0, f = 0, semSexo = 0;
+            Object.values(alunos).forEach(entry => {
+                if (entry.mods[mod] === 'sim') {
+                    if (entry.sexo === 'M') m++;
+                    else if (entry.sexo === 'F') f++;
+                    else semSexo++;
+                }
+            });
+            return { m, f, semSexo, total: m + f + semSexo };
+        }
+
+        // ---------------------------------------------------------------
+        // FILTROS DO DASHBOARD DAS FICHAS (Ano/Ciclo e/ou Turma)
+        // ---------------------------------------------------------------
+        function turmasFiltradasDashboard() {
+            const anoSel = document.getElementById('dashboardFiltroAno');
+            const turmaSel = document.getElementById('dashboardFiltroTurma');
+            const ano = anoSel ? anoSel.value : 'todos';
+            const turma = turmaSel ? turmaSel.value : 'todas';
+
+            let codigos = Object.keys(officialStudentsData);
+            if (ano !== 'todos') codigos = codigos.filter(code => code.startsWith(ano));
+            if (turma !== 'todas') codigos = codigos.filter(code => code === turma);
+            return codigos;
+        }
+
+        // Repopula o seletor de Turma com base no Ano/Ciclo escolhido,
+        // preservando a turma selecionada quando ela ainda for válida.
+        function preencherFiltroTurmasDashboard() {
+            const anoSel = document.getElementById('dashboardFiltroAno');
+            const turmaSel = document.getElementById('dashboardFiltroTurma');
+            if (!anoSel || !turmaSel) return;
+
+            const ano = anoSel.value;
+            const valorAtual = turmaSel.value;
+
+            let codigos = Object.keys(officialStudentsData);
+            if (ano !== 'todos') codigos = codigos.filter(code => code.startsWith(ano));
+
+            let opts = '<option value="todas">Todas as turmas</option>';
+            codigos.forEach(code => {
+                const classObj = officialStudentsData[code];
+                const s = selecaoDaTurma(classObj.label);
+                const label = s ? `${classObj.label} — ${s.flag} ${s.pais}` : classObj.label;
+                opts += `<option value="${code}">${label}</option>`;
+            });
+            turmaSel.innerHTML = opts;
+
+            const aindaValida = Array.from(turmaSel.options).some(o => o.value === valorAtual);
+            turmaSel.value = aindaValida ? valorAtual : 'todas';
+        }
+
+        // ---------------------------------------------------------------
+        // DASHBOARD DAS FICHAS — Turma/Seleção × Modalidade e
+        // Duplas/Individuais × Modalidade (consolidado geral)
+        // ---------------------------------------------------------------
+        function renderDashboardFichas() {
+            const codigosTurmas = turmasFiltradasDashboard();
+
+            // Consolidado geral por modalidade (turmas do filtro somadas)
+            const resumoBox = document.getElementById('dashboardResumoModalidade');
+            if (resumoBox) {
+                if (codigosTurmas.length === 0) {
+                    resumoBox.innerHTML = `<p style="color: var(--text-muted);">Nenhuma turma corresponde ao filtro selecionado.</p>`;
+                } else {
+                const totais = {};
+                MODALIDADES_LIST.forEach(mod => { totais[mod] = { m: 0, f: 0, semSexo: 0 }; });
+                codigosTurmas.forEach(code => {
+                    MODALIDADES_LIST.forEach(mod => {
+                        const c = contarModalidadePorTurma(code, mod);
+                        totais[mod].m += c.m;
+                        totais[mod].f += c.f;
+                        totais[mod].semSexo += c.semSexo;
+                    });
+                });
+                resumoBox.innerHTML = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Modalidade</th>
+                                    <th>Classificação</th>
+                                    <th style="text-align:center;">Total M</th>
+                                    <th style="text-align:center;">Total F</th>
+                                    <th style="text-align:center;">Sem sexo informado</th>
+                                    <th style="text-align:center;">Total Geral</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${MODALIDADES_LIST.map(mod => {
+                                    const t = totais[mod];
+                                    return `<tr>
+                                        <td><strong>${MODALIDADE_LABELS[mod]}</strong></td>
+                                        <td>${MODALIDADE_TIPO_LABEL[MODALIDADE_TIPO[mod]]}</td>
+                                        <td style="text-align:center;">${t.m}</td>
+                                        <td style="text-align:center;">${t.f}</td>
+                                        <td style="text-align:center; ${t.semSexo ? 'color: var(--danger); font-weight:700;' : 'color: var(--text-muted);'}">${t.semSexo}</td>
+                                        <td style="text-align:center;"><strong>${t.m + t.f + t.semSexo}</strong></td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+                }
+            }
+
+            // Fichas detalhadas por Turma / Seleção × Modalidade
+            const gridBox = document.getElementById('dashboardFichasGrid');
+            if (gridBox) {
+                if (codigosTurmas.length === 0) {
+                    gridBox.innerHTML = `<p style="color: var(--text-muted);">Nenhuma turma corresponde ao filtro selecionado.</p>`;
+                } else {
+                gridBox.innerHTML = codigosTurmas.map(code => {
+                    const classObj = officialStudentsData[code];
+                    const s = selecaoDaTurma(classObj.label);
+                    const tituloSelecao = s ? `${s.flag} ${classObj.label} — ${s.pais}` : classObj.label;
+
+                    const linhas = MODALIDADES_LIST.map(mod => {
+                        const c = contarModalidadePorTurma(code, mod);
+                        const q = QUOTAS_MODALIDADE[mod];
+                        const ok = q.check(c);
+                        const statusHtml = ok
+                            ? `<span style="color: var(--success); font-weight:700;">✅ Dentro da cota</span>`
+                            : `<span style="color: var(--accent); font-weight:700;">⚠️ Verificar</span>`;
+                        return `<tr>
+                            <td>${MODALIDADE_LABELS[mod]}</td>
+                            <td>${MODALIDADE_TIPO_LABEL[MODALIDADE_TIPO[mod]]}</td>
+                            <td style="text-align:center;">${c.m}</td>
+                            <td style="text-align:center;">${c.f}</td>
+                            <td style="text-align:center;">${c.total}${c.semSexo ? ` <span style="color: var(--danger); font-size: 0.75rem;">(${c.semSexo} sem M/F)</span>` : ''}</td>
+                            <td style="font-size: 0.8rem; color: var(--text-muted);">${q.texto}</td>
+                            <td>${statusHtml}</td>
+                        </tr>`;
+                    }).join('');
+
+                    return `
+                        <div class="card" style="margin-bottom: 1rem;">
+                            <h3 style="margin-top:0;">${tituloSelecao}</h3>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Modalidade</th>
+                                            <th>Tipo</th>
+                                            <th style="text-align:center;">M</th>
+                                            <th style="text-align:center;">F</th>
+                                            <th style="text-align:center;">Total</th>
+                                            <th>Cota</th>
+                                            <th>Situação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${linhas}</tbody>
+                                </table>
+                            </div>
+                        </div>`;
+                }).join('');
+                }
+            }
+        }
+
+        // Repopula o filtro de turmas e recalcula o dashboard já com os
+        // valores padrão (Todos os anos / Todas as turmas).
+        function inicializarFiltrosDashboard() {
+            preencherFiltroTurmasDashboard();
+        }
+
+        // ---------------------------------------------------------------
+        // IMPRESSÃO DO DASHBOARD DAS FICHAS — respeita o filtro de
+        // Ano/Ciclo e/ou Turma selecionado acima. Gera uma folha com o
+        // consolidado geral e uma folha por turma/seleção do filtro.
+        // ---------------------------------------------------------------
+        function gerarHtmlDashboardImpressao() {
+            const codigosTurmas = turmasFiltradasDashboard();
+            const anoSel = document.getElementById('dashboardFiltroAno');
+            const turmaSel = document.getElementById('dashboardFiltroTurma');
+            const anoTxt = (anoSel && anoSel.value !== 'todos') ? `${anoSel.value}º Ano` : 'Todos os anos';
+            const turmaTxt = (turmaSel && turmaSel.value !== 'todas' && turmaSel.selectedIndex >= 0)
+                ? turmaSel.options[turmaSel.selectedIndex].text
+                : 'Todas as turmas do filtro';
+
+            if (codigosTurmas.length === 0) {
+                return `
+                    <div class="roster-print-page">
+                        <div class="roster-print-header">
+                            <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                            <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Dashboard das Fichas</span>
+                        </div>
+                        <p>Nenhuma turma corresponde ao filtro selecionado (${anoTxt} • ${turmaTxt}).</p>
+                    </div>`;
+            }
+
+            // Página 1: consolidado geral das turmas do filtro
+            const totais = {};
+            MODALIDADES_LIST.forEach(mod => { totais[mod] = { m: 0, f: 0, semSexo: 0 }; });
+            codigosTurmas.forEach(code => {
+                MODALIDADES_LIST.forEach(mod => {
+                    const c = contarModalidadePorTurma(code, mod);
+                    totais[mod].m += c.m;
+                    totais[mod].f += c.f;
+                    totais[mod].semSexo += c.semSexo;
+                });
+            });
+
+            const linhasResumo = MODALIDADES_LIST.map(mod => {
+                const t = totais[mod];
+                return `<tr>
+                    <td>${MODALIDADE_LABELS[mod]}</td>
+                    <td>${MODALIDADE_TIPO_LABEL[MODALIDADE_TIPO[mod]]}</td>
+                    <td style="text-align:center;">${t.m}</td>
+                    <td style="text-align:center;">${t.f}</td>
+                    <td style="text-align:center;">${t.semSexo}</td>
+                    <td style="text-align:center;"><strong>${t.m + t.f + t.semSexo}</strong></td>
+                </tr>`;
+            }).join('');
+
+            const paginaResumo = `
+                <div class="roster-print-page">
+                    <div class="roster-print-header">
+                        <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                        <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Dashboard das Fichas (Consolidado)</span><br>
+                        <span style="font-size:12px;">Filtro aplicado: ${anoTxt} • ${turmaTxt}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Modalidade</th>
+                                <th>Classificação</th>
+                                <th>Total M</th>
+                                <th>Total F</th>
+                                <th>Sem sexo</th>
+                                <th>Total Geral</th>
+                            </tr>
+                        </thead>
+                        <tbody>${linhasResumo}</tbody>
+                    </table>
+                </div>`;
+
+            // Uma página por turma/seleção do filtro, detalhando ficha × cota
+            const paginasFichas = codigosTurmas.map(code => {
+                const classObj = officialStudentsData[code];
+                const s = selecaoDaTurma(classObj.label);
+                const tituloSelecao = s ? `${classObj.label} — ${s.flag} ${s.pais}` : classObj.label;
+
+                const linhas = MODALIDADES_LIST.map(mod => {
+                    const c = contarModalidadePorTurma(code, mod);
+                    const q = QUOTAS_MODALIDADE[mod];
+                    const ok = q.check(c);
+                    return `<tr>
+                        <td>${MODALIDADE_LABELS[mod]}</td>
+                        <td>${MODALIDADE_TIPO_LABEL[MODALIDADE_TIPO[mod]]}</td>
+                        <td style="text-align:center;">${c.m}</td>
+                        <td style="text-align:center;">${c.f}</td>
+                        <td style="text-align:center;">${c.total}</td>
+                        <td>${q.texto}</td>
+                        <td>${ok ? 'Dentro da cota' : 'Verificar'}</td>
+                    </tr>`;
+                }).join('');
+
+                return `
+                    <div class="roster-print-page">
+                        <div class="roster-print-header">
+                            <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                            <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Ficha da Turma × Modalidade</span><br>
+                            <span style="font-size:13px;"><strong>${tituloSelecao}</strong></span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Modalidade</th>
+                                    <th>Tipo</th>
+                                    <th>M</th>
+                                    <th>F</th>
+                                    <th>Total</th>
+                                    <th>Cota</th>
+                                    <th>Situação</th>
+                                </tr>
+                            </thead>
+                            <tbody>${linhas}</tbody>
+                        </table>
+                    </div>`;
+            }).join('');
+
+            return paginaResumo + paginasFichas;
+        }
+
+        function imprimirDashboardFichas() {
+            const container = document.getElementById('rosterPrintContainer');
+            if (!container) return;
+
+            container.innerHTML = gerarHtmlDashboardImpressao();
+            document.body.classList.add('printing-roster');
+            setTimeout(() => window.print(), 50);
         }
 
         // Calcula a altura real do cabeçalho fixo e disponibiliza como variável CSS,
@@ -4608,7 +5424,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // Initialize table on load
         window.addEventListener('DOMContentLoaded', () => {
             updateHeaderHeightVar();
+            renderTurmasSelecoesGrid();
+            initParticipationStore();
             renderStudentTable();
+            inicializarFiltrosDashboard();
             initGroupOrganization();
             renderScheduleTable();
             applyEditLockUI();
