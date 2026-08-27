@@ -455,6 +455,7 @@
             <button class="tab-btn" onclick="switchTab('organizacao')">📅 Organização & Cronograma</button>
             <button class="tab-btn" onclick="switchTab('fases')">⚡ Fases do Campeonato</button>
             <button class="tab-btn" onclick="switchTab('registro')">🗂️ Organização dos Grupos</button>
+            <button class="tab-btn" onclick="switchTab('quadro')">🗂️ Quadro de Marcação de Jogos</button>
             <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Resultados</button>
             <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Listagem & Fichas (Alunos)</button>
         </nav>
@@ -772,7 +773,7 @@
             <div class="card" id="editLockCard">
                 <h2>🔒 Área Restrita de Edição</h2>
                 <div class="alert alert-warning">
-                    A <strong>montagem dos grupos</strong>, o <strong>cadastro de horários</strong> e o <strong>registro de partidas/placares</strong> (incluindo espaço utilizado) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida por código de acesso.
+                    A <strong>montagem dos grupos</strong>, a <strong>marcação das partidas</strong> (data, horário, espaço, turmas e modalidade, feita na aba <strong>🗂️ Quadro de Marcação de Jogos</strong>) e o <strong>lançamento dos placares</strong> (feito na aba <strong>🗓️ Grade de Horários & Resultados</strong>) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida pelo mesmo código de acesso em todas as três abas.
                 </div>
 
                 <div id="lockedView">
@@ -851,180 +852,24 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>⏱️ Horários Disponíveis para os Jogos</h2>
-                <p>Cadastre aqui os <strong>intervalos</strong> de horário (por data) em que as partidas poderão ser realizadas — por exemplo, "08:00 - 09:30". Um intervalo <strong>não representa um único jogo</strong>: vários jogos podem acontecer dentro do mesmo intervalo, cada um com seu próprio horário específico.</p>
-
-                <div id="slotFormGate">
-                    <form id="slotForm" onsubmit="addTimeSlot(event)" style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px;">
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>Data</label>
-                                <input type="date" id="slotDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Horário Inicial</label>
-                                <input type="time" id="slotStart" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Horário Final</label>
-                                <input type="time" id="slotEnd" required>
-                            </div>
-                        </div>
-                        <div class="form-actions-row" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                            <button type="submit" id="slotSubmitBtn" class="btn" style="flex: 1;">➕ Adicionar Horário Disponível</button>
-                            <button type="button" class="btn" style="background: var(--text-muted);" onclick="cancelEditSlot()">Cancelar</button>
-                        </div>
-                    </form>
-
-                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.6rem;">💡 Use <strong>✎ Editar</strong> para corrigir um horário já cadastrado, ou <strong>⧉ Duplicar</strong> para criar uma cópia rápida (útil quando muda pouca coisa entre um intervalo e outro).</p>
-                </div>
-
-                <div id="slotFormLockedMsg" class="alert alert-info" style="display: none; margin-top: 1rem;">🔒 O cadastro de novos horários é restrito à coordenação e ao professor de Educação Física. Insira o código de acesso no início desta aba para editar.</div>
-
-                <div class="table-responsive" style="margin-top: 1rem;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Intervalo</th>
-                                <th style="width: 130px;">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="slotsBody">
-                            <tr id="emptySlotsRow">
-                                <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">Nenhum horário cadastrado até o momento.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="alert alert-info">
+                ℹ️ A marcação das partidas (data, horário, espaço, turmas e modalidade) não é feita mais nesta aba — ela é feita exclusivamente na aba <strong>🗂️ Quadro de Marcação de Jogos</strong>. Os placares são lançados na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
             </div>
+        </div>
 
-            <div class="card">
-                <h2>✍️ Registro de Partidas & Lançamento de Placares</h2>
-                <p>Registre aqui os jogos realizados, com data, horário específico, espaço, turmas e placar. Os resultados ficam disponíveis publicamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>, para acompanhamento de estudantes e da comunidade escolar.</p>
-
-                <div class="alert alert-warning">
-                    <strong>⚠️ Regras de ocupação:</strong>
-                    <ul style="margin: 0.4rem 0 0 1.2rem;">
-                        <li>Um mesmo <strong>espaço</strong> (Futsal 01, Futsal 02, Vôlei, Basquete, Área Livre ou Jogos de Tabuleiro) não pode ser utilizado em <strong>horários concomitantes</strong> — não é permitido registrar dois jogos no mesmo espaço, na mesma data e no mesmo horário.</li>
-                        <li>Uma mesma <strong>turma</strong> não pode atuar em <strong>mais de dois jogos coletivos</strong> no mesmo horário.</li>
-                    </ul>
-                </div>
-
-                <div id="gameFormGate">
-                    <form id="gameForm" onsubmit="addGame(event)" style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px;">
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>Data</label>
-                                <select id="gameDate" required onchange="updateIntervalsInfo()">
-                                    <option value="">Selecione a data</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Horário do Jogo</label>
-                                <input type="time" id="gameTime" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Categoria/Ano</label>
-                                <select id="gameYear" required>
-                                    <option value="6º Ano">6º Ano</option>
-                                    <option value="7º Ano">7º Ano</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Espaço</label>
-                                <select id="gameSpace" required>
-                                    <option value="">Selecione o espaço</option>
-                                    <option value="Futsal 01">Futsal 01</option>
-                                    <option value="Futsal 02">Futsal 02</option>
-                                    <option value="Vôlei">Vôlei</option>
-                                    <option value="Basquete">Basquete</option>
-                                    <option value="Área Livre">Área Livre</option>
-                                    <option value="Jogos de Tabuleiro">Jogos de Tabuleiro</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="dateIntervalsInfo" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;"></div>
-
-                        <div class="grid-3">
-                            <div class="form-group">
-                                <label>Modalidade</label>
-                                <select id="gameModal" required>
-                                    <option value="Futsal Masc.">Futsal Masculino</option>
-                                    <option value="Futsal Fem.">Futsal Feminino</option>
-                                    <option value="Queimada Mista">Queimada Mista</option>
-                                    <option value="Basquete Trilha">Basquete de Trilha</option>
-                                    <option value="Damas">Damas</option>
-                                    <option value="Atletismo">Atletismo</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Fase do Campeonato</label>
-                                <select id="gamePhase" required>
-                                    <option value="Fase de Grupos">Fase de Grupos</option>
-                                    <option value="Quartas de Final">Quartas de Final</option>
-                                    <option value="Semifinal">Semifinal</option>
-                                    <option value="3º Lugar">3º Lugar</option>
-                                    <option value="Final">Grande Final</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Placar / Resultado</label>
-                                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                    <input type="number" id="score1" min="0" placeholder="0" required style="text-align: center;">
-                                    <span>X</span>
-                                    <input type="number" id="score2" min="0" placeholder="0" required style="text-align: center;">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label>Equipe / Atleta 1</label>
-                                <input type="text" id="team1" placeholder="Ex: 6º Ano A" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Equipe / Atleta 2</label>
-                                <input type="text" id="team2" placeholder="Ex: 6º Ano B" required>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 0.5rem;">➕ Registrar Resultado da Partida</button>
-                    </form>
-                </div>
-
-                <div id="gameFormLockedMsg" class="alert alert-info" style="display: none; margin-top: 1rem;">🔒 O registro de novas partidas e placares é restrito à coordenação e ao professor de Educação Física. Insira o código de acesso no início desta aba para editar.</div>
+        <!-- TAB: QUADRO DE MARCAÇÃO DE JOGOS (GRADE DE DISPONIBILIDADE) -->
+        <div id="quadro" class="tab-content">
+            <div class="card" style="padding: 1.5rem 1.5rem 0.5rem;">
+                <h2>🗂️ Quadro de Marcação de Jogos — Grade de Disponibilidade</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Esta é a <strong>única</strong> aba onde as partidas são marcadas. Clique em qualquer célula do quadro abaixo (espaço, dia e horário) para marcar um jogo: modalidade, times/turmas e fase.
+                    Cada jogo marcado aqui é adicionado automaticamente à lista pública de jogos na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
+                    Como o quadro não registra placar, o resultado da partida (placar final) deve ser lançado depois, diretamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
+                    A edição do quadro (marcar/limpar jogos, adicionar espaços, modalidades e horários) é restrita à coordenação e ao professor de Educação Física, com o mesmo código de acesso da aba <strong>🗂️ Organização dos Grupos</strong>.
+                </p>
             </div>
-
-            <div class="card">
-                <h2>🏆 Registro Geral de Jogos Cadastrados</h2>
-                <div class="table-responsive">
-                    <table id="gamesTable">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Horário</th>
-                                <th>Ano</th>
-                                <th>Modalidade</th>
-                                <th>Fase</th>
-                                <th>Espaço</th>
-                                <th>Confronto</th>
-                                <th>Placar</th>
-                                <th>Status / Vencedor</th>
-                                <th style="width: 70px;">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gamesBody">
-                            <tr id="emptyGamesRow">
-                                <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                                    Nenhum jogo foi registrado até o momento. Os resultados aparecerão aqui assim que as partidas forem realizadas.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <iframe id="quadroFrame" title="Quadro de Marcação de Jogos" style="width: 100%; min-height: 1600px; border: none; display: block;"></iframe>
             </div>
         </div>
 
@@ -1032,7 +877,8 @@
         <div id="grade" class="tab-content">
             <div class="card">
                 <h2>🗓️ Grade de Horários & Resultados dos Jogos</h2>
-                <p>Consulte aqui os dias, horários e modalidades dos Jogos Estudantis do GETECO 2026, com os resultados já registrados. Esta tabela é de acompanhamento público para estudantes, professores e famílias.</p>
+                <p>Consulte aqui os dias, horários e modalidades dos Jogos Estudantis do GETECO 2026, marcados na aba "Quadro de Marcação de Jogos", com os resultados já lançados. Esta tabela é de acompanhamento público para estudantes, professores e famílias (perfil geral).</p>
+                <div id="scheduleEditStatus" class="alert alert-info"></div>
                 <div id="scheduleContainer"></div>
             </div>
         </div>
@@ -1123,6 +969,1368 @@
 
         </div>
     </div>
+
+    <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
+         formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
+    <script type="text/plain" id="quadroSource">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade de Disponibilidade — Interclasse 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#1a7a3c;--green2:#23a050;--green3:#e8f5ee;--green4:#0f5a2a;
+  --gold:#d4a017;--gold3:#f5c842;
+  --red:#c0392b;--blue:#1565c0;--purple:#7b1fa2;
+  --gray1:#f0f0ed;--gray2:#d8d8d4;--gray3:#888;--gray4:#444;
+  --dark:#111;--white:#fff;
+  --font-head:'Bebas Neue',sans-serif;
+  --font:'Barlow',sans-serif;
+  --font-cond:'Barlow Condensed',sans-serif;
+  --brd:2px solid #333;
+  --brd-light:1.5px solid #bbb;
+  --brd-day:3px solid;
+}
+body{font-family:var(--font);background:var(--gray1);color:var(--dark)}
+
+/* ── TOOLBAR ── */
+.toolbar{background:var(--green4);position:sticky;top:0;z-index:50;box-shadow:0 3px 12px rgba(0,0,0,.35)}
+.stripe{height:5px;background:repeating-linear-gradient(90deg,var(--gold3) 0,var(--gold3) 16px,var(--green2) 16px,var(--green2) 32px)}
+.tb{display:flex;align-items:center;gap:8px;padding:9px 16px;flex-wrap:wrap}
+.tb-title{font-family:var(--font-head);font-size:18px;color:#fff;letter-spacing:2px;line-height:1}
+.tb-sub{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--font-cond);letter-spacing:.8px;margin-top:1px}
+.sp{flex:1}
+.btn{padding:6px 12px;border-radius:5px;font-family:var(--font-cond);font-size:12px;font-weight:700;letter-spacing:.3px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:5px;transition:.15s;white-space:nowrap}
+.btn-gold{background:var(--gold3);color:var(--dark)}.btn-gold:hover{background:var(--gold)}
+.btn-ghost{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.22)}.btn-ghost:hover{background:rgba(255,255,255,.22)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.1)}
+.orient-toggle{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px}
+.ot-btn{padding:5px 9px;border-radius:4px;font-family:var(--font-cond);font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.6);transition:.15s}
+.ot-btn.active{background:rgba(255,255,255,.25);color:#fff}
+
+/* ── PAGE ── */
+.page{padding:12px 16px;max-width:1080px;margin:0 auto}
+
+/* ── LEGENDA ── */
+.legend{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;align-items:center}
+.leg-label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin-right:3px}
+.leg-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--font-cond);font-weight:700;padding:3px 9px;border-radius:3px;border:2px solid transparent}
+
+/* ── TABELA ── */
+.wrap{overflow-x:auto;border-radius:4px;border:var(--brd);box-shadow:0 3px 14px rgba(0,0,0,.13)}
+
+table{
+  width:100%;border-collapse:collapse;background:#fff;
+  table-layout:fixed
+}
+
+/* cabeçalho */
+th{
+  background:var(--dark);color:#fff;
+  font-family:var(--font-cond);font-weight:700;letter-spacing:.4px;
+  padding:10px 8px;text-align:center;
+  border-right:var(--brd);
+}
+th:last-child{border-right:none}
+th.th-hora{text-align:left;width:92px;font-size:12px;border-right:var(--brd)}
+th.th-dia .dn{font-family:var(--font-head);font-size:22px;line-height:1;display:block}
+th.th-dia .ds{font-size:11px;opacity:.75;font-weight:600;display:block}
+th.th-dia .dt{font-size:9px;opacity:.45;font-style:italic;display:block;margin-top:1px}
+
+/* células de horário (col esquerda) */
+td.td-hora{
+  background:#f7f7f5;
+  font-family:var(--font-cond);font-size:13px;font-weight:700;
+  padding:0;vertical-align:top;
+  border-right:var(--brd);border-bottom:var(--brd);
+  width:92px
+}
+.hora-inner{padding:9px 10px}
+.hora-id{font-size:15px;color:var(--dark);font-weight:700;line-height:1}
+.hora-range{font-size:9px;color:var(--gray3);display:block;margin-top:2px;line-height:1.3;font-weight:500}
+
+/* linha de recreio */
+tr.rec-row td{
+  background:#e0e0dc;text-align:center;padding:5px;
+  font-family:var(--font-cond);font-size:11px;color:#666;
+  font-style:italic;letter-spacing:.3px;
+  border-bottom:var(--brd);border-top:var(--brd)
+}
+
+/* separador entre horários */
+tr.h-sep td{height:1px;background:#ccc;padding:0;border:none}
+
+/* célula dia×hora */
+td.td-cell{
+  padding:4px 5px;
+  border-right:var(--brd-light);border-bottom:var(--brd);
+  vertical-align:top
+}
+td.td-cell:last-child{border-right:none}
+
+/* espaço dentro da célula */
+.esp-row{
+  display:flex;align-items:stretch;
+  border:2px solid #bbb;border-radius:3px;
+  margin-bottom:3px;cursor:pointer;
+  overflow:hidden;transition:filter .1s
+}
+.esp-row:last-child{margin-bottom:0}
+.esp-row:hover{filter:brightness(.93)}
+body.somente-consulta .esp-row{cursor:default}
+body.somente-consulta .esp-row:hover{filter:none}
+
+.esp-tag{
+  writing-mode:vertical-rl;text-orientation:mixed;
+  transform:rotate(180deg);
+  font-family:var(--font-cond);font-size:9px;font-weight:700;
+  letter-spacing:.5px;
+  padding:3px 2px;display:flex;align-items:center;justify-content:center;
+  white-space:nowrap;min-width:16px;flex-shrink:0;
+  color:#fff
+}
+.esp-tag.fut  {background:#1a3a20}
+.esp-tag.volei{background:#5a4000}
+.esp-tag.esp3 {background:#0d2f6e}
+.esp-tag.esp4 {background:#3d0060}
+
+.esp-slot{
+  flex:1;padding:3px 6px;font-family:var(--font-cond);font-size:11px;
+  display:flex;flex-direction:column;justify-content:center;line-height:1.3;
+  min-height:38px
+}
+.esp-slot.livre{color:#bbb;font-style:italic;font-size:10px}
+.esp-slot.futsal  {background:#e4f3ea;border-left:2px solid #23a050;color:#0f5a2a}
+.esp-slot.volei   {background:#fffbe6;border-left:2px solid var(--gold);color:#7a4a00}
+.esp-slot.basquete{background:#e0eeff;border-left:2px solid var(--blue);color:#0d3d7a}
+.esp-slot.final   {background:#fff3cd;border-left:3px solid var(--gold3);color:#7a4a00;font-weight:700}
+.esp-slot.reservado{background:#f0f0f0;border-left:2px solid #aaa;color:#666}
+.s-espaco{font-size:9px;opacity:.6;font-weight:500}
+
+.s-mod  {font-weight:700;font-size:11px;line-height:1.2}
+.s-times{font-size:10px;line-height:1.2}
+.s-fase {font-size:9px;opacity:.65;margin-top:1px}
+
+/* ── AMPLIAR HORÁRIO / DIA (melhor visualização) ── */
+.expand-btn{
+  cursor:pointer;user-select:none;display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:4px;font-size:11px;line-height:1;
+  background:rgba(255,255,255,.18);flex-shrink:0;transition:.15s
+}
+.expand-btn:hover{background:rgba(255,255,255,.35)}
+td.td-hora .expand-btn{background:rgba(0,0,0,.08);color:var(--dark)}
+td.td-hora .expand-btn:hover{background:rgba(0,0,0,.18)}
+.expand-btn.ativo{background:var(--gold3)!important;color:#3a2c00!important;font-weight:900}
+td.td-hora.eixo-expandido{background:#fff6da!important}
+th.th-dia.eixo-expandido{outline:3px solid var(--gold3);outline-offset:-3px}
+td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
+.cell-expandida .esp-row{margin-bottom:6px;border-width:3px}
+.cell-expandida .esp-tag{font-size:12px;padding:6px 4px;letter-spacing:.7px}
+.cell-expandida .esp-slot{padding:8px 11px;font-size:14px;min-height:48px}
+.cell-expandida .esp-slot.livre{font-size:12px}
+.cell-expandida .s-mod{font-size:14px}
+.cell-expandida .s-times{font-size:13px}
+.cell-expandida .s-fase{font-size:11px}
+.cell-expandida .s-espaco{font-size:11px}
+
+/* ── TOTAIS ── */
+.totais{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.tot{background:#fff;border-radius:4px;padding:10px 12px;text-align:center;border:var(--brd-light);border-top-width:4px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
+.tot-n{font-family:var(--font-head);font-size:28px;line-height:1}
+.tot-bar-bg{background:var(--gray2);border-radius:20px;height:5px;margin:5px 0 3px;overflow:hidden}
+.tot-bar{height:5px;border-radius:20px;transition:.4s}
+.tot-l{font-size:10px;font-family:var(--font-cond);color:var(--gray3)}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.48);display:none;align-items:center;justify-content:center;z-index:200;padding:14px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:20px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.28);position:relative;max-height:92vh;overflow-y:auto;border-top:4px solid var(--green2)}
+.modal-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:var(--gray3);font-size:20px;line-height:1}
+.modal-title{font-family:var(--font-head);font-size:17px;letter-spacing:1px;color:var(--dark);margin-bottom:2px}
+.modal-sub{font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-bottom:14px;line-height:1.4}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+.fg input,.fg select{width:100%;padding:8px 10px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
+.fg input:focus,.fg select:focus{border-color:var(--green2);outline:none}
+.preview{border-radius:6px;padding:14px 16px;margin-bottom:12px;font-family:var(--font-cond);font-size:15px;font-weight:700;min-height:52px;transition:.2s;border:2px solid #eee;color:#aaa;display:flex;align-items:center}
+.m-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.mb{padding:7px 12px;border-radius:4px;font-family:var(--font-cond);font-size:12px;font-weight:700;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:4px;transition:.15s}
+.mb-green{background:var(--green2);color:#fff}.mb-green:hover{background:var(--green)}
+.mb-del{background:#fee;color:var(--red);border:1.5px solid #fcc}.mb-del:hover{background:#fdd}
+.mb-ghost{background:var(--gray2);color:var(--gray4)}.mb-ghost:hover{background:#ccc;color:#111}
+
+/* ── MODAL ESPAÇOS ── */
+.modal-esp{max-width:440px}
+.esp-edit-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.esp-edit-row .esp-color{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.esp-edit-row label{font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;width:90px;flex-shrink:0}
+.esp-edit-row input{flex:1;padding:6px 9px;border:2px solid var(--gray2);border-radius:4px;font-family:var(--font-cond);font-size:13px;color:var(--dark);background:#fff;transition:.15s}
+.esp-edit-row input:focus{border-color:var(--green2);outline:none}
+.esp-preview-tag{display:inline-block;font-family:var(--font-cond);font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;color:#fff;letter-spacing:.5px;min-width:36px;text-align:center}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:8px 18px;border-radius:20px;font-family:var(--font-cond);font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;z-index:500;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* ══════════════════════════════════
+   IMPRESSÃO — página única, economia de tinta
+══════════════════════════════════ */
+@media print{
+  @page { margin: 5mm; }
+  @page retrato  { size: A4 portrait;  margin: 5mm; }
+  @page paisagem { size: A4 landscape; margin: 5mm; }
+
+  .toolbar,.legend,.totais,.modal-bg,.toast{ display:none!important }
+  .expand-btn{ display:none!important }
+  .cell-expandida{ background:none!important }
+  td.td-hora.eixo-expandido{ background:none!important }
+  th.th-dia.eixo-expandido{ outline:none!important }
+
+  /* forçar tudo numa página */
+  html,body{ height:auto!important; overflow:visible!important; }
+  body{
+    background:#fff;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .page{ padding:0; max-width:100%; }
+
+  /* tabela ocupa toda a largura e altura disponível */
+  .wrap{
+    border-radius:0; box-shadow:none; overflow:visible;
+    border:1px solid #666;
+    width:100%; display:block;
+  }
+  table{ width:100%; table-layout:fixed; }
+
+  /* ECONOMIA DE TINTA */
+  th{
+    background:#fff!important; color:#111!important;
+    border:1px solid #888!important;
+    padding:3px 3px; font-size:9px;
+  }
+  th.th-hora{ width:58px!important; }
+  th.th-dia .dn{ font-size:13px; color:#111!important; }
+  th.th-dia .ds{ font-size:8px; }
+  th.th-dia .dt{ font-size:7px; }
+
+  td.td-hora{
+    background:#f5f5f5!important; width:58px!important;
+    border:1px solid #aaa!important;
+  }
+  .hora-inner{ padding:3px 5px; }
+  .hora-id{ font-size:11px; }
+  .hora-range{ font-size:7px; }
+
+  td.td-cell{
+    padding:2px 3px;
+    border:1px solid #bbb!important;
+    border-left:none!important;
+  }
+
+  /* tag lateral — só borda, sem fundo escuro */
+  .esp-tag{
+    font-size:7px; min-width:12px; padding:2px 1px;
+    background:#fff!important; color:#111!important;
+    border-right:1px solid #ccc;
+    writing-mode:vertical-rl;
+  }
+  .esp-tag.fut  { border-right-color:#1a3a20!important; color:#1a3a20!important; }
+  .esp-tag.volei{ border-right-color:#5a4000!important; color:#5a4000!important; }
+  .esp-tag.esp3 { border-right-color:#0d2f6e!important; color:#0d2f6e!important; }
+
+  /* slots — sem fundo, só borda colorida à esquerda */
+  .esp-row{
+    margin-bottom:1px; border:1px solid #ccc!important;
+    page-break-inside:avoid;
+  }
+  .esp-slot{
+    background:#fff!important; min-height:22px; padding:1px 4px;
+    border-left-width:2px!important;
+  }
+  .esp-slot.livre{ color:#ccc!important; }
+  .esp-slot.futsal  { border-left-color:#23a050!important; color:#0f5a2a!important; }
+  .esp-slot.volei   { border-left-color:#d4a017!important; color:#7a4a00!important; }
+  .esp-slot.basquete{ border-left-color:#1565c0!important; color:#0d3d7a!important; }
+  .esp-slot.final   { border-left-color:#d4a017!important; color:#7a4a00!important; font-weight:700!important; }
+  .esp-slot.reservado{ border-left-color:#aaa!important; color:#666!important; }
+
+  .s-mod{ font-size:8px; font-weight:700; }
+  .s-times{ font-size:7px; }
+  .s-fase{ font-size:6px; }
+
+  tr.rec-row td{
+    background:#eee!important; padding:2px;
+    font-size:8px; color:#666!important;
+    border:1px solid #bbb!important;
+  }
+
+  /* cabeçalho de dia sem cor de fundo — só texto */
+  th.th-dia{ border-bottom:2px solid #555!important; }
+
+  /* ORIENTAÇÃO controlada por JS via classe no <html> */
+  html.retrato  { page: retrato;  }
+  html.paisagem { page: paisagem; }
+
+  /* modo transposto na impressão: col de dia mais larga */
+  html.transposto td.td-hora{ width:78px!important; }
+  html.transposto th.th-hora{ width:78px!important; }
+
+  /* versão em branco */
+  body.print-blank .s-mod,
+  body.print-blank .s-times,
+  body.print-blank .s-fase{ visibility:hidden }
+  body.print-blank .esp-slot:not(.livre){
+    background:#fff!important;
+    color:transparent!important;
+  }
+
+  /* cabeçalho de impressão */
+  .print-header{ display:block!important; text-align:center; margin-bottom:6px; font-family:'Barlow Condensed',sans-serif; }
+  .print-header h1{ font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px; color:#111; }
+  .print-header p{ font-size:10px; color:#666; letter-spacing:.5px; }
+  .print-header .print-mode{ font-size:9px; color:#999; font-style:italic; margin-top:2px; }
+}
+/* esconder cabeçalho de impressão na tela */
+.print-header{ display:none }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="stripe"></div>
+  <div class="tb">
+    <div>
+      <div class="tb-title">INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</div>
+      <div class="tb-sub">08 A 11 DE SETEMBRO · GETECO · PROF. MARCELO · ED. FÍSICA</div>
+    </div>
+    <div class="sp"></div>
+    <div class="orient-toggle">
+      <button class="ot-btn active" id="ot-p" onclick="setOrient('retrato',this)">▯ Retrato</button>
+      <button class="ot-btn"        id="ot-l" onclick="setOrient('paisagem',this)">▭ Paisagem</button>
+    </div>
+    <button class="btn btn-ghost" id="btn-transp" onclick="toggleTranspose()">⇄ Transpor tabela</button>
+    <button class="btn btn-ghost" id="btn-restaurar-zoom" onclick="restaurarZoom()">↔ Tamanho normal</button>
+    <button class="btn btn-ghost" id="btn-espacos" onclick="abrirModalEspacos()">✏️ Espaços</button>
+    <button class="btn btn-ghost" id="btn-modalidades" onclick="abrirModalModalidades()">✏️ Modalidades</button>
+    <button class="btn btn-ghost" id="btn-horarios" onclick="abrirModalHorarios()">🕐 Horários</button>
+    <button class="btn btn-ghost" id="btn-limpar" onclick="limparGrade()">🗑 Limpar</button>
+    <button class="btn btn-gold"    onclick="imprimir(false)">🖨 Imprimir preenchido</button>
+    <button class="btn btn-outline" onclick="imprimir(true)">🖨 Em branco</button>
+  </div>
+  <div id="lock-banner" style="display:none;background:#3a2c00;color:#f5c842;font-family:var(--font-cond);font-size:11.5px;font-weight:600;letter-spacing:.3px;padding:5px 14px;text-align:center">
+    🔒 Modo consulta — a marcação de jogos e a edição de espaços/modalidades são restritas à coordenação e ao professor de Educação Física. Libere a edição na aba "Organização dos Grupos".
+  </div>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="page">
+
+  <!-- Legenda (só na tela) -->
+  <div class="legend">
+    <span class="leg-label">Modalidades:</span>
+    <span class="leg-chip" style="background:#e4f3ea;border-color:#23a050;color:#0f5a2a">⚽ Futsal</span>
+    <span class="leg-chip" style="background:#fffbe6;border-color:#d4a017;color:#7a4a00">🏐 Vôlei</span>
+    <span class="leg-chip" style="background:#e0eeff;border-color:#1565c0;color:#0d3d7a">🏀 Basquete</span>
+    <span class="leg-chip" style="background:#fff3cd;border-color:#d4a017;color:#7a4a00;font-weight:700">🏆 Final</span>
+    <span class="leg-chip" style="background:#f0f0f0;border-color:#aaa;color:#666">⏸ Reservado</span>
+    <span id="leg-custom"></span>
+    <span id="leg-hint" style="font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-left:4px"></span>
+  </div>
+
+  <!-- Cabeçalho só na impressão -->
+  <div class="print-header">
+    <h1>INTERCLASSE 2026 — GRADE DE DISPONIBILIDADE</h1>
+    <p>08 A 11 DE SETEMBRO &nbsp;·&nbsp; GETECO &nbsp;·&nbsp; Prof. Marcelo — Educação Física</p>
+    <p class="print-mode" id="print-mode-label"></p>
+  </div>
+
+  <!-- Tabela -->
+  <div class="wrap">
+    <table id="main-table">
+      <colgroup id="colgroup"></colgroup>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Totalizadores (só na tela) -->
+  <div class="totais" id="totais"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <div class="modal-title" id="m-title"></div>
+    <div class="modal-sub"   id="m-sub"></div>
+    <input type="hidden" id="m-esp">
+    <input type="hidden" id="m-dia">
+    <input type="hidden" id="m-hora">
+    <div class="fg">
+      <label>Modalidade / Esporte</label>
+      <select id="m-mod" onchange="atualizarPreview()">
+        <option value="">— Livre / Vazio —</option>
+        <option value="futsal">⚽ Futsal</option>
+        <option value="volei">🏐 Vôlei</option>
+        <option value="basquete">🏀 Basquete</option>
+        <option value="final">🏆 Final</option>
+        <option value="reservado">⏸ Reservado / Pausa</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Espaço / Local</label>
+      <select id="m-espaco" onchange="atualizarPreview()">
+        <option value="">— não definido —</option>
+        <option value="Q1">Q1 — Quadra 1</option>
+        <option value="Q2">Q2 — Quadra 2</option>
+        <option value="B1">B1 — Basquete 1</option>
+        <option value="V1">V1 — Vôlei 1</option>
+      </select>
+    </div>
+    <div class="preview" id="m-preview">— livre —</div>
+    <div class="fg"><label>Time A / Turma A</label><input id="m-tA" placeholder="Ex: 7º A" oninput="atualizarPreview()"></div>
+    <div class="fg"><label>Time B / Turma B</label><input id="m-tB" placeholder="Ex: 7º B" oninput="atualizarPreview()"></div>
+    <div class="fg"><label>Fase</label>
+      <select id="m-fase" onchange="atualizarPreview()">
+        <option value="">— não definida —</option>
+        <option value="Grupos">Grupos</option>
+        <option value="Eliminatória">Eliminatória</option>
+        <option value="Semi-final">Semi-final</option>
+        <option value="Final">Final</option>
+      </select>
+    </div>
+    <div class="m-act">
+      <button class="mb mb-green" onclick="salvar()">💾 Salvar</button>
+      <button class="mb mb-del"   onclick="limparSlot()">✕ Limpar slot</button>
+      <button class="mb mb-ghost" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ESPAÇOS -->
+<div class="modal-bg" id="modal-espacos">
+  <div class="modal modal-esp">
+    <button class="modal-close" onclick="fecharModalEspacos()">✕</button>
+    <div class="modal-title">✏️ EDITAR ESPAÇOS</div>
+    <div class="modal-sub" style="margin-bottom:16px">Personalize os nomes exibidos na tag lateral de cada espaço, ou adicione novos espaços à grade</div>
+    <div id="esp-edit-list"></div>
+    <div class="m-act" style="margin-top:14px">
+      <button class="mb mb-green" onclick="salvarEspacos()">💾 Salvar nomes</button>
+      <button class="mb mb-ghost" onclick="fecharModalEspacos()">Cancelar</button>
+      <button class="mb mb-del"   onclick="resetarEspacos()">↩ Restaurar padrão</button>
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #ddd">
+    <div class="modal-sub" style="margin-bottom:10px;font-weight:700">➕ Adicionar novo espaço</div>
+    <div id="esp-custom-list"></div>
+    <div class="fg"><label>Nome do espaço (ex: Vôlei 2, Xadrez)</label><input id="esp-novo-nome" placeholder="Nome completo"></div>
+    <div class="fg"><label>Sigla exibida na tag (até 4 caracteres)</label><input id="esp-novo-lbl" maxlength="4" placeholder="Ex: V2"></div>
+    <div class="fg"><label>Ícone (opcional)</label>
+      <select id="esp-novo-icon">
+        <option value="">— nenhum (usar padrão) —</option>
+        <option value="⚽">⚽ Futebol / Futsal</option>
+        <option value="🏐">🏐 Vôlei</option>
+        <option value="🏀">🏀 Basquete</option>
+        <option value="🤾">🤾 Handebol</option>
+        <option value="🏓">🏓 Tênis de mesa</option>
+        <option value="🏸">🏸 Badminton</option>
+        <option value="🎾">🎾 Tênis</option>
+        <option value="⚾">⚾ Beisebol</option>
+        <option value="🏒">🏒 Hóquei</option>
+        <option value="🥋">🥋 Lutas / Artes marciais</option>
+        <option value="🏊">🏊 Natação</option>
+        <option value="🏃">🏃 Atletismo / Corrida</option>
+        <option value="🤸">🤸 Ginástica</option>
+        <option value="♟️">♟️ Xadrez / Damas</option>
+        <option value="🎯">🎯 Jogos de precisão</option>
+        <option value="🎮">🎮 Jogos eletrônicos</option>
+        <option value="🏆">🏆 Troféu / Final</option>
+        <option value="⏸">⏸ Pausa / Intervalo</option>
+        <option value="🏟️">🏟️ Espaço / Quadra (genérico)</option>
+        <option value="🏷️" selected>🏷️ Etiqueta (genérico)</option>
+        <option value="⭐">⭐ Estrela (genérico)</option>
+      </select>
+    </div>
+    <div class="m-act" style="margin-top:6px">
+      <button class="mb mb-green" onclick="adicionarEspaco()">➕ Adicionar espaço</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HORÁRIOS -->
+<div class="modal-bg" id="modal-horarios">
+  <div class="modal modal-esp">
+    <button class="modal-close" onclick="fecharModalHorarios()">✕</button>
+    <div class="modal-title">🕐 EDITAR HORÁRIOS</div>
+    <div class="modal-sub" style="margin-bottom:16px">Personalize o nome e o intervalo de cada período, ou adicione novos períodos à grade</div>
+    <div id="hora-edit-list"></div>
+    <div class="m-act" style="margin-top:14px">
+      <button class="mb mb-green" onclick="salvarHorarios()">💾 Salvar horários</button>
+      <button class="mb mb-ghost" onclick="fecharModalHorarios()">Cancelar</button>
+      <button class="mb mb-del"   onclick="resetarHorarios()">↩ Restaurar padrão</button>
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #ddd">
+    <div class="modal-sub" style="margin-bottom:10px;font-weight:700">➕ Adicionar novo período</div>
+    <div id="hora-custom-list"></div>
+    <div class="fg"><label>Nome do período (ex: H6, Extra)</label><input id="hora-novo-label" maxlength="14" placeholder="Ex: H6"></div>
+    <div class="fg"><label>Intervalo de horário (ex: 17:20 – 18:00)</label><input id="hora-novo-range" maxlength="20" placeholder="Ex: 17:20 – 18:00"></div>
+    <div class="fg" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="hora-novo-rec" style="width:auto;flex:none">
+      <label style="width:auto;text-transform:none;font-weight:400;font-size:12px">É um intervalo/pausa (não marca jogos — ocupa a linha inteira, como o Recreio)</label>
+    </div>
+    <div class="m-act" style="margin-top:6px">
+      <button class="mb mb-green" onclick="adicionarHorario()">➕ Adicionar período</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MODALIDADES -->
+<div class="modal-bg" id="modal-modalidades">
+  <div class="modal modal-esp">
+    <button class="modal-close" onclick="fecharModalModalidades()">✕</button>
+    <div class="modal-title">✏️ EDITAR MODALIDADES</div>
+    <div class="modal-sub" style="margin-bottom:16px">Adicione novas modalidades/esportes para marcar nos jogos</div>
+    <div id="mod-custom-list"></div>
+    <div class="fg"><label>Nome da modalidade (ex: Handebol, Xadrez)</label><input id="mod-novo-nome" placeholder="Nome completo"></div>
+    <div class="fg"><label>Ícone (opcional)</label>
+      <select id="mod-novo-icon">
+        <option value="⭐" selected>⭐ Estrela (genérico)</option>
+        <option value="⚽">⚽ Futebol / Futsal</option>
+        <option value="🏐">🏐 Vôlei</option>
+        <option value="🏀">🏀 Basquete</option>
+        <option value="🤾">🤾 Handebol</option>
+        <option value="🏓">🏓 Tênis de mesa</option>
+        <option value="🏸">🏸 Badminton</option>
+        <option value="🎾">🎾 Tênis</option>
+        <option value="⚾">⚾ Beisebol</option>
+        <option value="🏒">🏒 Hóquei</option>
+        <option value="🥋">🥋 Lutas / Artes marciais</option>
+        <option value="🏊">🏊 Natação</option>
+        <option value="🏃">🏃 Atletismo / Corrida</option>
+        <option value="🤸">🤸 Ginástica</option>
+        <option value="♟️">♟️ Xadrez / Damas</option>
+        <option value="🎯">🎯 Jogos de precisão</option>
+        <option value="🎮">🎮 Jogos eletrônicos</option>
+        <option value="🏆">🏆 Troféu / Final</option>
+        <option value="⏸">⏸ Pausa / Intervalo</option>
+      </select>
+    </div>
+    <div class="m-act" style="margin-top:6px">
+      <button class="mb mb-green" onclick="adicionarModalidade()">➕ Adicionar modalidade</button>
+      <button class="mb mb-ghost" onclick="fecharModalModalidades()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DIAS = [
+  {key:'d08',num:'08',nome:'TERÇA',   data:'2026-09-08',turma:'',cor:'#23a050'},
+  {key:'d09',num:'09',nome:'QUARTA',  data:'2026-09-09',turma:'',cor:'#1565c0'},
+  {key:'d10',num:'10',nome:'QUINTA',  data:'2026-09-10',turma:'',cor:'#d4a017'},
+  {key:'d11',num:'11',nome:'SEXTA',   data:'2026-09-11',turma:'',cor:'#c0392b'},
+];
+const HORAS_DEFAULT = [
+  {id:'H1',label:'H1',range:'13:20 – 14:00',rec:false},
+  {id:'H2',label:'H2',range:'14:00 – 14:40',rec:false},
+  {id:'H3',label:'H3',range:'14:40 – 15:20',rec:false},
+  {id:'R0',label:'RECREIO',range:'15:20 – 16:00',rec:true},
+  {id:'H4',label:'H4',range:'16:00 – 16:40',rec:false},
+  {id:'H5',label:'H5',range:'16:40 – 17:20',rec:false},
+];
+// Horários adicionados em edição (além dos 6 padrão) — carregados do localStorage/Supabase
+const LS_HORA_CUSTOM='ic26_horas_custom';
+let HORAS_CUSTOM=[];
+function loadHorasCustom(){try{const s=localStorage.getItem(LS_HORA_CUSTOM);if(s)HORAS_CUSTOM=JSON.parse(s)||[];}catch(e){}}
+function saveHorasCustom(){try{localStorage.setItem(LS_HORA_CUSTOM,JSON.stringify(HORAS_CUSTOM));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+// Sobrescritas de label/horário (tanto dos 6 padrão quanto dos adicionados) — carregadas do localStorage/Supabase
+const LS_HORA_OVR='ic26_horas_overrides';
+let _horaOvr={};
+function loadHoraOvr(){try{const s=localStorage.getItem(LS_HORA_OVR);if(s)_horaOvr=JSON.parse(s)||{};}catch(e){}}
+function saveHoraOvr(){try{localStorage.setItem(LS_HORA_OVR,JSON.stringify(_horaOvr));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+function todosHorariosBase(){return HORAS_DEFAULT.concat(HORAS_CUSTOM);}
+// HORAS é gerado dinamicamente com os labels/horários atuais (padrão + adicionados em edição)
+function getHoras(){
+  return todosHorariosBase().map(h=>{
+    const ovr=_horaOvr[h.id];
+    return ovr ? {...h,label:ovr.label||h.label,range:ovr.range||h.range} : h;
+  });
+}
+function gerarChaveHoraUnica(base,listaExistente){
+  let chave=base, n=2;
+  while(listaExistente.some(h=>h.id===chave)){ chave=base+n; n++; }
+  return chave;
+}
+
+// ─ MODAL HORÁRIOS ─
+function abrirModalHorarios(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada. Libere o acesso na aba "Organização dos Grupos".','warn'); return; }
+  const list=document.getElementById('hora-edit-list');
+  list.innerHTML=HORAS_DEFAULT.map(h=>{
+    const cur=getHoras().find(x=>x.id===h.id);
+    return `<div class="esp-edit-row hora-edit-row">
+      <label>${h.rec?'⏸':'🕐'} ${h.id}</label>
+      <input id="hlbl-${h.id}" value="${cur.label}" placeholder="${h.label}" maxlength="14" style="max-width:110px">
+      <input id="hrange-${h.id}" value="${cur.range}" placeholder="${h.range}" maxlength="20">
+    </div>`;
+  }).join('');
+  renderHorasCustomList();
+  document.getElementById('modal-horarios').classList.add('open');
+}
+function renderHorasCustomList(){
+  const box=document.getElementById('hora-custom-list');
+  if(!box) return;
+  if(!HORAS_CUSTOM.length){ box.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:10px">Nenhum horário adicionado ainda.</p>'; return; }
+  box.innerHTML=HORAS_CUSTOM.map(h=>{
+    const cur=getHoras().find(x=>x.id===h.id);
+    return `<div class="esp-edit-row hora-edit-row">
+      <label>${h.rec?'⏸':'🕐'} ${cur.label}</label>
+      <span style="font-family:var(--font-cond);font-size:11px;color:#666">${cur.range}</span>
+      <button type="button" class="mb mb-del" style="padding:4px 10px" onclick="removerHorario('${h.id}')">✕ Remover</button>
+    </div>`;
+  }).join('');
+}
+function adicionarHorario(){
+  if(!edicaoPermitida) return;
+  const label=document.getElementById('hora-novo-label').value.trim();
+  const range=document.getElementById('hora-novo-range').value.trim();
+  const rec=document.getElementById('hora-novo-rec').checked;
+  if(!label||!range){ toast('Informe o nome e o horário do novo período.','warn'); return; }
+  const id=gerarChaveHoraUnica('H'+(todosHorariosBase().length+1),todosHorariosBase());
+  HORAS_CUSTOM.push({id,label,range,rec});
+  saveHorasCustom();
+  document.getElementById('hora-novo-label').value='';
+  document.getElementById('hora-novo-range').value='';
+  document.getElementById('hora-novo-rec').checked=false;
+  renderHorasCustomList();render();
+  toast('✅ Horário "'+label+'" adicionado!');
+}
+function removerHorario(id){
+  if(!edicaoPermitida) return;
+  if(!confirm('Remover este horário? Jogos já marcados nele permanecerão salvos, mas a coluna/linha some da grade.')) return;
+  HORAS_CUSTOM=HORAS_CUSTOM.filter(h=>h.id!==id);
+  delete _horaOvr[id]; saveHoraOvr();
+  saveHorasCustom();
+  renderHorasCustomList();render();
+  toast('🗑 Horário removido.');
+}
+function fecharModalHorarios(){document.getElementById('modal-horarios').classList.remove('open');}
+function salvarHorarios(){
+  HORAS_DEFAULT.forEach(h=>{
+    const lbl=document.getElementById('hlbl-'+h.id)?.value.trim();
+    const range=document.getElementById('hrange-'+h.id)?.value.trim();
+    if((lbl&&lbl!==h.label)||(range&&range!==h.range)){
+      _horaOvr[h.id]={label:lbl||h.label,range:range||h.range};
+    } else {
+      delete _horaOvr[h.id];
+    }
+  });
+  saveHoraOvr();fecharModalHorarios();render();toast('✅ Horários atualizados!');
+}
+function resetarHorarios(){
+  HORAS_DEFAULT.forEach(h=>delete _horaOvr[h.id]);
+  saveHoraOvr();fecharModalHorarios();render();toast('↩ Horários restaurados.');
+}
+
+const ESPACOS_DEFAULT = [
+  {key:'q1', lbl:'Q1', css:'fut',  icon:'⚽',nome:'Quadra 1 (Futsal)'},
+  {key:'q2', lbl:'Q2', css:'fut',  icon:'⚽',nome:'Quadra 2 (Futsal)'},
+  {key:'b1', lbl:'B1', css:'esp3', icon:'🏅',nome:'Basquete 1'},
+  {key:'v1', lbl:'V1', css:'volei',icon:'🏐',nome:'Vôlei 1'},
+];
+// Espaços adicionados em edição (além dos 4 padrão) — carregados do localStorage/Supabase
+const LS_ESP_CUSTOM='ic26_espacos_custom';
+let ESPACOS_CUSTOM=[];
+function loadEspacosCustom(){try{const s=localStorage.getItem(LS_ESP_CUSTOM);if(s)ESPACOS_CUSTOM=JSON.parse(s)||[];}catch(e){}}
+function saveEspacosCustom(){try{localStorage.setItem(LS_ESP_CUSTOM,JSON.stringify(ESPACOS_CUSTOM));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+function todosEspacosBase(){return ESPACOS_DEFAULT.concat(ESPACOS_CUSTOM);}
+
+// Labels editáveis — carregados do localStorage
+const LS_LBL='ic26_lbls';
+let _lbls={};
+function loadLbls(){try{const s=localStorage.getItem(LS_LBL);if(s)_lbls=JSON.parse(s);}catch(e){}}
+function saveLbls(){try{localStorage.setItem(LS_LBL,JSON.stringify(_lbls));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+function getLbl(key){return _lbls[key]||todosEspacosBase().find(e=>e.key===key)?.lbl||key;}
+// ESPACOS é gerado dinamicamente com os labels atuais (padrão + adicionados em edição)
+function getEspacos(){return todosEspacosBase().map(e=>({...e,lbl:getLbl(e.key)}));}
+
+// Paleta cíclica de cores para espaços adicionados em edição (além dos 4 padrão)
+const ESP_COLOR_PALETTE=['#7a1f1f','#004d4d','#5c4033','#4a1263','#1a4d3a','#663300'];
+function corEspacoCustom(key){
+  const idx=ESPACOS_CUSTOM.findIndex(e=>e.key===key);
+  return ESP_COLOR_PALETTE[idx>=0?idx%ESP_COLOR_PALETTE.length:0];
+}
+function slugify(nome){
+  return (nome||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'').slice(0,10) || 'esp';
+}
+function gerarChaveUnica(base,listaExistente){
+  let chave=base, n=2;
+  while(listaExistente.some(e=>e.key===chave)){ chave=base+n; n++; }
+  return chave;
+}
+
+// ─ MODAL ESPAÇOS ─
+const ESP_COLORS={fut:'#1a3a20',volei:'#5a4000',esp3:'#0d2f6e',esp4:'#3d0060'};
+function corDoEspaco(e){ return e.css==='custom' ? corEspacoCustom(e.key) : (ESP_COLORS[e.css]||'#333'); }
+function abrirModalEspacos(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada. Libere o acesso na aba "Organização dos Grupos".','warn'); return; }
+  const list=document.getElementById('esp-edit-list');
+  list.innerHTML=ESPACOS_DEFAULT.map(e=>{
+    const cur=getLbl(e.key);
+    const col=corDoEspaco(e);
+    return `<div class="esp-edit-row">
+      <span class="esp-preview-tag" style="background:${col}">${cur}</span>
+      <label>${e.icon} ${e.nome}</label>
+      <input id="elbl-${e.key}" value="${cur}" placeholder="${e.lbl}" maxlength="18"
+        oninput="this.previousElementSibling.previousElementSibling.textContent=this.value||'${e.lbl}'">
+    </div>`;
+  }).join('');
+  renderEspacosCustomList();
+  document.getElementById('modal-espacos').classList.add('open');
+}
+function renderEspacosCustomList(){
+  const box=document.getElementById('esp-custom-list');
+  if(!box) return;
+  if(!ESPACOS_CUSTOM.length){ box.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:10px">Nenhum espaço adicionado ainda.</p>'; return; }
+  box.innerHTML=ESPACOS_CUSTOM.map(e=>{
+    const cur=getLbl(e.key);
+    const col=corEspacoCustom(e.key);
+    return `<div class="esp-edit-row">
+      <span class="esp-preview-tag" style="background:${col}">${cur}</span>
+      <label>${e.icon||'🏷️'} ${e.nome}</label>
+      <button type="button" class="mb mb-del" style="padding:4px 10px" onclick="removerEspaco('${e.key}')">✕ Remover</button>
+    </div>`;
+  }).join('');
+}
+function adicionarEspaco(){
+  if(!edicaoPermitida) return;
+  const nome=document.getElementById('esp-novo-nome').value.trim();
+  const lblInput=document.getElementById('esp-novo-lbl').value.trim();
+  const icon=document.getElementById('esp-novo-icon').value.trim()||'🏷️';
+  if(!nome){ toast('Informe o nome do novo espaço.','warn'); return; }
+  const key=gerarChaveUnica(slugify(nome),todosEspacosBase());
+  const lbl=(lblInput||nome.slice(0,4)).toUpperCase();
+  ESPACOS_CUSTOM.push({key,lbl,css:'custom',icon,nome});
+  saveEspacosCustom();
+  document.getElementById('esp-novo-nome').value='';
+  document.getElementById('esp-novo-lbl').value='';
+  document.getElementById('esp-novo-icon').value='';
+  renderEspacosCustomList();renderEspacoSelectOptions();render();
+  toast('✅ Espaço "'+nome+'" adicionado!');
+}
+function removerEspaco(key){
+  if(!edicaoPermitida) return;
+  if(!confirm('Remover este espaço? Jogos já marcados nele permanecerão salvos, mas a linha some da grade.')) return;
+  ESPACOS_CUSTOM=ESPACOS_CUSTOM.filter(e=>e.key!==key);
+  saveEspacosCustom();
+  renderEspacosCustomList();renderEspacoSelectOptions();render();
+  toast('🗑 Espaço removido.');
+}
+function fecharModalEspacos(){document.getElementById('modal-espacos').classList.remove('open');}
+function salvarEspacos(){
+  ESPACOS_DEFAULT.forEach(e=>{
+    const v=document.getElementById('elbl-'+e.key)?.value.trim();
+    if(v)_lbls[e.key]=v; else delete _lbls[e.key];
+  });
+  saveLbls();fecharModalEspacos();render();toast('✅ Espaços atualizados!');
+}
+function resetarEspacos(){
+  _lbls={};saveLbls();fecharModalEspacos();render();toast('↩ Nomes restaurados.');
+}
+let ESPACOS=getEspacos();
+const MOD = {
+  futsal:   {bg:'#e4f3ea',brd:'#23a050',txt:'#0f5a2a',icon:'⚽',nome:'Futsal'},
+  volei:    {bg:'#fffbe6',brd:'#d4a017',txt:'#7a4a00',icon:'🏐',nome:'Vôlei'},
+  basquete: {bg:'#e0eeff',brd:'#1565c0',txt:'#0d3d7a',icon:'🏀',nome:'Basquete'},
+  final:    {bg:'#fff3cd',brd:'#d4a017',txt:'#7a4a00',icon:'🏆',nome:'Final'},
+  reservado:{bg:'#f0f0f0',brd:'#aaa',   txt:'#666',   icon:'⏸',nome:'Reservado'},
+};
+// Modalidades adicionadas em edição — carregadas do localStorage/Supabase
+const LS_MOD_CUSTOM='ic26_mod_custom';
+let MOD_CUSTOM={};
+function loadModCustom(){try{const s=localStorage.getItem(LS_MOD_CUSTOM);if(s)MOD_CUSTOM=JSON.parse(s)||{};}catch(e){}}
+function saveModCustom(){try{localStorage.setItem(LS_MOD_CUSTOM,JSON.stringify(MOD_CUSTOM));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+function getMOD(){return Object.assign({},MOD,MOD_CUSTOM);}
+const MOD_COLOR_PALETTE=[
+  {bg:'#fde8e8',brd:'#c0392b',txt:'#7a1f1f'},
+  {bg:'#e8f0fe',brd:'#1a56b0',txt:'#0d2f6e'},
+  {bg:'#f3e8fd',brd:'#7b1fa2',txt:'#4a1263'},
+  {bg:'#e6f7f7',brd:'#0f7a7a',txt:'#0a4d4d'},
+  {bg:'#fef3e2',brd:'#c77800',txt:'#7a4a00'},
+];
+function abrirModalModalidades(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada. Libere o acesso na aba "Organização dos Grupos".','warn'); return; }
+  renderModCustomList();
+  document.getElementById('modal-modalidades').classList.add('open');
+}
+function fecharModalModalidades(){document.getElementById('modal-modalidades').classList.remove('open');}
+function renderModCustomList(){
+  const box=document.getElementById('mod-custom-list');
+  if(!box) return;
+  const chaves=Object.keys(MOD_CUSTOM);
+  if(!chaves.length){ box.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:10px">Nenhuma modalidade adicionada ainda (Futsal, Vôlei, Basquete, Final e Reservado já vêm prontos).</p>'; return; }
+  box.innerHTML=chaves.map(k=>{
+    const m=MOD_CUSTOM[k];
+    return `<div class="esp-edit-row">
+      <span class="esp-preview-tag" style="background:${m.brd}">${m.icon}</span>
+      <label>${m.nome}</label>
+      <button type="button" class="mb mb-del" style="padding:4px 10px" onclick="removerModalidade('${k}')">✕ Remover</button>
+    </div>`;
+  }).join('');
+}
+function adicionarModalidade(){
+  if(!edicaoPermitida) return;
+  const nome=document.getElementById('mod-novo-nome').value.trim();
+  const icon=document.getElementById('mod-novo-icon').value.trim()||'⭐';
+  if(!nome){ toast('Informe o nome da nova modalidade.','warn'); return; }
+  const key=gerarChaveUnica(slugify(nome),Object.keys(getMOD()).map(k=>({key:k})));
+  const cor=MOD_COLOR_PALETTE[Object.keys(MOD_CUSTOM).length % MOD_COLOR_PALETTE.length];
+  MOD_CUSTOM[key]={bg:cor.bg,brd:cor.brd,txt:cor.txt,icon,nome};
+  saveModCustom();
+  document.getElementById('mod-novo-nome').value='';
+  document.getElementById('mod-novo-icon').value='';
+  renderModCustomList();renderModSelectOptions();renderLegend();
+  toast('✅ Modalidade "'+nome+'" adicionada!');
+}
+function removerModalidade(key){
+  if(!edicaoPermitida) return;
+  if(!confirm('Remover esta modalidade? Jogos já marcados com ela permanecerão salvos, mas ela some da lista de opções.')) return;
+  delete MOD_CUSTOM[key];
+  saveModCustom();
+  renderModCustomList();renderModSelectOptions();renderLegend();render();
+  toast('🗑 Modalidade removida.');
+}
+// Reconstrói as opções do seletor "Modalidade / Esporte" no modal de marcação de jogo
+function renderModSelectOptions(){
+  const sel=document.getElementById('m-mod');
+  if(!sel) return;
+  const atual=sel.value;
+  const mods=getMOD();
+  sel.innerHTML='<option value="">— Livre / Vazio —</option>' +
+    Object.keys(mods).map(k=>`<option value="${k}">${mods[k].icon} ${mods[k].nome}</option>`).join('');
+  sel.value=atual;
+}
+// Reconstrói as opções do seletor "Espaço / Local" no modal de marcação de jogo
+function renderEspacoSelectOptions(){
+  const sel=document.getElementById('m-espaco');
+  if(!sel) return;
+  const atual=sel.value;
+  sel.innerHTML='<option value="">— não definido —</option>' +
+    getEspacos().map(e=>`<option value="${e.lbl}">${e.lbl} — ${e.nome}</option>`).join('');
+  sel.value=atual;
+}
+
+// ─ STORAGE ─
+const LS='ic26_grade3';
+let G={};
+
+/* ── Integração com Supabase (mesmo projeto do Monitoramento Pedagógico) ── */
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+const INTERCLASSE_TABLE = 'eventos_interclasse';
+const INTERCLASSE_ROW_ID = 1; // grade única (singleton) — sempre a mesma linha
+
+function sbHeaders(extra={}){
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    ...extra
+  };
+}
+
+let _syncTimer=null, _syncing=false;
+function agendarSyncSupabase(){
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(syncSupabase, 600); // debounce: evita chamada a cada clique
+}
+
+async function syncSupabase(){
+  if(_syncing) return;
+  _syncing=true;
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${INTERCLASSE_TABLE}?on_conflict=id`, {
+      method:'POST',
+      headers: sbHeaders({'Prefer':'resolution=merge-duplicates,return=representation'}),
+      body: JSON.stringify([{ id: INTERCLASSE_ROW_ID, grade: G, labels: _lbls, espacos_custom: ESPACOS_CUSTOM, mod_custom: MOD_CUSTOM, horas_custom: HORAS_CUSTOM, hora_overrides: _horaOvr, updated_at: new Date().toISOString() }])
+    });
+    if(!r.ok){
+      const err = await r.json().catch(()=>({}));
+      throw new Error(err.message || 'Falha ao sincronizar');
+    }
+  }catch(err){
+    console.error(err);
+    toast('⚠ Não foi possível sincronizar com o servidor (salvo apenas neste dispositivo).','warn');
+  }finally{
+    _syncing=false;
+  }
+}
+
+async function carregarDoSupabase(){
+  try{
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${INTERCLASSE_TABLE}?id=eq.${INTERCLASSE_ROW_ID}&select=grade,labels,espacos_custom,mod_custom,horas_custom,hora_overrides`, { headers: sbHeaders() });
+    const rows = await r.json();
+    if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
+    if(Array.isArray(rows) && rows.length){
+      if(rows[0].grade) G = rows[0].grade;
+      if(rows[0].labels) _lbls = rows[0].labels;
+      if(rows[0].espacos_custom) ESPACOS_CUSTOM = rows[0].espacos_custom;
+      if(rows[0].mod_custom) MOD_CUSTOM = rows[0].mod_custom;
+      if(rows[0].horas_custom) HORAS_CUSTOM = rows[0].horas_custom;
+      if(rows[0].hora_overrides) _horaOvr = rows[0].hora_overrides;
+      save(); saveLbls(); saveEspacosCustom(); saveModCustom(); saveHorasCustom(); saveHoraOvr(); // mantém cache local sincronizado
+      return true;
+    }
+    return false;
+  }catch(err){
+    console.error(err);
+    return false;
+  }
+}
+
+function load(){try{const s=localStorage.getItem(LS);if(s)G=JSON.parse(s);}catch(e){}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(G));}catch(e){} agendarSyncSupabase();}
+function get(e,d,h){return G[e]?.[d]?.[h]||null;}
+function put(e,d,h,v){
+  if(!G[e])G[e]={};if(!G[e][d])G[e][d]={};
+  if(!v||!v.mod)delete G[e][d][h];else G[e][d][h]=v;
+  save();
+}
+
+// ─ RENDER ─
+function cellHTML(esp, d, h){
+  const ESPACOS=getEspacos();
+  const espObj=ESPACOS.find(e=>e.key===esp.key)||esp;
+  const s=get(esp.key,d.key,h.id);
+  const m=s?.mod?getMOD()[s.mod]:null;
+  const tagStyle=esp.css==='custom'?` style="background:${corEspacoCustom(esp.key)}"`:'';
+  return `<div class="esp-row" onclick="abrirModal(event,'${esp.key}','${d.key}','${h.id}')">
+    <div class="esp-tag ${esp.css}"${tagStyle}>${espObj.lbl}</div>
+    <div class="esp-slot ${s?.mod||'livre'}">
+      ${m
+        ?`<div class="s-mod">${m.icon} ${m.nome}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
+          ${s.timeA||s.timeB?`<div class="s-times">${s.timeA||''}${s.timeB?' × '+s.timeB:''}</div>`:''}
+          ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
+        :`<span>livre</span>`}
+    </div>
+  </div>`;
+}
+
+// ─ AMPLIAR HORÁRIO / DIA (melhor visualização) ─
+let horasExpandidas=new Set();
+let diasExpandidos=new Set();
+function toggleHoraExpandida(id){
+  if(horasExpandidas.has(id)) horasExpandidas.delete(id); else horasExpandidas.add(id);
+  render();
+}
+function toggleDiaExpandido(key){
+  if(diasExpandidos.has(key)) diasExpandidos.delete(key); else diasExpandidos.add(key);
+  render();
+}
+function restaurarZoom(){
+  horasExpandidas.clear();
+  diasExpandidos.clear();
+  render();
+  toast('↔ Tamanho normal restaurado.');
+}
+function expandBtnHora(h,corTexto){
+  const ativo=horasExpandidas.has(h.id);
+  return `<span class="expand-btn${ativo?' ativo':''}" title="${ativo?'Recolher':'Ampliar'} horário ${h.label}" onclick="event.stopPropagation();toggleHoraExpandida('${h.id}')">${ativo?'−':'🔍'}</span>`;
+}
+function expandBtnDia(d){
+  const ativo=diasExpandidos.has(d.key);
+  return `<span class="expand-btn${ativo?' ativo':''}" title="${ativo?'Recolher':'Ampliar'} dia ${d.nome}" onclick="event.stopPropagation();toggleDiaExpandido('${d.key}')">${ativo?'−':'🔍'}</span>`;
+}
+
+function render(){
+  const ESPACOS=getEspacos();
+  const HORAS_REAIS=getHoras().filter(h=>!h.rec);
+
+  if(!_transposed){
+    // ── MODO NORMAL: linhas=horários, colunas=dias ──
+    document.getElementById('colgroup').innerHTML =
+      `<col style="width:92px">` + DIAS.map(()=>`<col>`).join('');
+
+    document.getElementById('thead').innerHTML = `<tr>
+      <th class="th-hora" style="border-bottom:3px solid #444">Horário</th>
+      ${DIAS.map(d=>`
+        <th class="th-dia${diasExpandidos.has(d.key)?' eixo-expandido':''}" style="border-bottom:4px solid ${d.cor};border-right:2px solid #333">
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+            <span class="dn" style="color:${d.cor}">${d.num}/Set</span>
+            ${expandBtnDia(d)}
+          </div>
+          <span class="ds">${d.nome}</span>
+          <span class="dt">${d.turma}</span>
+        </th>`).join('')}
+    </tr>`;
+
+    let html='';
+    getHoras().forEach(h=>{
+      if(h.rec){
+        html+=`<tr class="rec-row"><td colspan="${DIAS.length+1}">⏸ &nbsp; RECREIO / INTERVALO &nbsp;·&nbsp; ${h.range} &nbsp; ⏸</td></tr>`;
+        return;
+      }
+      const horaAtiva=horasExpandidas.has(h.id);
+      html+=`<tr>
+        <td class="td-hora${horaAtiva?' eixo-expandido':''}" style="border-bottom:2px solid #bbb">
+          <div class="hora-inner">
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+              <div class="hora-id">${h.label}</div>
+              ${expandBtnHora(h)}
+            </div>
+            <span class="hora-range">${h.range}</span>
+          </div>
+        </td>`;
+      DIAS.forEach(d=>{
+        const cls='td-cell'+(horaAtiva?' cell-expandida':'')+(diasExpandidos.has(d.key)?' cell-expandida':'');
+        html+=`<td class="${cls}" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
+        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
+        html+=`</td>`;
+      });
+      html+=`</tr>`;
+    });
+    document.getElementById('tbody').innerHTML=html;
+
+  } else {
+    // ── MODO TRANSPOSTO: linhas=dias, colunas=horários ──
+    document.getElementById('colgroup').innerHTML =
+      `<col style="width:110px">` + HORAS_REAIS.map(()=>`<col>`).join('');
+
+    document.getElementById('thead').innerHTML = `<tr>
+      <th class="th-hora" style="border-bottom:3px solid #444">Dia</th>
+      ${HORAS_REAIS.map(h=>`
+        <th class="th-dia${horasExpandidas.has(h.id)?' eixo-expandido':''}" style="border-bottom:3px solid #444;border-right:2px solid #333">
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+            <span class="dn" style="color:#fff;font-size:16px">${h.label}</span>
+            ${expandBtnHora(h)}
+          </div>
+          <span class="ds" style="font-size:9px;opacity:.7">${h.range}</span>
+        </th>`).join('')}
+    </tr>`;
+
+    let html='';
+    DIAS.forEach(d=>{
+      const diaAtivo=diasExpandidos.has(d.key);
+      html+=`<tr>
+        <td class="td-hora${diaAtivo?' eixo-expandido':''}" style="border-bottom:2px solid #bbb;border-top:3px solid ${d.cor}">
+          <div class="hora-inner">
+            <div style="display:flex;align-items:center;justify-content:center;gap:5px">
+              <div class="hora-id" style="color:${d.cor}">${d.num}/Set</div>
+              ${expandBtnDia(d)}
+            </div>
+            <span class="hora-range">${d.nome}</span>
+            <span class="hora-range" style="font-size:8px">${d.turma}</span>
+          </div>
+        </td>`;
+      HORAS_REAIS.forEach(h=>{
+        const cls='td-cell'+(diaAtivo?' cell-expandida':'')+(horasExpandidas.has(h.id)?' cell-expandida':'');
+        html+=`<td class="${cls}" style="border-left:3px solid ${d.cor}40;border-bottom:2px solid #bbb">`;
+        ESPACOS.forEach(esp=>{ html+=cellHTML(esp,d,h); });
+        html+=`</td>`;
+      });
+      html+=`</tr>`;
+    });
+    document.getElementById('tbody').innerHTML=html;
+  }
+
+  // totais
+  document.getElementById('totais').innerHTML=DIAS.map(d=>{
+    let t=0,f=0;
+    ESPACOS.forEach(esp=>HORAS_REAIS.forEach(h=>{t++;if(get(esp.key,d.key,h.id)?.mod)f++;}));
+    const pct=t?Math.round(f/t*100):0;
+    return `<div class="tot" style="border-top-color:${d.cor}">
+      <div class="tot-n" style="color:${d.cor}">${f}<span style="font-size:14px;opacity:.4">/${t}</span></div>
+      <div class="tot-bar-bg"><div class="tot-bar" style="width:${pct}%;background:${d.cor}"></div></div>
+      <div class="tot-l">${d.nome} ${d.num}/Set — ${pct}% ocupado</div>
+    </div>`;
+  }).join('');
+}
+
+// ─ TRANSPOR ─
+let _transposed=false;
+function toggleTranspose(){
+  _transposed=!_transposed;
+  const btn=document.getElementById('btn-transp');
+  btn.style.background=_transposed?'rgba(255,255,255,.35)':'';
+  btn.style.outline=_transposed?'2px solid var(--gold3)':'';
+  btn.textContent=_transposed?'⇅ Vista normal':'⇄ Transpor tabela';
+  render();
+}
+
+// ─ ORIENTAÇÃO ─
+let _orient='retrato';
+function setOrient(o,btn){
+  _orient=o;
+  document.querySelectorAll('.ot-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─ MODAL ─
+let _e,_d,_h;
+function abrirModal(ev,esp,dia,hora){
+  if(!edicaoPermitida){ toast('🔒 Consulta apenas. Libere a edição na aba "Organização dos Grupos" para marcar jogos.','warn'); return; }
+  _e=esp;_d=dia;_h=hora;
+  const eO=getEspacos().find(e=>e.key===esp);
+  const dO=DIAS.find(d=>d.key===dia);
+  const hO=getHoras().find(h=>h.id===hora);
+  const s=get(esp,dia,hora)||{};
+  document.getElementById('m-title').textContent=`${eO.icon} ${eO.nome}`;
+  document.getElementById('m-sub').textContent=`${dO.nome} ${dO.num}/Set · ${hO.label} · ${hO.range} · ${dO.turma}`;
+  document.getElementById('m-esp').value=esp;
+  document.getElementById('m-dia').value=dia;
+  document.getElementById('m-hora').value=hora;
+  document.getElementById('m-mod').value=s.mod||'';
+  document.getElementById('m-espaco').value=s.espaco||'';
+  document.getElementById('m-tA').value=s.timeA||'';
+  document.getElementById('m-tB').value=s.timeB||'';
+  setFaseSelectValue(s.fase||'');
+  atualizarPreview();
+  posicionarModalPertoDoSlot(ev);
+  document.getElementById('modal').classList.add('open');
+}
+// Abre o modal de marcação o mais próximo possível do slot clicado (em vez de sempre
+// no centro da tela), para não perder a referência visual de qual célula está sendo editada.
+function posicionarModalPertoDoSlot(ev){
+  const modalBox=document.querySelector('#modal .modal');
+  if(!modalBox) return;
+  const origem = ev && ev.currentTarget ? ev.currentTarget : null;
+  if(!origem){ modalBox.style.cssText=''; return; }
+  const rect=origem.getBoundingClientRect();
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const mw=Math.min(380, vw-16);
+  let left = rect.right + 10;
+  if(left + mw > vw - 8) left = rect.left - mw - 10; // sem espaço à direita → tenta à esquerda
+  if(left < 8) left = Math.max(8, Math.min(vw - mw - 8, rect.left)); // sem espaço nos dois lados → alinha ao slot, dentro da tela
+  let top = rect.top;
+  modalBox.style.position='fixed';
+  modalBox.style.margin='0';
+  modalBox.style.left=left+'px';
+  modalBox.style.top=top+'px';
+  modalBox.style.maxWidth=mw+'px';
+  // Depois que o conteúdo é medido (altura real), reajusta para não sair da tela.
+  requestAnimationFrame(()=>{
+    const r2=modalBox.getBoundingClientRect();
+    let t=parseFloat(modalBox.style.top);
+    if(r2.bottom > vh - 8) t = Math.max(8, vh - 8 - r2.height);
+    if(t < 8) t = 8;
+    modalBox.style.top = t+'px';
+  });
+}
+// Garante que a fase do jogo já salvo apareça selecionada mesmo se for um valor
+// antigo em texto livre (de antes da lista fixa Grupos/Eliminatória/Semi-final/Final).
+function setFaseSelectValue(fase){
+  const sel=document.getElementById('m-fase');
+  if(fase && ![...sel.options].some(o=>o.value===fase)){
+    const opt=document.createElement('option');
+    opt.value=fase; opt.textContent=fase+' (valor antigo)';
+    sel.appendChild(opt);
+  }
+  sel.value=fase;
+}
+function fecharModal(){document.getElementById('modal').classList.remove('open');}
+function atualizarPreview(){
+  const mod=document.getElementById('m-mod').value;
+  const espaco=document.getElementById('m-espaco').value;
+  const tA=document.getElementById('m-tA').value.trim();
+  const tB=document.getElementById('m-tB').value.trim();
+  const fase=document.getElementById('m-fase').value.trim();
+  const el=document.getElementById('m-preview');
+  if(!mod){el.style.cssText='border-radius:6px;padding:14px 16px;margin-bottom:12px;font-family:var(--font-cond);font-size:15px;font-weight:700;min-height:52px;border:2px solid #eee;color:#aaa;display:flex;align-items:center';el.textContent='— livre —';return;}
+  const m=getMOD()[mod];
+  if(!m) return;
+  el.style.cssText=`border-radius:6px;padding:14px 16px;margin-bottom:12px;font-family:var(--font-cond);font-size:15px;font-weight:700;min-height:52px;background:${m.bg};border:2px solid ${m.brd};color:${m.txt};display:flex;align-items:center;justify-content:space-between;gap:12px`;
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:18px">${m.icon}</span>
+        <span>${m.nome}</span>
+        ${espaco?`<span style="font-size:11px;font-weight:600;opacity:.65;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">${espaco}</span>`:''}
+      </div>
+      ${tA||tB?`<div style="font-size:16px;font-weight:800">${tA||'?'}${tB?' × '+tB:''}</div>`:''}
+    </div>
+    ${fase?`<div style="font-size:12px;font-weight:700;opacity:.8;border:1px solid ${m.brd};border-radius:6px;padding:4px 10px;white-space:nowrap;flex-shrink:0">${fase}</div>`:''}`;
+}
+function salvar(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
+  const mod=document.getElementById('m-mod').value;
+  const espaco=document.getElementById('m-espaco').value;
+  const tA=document.getElementById('m-tA').value.trim();
+  const tB=document.getElementById('m-tB').value.trim();
+  const fase=document.getElementById('m-fase').value.trim();
+  put(_e,_d,_h,mod?{mod,espaco,timeA:tA,timeB:tB,fase}:null);
+  fecharModal();render();toast(mod?'✅ Slot salvo!':'🗑 Slot limpo.');
+  sincronizarComCadastro(mod,espaco,tA,tB,fase);
+}
+function limparSlot(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
+  put(_e,_d,_h,null);sincronizarRemocao();fecharModal();render();toast('🗑 Slot limpo.');
+}
+
+// ─ SINCRONIZAÇÃO COM O CADASTRO DE JOGOS DO DOCUMENTO PRINCIPAL ─
+// Quando este quadro está embutido (via iframe) no documento "Jogos Estudantis do GETECO 2026",
+// cada slot marcado aqui é replicado como um jogo na aba "Grade de Horários & Resultados".
+// Se o quadro for aberto sozinho (fora do documento principal), essas chamadas são
+// simplesmente ignoradas e o quadro funciona normalmente, de forma independente.
+function boardKeyFor(eKey,dKey,hKey){ return eKey+'_'+dKey+'_'+hKey; }
+function boardKeyAtual(){ return boardKeyFor(_e,_d,_h); }
+// Nomes de exibição "bonitos" para os 4 espaços/modalidades padrão (compatibilidade
+// com o vocabulário já usado na Grade de Horários). Espaços/modalidades adicionados
+// em edição usam o nome informado por quem os criou.
+const ESPACO_MASTER_MAP={q1:'Futsal 01', q2:'Futsal 02', b1:'Basquete', v1:'Vôlei'};
+const MOD_MASTER_MAP={futsal:'Futsal', volei:'Vôlei', basquete:'Basquete', final:'Final (Grande Final)', reservado:'Reservado / Pausa'};
+function espacoDisplayName(key){
+  return ESPACO_MASTER_MAP[key] || getEspacos().find(e=>e.key===key)?.nome || key.toUpperCase();
+}
+function modDisplayName(key){
+  return MOD_MASTER_MAP[key] || getMOD()[key]?.nome || key;
+}
+function temPontePaiDisponivel(nomeFn){
+  try{ return !!(window.parent && window.parent!==window && typeof window.parent[nomeFn]==='function'); }
+  catch(e){ return false; }
+}
+function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase){
+  try{
+    if(!mod || !tA || !tB) return;
+    if(!temPontePaiDisponivel('receberJogoDoQuadro')) return;
+    const dO=DIAS.find(d=>d.key===dKey);
+    const hO=getHoras().find(h=>h.id===hKey);
+    if(!dO||!hO) return;
+    const horaInicio=hO.range.split('–')[0].trim();
+    const textoTimes=(tA+' '+tB);
+    const anoDetectado=/7/.test(textoTimes)?'7º Ano':(/6/.test(textoTimes)?'6º Ano':'');
+    const espacoObj = espaco ? getEspacos().find(e=>e.lbl===espaco) : null;
+    const espacoFinal = espaco ? (espacoObj?.nome || espaco) : espacoDisplayName(eKey);
+    window.parent.receberJogoDoQuadro({
+      boardKey: boardKeyFor(eKey,dKey,hKey),
+      date: dO.data,
+      time: horaInicio,
+      year: anoDetectado,
+      modal: modDisplayName(mod),
+      phase: fase,
+      space: espacoFinal,
+      team1: tA,
+      team2: tB
+    });
+  }catch(e){ /* documento principal indisponível — quadro segue funcionando normalmente */ }
+}
+function sincronizarComCadastro(mod,espaco,tA,tB,fase){
+  if(!mod || !tA || !tB){ sincronizarRemocao(); return; }
+  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase);
+}
+function sincronizarRemocao(){
+  try{
+    if(!temPontePaiDisponivel('removerJogoDoQuadroPorKey')) return;
+    window.parent.removerJogoDoQuadroPorKey(boardKeyAtual());
+  }catch(e){}
+}
+// Reenvia ao documento principal TODOS os slots já preenchidos na grade atual.
+// Necessário porque o cadastro de jogos do documento principal (gamesData) vive só
+// em memória e é reconstruído do zero a cada carregamento da página — sem isto, os
+// jogos marcados em sessões anteriores (persistidos aqui via localStorage/Supabase)
+// sumiriam da "Grade de Horários & Resultados" até alguém reabrir e resalvar cada slot.
+function enviarSlotsIniciaisAoPai(){
+  if(!temPontePaiDisponivel('receberJogoDoQuadro')) return;
+  Object.keys(G).forEach(eKey=>{
+    Object.keys(G[eKey]||{}).forEach(dKey=>{
+      Object.keys(G[eKey][dKey]||{}).forEach(hKey=>{
+        const s=G[eKey][dKey][hKey];
+        if(s && s.mod && s.timeA && s.timeB){
+          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase);
+        }
+      });
+    });
+  });
+}
+function limparGrade(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); return; }
+  if(!confirm('Limpar toda a grade?'))return;G={};save();render();toast('Grade limpa.','warn');
+}
+
+// ─ CONTROLE DE PERMISSÃO DE EDIÇÃO (sincronizado com a aba "Organização dos Grupos") ─
+// Por padrão o quadro abre bloqueado (perfil geral/comunidade, somente consulta).
+// O documento principal chama window.setEdicaoPermitida(true/false) sempre que a
+// edição é liberada/bloqueada por lá (mesmo código de acesso da coordenação/professor).
+let edicaoPermitida=false;
+function setEdicaoPermitida(v){
+  edicaoPermitida=!!v;
+  aplicarBloqueioUI();
+}
+function renderLegend(){
+  const box=document.getElementById('leg-custom');
+  if(box){
+    box.innerHTML=Object.keys(MOD_CUSTOM).map(k=>{
+      const m=MOD_CUSTOM[k];
+      return `<span class="leg-chip" style="background:${m.bg};border-color:${m.brd};color:${m.txt}">${m.icon} ${m.nome}</span>`;
+    }).join('');
+  }
+  const hint=document.getElementById('leg-hint');
+  if(hint) hint.textContent = (edicaoPermitida ? '· Clique num espaço para marcar um jogo' : '· Modo consulta — edição bloqueada') + ' · Clique no 🔍 ao lado de um horário ou dia para ampliá-lo';
+}
+function aplicarBloqueioUI(){
+  ['btn-espacos','btn-modalidades','btn-horarios','btn-limpar'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){ b.disabled=!edicaoPermitida; b.style.opacity=edicaoPermitida?'1':'.45'; b.style.cursor=edicaoPermitida?'pointer':'not-allowed'; }
+  });
+  const banner=document.getElementById('lock-banner');
+  if(banner) banner.style.display=edicaoPermitida?'none':'block';
+  document.body.classList.toggle('somente-consulta',!edicaoPermitida);
+  renderLegend();
+}
+window.setEdicaoPermitida=setEdicaoPermitida;
+
+// ─ IMPRESSÃO ─
+function imprimir(branco){
+  const html=document.documentElement;
+  // orientação + transposto
+  html.className=[_orient, _transposed?'transposto':''].filter(Boolean).join(' ');
+  if(branco)document.body.classList.add('print-blank');
+  else document.body.classList.remove('print-blank');
+  // atualiza label de modo no cabeçalho
+  const lbl=document.getElementById('print-mode-label');
+  if(lbl){
+    const modoOrient=_orient==='paisagem'?'Paisagem':'Retrato';
+    const modoTabela=_transposed?'Dias nas linhas · Horários nas colunas':'Horários nas linhas · Dias nas colunas';
+    lbl.textContent=`${modoOrient} · ${modoTabela}${branco?' · Versão em branco':''}`;
+  }
+  setTimeout(()=>{window.print();html.className='';document.body.classList.remove('print-blank');},80);
+}
+
+// ─ TOAST ─
+let _tid;
+function toast(msg,tipo){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.style.background=tipo==='warn'?'#555':'#111';
+  el.classList.add('show');clearTimeout(_tid);
+  _tid=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ─ INIT ─
+load();loadLbls();loadEspacosCustom();loadModCustom();loadHorasCustom();loadHoraOvr();
+renderModSelectOptions();renderEspacoSelectOptions();
+aplicarBloqueioUI(); // inicia bloqueado (perfil geral/comunidade) até o pai liberar
+render();
+enviarSlotsIniciaisAoPai(); // repõe no cadastro principal os jogos já salvos localmente
+carregarDoSupabase().then(ok=>{
+  if(ok){
+    renderModSelectOptions();renderEspacoSelectOptions();render();
+    enviarSlotsIniciaisAoPai(); // repõe com os dados mais recentes vindos do servidor
+  }
+});
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+document.getElementById('modal-espacos').addEventListener('click',function(e){if(e.target===this)fecharModalEspacos();});
+document.getElementById('modal-modalidades').addEventListener('click',function(e){if(e.target===this)fecharModalModalidades();});
+document.getElementById('modal-horarios').addEventListener('click',function(e){if(e.target===this)fecharModalHorarios();});
+<\/script>
+</body>
+</html>
+
+    </script>
 
     <script>
 
@@ -3013,24 +4221,26 @@
             if (lockedView) lockedView.style.display = editUnlocked ? 'none' : 'block';
             if (unlockedView) unlockedView.style.display = editUnlocked ? 'block' : 'none';
 
-            const slotFormGate = document.getElementById('slotFormGate');
-            const slotFormLockedMsg = document.getElementById('slotFormLockedMsg');
-            if (slotFormGate) slotFormGate.style.display = editUnlocked ? 'block' : 'none';
-            if (slotFormLockedMsg) slotFormLockedMsg.style.display = editUnlocked ? 'none' : 'block';
-
-            const gameFormGate = document.getElementById('gameFormGate');
-            const gameFormLockedMsg = document.getElementById('gameFormLockedMsg');
-            if (gameFormGate) gameFormGate.style.display = editUnlocked ? 'block' : 'none';
-            if (gameFormLockedMsg) gameFormLockedMsg.style.display = editUnlocked ? 'none' : 'block';
-
             const groupSelectLockedMsg = document.getElementById('groupSelectLockedMsg');
             if (groupSelectLockedMsg) groupSelectLockedMsg.style.display = editUnlocked ? 'none' : 'block';
 
             // Reconstrói os elementos dinâmicos para refletir o novo estado (habilitado/desabilitado)
             buildGroupTable('groupTable6', turmas6);
             buildGroupTable('groupTable7', turmas7);
-            renderSlotsTable();
-            renderGamesTable();
+            renderScheduleTable();
+            sincronizarPermissaoQuadro();
+        }
+
+        // Repassa o estado de edição (liberado/bloqueado) para dentro do iframe do
+        // Quadro de Marcação, para que a marcação de partidas também respeite o
+        // mesmo código de acesso usado nesta aba (só coordenação/professor editam).
+        function sincronizarPermissaoQuadro() {
+            const frame = document.getElementById('quadroFrame');
+            try {
+                if (frame && frame.contentWindow && typeof frame.contentWindow.setEdicaoPermitida === 'function') {
+                    frame.contentWindow.setEdicaoPermitida(editUnlocked);
+                }
+            } catch (e) { /* iframe ainda não carregado — será sincronizado no evento "load" */ }
         }
 
         // Guarda a atribuição de grupo de cada turma (vazio = ainda não definido)
@@ -3095,139 +4305,12 @@
         }
 
         // ---------------------------------------------------------------
-        // HORÁRIOS DISPONÍVEIS PARA OS JOGOS (INTERVALOS)
-        // Um intervalo é uma janela de tempo (ex.: 08:00 - 09:30) dentro da
-        // qual VÁRIOS jogos podem acontecer, cada um com seu próprio horário.
-        // O intervalo não representa um único jogo.
+        // FORMATAÇÃO DE DATAS
         // ---------------------------------------------------------------
-        const availableSlots = []; // { date: 'YYYY-MM-DD', start: 'HH:MM', end: 'HH:MM' }
-        let editingSlotIndex = null;
-
         function formatDateBr(isoDate) {
             if (!isoDate) return '';
             const [y, m, d] = isoDate.split('-');
             return `${d}/${m}/${y}`;
-        }
-
-        function addTimeSlot(e) {
-            e.preventDefault();
-            const date = document.getElementById('slotDate').value;
-            const start = document.getElementById('slotStart').value;
-            const end = document.getElementById('slotEnd').value;
-
-            if (editingSlotIndex !== null) {
-                availableSlots[editingSlotIndex] = { date, start, end };
-                editingSlotIndex = null;
-                document.getElementById('slotSubmitBtn').textContent = '➕ Adicionar Horário Disponível';
-            } else {
-                availableSlots.push({ date, start, end });
-            }
-
-            availableSlots.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
-
-            document.getElementById('slotForm').reset();
-            renderSlotsTable();
-            updateDateOptions();
-        }
-
-        function editTimeSlot(index) {
-            const slot = availableSlots[index];
-            document.getElementById('slotDate').value = slot.date;
-            document.getElementById('slotStart').value = slot.start;
-            document.getElementById('slotEnd').value = slot.end;
-            editingSlotIndex = index;
-            document.getElementById('slotSubmitBtn').textContent = '💾 Salvar Alterações do Horário';
-            document.getElementById('slotForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function cancelEditSlot() {
-            editingSlotIndex = null;
-            document.getElementById('slotForm').reset();
-            document.getElementById('slotSubmitBtn').textContent = '➕ Adicionar Horário Disponível';
-        }
-
-        function duplicateTimeSlot(index) {
-            const slot = availableSlots[index];
-            availableSlots.push({ date: slot.date, start: slot.start, end: slot.end });
-            availableSlots.sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
-            renderSlotsTable();
-            updateDateOptions();
-        }
-
-        function removeTimeSlot(index) {
-            availableSlots.splice(index, 1);
-            if (editingSlotIndex === index) cancelEditSlot();
-            renderSlotsTable();
-            updateDateOptions();
-        }
-
-        function renderSlotsTable() {
-            const tbody = document.getElementById('slotsBody');
-            if (!tbody) return;
-
-            if (availableSlots.length === 0) {
-                tbody.innerHTML = `
-                    <tr id="emptySlotsRow">
-                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 1rem;">Nenhum horário cadastrado até o momento.</td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = availableSlots.map((slot, i) => `
-                <tr>
-                    <td>${formatDateBr(slot.date)}</td>
-                    <td><span class="badge badge-blue">${slot.start} - ${slot.end}</span></td>
-                    <td style="text-align: center; white-space: nowrap;">
-                        ${editUnlocked ? `
-                            <button type="button" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="editTimeSlot(${i})" title="Editar">✎</button>
-                            <button type="button" class="btn" style="background: var(--secondary); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="duplicateTimeSlot(${i})" title="Duplicar">⧉</button>
-                            <button type="button" class="btn" style="background: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="removeTimeSlot(${i})" title="Remover">✕</button>
-                        ` : `<span style="color: var(--text-muted); font-size: 0.8rem;">🔒</span>`}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        // Atualiza o select de "Data" no formulário de registro de jogos
-        function updateDateOptions() {
-            const dateSelect = document.getElementById('gameDate');
-            if (!dateSelect) return;
-
-            const uniqueDates = [...new Set(availableSlots.map(s => s.date))];
-            const currentValue = dateSelect.value;
-
-            dateSelect.innerHTML = '<option value="">Selecione a data</option>' +
-                uniqueDates.map(d => `<option value="${d}">${formatDateBr(d)}</option>`).join('');
-
-            if (uniqueDates.includes(currentValue)) {
-                dateSelect.value = currentValue;
-            }
-            updateIntervalsInfo();
-        }
-
-        // Mostra (só informativamente) os intervalos cadastrados para a data escolhida.
-        // O horário do jogo é digitado livremente, pois vários jogos ocorrem dentro do mesmo intervalo.
-        function updateIntervalsInfo() {
-            const dateSelect = document.getElementById('gameDate');
-            const infoEl = document.getElementById('dateIntervalsInfo');
-            if (!dateSelect || !infoEl) return;
-
-            const selectedDate = dateSelect.value;
-            if (!selectedDate) {
-                infoEl.innerHTML = '';
-                return;
-            }
-
-            const slotsForDate = availableSlots.filter(s => s.date === selectedDate);
-            if (slotsForDate.length === 0) {
-                infoEl.innerHTML = `<span style="color: var(--danger);">Nenhum intervalo cadastrado para esta data. Cadastre um horário disponível acima.</span>`;
-                return;
-            }
-
-            infoEl.innerHTML = 'Intervalos cadastrados nesta data: ' +
-                slotsForDate.map(s => `<span class="badge badge-blue" style="margin: 0 0.2rem;">${s.start} - ${s.end}</span>`).join('') +
-                ' — escolha um horário de jogo dentro de um desses intervalos.';
         }
 
         // ---------------------------------------------------------------
@@ -3235,244 +4318,187 @@
         // Cada jogo tem seu PRÓPRIO horário (dentro de algum intervalo do dia).
         // Vários jogos podem compartilhar o mesmo intervalo.
         // ---------------------------------------------------------------
-        const gamesData = []; // { date, time, year, modal, phase, space, team1, team2, score1, score2 }
+        const gamesData = []; // { date, time, year, modal, phase, space, team1, team2, score1, score2, boardKey?, fromBoard? }
 
-        // Modalidades consideradas "jogos coletivos" para fins da regra de limite por turma.
-        // Damas e Atletismo são modalidades individuais e não entram nessa contagem.
-        const COLLECTIVE_MODALITIES = ['Futsal Masculino', 'Futsal Feminino', 'Queimada Mista', 'Basquete de Trilha'];
-
-        // Verifica os conflitos de agendamento antes de registrar um jogo.
-        // excludeIndex permite reaproveitar a função em uma futura edição de jogo já cadastrado.
-        function checkGameConflicts({ date, time, space, team1, team2, modal }, excludeIndex = null) {
-            const sameSlot = gamesData.filter((g, i) =>
-                i !== excludeIndex && g.date === date && g.time === time
-            );
-
-            // Regra 1: o mesmo espaço não pode ser usado duas vezes no mesmo horário/data.
-            const spaceConflict = sameSlot.find(g => g.space === space);
-            if (spaceConflict) {
-                return `O espaço "${space}" já está reservado em ${formatDateBr(date)} às ${time} (jogo: ${spaceConflict.team1} vs ${spaceConflict.team2}). Escolha outro espaço ou horário.`;
-            }
-
-            // Regra 2: uma turma não pode atuar em mais de 2 jogos coletivos no mesmo horário.
-            if (COLLECTIVE_MODALITIES.includes(modal)) {
-                for (const turma of [team1, team2]) {
-                    const jogosDaTurma = sameSlot.filter(g =>
-                        COLLECTIVE_MODALITIES.includes(g.modal) && (g.team1 === turma || g.team2 === turma)
-                    ).length;
-                    if (jogosDaTurma >= 2) {
-                        return `A turma "${turma}" já está escalada em 2 jogos coletivos em ${formatDateBr(date)} às ${time}. Não é possível registrar um terceiro jogo coletivo no mesmo horário para essa turma.`;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        function addGame(e) {
-            e.preventDefault();
-
-            const game = {
-                date: document.getElementById('gameDate').value,
-                time: document.getElementById('gameTime').value,
-                year: document.getElementById('gameYear').value,
-                modal: document.getElementById('gameModal').selectedOptions[0].text,
-                phase: document.getElementById('gamePhase').value,
-                space: document.getElementById('gameSpace').value,
-                team1: document.getElementById('team1').value,
-                team2: document.getElementById('team2').value,
-                score1: parseInt(document.getElementById('score1').value),
-                score2: parseInt(document.getElementById('score2').value)
+        // ---------------------------------------------------------------
+        // PONTE COM O QUADRO DE MARCAÇÃO DE JOGOS (aba "quadro", iframe embutido)
+        // O quadro é a ÚNICA fonte de marcação de partidas: chama
+        // window.parent.receberJogoDoQuadro(...) sempre que um slot é salvo
+        // (inclusive ao carregar a página, reenviando todos os slots já
+        // preenchidos — ver enviarSlotsIniciaisAoPai() dentro do quadro), e
+        // window.parent.removerJogoDoQuadroPorKey(...) quando um slot é limpo.
+        // Cada jogo é identificado por um "boardKey" único (espaço_dia_horário)
+        // para que marcações repetidas no mesmo slot atualizem o mesmo jogo, em
+        // vez de criar duplicatas. O quadro não coleta placar (score1/score2
+        // ficam null) — o placar é lançado depois na aba "Grade de Horários &
+        // Resultados", por coordenação/professor.
+        function receberJogoDoQuadro(dados) {
+            const idx = gamesData.findIndex(g => g.boardKey === dados.boardKey);
+            const anterior = idx >= 0 ? gamesData[idx] : null;
+            const jogo = {
+                date: dados.date,
+                time: dados.time,
+                year: dados.year || '',
+                modal: dados.modal,
+                phase: dados.phase || '',
+                space: dados.space,
+                team1: dados.team1,
+                team2: dados.team2,
+                // Preserva o placar já lançado, caso o mesmo slot seja reenviado (ex.: ao recarregar a página).
+                score1: anterior ? anterior.score1 : null,
+                score2: anterior ? anterior.score2 : null,
+                boardKey: dados.boardKey,
+                fromBoard: true
             };
-
-            const conflictMessage = checkGameConflicts(game);
-            if (conflictMessage) {
-                alert('⚠️ Não foi possível registrar o jogo:\n\n' + conflictMessage);
-                return;
-            }
-
-            gamesData.push(game);
+            if (idx >= 0) gamesData[idx] = jogo; else gamesData.push(jogo);
             gamesData.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-
-            document.getElementById('gameForm').reset();
-            updateIntervalsInfo();
-            renderGamesTable();
             renderScheduleTable();
         }
 
-        function removeGame(index) {
-            gamesData.splice(index, 1);
-            renderGamesTable();
-            renderScheduleTable();
+        function removerJogoDoQuadroPorKey(boardKey) {
+            const idx = gamesData.findIndex(g => g.boardKey === boardKey);
+            if (idx >= 0) {
+                gamesData.splice(idx, 1);
+                renderScheduleTable();
+            }
+        }
+
+        function scoreLabel(game) {
+            if (game.score1 === null || game.score1 === undefined || game.score2 === null || game.score2 === undefined) {
+                return '<span style="color: var(--text-muted); font-size: 0.85rem;">Agendado — sem resultado</span>';
+            }
+            return `<span class="badge badge-blue">${game.score1} x ${game.score2}</span>`;
         }
 
         function gameWinnerLabel(game) {
+            if (game.score1 === null || game.score1 === undefined || game.score2 === null || game.score2 === undefined) {
+                return { text: '', color: 'var(--text-muted)' };
+            }
             if (game.score1 > game.score2) return { text: `Vencedor: ${game.team1}`, color: 'var(--success)' };
             if (game.score2 > game.score1) return { text: `Vencedor: ${game.team2}`, color: 'var(--success)' };
             return { text: 'Empate', color: 'var(--accent)' };
         }
 
-        function renderGamesTable() {
-            const tbody = document.getElementById('gamesBody');
-            if (!tbody) return;
+        // Lançamento/edição do placar — disponível apenas com a edição liberada
+        // (perfil professor/coordenador). Chamada pelos campos exibidos em
+        // "Grade de Horários & Resultados".
+        // Placares já salvos ficam bloqueados por padrão — mesmo com a edição da sessão
+        // liberada — e só voltam a ficar editáveis jogo a jogo, mediante o código de
+        // acesso, ao clicar em "✏️ Editar". Evita alterações acidentais de resultados
+        // já lançados.
+        let scoresDesbloqueados = new Set();
 
-            if (gamesData.length === 0) {
-                tbody.innerHTML = `
-                    <tr id="emptyGamesRow">
-                        <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                            Nenhum jogo foi registrado até o momento. Os resultados aparecerão aqui assim que as partidas forem realizadas.
-                        </td>
-                    </tr>
-                `;
+        function editarPlacar(boardKey) {
+            const codigo = prompt('Digite o código de acesso para editar este placar:');
+            if (codigo === null) return; // cancelado
+            if (codigo !== EDIT_CODE) {
+                alert('Código incorreto.');
                 return;
             }
+            scoresDesbloqueados.add(boardKey);
+            renderScheduleTable();
+        }
 
-            tbody.innerHTML = gamesData.map((game, i) => {
-                const winner = gameWinnerLabel(game);
-                return `
-                    <tr>
-                        <td>${formatDateBr(game.date)}</td>
-                        <td>${game.time}</td>
-                        <td>${game.year}</td>
-                        <td>${game.modal}</td>
-                        <td>${game.phase}</td>
-                        <td><span class="badge badge-blue">${game.space || '—'}</span></td>
-                        <td>${game.team1} vs ${game.team2}</td>
-                        <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span></td>
-                        <td><strong style="color: ${winner.color};">${winner.text}</strong></td>
-                        <td style="text-align: center;">
-                            ${editUnlocked ? `<button type="button" class="btn" style="background: var(--danger); padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="removeGame(${i})">✕</button>` : `<span style="color: var(--text-muted); font-size: 0.8rem;">🔒</span>`}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+        function salvarPlacar(boardKey) {
+            if (!editUnlocked) return;
+            const el1 = document.getElementById('sc1-' + boardKey);
+            const el2 = document.getElementById('sc2-' + boardKey);
+            const idx = gamesData.findIndex(g => g.boardKey === boardKey);
+            if (!el1 || !el2 || idx < 0) return;
+
+            const v1 = el1.value === '' ? null : parseInt(el1.value, 10);
+            const v2 = el2.value === '' ? null : parseInt(el2.value, 10);
+            gamesData[idx].score1 = Number.isNaN(v1) ? null : v1;
+            gamesData[idx].score2 = Number.isNaN(v2) ? null : v2;
+            scoresDesbloqueados.delete(boardKey); // trava de novo após salvar
+            renderScheduleTable();
         }
 
         // ---------------------------------------------------------------
         // GRADE DE HORÁRIOS & RESULTADOS (VISÃO PÚBLICA)
-        // Cada intervalo do dia pode conter ZERO, UM ou VÁRIOS jogos,
-        // cada um no seu próprio horário dentro da janela do intervalo.
+        // Lista os jogos cadastrados agrupados por data, em ordem de horário.
         // ---------------------------------------------------------------
         function renderScheduleTable() {
             const container = document.getElementById('scheduleContainer');
+            const statusBox = document.getElementById('scheduleEditStatus');
+            if (statusBox) {
+                statusBox.innerHTML = editUnlocked
+                    ? '🔓 <strong>Edição de placares liberada</strong> para esta sessão (perfil professor/coordenador). Informe o resultado e clique em 💾 para salvar. Placares já salvos ficam bloqueados — clique em "✏️ Editar" e informe o código de acesso para alterá-los.'
+                    : 'Consulta pública dos horários e resultados (perfil geral/comunidade). O lançamento dos placares é feito pela coordenação/professor de Educação Física.';
+                statusBox.className = editUnlocked ? 'alert alert-info' : 'alert alert-info';
+            }
+
             if (!container) return;
 
-            if (availableSlots.length === 0 && gamesData.length === 0) {
+            if (gamesData.length === 0) {
                 container.innerHTML = `
-                    <div class="alert alert-info">Os horários e resultados dos jogos serão publicados aqui assim que forem cadastrados pela organização.</div>
+                    <div class="alert alert-info">Os horários e resultados dos jogos serão publicados aqui assim que forem marcados na aba "Quadro de Marcação de Jogos".</div>
                 `;
                 return;
             }
 
-            const allDates = [...new Set([
-                ...availableSlots.map(s => s.date),
-                ...gamesData.map(g => g.date)
-            ])].sort();
+            const allDates = [...new Set(gamesData.map(g => g.date))].sort();
 
             let html = '';
 
             allDates.forEach(date => {
-                const slotsOfDate = availableSlots.filter(s => s.date === date)
-                    .sort((a, b) => a.start.localeCompare(b.start));
-                const gamesOfDate = gamesData.filter(g => g.date === date);
+                const gamesOfDate = gamesData.filter(g => g.date === date)
+                    .sort((a, b) => a.time.localeCompare(b.time));
 
                 html += `<h3 style="margin-top: 1.5rem;">📅 ${formatDateBr(date)}</h3>`;
-
-                if (slotsOfDate.length === 0) {
-                    html += `<p style="color: var(--text-muted); margin-bottom: 1rem;">Nenhum intervalo cadastrado para este dia.</p>`;
-                }
-
-                // Jogos que não caem dentro de nenhum intervalo cadastrado (fora da janela)
-                const gamesUsados = new Set();
-
-                slotsOfDate.forEach(slot => {
-                    // Todos os jogos cujo horário cai dentro deste intervalo (pode haver vários)
-                    const gamesDoIntervalo = gamesOfDate
-                        .filter(g => g.time >= slot.start && g.time <= slot.end)
-                        .sort((a, b) => a.time.localeCompare(b.time));
-
-                    gamesDoIntervalo.forEach(g => gamesUsados.add(g));
-
-                    html += `
-                        <div class="table-responsive" style="margin-bottom: 1rem;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th colspan="7" style="background: #eef2ff;">⏱️ Intervalo: ${slot.start} - ${slot.end}</th>
-                                    </tr>
-                                    <tr>
-                                        <th>Horário do Jogo</th>
-                                        <th>Ano</th>
-                                        <th>Modalidade</th>
-                                        <th>Fase</th>
-                                        <th>Espaço</th>
-                                        <th>Confronto</th>
-                                        <th>Placar / Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                    `;
-
-                    if (gamesDoIntervalo.length === 0) {
-                        html += `<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Nenhum jogo registrado ainda neste intervalo.</td></tr>`;
+                html += `
+                    <div class="table-responsive" style="margin-bottom: 1rem;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Horário do Jogo</th>
+                                    <th>Ano</th>
+                                    <th>Modalidade</th>
+                                    <th>Fase</th>
+                                    <th>Espaço</th>
+                                    <th>Confronto</th>
+                                    <th>Placar / Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                gamesOfDate.forEach(game => {
+                    const winner = gameWinnerLabel(game);
+                    const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
+                    const editavelAgora = editUnlocked && (!jaTemPlacar || scoresDesbloqueados.has(game.boardKey));
+                    let placarCell;
+                    if (editavelAgora) {
+                        placarCell = `
+                        <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                            <input type="number" min="0" id="sc1-${game.boardKey}" value="${game.score1 === null || game.score1 === undefined ? '' : game.score1}" placeholder="-" style="width: 46px; text-align: center; padding: 0.25rem;">
+                            <span>x</span>
+                            <input type="number" min="0" id="sc2-${game.boardKey}" value="${game.score2 === null || game.score2 === undefined ? '' : game.score2}" placeholder="-" style="width: 46px; text-align: center; padding: 0.25rem;">
+                            <button type="button" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="salvarPlacar('${game.boardKey}')">💾</button>
+                        </div>
+                        <strong style="color: ${winner.color}; font-size: 0.8rem;">${winner.text}</strong>`;
+                    } else if (editUnlocked && jaTemPlacar) {
+                        placarCell = `
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            ${scoreLabel(game)}
+                            <button type="button" class="btn" style="background: var(--text-muted); padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="editarPlacar('${game.boardKey}')">✏️ Editar</button>
+                        </div>
+                        <strong style="color: ${winner.color}; font-size: 0.8rem;">${winner.text}</strong>`;
                     } else {
-                        gamesDoIntervalo.forEach(game => {
-                            const winner = gameWinnerLabel(game);
-                            html += `
-                                <tr>
-                                    <td>${game.time}</td>
-                                    <td>${game.year}</td>
-                                    <td>${game.modal}</td>
-                                    <td>${game.phase}</td>
-                                    <td><span class="badge badge-blue">${game.space || '—'}</span></td>
-                                    <td>${game.team1} vs ${game.team2}</td>
-                                    <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span> <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong></td>
-                                </tr>
-                            `;
-                        });
+                        placarCell = `${scoreLabel(game)} <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong>`;
                     }
-
-                    html += `</tbody></table></div>`;
-                });
-
-                // Jogos do dia cujo horário não caiu em nenhum intervalo cadastrado
-                const gamesForaDeIntervalo = gamesOfDate.filter(g => !gamesUsados.has(g));
-                if (gamesForaDeIntervalo.length > 0) {
                     html += `
-                        <div class="table-responsive" style="margin-bottom: 1rem;">
-                            <table>
-                                <thead>
-                                    <tr><th colspan="7" style="background: #fffbeb;">⚠️ Outros horários (fora dos intervalos cadastrados)</th></tr>
-                                    <tr>
-                                        <th>Horário do Jogo</th>
-                                        <th>Ano</th>
-                                        <th>Modalidade</th>
-                                        <th>Fase</th>
-                                        <th>Espaço</th>
-                                        <th>Confronto</th>
-                                        <th>Placar / Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                        <tr>
+                            <td>${game.time}</td>
+                            <td>${game.year}</td>
+                            <td>${game.modal}</td>
+                            <td>${game.phase}</td>
+                            <td><span class="badge badge-blue">${game.space || '—'}</span></td>
+                            <td>${game.team1} vs ${game.team2}</td>
+                            <td>${placarCell}</td>
+                        </tr>
                     `;
-                    gamesForaDeIntervalo
-                        .sort((a, b) => a.time.localeCompare(b.time))
-                        .forEach(game => {
-                            const winner = gameWinnerLabel(game);
-                            html += `
-                                <tr>
-                                    <td>${game.time}</td>
-                                    <td>${game.year}</td>
-                                    <td>${game.modal}</td>
-                                    <td>${game.phase}</td>
-                                    <td><span class="badge badge-blue">${game.space || '—'}</span></td>
-                                    <td>${game.team1} vs ${game.team2}</td>
-                                    <td><span class="badge badge-blue">${game.score1} x ${game.score2}</span> <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong></td>
-                                </tr>
-                            `;
-                        });
-                    html += `</tbody></table></div>`;
-                }
+                });
+                html += `</tbody></table></div>`;
             });
 
             container.innerHTML = html;
@@ -3565,16 +4591,28 @@
         }
         window.addEventListener('resize', updateHeaderHeightVar);
 
+        // Carrega o quadro de marcação de jogos dentro do iframe, a partir do
+        // conteúdo bruto embutido em #quadroSource (documento independente,
+        // isolado por iframe para não haver conflito de CSS/JS com esta página).
+        function carregarQuadroFrame() {
+            const fonte = document.getElementById('quadroSource');
+            const frame = document.getElementById('quadroFrame');
+            if (!fonte || !frame) return;
+            const html = fonte.textContent.replace(/<\\\/script>/gi, '<\/script>');
+            // Assim que o quadro terminar de carregar (e recarregar seus dados salvos),
+            // repassamos o estado de edição atual (professor/coordenador x geral).
+            frame.addEventListener('load', sincronizarPermissaoQuadro);
+            frame.srcdoc = html;
+        }
+
         // Initialize table on load
         window.addEventListener('DOMContentLoaded', () => {
             updateHeaderHeightVar();
             renderStudentTable();
             initGroupOrganization();
-            renderSlotsTable();
-            updateDateOptions();
-            renderGamesTable();
             renderScheduleTable();
             applyEditLockUI();
+            carregarQuadroFrame();
         });
     </script>
 </body>
