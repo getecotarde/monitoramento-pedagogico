@@ -458,31 +458,44 @@
         .roster-print-page .rp-check { display: inline-block; width: 13px; height: 13px; border: 1.3px solid #333; }
         .roster-print-header { text-align: center; margin-bottom: 8px; }
 
-        /* Impressão do Resumo Geral — A4 paisagem, 2 páginas por folha, no
-           máximo 2 folhas (frente/verso), com traço mínimo de tinta. */
-        @page resumoPaisagem { size: A4 landscape; margin: 9mm; }
-        html.resumo-landscape { page: resumoPaisagem; }
+        /* Quadros de turma no Dashboard das Fichas — várias turmas podem
+           dividir a mesma folha; a quebra de página ocorre só entre o
+           grupo do 6º Ano e o grupo do 7º Ano (ver .roster-print-page). */
+        .dash-turma-card { margin-bottom: 10px; break-inside: avoid; page-break-inside: avoid; }
+        .dash-turma-titulo { font-size: 11px; margin-bottom: 3px; }
+        .dash-turma-card table { font-size: 10px; }
+        .dash-turma-card th, .dash-turma-card td { padding: 2px 5px; }
+
+        /* Impressão do Resumo Geral — impressão normal (retrato A4),
+           fluxo único de página. Fonte base 11px; títulos maiores (13px);
+           notas de rodapé menores, 2pt abaixo da base (9px). */
+        @page resumoNormal { size: A4 portrait; margin: 14mm 12mm; }
+        html.resumo-print-mode { page: resumoNormal; }
         #resumoPrintContainer.roster-print-only { display: none; }
         @media print {
             body.printing-resumo header,
             body.printing-resumo > .container { display: none !important; }
             body.printing-resumo #resumoPrintContainer.roster-print-only { display: block !important; }
         }
-        .resumo-print-page { page-break-after: always; width: 100%; box-sizing: border-box; }
-        .resumo-print-page:last-child { page-break-after: auto; }
-        .resumo-print-columns { display: flex; gap: 10mm; align-items: stretch; }
-        .resumo-print-col { flex: 1; min-width: 0; border-right: 1px dashed #999; padding-right: 10mm; }
-        .resumo-print-col:last-child { border-right: none; padding-right: 0; }
-        .resumo-print-page h3 { font-size: 13px; border-bottom: 1.5px solid #333; padding-bottom: 3px; margin: 0 0 6px; color: #111; }
-        .resumo-print-page p, .resumo-print-page li { font-size: 10.5px; line-height: 1.35; color: #111; }
+        .resumo-print-page { width: 100%; box-sizing: border-box; }
+        .resumo-print-columns { display: block; }
+        .resumo-print-col { border-right: none; padding-right: 0; margin-bottom: 10px; }
+        .resumo-print-page h3 { font-size: 13px; border-bottom: 1.3px solid #333; padding-bottom: 2px; margin: 12px 0 6px; color: #111; }
+        .resumo-print-page h3:first-of-type { margin-top: 4px; }
+        .resumo-print-page p, .resumo-print-page li { font-size: 11px; line-height: 1.42; color: #111; }
         .resumo-print-page ul { margin: 0 0 6px 14px; }
-        .resumo-print-page table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 4px; }
-        .resumo-print-page th, .resumo-print-page td { border: 1px solid #333; padding: 2px 4px; text-align: left; }
+        .resumo-print-page table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+        .resumo-print-page th, .resumo-print-page td { border: 1px solid #333; padding: 3px 5px; text-align: left; }
         .resumo-print-page thead th { background: #eee; }
+        .resumo-print-page .nota-rodape { font-size: 9px; color: #555; }
         .resumo-print-stats { display: flex; gap: 6px; margin-bottom: 8px; }
         .resumo-print-stats > div { flex: 1; border: 1px solid #333; text-align: center; padding: 4px 2px; }
         .resumo-print-stats .num { font-weight: 700; font-size: 13px; }
-        .resumo-print-stats .label { font-size: 8.5px; color: #444; }
+        .resumo-print-stats .label { font-size: 9px; color: #444; }
+        .resumo-print-uniforme { border: 1.5px solid #b45309; background: #fffbeb; padding: 7px 9px; margin: 8px 0; border-radius: 3px; }
+        .resumo-print-uniforme strong.titulo { font-size: 11px; color: #92400e; display: block; margin-bottom: 3px; }
+        .resumo-print-uniforme p { font-size: 11px; margin: 2px 0; }
+        .resumo-print-uniforme .destaque-camisa { background: #fde68a; padding: 1px 4px; border-radius: 2px; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -511,7 +524,7 @@
         <!-- TAB 1: RESUMO GERAL -->
         <div id="resumo" class="tab-content active">
             <div class="card no-print" style="padding: 0.75rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem;">
-                <button type="button" class="tab-btn" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirResumoGeral()">🖨️ Gerar Resumo p/ Impressão (PDF A4 paisagem, 2 folhas)</button>
+                <button type="button" class="tab-btn" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirResumoGeral()">🖨️ Gerar Resumo p/ Impressão (PDF A4)</button>
             </div>
             <div class="grid-3 stat-row">
                 <div class="stat-card">
@@ -4963,7 +4976,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         window.addEventListener('afterprint', () => {
             document.body.classList.remove('printing-roster');
             document.body.classList.remove('printing-resumo');
-            document.documentElement.classList.remove('resumo-landscape');
+            document.documentElement.classList.remove('resumo-print-mode');
         });
 
         // ---------------------------------------------------------------
@@ -4997,76 +5010,73 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
             return `
                 <div class="resumo-print-page">
-                    <div class="resumo-print-columns">
-                        <div class="resumo-print-col">
-                            <div class="roster-print-header" style="margin-bottom:8px;">
-                                <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
-                                <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Resumo Geral (1/2)</span>
-                            </div>
-                            <div class="resumo-print-stats">
-                                <div><div class="num">5</div><div class="label">MODALIDADES</div></div>
-                                <div><div class="num">6º e 7º</div><div class="label">ANOS ATENDIDOS</div></div>
-                                <div><div class="num">08 a 11/09</div><div class="label">PERÍODO</div></div>
-                            </div>
-                            <h3>🎯 Objetivos</h3>
-                            <ul>
-                                <li><strong>Sociabilidade e Respeito Mútuo:</strong> fortalecimento de vínculos interpessoais e fair play.</li>
-                                <li><strong>Múltiplas Experiências Corporais:</strong> vivência das modalidades trabalhadas nas aulas de Educação Física.</li>
-                                <li><strong>Cultura Esportiva Consciente:</strong> evento estruturado, respeitando regras e habilidades individuais e coletivas.</li>
-                            </ul>
-                            <h3>📋 Identificação do Projeto</h3>
-                            <p>
-                                <strong>Projeto:</strong> Multidisciplinar — Jogos Estudantis GETECO 2026<br>
-                                <strong>Componente Curricular:</strong> Educação Física<br>
-                                <strong>Professores Responsáveis:</strong> Dênis José, Mello, Ramon<br>
-                                <strong>Público-alvo:</strong> Estudantes do 6º e 7º anos do Ensino Fundamental<br>
-                                <strong>Caráter do Evento:</strong> Educacional, Competitivo, Inclusivo e Integrador
-                            </p>
-                        </div>
-                        <div class="resumo-print-col">
-                            <h3>🌐 Turmas e Seleções</h3>
-                            <table>
-                                <thead><tr><th>Turma</th><th>Seleção</th></tr></thead>
-                                <tbody>
-                                    ${linhasTurma(turmas6)}
-                                    ${linhasTurma(turmas7)}
-                                    <tr><td>${SELECAO_RESERVA.refTurma}</td><td>${SELECAO_RESERVA.flag} ${SELECAO_RESERVA.pais} (reserva)</td></tr>
-                                </tbody>
-                            </table>
-                            <h3 style="margin-top:10px;">📌 Diretrizes de Inscrição</h3>
-                            <p>Todos os estudantes inscritos na súmula têm o direito e o dever de jogar; as regras impedem a exclusão de reservas ou estudantes menos experientes.</p>
-                            <p>O estudante pode se inscrever em mais de uma modalidade, desde que não haja simultaneidade de partidas entre elas.</p>
-                            <p>Inscrições oficializadas até o prazo estipulado pela Comissão Organizadora, com fichas assinadas pelo Capitão e Professor Referência.</p>
-                        </div>
+                    <div class="roster-print-header" style="margin-bottom:8px;">
+                        <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                        <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Resumo Geral</span>
                     </div>
-                </div>
-                <div class="resumo-print-page">
-                    <div class="resumo-print-columns">
-                        <div class="resumo-print-col">
-                            <div class="roster-print-header" style="margin-bottom:8px;">
-                                <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
-                                <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Equipes, Protocolo e Modalidades (2/2)</span>
-                            </div>
-                            <h3>👥 Das Equipes e Organização</h3>
-                            <p><strong>Composição:</strong> equipes formadas pelas turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
-                            <p><strong>Identificação:</strong> o nome da equipe é o nome do país/seleção da Gincana escolar (ver tabela de Turmas e Seleções ao lado).</p>
-                            <p><strong>Liderança:</strong> eleição de um(a) Capitão/Capitã, representante no Congresso Técnico, responsável pelo preenchimento de fichas e decisões organizacionais.</p>
-                            <h3>🎉 Abertura, Protocolo e Encerramento</h3>
-                            <p><strong>Abertura:</strong> desfile oficial das equipes seguido do protocolo formal do evento.</p>
-                            <p><strong>Juramento do Atleta:</strong> um atleta representante conduz o juramento com o braço direito erguido, acompanhado por todos os demais participantes.</p>
-                            <p><strong>Encerramento & Premiação:</strong> dia 11/09, logo após as últimas partidas, seguido de recreio e limpeza coletiva da quadra.</p>
-                        </div>
-                        <div class="resumo-print-col">
-                            <h3>🏆 Modalidades — Referência Rápida</h3>
-                            <table>
-                                <thead><tr><th>Modalidade</th><th>Composição / Cota</th><th>Duração</th></tr></thead>
-                                <tbody>${linhasModalidades}</tbody>
-                            </table>
-                            <p style="margin-top:8px; font-size:9.5px; color:#555;">
-                                Consulte a aba 🏆 Modalidades &amp; Regras no sistema para o regulamento completo de cada modalidade (rodízio obrigatório, sistema de pontuação, critérios de desempate etc.).
-                            </p>
-                        </div>
+                    <div class="resumo-print-stats">
+                        <div><div class="num">5</div><div class="label">MODALIDADES</div></div>
+                        <div><div class="num">6º e 7º</div><div class="label">ANOS ATENDIDOS</div></div>
+                        <div><div class="num">08 a 11/09</div><div class="label">PERÍODO</div></div>
                     </div>
+
+                    <h3>🎯 Objetivos</h3>
+                    <ul>
+                        <li><strong>Sociabilidade e Respeito Mútuo:</strong> fortalecimento de vínculos interpessoais e fair play.</li>
+                        <li><strong>Múltiplas Experiências Corporais:</strong> vivência das modalidades trabalhadas nas aulas de Educação Física.</li>
+                        <li><strong>Cultura Esportiva Consciente:</strong> evento estruturado, respeitando regras e habilidades individuais e coletivas.</li>
+                    </ul>
+
+                    <h3>📋 Identificação do Projeto</h3>
+                    <p>
+                        <strong>Projeto:</strong> Multidisciplinar — Jogos Estudantis GETECO 2026<br>
+                        <strong>Componente Curricular:</strong> Educação Física<br>
+                        <strong>Professores Responsáveis:</strong> Dênis José, Mello, Ramon<br>
+                        <strong>Público-alvo:</strong> Estudantes do 6º e 7º anos do Ensino Fundamental<br>
+                        <strong>Caráter do Evento:</strong> Educacional, Competitivo, Inclusivo e Integrador
+                    </p>
+
+                    <h3>👕 Uniforme / Vestimenta Obrigatória</h3>
+                    <div class="resumo-print-uniforme">
+                        <strong class="titulo">Obrigatória para todas as modalidades:</strong>
+                        <p>Shorts/bermuda leve, camiseta da equipe/colete <span class="destaque-camisa">ou a camisa do Interclasse</span>, e tênis.</p>
+                        <p><strong>Atenção — Camisa do Interclasse:</strong> <span class="destaque-camisa">só poderá ser utilizada durante o próprio Interclasse</span> e, após o evento, exclusivamente às sextas-feiras, como uniforme, e durante as aulas de Educação Física.</p>
+                        <p><strong>É expressamente proibido:</strong> uso de calça/short jeans, jogar descalço ou com roupas curtas.</p>
+                    </div>
+
+                    <h3>🌐 Turmas e Seleções</h3>
+                    <table>
+                        <thead><tr><th>Turma</th><th>Seleção</th></tr></thead>
+                        <tbody>
+                            ${linhasTurma(turmas6)}
+                            ${linhasTurma(turmas7)}
+                            <tr><td>${SELECAO_RESERVA.refTurma}</td><td>${SELECAO_RESERVA.flag} ${SELECAO_RESERVA.pais} (reserva)</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>📌 Diretrizes de Inscrição</h3>
+                    <p>Todos os estudantes inscritos na súmula têm o direito e o dever de jogar; as regras impedem a exclusão de reservas ou estudantes menos experientes.</p>
+                    <p>O estudante pode se inscrever em mais de uma modalidade, desde que não haja simultaneidade de partidas entre elas.</p>
+                    <p>Inscrições oficializadas até o prazo estipulado pela Comissão Organizadora, com fichas assinadas pelo Capitão e Professor Referência.</p>
+
+                    <h3>👥 Das Equipes e Organização</h3>
+                    <p><strong>Composição:</strong> equipes formadas pelas turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
+                    <p><strong>Identificação:</strong> o nome da equipe é o nome do país/seleção da Gincana escolar (ver tabela de Turmas e Seleções acima).</p>
+                    <p><strong>Liderança:</strong> eleição de um(a) Capitão/Capitã, representante no Congresso Técnico, responsável pelo preenchimento de fichas e decisões organizacionais.</p>
+
+                    <h3>🎉 Abertura, Protocolo e Encerramento</h3>
+                    <p><strong>Abertura:</strong> desfile oficial das equipes seguido do protocolo formal do evento.</p>
+                    <p><strong>Juramento do Atleta:</strong> um atleta representante conduz o juramento com o braço direito erguido, acompanhado por todos os demais participantes.</p>
+                    <p><strong>Encerramento & Premiação:</strong> dia 11/09, logo após as últimas partidas, seguido de recreio e limpeza coletiva da quadra.</p>
+
+                    <h3>🏆 Modalidades — Referência Rápida</h3>
+                    <table>
+                        <thead><tr><th>Modalidade</th><th>Composição / Cota</th><th>Duração</th></tr></thead>
+                        <tbody>${linhasModalidades}</tbody>
+                    </table>
+                    <p class="nota-rodape" style="margin-top:6px;">
+                        Consulte a aba 🏆 Modalidades &amp; Regras no sistema para o regulamento completo de cada modalidade (rodízio obrigatório, sistema de pontuação, critérios de desempate etc.).
+                    </p>
                 </div>`;
         }
 
@@ -5075,7 +5085,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (!container) return;
 
             container.innerHTML = gerarHtmlResumoImpressao();
-            document.documentElement.classList.add('resumo-landscape');
+            document.documentElement.classList.add('resumo-print-mode');
             document.body.classList.add('printing-resumo');
             setTimeout(() => window.print(), 50);
         }
@@ -5263,7 +5273,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ---------------------------------------------------------------
         // IMPRESSÃO DO DASHBOARD DAS FICHAS — respeita o filtro de
         // Ano/Ciclo e/ou Turma selecionado acima. Gera uma folha com o
-        // consolidado geral e uma folha por turma/seleção do filtro.
+        // consolidado geral, depois uma folha com todas as turmas do 6º Ano
+        // (podem dividir a mesma folha entre si) e outra folha com todas as
+        // turmas do 7º Ano — a quebra de página só separa 6º de 7º.
         // ---------------------------------------------------------------
         function gerarHtmlDashboardImpressao() {
             const codigosTurmas = turmasFiltradasDashboard();
@@ -5331,8 +5343,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     </table>
                 </div>`;
 
-            // Uma página por turma/seleção do filtro, detalhando ficha × cota
-            const paginasFichas = codigosTurmas.map(code => {
+            // Uma página por Ano/Ciclo (todos os 6º juntos, todos os 7º juntos);
+            // dentro de cada página, várias turmas podem ficar lado a lado —
+            // são quadros pequenos, não há problema em compartilhar a folha.
+            const turmaCardHtml = (code) => {
                 const classObj = officialStudentsData[code];
                 const s = selecaoDaTurma(classObj.label);
                 const tituloSelecao = s ? `${classObj.label} — ${s.flag} ${s.pais}` : classObj.label;
@@ -5353,12 +5367,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }).join('');
 
                 return `
-                    <div class="roster-print-page">
-                        <div class="roster-print-header">
-                            <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
-                            <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Ficha da Turma × Modalidade</span><br>
-                            <span style="font-size:13px;"><strong>${tituloSelecao}</strong></span>
-                        </div>
+                    <div class="dash-turma-card">
+                        <div class="dash-turma-titulo"><strong>${tituloSelecao}</strong></div>
                         <table>
                             <thead>
                                 <tr>
@@ -5374,7 +5384,28 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                             <tbody>${linhas}</tbody>
                         </table>
                     </div>`;
-            }).join('');
+            };
+
+            const codigos6 = codigosTurmas.filter(code => code.startsWith('6'));
+            const codigos7 = codigosTurmas.filter(code => code.startsWith('7'));
+            const codigosOutros = codigosTurmas.filter(code => !code.startsWith('6') && !code.startsWith('7'));
+
+            const paginaPorGrupo = (titulo, codigos) => {
+                if (codigos.length === 0) return '';
+                return `
+                    <div class="roster-print-page">
+                        <div class="roster-print-header">
+                            <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                            <span style="font-size:12px;">Jogos Estudantis do GETECO 2026 — Ficha da Turma × Modalidade</span><br>
+                            <span style="font-size:13px;"><strong>${titulo}</strong></span>
+                        </div>
+                        ${codigos.map(turmaCardHtml).join('')}
+                    </div>`;
+            };
+
+            const paginasFichas = paginaPorGrupo('6º Ano — Todas as turmas', codigos6)
+                + paginaPorGrupo('7º Ano — Todas as turmas', codigos7)
+                + paginaPorGrupo('Outras turmas', codigosOutros);
 
             return paginaResumo + paginasFichas;
         }
