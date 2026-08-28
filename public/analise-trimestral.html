@@ -548,7 +548,11 @@ function parseClassPDF(lines, fallbackSubjects){
     if(!tail.every(t=>/^-$|^[SX]$|^\d+$/.test(t))) continue;
     const name = tokens.slice(3, tokens.length-scoreTailLen).join(' ');
     if(!name || !/[A-ZÀ-Ÿ]{2,}/.test(name)) continue;
-    const rme = tokens[2];
+    // O código RME vem em duas partes na mesma linha do quadro síntese (ex.:
+    // "2021 24532" — ano + número). Antes só se pegava a segunda parte
+    // (tokens[2]), perdendo o "2021" e gravando a matrícula incompleta no
+    // Supabase. Junta as duas partes pra manter o código RME completo.
+    const rme = tokens[1] + ' ' + tokens[2];
     const subjData = [];
     for(let i=0;i<nSubj;i++){
       const g = tail.slice(i*7,(i*7)+7); // n1 r1 n2 r2 n3 r3 TA(bruto, não usado no cálculo)
