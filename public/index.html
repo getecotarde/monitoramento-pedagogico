@@ -9,8 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!-- Google Identity Services — usado apenas pelo botão "Exportar para o Google Drive" -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<!-- Chart.js — usado no gráfico "Rendimento Trimestral" do Perfil Individual -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<!-- Chart.js — usado no gráfico "Rendimento Trimestral" do Perfil Individual.
+     defer: evita que esse script bloqueie o carregamento do resto da página
+     caso o CDN demore ou falhe (as funções que usam Chart já verificam
+     `typeof Chart==='undefined'` antes de desenhar, então tudo continua
+     funcionando normalmente mesmo se este script ainda não tiver carregado). -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
