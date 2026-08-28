@@ -328,6 +328,10 @@ body{
       <div class="lbl">＋ Enviar PDF da turma</div>
       <div class="sub">Quadro síntese de pontuação</div>
     </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-soft);margin:6px 2px 0;cursor:pointer">
+      <input type="checkbox" id="pularRevisaoChk" style="margin:0">
+      Salvar tudo automaticamente (sem revisar turma por turma)
+    </label>
     <div class="status-line" id="statusLine"></div>
     <div class="nav-row">
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
@@ -1344,9 +1348,46 @@ document.getElementById('fileInput').addEventListener('change', async (e)=>{
     statusMsg((updates)+' turma(s) já existente(s) serão atualizada(s) com os novos dados.'+(queued>updates?' '+(queued-updates)+' nova(s) para revisar.':''));
   }
   if(reviewQueue.length){
-    processNextInQueue();
+    const pularRevisao = document.getElementById('pularRevisaoChk')?.checked;
+    if(pularRevisao) salvarTudoAutomaticamente();
+    else processNextInQueue();
   }
 });
+
+// Salva todas as turmas da fila de uma vez, sem passar pela tela de revisão
+// individual — usa as disciplinas e o nome de turma exatamente como foram
+// detectados no PDF (sem chance de ajuste manual). Turmas que já existiam são
+// atualizadas (mesma lógica do fluxo com revisão); mostra um resumo ao final,
+// e não interrompe a fila em caso de erro num PDF específico — ele fica
+// registrado no resumo, e as demais turmas continuam sendo salvas normalmente.
+async function salvarTudoAutomaticamente(){
+  const total = reviewQueue.length;
+  let salvas = 0, atualizadas = 0;
+  const erros = [];
+  statusMsg('Salvando '+total+' turma(s) automaticamente…');
+  while(reviewQueue.length){
+    const parsed = reviewQueue.shift();
+    const existingKey = findSavedClassKey(parsed.className);
+    const data = existingKey
+      ? {...currentClasses[existingKey], className: existingKey, subjects: parsed.subjects, students: parsed.students}
+      : {className: parsed.className, subjects: parsed.subjects, students: parsed.students};
+    try{
+      await saveClass(data.className, data);
+      currentClasses[data.className] = data;
+      activeClass = data.className;
+      existingKey ? atualizadas++ : salvas++;
+    }catch(err){
+      console.error(err);
+      erros.push(parsed.className+': '+err.message);
+    }
+  }
+  renderSidebar();
+  renderMain();
+  let resumo = salvas+' turma(s) nova(s) salva(s)';
+  if(atualizadas>0) resumo += ', '+atualizadas+' atualizada(s)';
+  if(erros.length) resumo += '. '+erros.length+' com erro: '+erros.join(' · ');
+  statusMsg(resumo+'.');
+}
 
 function processNextInQueue(){
   if(reviewQueue.length===0){ renderMain(); return; }
