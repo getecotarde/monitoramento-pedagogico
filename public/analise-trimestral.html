@@ -679,13 +679,32 @@ async function saveClass(name, data){
 // desta turma (notas brutas + total/percentual/status já calculados). Antes de
 // gravar, remove as linhas antigas dessa turma para evitar duplicidade quando
 // o mesmo PDF é reimportado (ex.: correção de nota).
+//
+// IMPORTANTE: a coluna "turma" é gravada no formato curto (ex.: "7ºE"), via
+// shortTurmaLabel(className), e NÃO no código completo do boletim (ex.:
+// "FRCAA1TE - FUNDAMENTAL - REGULAR - 3º CICLO - 1º ANO"). É esse formato
+// curto que o Perfil Individual (index.html) usa para cruzar as notas com o
+// aluno certo (via nome + turma, já que a matrícula do boletim — "RME" — é
+// um código próprio do quadro síntese e não bate com a matrícula oficial
+// cadastrada no restante do sistema). Se essa conversão não for feita aqui,
+// o gráfico/tabela de Rendimento Trimestral fica sempre vazio no Perfil
+// Individual, mesmo com os dados corretamente importados.
 async function syncNotasTrimestraisSupabase(className, data){
   const {subjects, students} = data;
+  const turmaLabel = shortTurmaLabel(className) || className;
 
-  const delUrl = `${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(className)}`;
-  const delResp = await fetch(delUrl, { method:'DELETE', headers: sbHeaders() });
-  if(!delResp.ok){
-    throw new Error('Falha ao limpar notas anteriores da turma no Supabase ('+delResp.status+')');
+  // Limpa tanto o formato curto (sincronizações anteriores já corrigidas)
+  // quanto o código completo (caso ainda restem linhas de uma sincronização
+  // antiga, de antes desta correção), pra nunca deixar duplicidade.
+  const delUrls = [
+    `${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(turmaLabel)}`,
+    ...(turmaLabel !== className ? [`${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(className)}`] : [])
+  ];
+  for(const delUrl of delUrls){
+    const delResp = await fetch(delUrl, { method:'DELETE', headers: sbHeaders() });
+    if(!delResp.ok){
+      throw new Error('Falha ao limpar notas anteriores da turma no Supabase ('+delResp.status+')');
+    }
   }
 
   const rows = [];
@@ -701,7 +720,7 @@ async function syncNotasTrimestraisSupabase(className, data){
         rows.push({
           matricula: soDigitos(st.rme),
           aluno_nome: st.name,
-          turma: className,
+          turma: turmaLabel,
           disciplina: discName,
           trimestre: triIdx+1,
           nota: String(notaRaw),
