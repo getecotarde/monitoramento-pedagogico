@@ -9731,7 +9731,7 @@ function ltFiltrarAtaPorAluno(rows, x){
       if(!bateu) return;
       const obs = cat.obsCampo ? (row[cat.obsCampo]||'') : '';
       const desc = `${cat.titulo} — ${row.trimestre}º trimestre${obs ? ' · '+obs : ''}`;
-      eventos.push({ data: row.data||null, tipo: cat.titulo, desc, por: row.professor||'—', categoria:'ata' });
+      eventos.push({ data: row.data||null, tipo: cat.titulo, desc, por: row.professor||'—', categoria:'ata', trimestre: row.trimestre, obs });
     });
   });
   return eventos;
@@ -9826,6 +9826,65 @@ function ltFormatSinteseAdvertencias(ocsRaw, paraImpressao){
   }).join('');
 }
 
+// Agrupa os itens da seção "Ata de Conselho" por trimestre — cada ata é um
+// registro único por (turma, trimestre), então o professor e a data já vêm
+// iguais para todas as indicações (encaminhamentos) daquele trimestre. Os
+// grupos aparecem em ordem crescente de trimestre.
+function ltAgruparAtaPorTrimestre(itens){
+  const porTrimestre = new Map();
+  itens.forEach(ev=>{
+    const tri = (ev.trimestre!=null && ev.trimestre!=='') ? ev.trimestre : '—';
+    if(!porTrimestre.has(tri)) porTrimestre.set(tri, { trimestre:tri, professor: ev.por||'—', data: ev.data||null, indicacoes: [] });
+    const grupo = porTrimestre.get(tri);
+    if(!grupo.data && ev.data) grupo.data = ev.data;
+    grupo.indicacoes.push({ titulo: ev.tipo, obs: ev.obs||'' });
+  });
+  return [...porTrimestre.values()].sort((a,b)=> String(a.trimestre).localeCompare(String(b.trimestre), 'pt-BR', { numeric:true }));
+}
+
+// Renderiza o bloco "Ata de Conselho" dividido em subblocos por trimestre —
+// cada subbloco traz, na frente, o professor e a data daquele trimestre, e
+// abaixo os encaminhamentos (indicações) em forma de itens de lista. Usada
+// tanto na prévia em tela quanto na impressão (paraImpressao muda só o estilo).
+function ltRenderAtaBloco(itens, paraImpressao){
+  const grupos = ltAgruparAtaPorTrimestre(itens);
+  return grupos.map(g=>{
+    const dataFmt = g.data ? ltFmtData(g.data) : 'Sem data';
+    const itensHtml = g.indicacoes.map(ind=>`<li style="margin-bottom:3px">${ltEsc(ind.titulo)}${ind.obs ? ' — '+ltEsc(ind.obs) : ''}</li>`).join('');
+    if(paraImpressao){
+      return `
+        <div style="margin-bottom:9px;padding:7px 9px;border:1px solid #E2E1DC;border-radius:4px;page-break-inside:avoid">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px;border-bottom:1px solid #ECEAE4;padding-bottom:4px">
+            <span style="font-size:10.5px;font-weight:700;color:#1A1916">${ltEsc(g.trimestre)}º Trimestre</span>
+            <span style="font-size:9px;color:#888">${ltEsc(g.professor)} · ${dataFmt}</span>
+          </div>
+          <ul style="margin:0;padding-left:15px;font-size:10.5px;color:#1A1916;line-height:1.55">${itensHtml}</ul>
+        </div>`;
+    }
+    return `
+      <div style="margin-bottom:10px;padding:9px 11px;background:#F8F7F4;border:1px solid #E8E7E3;border-radius:6px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <span style="font-size:11.5px;font-weight:700;color:#1A1916">${ltEsc(g.trimestre)}º Trimestre</span>
+          <span style="font-size:10.5px;color:#999">${ltEsc(g.professor)} · ${dataFmt}</span>
+        </div>
+        <ul style="margin:0;padding-left:16px;font-size:11.5px;color:#333;line-height:1.6">${itensHtml}</ul>
+      </div>`;
+  }).join('');
+}
+
+// Renderiza o bloco "Materiais": os itens entregues (ou pendentes) ao
+// estudante, um seguido do outro, separados por uma régua (linha divisória)
+// — sem caixas ou fundos individuais por item.
+function ltRenderMateriaisBloco(itens, paraImpressao){
+  return itens.map((ev,i)=>{
+    const regua = i>0 ? `border-top:1px solid ${paraImpressao?'#ECEAE4':'#E8E7E3'};` : '';
+    const fonte = paraImpressao ? '10.5px' : '12.5px';
+    return `<div style="padding:${paraImpressao?'6px 2px':'8px 2px'};${regua}">
+      <span style="font-size:${fonte};color:#1A1916">${ltEsc(ev.desc)}</span>
+    </div>`;
+  }).join('');
+}
+
 function ltBadgePerfil(x){
   const p = x.p || 'TÍPICO';
   const cls = p==='ATÍPICO' ? 'b-atipico' : p==='EM ANÁLISE' ? 'b-analise' : 'b-tipico';
@@ -9882,6 +9941,10 @@ function ltRenderEventos(eventos, carregando){
           <div style="font-size:12.5px;color:#333;font-weight:600;margin-bottom:8px">${ltEsc(ev.desc)}</div>
           ${ltFormatSinteseAdvertencias(ev.ocsRaw)}
         </div>`).join('');
+    } else if(sec.categoria==='ata' && sec.itens.length){
+      linhas = ltRenderAtaBloco(sec.itens, false);
+    } else if(sec.categoria==='materiais' && sec.itens.length){
+      linhas = ltRenderMateriaisBloco(sec.itens, false);
     } else if(sec.itens.length){
       linhas = sec.itens.map(ev=>`
         <div style="padding:7px 0;border-bottom:1px solid #F0EFEA">
@@ -10035,6 +10098,10 @@ async function imprimirLinhaDoTempo(){
             <div class="lt-secao-item-desc" style="font-weight:700;margin-bottom:6px">${ltEsc(ev.desc)}</div>
             ${ltFormatSinteseAdvertencias(ev.ocsRaw, true)}
           </div>`).join('');
+      } else if(sec.categoria==='ata' && sec.itens.length){
+        itensHtml = `<div style="padding:7px 9px">${ltRenderAtaBloco(sec.itens, true)}</div>`;
+      } else if(sec.categoria==='materiais' && sec.itens.length){
+        itensHtml = `<div style="padding:0 9px">${ltRenderMateriaisBloco(sec.itens, true)}</div>`;
       } else if(sec.itens.length){
         itensHtml = sec.itens.map(ev=>`
           <div class="lt-secao-item">
