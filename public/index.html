@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <!-- Google Identity Services — usado apenas pelo botão "Exportar para o Google Drive" -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Chart.js — usado no gráfico "Rendimento Trimestral" do Perfil Individual -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -9424,6 +9426,105 @@ async function buscarEventosPipLeituraLT(x){
   }
 }
 
+// Busca (assíncrona) as notas trimestrais do aluno, gravadas pelo
+// analise-trimestral.html na tabela notas_trimestrais do Supabase — mesma
+// lógica de cruzamento por matrícula (com fallback por nome+turma) usada para
+// fluência de leitura acima. Alimenta o gráfico "Rendimento Trimestral" do
+// Perfil Individual.
+const _ltNotasCache = {};
+// Mesma normalização usada no analise-trimestral.html: compara só os dígitos
+// da matrícula, para não perder o vínculo por causa de hífen, zero à esquerda etc.
+function ltSoDigitos(v){
+  if(v==null) return null;
+  const d = String(v).replace(/\D/g,'');
+  return d || null;
+}
+async function buscarNotasTrimestraisLT(x){
+  const matriculaNorm = ltSoDigitos(x.matricula);
+  const key = 'notas:'+(matriculaNorm||'')+'|'+(x.n||'').trim().toLowerCase()+'|'+(x.t||'').trim().toLowerCase();
+  if(_ltNotasCache[key]) return _ltNotasCache[key];
+  const promessa = (async ()=>{
+    try{
+      let rows = [];
+      if(matriculaNorm){
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/notas_trimestrais?select=*&matricula=eq.${encodeURIComponent(matriculaNorm)}&order=disciplina.asc,trimestre.asc`, { headers: sbHeaders() });
+        if(r.ok) rows = await r.json();
+      }
+      if(!rows.length){
+        // Sem matrícula vinculada (ou nada encontrado por ela) — tenta por nome + turma,
+        // do mesmo jeito que a Ata do Conselho já faz.
+        const r2 = await fetch(`${SUPABASE_URL}/rest/v1/notas_trimestrais?select=*&aluno_nome=ilike.${encodeURIComponent((x.n||'').trim())}&turma=eq.${encodeURIComponent(x.t||'')}&order=disciplina.asc,trimestre.asc`, { headers: sbHeaders() });
+        if(r2.ok) rows = await r2.json();
+      }
+      return rows;
+    }catch(e){
+      return [];
+    }
+  })();
+  _ltNotasCache[key] = promessa;
+  return promessa;
+}
+
+const LT_TRI_COLORS = ['#2F6F63','#B4802A','#6E4A7E'];
+
+// Desenha (ou redesenha) o gráfico de barras de rendimento por disciplina/trimestre
+// no canvas informado, a partir das linhas vindas de buscarNotasTrimestraisLT.
+function ltDesenharGraficoNotas(canvasEl, rows){
+  if(!canvasEl || typeof Chart==='undefined') return false;
+  const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
+  if(!disciplinas.length) return false;
+  const datasets = [1,2,3].map(tri=>{
+    const data = disciplinas.map(d=>{
+      const row = rows.find(r=>r.disciplina===d && r.trimestre===tri);
+      return row && row.percentual!=null ? row.percentual : null;
+    });
+    return { label: tri+'º Trimestre', data, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+  });
+  if(canvasEl._chartInstance) canvasEl._chartInstance.destroy();
+  canvasEl._chartInstance = new Chart(canvasEl.getContext('2d'), {
+    type:'bar',
+    data:{ labels: disciplinas, datasets },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{position:'bottom'},
+        tooltip:{callbacks:{ label:(c)=> c.dataset.label+': '+(c.raw==null?'—':c.raw+'%') }}
+      },
+      scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} } }
+    }
+  });
+  return true;
+}
+
+// Versão em tabela (usada na impressão, onde não há canvas/Chart.js disponível
+// na janela do relatório) — mesma informação, em formato de tabela por disciplina.
+// Usa estilos inline (em vez da classe .perfil-table) porque esta tabela também
+// é usada dentro da janela independente de impressão, que tem sua própria
+// folha de estilos e não inclui as regras de .perfil-table do app principal.
+function ltRenderTabelaNotas(rows){
+  if(!rows.length) return '';
+  const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
+  const thStyle = 'text-align:left;padding:6px 9px;background:#FAFAF8;border:1px solid #E2E1DC;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#999';
+  const thCenter = thStyle.replace('text-align:left','text-align:center');
+  const tdStyle = 'padding:6px 9px;border:1px solid #E2E1DC;font-size:10.5px;color:#333';
+  const tdCenter = tdStyle.replace('color:#333','color:#333;text-align:center');
+  const linhas = disciplinas.map(d=>{
+    const cels = [1,2,3].map(tri=>{
+      const row = rows.find(r=>r.disciplina===d && r.trimestre===tri);
+      if(!row || row.percentual==null) return `<td style="${tdCenter};color:#BBB">—</td>`;
+      const aviso = row.status==='recuperada' ? ' ⚠' : '';
+      return `<td style="${tdCenter}">${row.percentual}%${aviso}</td>`;
+    }).join('');
+    return `<tr><td style="${tdStyle}">${ltEsc(d)}</td>${cels}</tr>`;
+  }).join('');
+  return `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:4px">
+      <thead><tr><th style="${thStyle}">Disciplina</th><th style="${thCenter}">1º Tri</th><th style="${thCenter}">2º Tri</th><th style="${thCenter}">3º Tri</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    <div style="font-size:9px;color:#999;margin-top:4px">⚠ indica que a média final do trimestre foi obtida após recuperação.</div>`;
+}
+
 // Busca (assíncrona) as indicações da Ata do Conselho de Classe vinculadas ao
 // estudante — a tabela "atas_conselho" guarda um registro por (turma,
 // trimestre), com listas de nomes de alunos em cada categoria (remanejamento,
@@ -9693,6 +9794,10 @@ function renderLinhaDoTempoPreview(){
   previewDiv.innerHTML = selecionados.map(x=>`
     <div class="lt-preview-card" data-lt-chave="${ltChaveAluno(x)}" style="margin-bottom:18px;padding-bottom:12px">
       ${ltRenderCabecalho(x)}
+      <div class="lt-preview-notas" style="margin-bottom:14px">
+        <div style="font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--verde-dark);margin-bottom:6px">Rendimento Trimestral</div>
+        <div class="lt-notas-corpo" style="font-size:11.5px;color:#AAA;font-style:italic;padding:6px 0">Carregando notas…</div>
+      </div>
       <div class="lt-preview-eventos">${ltRenderEventos(montarEventosLinhaDoTempo(x), true)}</div>
     </div>`
   ).join('<hr style="border:none;border-top:1px solid #E8E7E3;margin:6px 0 16px">');
@@ -9709,6 +9814,24 @@ function renderLinhaDoTempoPreview(){
       });
       const card = previewDiv.querySelector(`.lt-preview-card[data-lt-chave="${CSS.escape(ltChaveAluno(x))}"] .lt-preview-eventos`);
       if(card) card.innerHTML = ltRenderEventos(completos, false);
+    });
+  });
+
+  // 3ª passada: busca as notas trimestrais (Supabase) e desenha o gráfico de
+  // rendimento de cada estudante, independente das outras buscas.
+  selecionados.forEach(x=>{
+    buscarNotasTrimestraisLT(x).then(rows=>{
+      if(token !== _ltRenderToken) return;
+      const corpo = previewDiv.querySelector(`.lt-preview-card[data-lt-chave="${CSS.escape(ltChaveAluno(x))}"] .lt-notas-corpo`);
+      if(!corpo) return;
+      if(!rows.length){
+        corpo.innerHTML = `<div style="font-size:11.5px;color:#BBB;padding:4px 0">Nenhuma nota trimestral encontrada para este estudante.</div>`;
+        return;
+      }
+      corpo.innerHTML = `<canvas></canvas>`;
+      const canvasEl = corpo.querySelector('canvas');
+      const desenhou = ltDesenharGraficoNotas(canvasEl, rows);
+      if(!desenhou) corpo.innerHTML = ltRenderTabelaNotas(rows); // fallback se o Chart.js não carregar
     });
   });
 }
@@ -9729,11 +9852,19 @@ async function imprimirLinhaDoTempo(){
   // Busca, para cada estudante, TODOS os eventos vinculados à matrícula —
   // incluindo a fluência de leitura e a Ata do Conselho, que vêm de consultas assíncronas.
   const eventosPorAluno = await Promise.all(selecionados.map(x=>montarEventosLinhaDoTempoCompleto(x)));
+  // Notas trimestrais (rendimento por disciplina/trimestre), gravadas pelo analise-trimestral.html.
+  const notasPorAluno = await Promise.all(selecionados.map(x=>buscarNotasTrimestraisLT(x)));
 
   if(btnImprimir){ btnImprimir.disabled = false; btnImprimir.innerHTML = textoOriginalBtn; }
 
   const paginas = selecionados.map((x,idx)=>{
     const eventos = eventosPorAluno[idx];
+    const notasRows = notasPorAluno[idx];
+    const blocoNotas = `
+      <div class="lt-secao">
+        <div class="lt-secao-titulo">Rendimento Trimestral</div>
+        ${notasRows.length ? ltRenderTabelaNotas(notasRows) : '<div class="lt-secao-vazia">Nenhuma nota trimestral encontrada para este estudante.</div>'}
+      </div>`;
     const secoes = ltAgruparPorSecao(eventos);
 
     const blocosSecoes = secoes.map(sec=>{
@@ -9785,6 +9916,7 @@ async function imprimirLinhaDoTempo(){
         </div>
       </div>
 
+      ${blocoNotas}
       ${blocosSecoes}
 
       <div class="lt-assinaturas">
