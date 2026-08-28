@@ -2511,6 +2511,18 @@
             <input type="radio" name="ltModoImpressao" value="lista" style="accent-color:var(--verde)"> Listagem da turma (vários alunos por página)
           </label>
         </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#FAFAF8;border:1px solid #E8E7E3;border-radius:7px">
+          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#BBB">Abertura</span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
+            <input type="radio" name="ltModoAbertura" value="unica" checked style="accent-color:var(--verde)"> Uma janela (todos juntos)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
+            <input type="radio" name="ltModoAbertura" value="abas" style="accent-color:var(--verde)"> Uma aba por estudante
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
+            <input type="radio" name="ltModoAbertura" value="janelas" style="accent-color:var(--verde)"> Uma janela individual por estudante
+          </label>
+        </div>
         <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px;transition:max-height .15s ease">
           <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para visualizar o perfil individual em tela ou gerar a prévia de impressão.</div>
         </div>
@@ -9873,16 +9885,14 @@ function ltRenderAtaBloco(itens, paraImpressao){
 }
 
 // Renderiza o bloco "Materiais": os itens entregues (ou pendentes) ao
-// estudante, um seguido do outro, separados por uma régua (linha divisória)
-// — sem caixas ou fundos individuais por item.
+// estudante como um único texto corrido, separados por vírgula — em vez de
+// um item por linha.
 function ltRenderMateriaisBloco(itens, paraImpressao){
-  return itens.map((ev,i)=>{
-    const regua = i>0 ? `border-top:1px solid ${paraImpressao?'#ECEAE4':'#E8E7E3'};` : '';
-    const fonte = paraImpressao ? '10.5px' : '12.5px';
-    return `<div style="padding:${paraImpressao?'6px 2px':'8px 2px'};${regua}">
-      <span style="font-size:${fonte};color:#1A1916">${ltEsc(ev.desc)}</span>
-    </div>`;
-  }).join('');
+  const fonte = paraImpressao ? '10.5px' : '12.5px';
+  const texto = itens.map(ev=>ltEsc(ev.desc)).join(', ');
+  return `<div style="padding:${paraImpressao?'6px 2px':'8px 2px'}">
+    <span style="font-size:${fonte};color:#1A1916;line-height:1.6">${texto}</span>
+  </div>`;
 }
 
 function ltBadgePerfil(x){
@@ -10049,116 +10059,100 @@ function renderLinhaDoTempoPreview(){
   });
 }
 
-async function imprimirLinhaDoTempo(){
-  const selecionados = getLtAlunosSelecionados();
-  if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
-
-  const modoImpressao = document.querySelector('input[name="ltModoImpressao"]:checked')?.value || 'pagina';
-  const pedagogo = (document.getElementById('ltPedagogo')?.value||'').trim() || '—';
-  const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
-  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-
-  const btnImprimir = document.getElementById('btnImprimirLinhaDoTempo');
-  const textoOriginalBtn = btnImprimir ? btnImprimir.innerHTML : null;
-  if(btnImprimir){ btnImprimir.disabled = true; btnImprimir.innerHTML = 'Reunindo dados…'; }
-
-  // Busca, para cada estudante, TODOS os eventos vinculados à matrícula —
-  // incluindo a fluência de leitura e a Ata do Conselho, que vêm de consultas assíncronas.
-  const eventosPorAluno = await Promise.all(selecionados.map(x=>montarEventosLinhaDoTempoCompleto(x)));
-  // Notas trimestrais (rendimento por disciplina/trimestre), gravadas pelo analise-trimestral.html.
-  const notasPorAluno = await Promise.all(selecionados.map(x=>buscarNotasTrimestraisLT(x)));
-
-  if(btnImprimir){ btnImprimir.disabled = false; btnImprimir.innerHTML = textoOriginalBtn; }
-
-  const paginas = selecionados.map((x,idx)=>{
-    const eventos = eventosPorAluno[idx];
-    const notasRows = notasPorAluno[idx];
-    const imgGraficoNotas = notasRows.length ? ltGerarImagemGraficoNotas(notasRows) : null;
-    const conteudoNotas = imgGraficoNotas
-      ? `<div style="padding:8px 9px 4px"><img src="${imgGraficoNotas}" style="width:100%;max-width:580px;display:block;margin:0 auto"></div>`
-      : (notasRows.length ? ltRenderTabelaNotas(notasRows) : '<div class="lt-secao-vazia">Nenhuma nota trimestral encontrada para este estudante.</div>');
-    const blocoNotas = `
-      <div class="lt-secao">
-        <div class="lt-secao-titulo">Rendimento Trimestral</div>
-        ${conteudoNotas}
-      </div>`;
-    const secoes = ltAgruparPorSecao(eventos);
-
-    const blocosSecoes = secoes.map(sec=>{
-      if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
-      let itensHtml;
-      if(sec.categoria==='rotina' && sec.itens.length){
-        itensHtml = sec.itens.map(ev=>`
-          <div class="lt-secao-item" style="border-bottom:none;background:#fff;border:1px solid #E2E1DC;border-left:3px solid #2B7FD4;border-radius:4px">
-            <div class="lt-secao-item-desc" style="color:#154F8A">${ltEsc(ev.desc)}</div>
-          </div>`).join('');
-      } else if(sec.categoria==='advertencias' && sec.itens.length){
-        itensHtml = sec.itens.map(ev=>`
-          <div class="lt-secao-item" style="border-bottom:none">
-            <div class="lt-secao-item-desc" style="font-weight:700;margin-bottom:6px">${ltEsc(ev.desc)}</div>
-            ${ltFormatSinteseAdvertencias(ev.ocsRaw, true)}
-          </div>`).join('');
-      } else if(sec.categoria==='ata' && sec.itens.length){
-        itensHtml = `<div style="padding:7px 9px">${ltRenderAtaBloco(sec.itens, true)}</div>`;
-      } else if(sec.categoria==='materiais' && sec.itens.length){
-        itensHtml = `<div style="padding:0 9px">${ltRenderMateriaisBloco(sec.itens, true)}</div>`;
-      } else if(sec.itens.length){
-        itensHtml = sec.itens.map(ev=>`
-          <div class="lt-secao-item">
-            <div class="lt-secao-item-desc">${ltEsc(ev.desc)}</div>
-            <div class="lt-secao-item-meta">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
-          </div>`).join('');
-      } else if(sec.categoria==='ata'){
-        itensHtml = `<div class="lt-secao-vazia">Nenhuma indicação encontrada para este estudante nas atas de conselho da turma ${ltEsc(x.t)}.</div>`;
-      } else {
-        itensHtml = `<div class="lt-secao-vazia">Nenhum registro nesta área.</div>`;
-      }
-      return `
-        <div class="lt-secao">
-          <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
-          ${itensHtml}
-        </div>`;
-    }).join('');
-
-    return `
-    <div class="lt-page lt-modo-${modoImpressao}" style="${idx>0 && modoImpressao==='pagina'?'page-break-before:always;':''}">
-      <div class="doc-header">
-        <div>
-          <div class="doc-title">Perfil Individual do Estudante</div>
-          <div class="doc-aluno-nome">${ltEsc(x.n)}</div>
-          <div class="doc-sub">
-            E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Coord. Pedagógico: ${ltEsc(pedagogo)}<br>
-            Turma: <b>${ltEsc(x.t)}</b>${x.matricula?' &nbsp;·&nbsp; Matrícula: '+ltEsc(x.matricula):''}
-          </div>
-        </div>
-        <div class="doc-badge">
-          <strong>${now}</strong>
-          Data de emissão
-        </div>
-      </div>
-
-      ${blocoNotas}
-      ${blocosSecoes}
-
-      <div class="lt-assinaturas">
-        <div class="lt-assin-col">
-          <div class="lt-assin-linha"></div>
-          <div class="lt-assin-label">${professorRef ? ltEsc(professorRef) : 'Professor(a) referência da sala'}</div>
-        </div>
-        <div class="lt-assin-col">
-          <div class="lt-assin-linha"></div>
-          <div class="lt-assin-label">${ltEsc(pedagogo)} — Pedagogo(a)</div>
-        </div>
-      </div>
-
-      <div class="doc-footer">
-        <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
-        <span>Coord. Pedagógico: ${ltEsc(pedagogo)} &nbsp;·&nbsp; Emitido em ${now}</span>
-      </div>
+// Monta o HTML de uma única página de perfil individual (um estudante).
+// Extraído de imprimirLinhaDoTempo para poder ser reaproveitado tanto no modo
+// "uma janela com todos juntos" quanto no modo "uma aba/janela por estudante".
+function ltMontarPaginaHtml(x, eventos, notasRows, opts){
+  const { modoImpressao, idx, pedagogo, professorRef, now } = opts;
+  const imgGraficoNotas = notasRows.length ? ltGerarImagemGraficoNotas(notasRows) : null;
+  const conteudoNotas = imgGraficoNotas
+    ? `<div style="padding:8px 9px 4px"><img src="${imgGraficoNotas}" style="width:100%;max-width:580px;display:block;margin:0 auto"></div>`
+    : (notasRows.length ? ltRenderTabelaNotas(notasRows) : '<div class="lt-secao-vazia">Nenhuma nota trimestral encontrada para este estudante.</div>');
+  const blocoNotas = `
+    <div class="lt-secao">
+      <div class="lt-secao-titulo">Rendimento Trimestral</div>
+      ${conteudoNotas}
     </div>`;
+  const secoes = ltAgruparPorSecao(eventos);
+
+  const blocosSecoes = secoes.map(sec=>{
+    if(!sec.itens.length && sec.categoria!=='perfil' && sec.categoria!=='ata') return '';
+    let itensHtml;
+    if(sec.categoria==='rotina' && sec.itens.length){
+      itensHtml = sec.itens.map(ev=>`
+        <div class="lt-secao-item" style="border-bottom:none;background:#fff;border:1px solid #E2E1DC;border-left:3px solid #2B7FD4;border-radius:4px">
+          <div class="lt-secao-item-desc" style="color:#154F8A">${ltEsc(ev.desc)}</div>
+        </div>`).join('');
+    } else if(sec.categoria==='advertencias' && sec.itens.length){
+      itensHtml = sec.itens.map(ev=>`
+        <div class="lt-secao-item" style="border-bottom:none">
+          <div class="lt-secao-item-desc" style="font-weight:700;margin-bottom:6px">${ltEsc(ev.desc)}</div>
+          ${ltFormatSinteseAdvertencias(ev.ocsRaw, true)}
+        </div>`).join('');
+    } else if(sec.categoria==='ata' && sec.itens.length){
+      itensHtml = `<div style="padding:7px 9px">${ltRenderAtaBloco(sec.itens, true)}</div>`;
+    } else if(sec.categoria==='materiais' && sec.itens.length){
+      itensHtml = `<div style="padding:0 9px">${ltRenderMateriaisBloco(sec.itens, true)}</div>`;
+    } else if(sec.itens.length){
+      itensHtml = sec.itens.map(ev=>`
+        <div class="lt-secao-item">
+          <div class="lt-secao-item-desc">${ltEsc(ev.desc)}</div>
+          <div class="lt-secao-item-meta">${ev.data ? ltFmtData(ev.data)+' · ' : ''}${ltEsc(ev.por||'—')}</div>
+        </div>`).join('');
+    } else if(sec.categoria==='ata'){
+      itensHtml = `<div class="lt-secao-vazia">Nenhuma indicação encontrada para este estudante nas atas de conselho da turma ${ltEsc(x.t)}.</div>`;
+    } else {
+      itensHtml = `<div class="lt-secao-vazia">Nenhum registro nesta área.</div>`;
+    }
+    return `
+      <div class="lt-secao">
+        <div class="lt-secao-titulo">${ltEsc(sec.titulo)}</div>
+        ${itensHtml}
+      </div>`;
   }).join('');
 
-  const html = `<!DOCTYPE html>
+  return `
+  <div class="lt-page lt-modo-${modoImpressao}" style="${idx>0 && modoImpressao==='pagina'?'page-break-before:always;':''}">
+    <div class="doc-header">
+      <div>
+        <div class="doc-title">Perfil Individual do Estudante</div>
+        <div class="doc-aluno-nome">${ltEsc(x.n)}</div>
+        <div class="doc-sub">
+          E. M. Geraldo Teixeira da Costa &nbsp;·&nbsp; Coord. Pedagógico: ${ltEsc(pedagogo)}<br>
+          Turma: <b>${ltEsc(x.t)}</b>${x.matricula?' &nbsp;·&nbsp; Matrícula: '+ltEsc(x.matricula):''}
+        </div>
+      </div>
+      <div class="doc-badge">
+        <strong>${now}</strong>
+        Data de emissão
+      </div>
+    </div>
+
+    ${blocoNotas}
+    ${blocosSecoes}
+
+    <div class="lt-assinaturas">
+      <div class="lt-assin-col">
+        <div class="lt-assin-linha"></div>
+        <div class="lt-assin-label">${professorRef ? ltEsc(professorRef) : 'Professor(a) referência da sala'}</div>
+      </div>
+      <div class="lt-assin-col">
+        <div class="lt-assin-linha"></div>
+        <div class="lt-assin-label">${ltEsc(pedagogo)} — Pedagogo(a)</div>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      <span>E. M. Geraldo Teixeira da Costa — Turno Tarde 2026</span>
+      <span>Coord. Pedagógico: ${ltEsc(pedagogo)} &nbsp;·&nbsp; Emitido em ${now}</span>
+    </div>
+  </div>`;
+}
+
+// Monta o documento HTML completo (head + estilos + páginas + script de impressão)
+// a partir do HTML de uma ou mais páginas já montadas com ltMontarPaginaHtml.
+function ltMontarDocumentoHtml(paginasHtml){
+  return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -10201,10 +10195,61 @@ async function imprimirLinhaDoTempo(){
 </style>
 </head>
 <body>
-${paginas}
+${paginasHtml}
 <script>window.onload=function(){window.print();}<\/script>
 </body>
 </html>`;
+}
+
+async function imprimirLinhaDoTempo(){
+  const selecionados = getLtAlunosSelecionados();
+  if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
+
+  const modoImpressao = document.querySelector('input[name="ltModoImpressao"]:checked')?.value || 'pagina';
+  // "unica": tudo em uma única janela/impressão em lote (comportamento original)
+  // "abas": cada estudante abre em sua própria aba
+  // "janelas": cada estudante abre em sua própria janela individual
+  const modoAbertura = document.querySelector('input[name="ltModoAbertura"]:checked')?.value || 'unica';
+  const pedagogo = (document.getElementById('ltPedagogo')?.value||'').trim() || '—';
+  const professorRef = (document.getElementById('ltProfessorRef')?.value||'').trim();
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const btnImprimir = document.getElementById('btnImprimirLinhaDoTempo');
+  const textoOriginalBtn = btnImprimir ? btnImprimir.innerHTML : null;
+  if(btnImprimir){ btnImprimir.disabled = true; btnImprimir.innerHTML = 'Reunindo dados…'; }
+
+  // Busca, para cada estudante, TODOS os eventos vinculados à matrícula —
+  // incluindo a fluência de leitura e a Ata do Conselho, que vêm de consultas assíncronas.
+  const eventosPorAluno = await Promise.all(selecionados.map(x=>montarEventosLinhaDoTempoCompleto(x)));
+  // Notas trimestrais (rendimento por disciplina/trimestre), gravadas pelo analise-trimestral.html.
+  const notasPorAluno = await Promise.all(selecionados.map(x=>buscarNotasTrimestraisLT(x)));
+
+  if(btnImprimir){ btnImprimir.disabled = false; btnImprimir.innerHTML = textoOriginalBtn; }
+
+  if(modoAbertura === 'abas' || modoAbertura === 'janelas'){
+    // Uma janela/aba por estudante: cada perfil é um documento HTML completo
+    // e independente. Passar features de tamanho/posição no window.open força
+    // o navegador a abrir uma janela separada; sem elas, a maioria dos
+    // navegadores abre como uma nova aba.
+    selecionados.forEach((x,idx)=>{
+      const paginaHtml = ltMontarPaginaHtml(x, eventosPorAluno[idx], notasPorAluno[idx], { modoImpressao, idx:0, pedagogo, professorRef, now });
+      const html = ltMontarDocumentoHtml(paginaHtml);
+      const nomeJanela = `perfilIndividual_${ltChaveAluno(x)}`.replace(/[^a-zA-Z0-9_]/g,'_');
+      const features = modoAbertura === 'janelas' ? 'width=1000,height=800,noopener' : 'noopener';
+      const win = window.open('', nomeJanela, features);
+      if(!win){ alert(`Não foi possível abrir a ${modoAbertura==='janelas'?'janela':'aba'} de ${x.n}. Verifique se o navegador está bloqueando pop-ups.`); return; }
+      win.document.write(html);
+      win.document.close();
+    });
+    return;
+  }
+
+  // Modo "unica": todos os perfis juntos, em uma única janela/impressão em lote.
+  const paginas = selecionados.map((x,idx)=>
+    ltMontarPaginaHtml(x, eventosPorAluno[idx], notasPorAluno[idx], { modoImpressao, idx, pedagogo, professorRef, now })
+  ).join('');
+
+  const html = ltMontarDocumentoHtml(paginas);
 
   const win = window.open('','_blank','width=1000,height=800');
   win.document.write(html);
