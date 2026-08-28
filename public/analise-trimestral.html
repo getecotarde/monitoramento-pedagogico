@@ -343,6 +343,7 @@ body{
         <select class="turma-select" id="classSelect"><option value="">— selecionar turma —</option></select>
         <button class="turma-del-btn" id="classDelBtn" title="Remover turma selecionada">✕</button>
       </div>
+      <button class="turma-del-btn" id="classDelAllBtn" title="Remover todas as turmas" style="width:100%;margin-top:6px;font-size:11px;padding:5px 0">✕ Excluir todas as turmas</button>
     </div>
   </div>
   <div class="main" id="main">
@@ -693,13 +694,13 @@ async function saveClass(name, data){
 // cadastrada no restante do sistema). Se essa conversão não for feita aqui,
 // o gráfico/tabela de Rendimento Trimestral fica sempre vazio no Perfil
 // Individual, mesmo com os dados corretamente importados.
-async function syncNotasTrimestraisSupabase(className, data){
-  const {subjects, students} = data;
+// Remove do Supabase todas as linhas de notas_trimestrais pertencentes a esta
+// turma. Limpa tanto o formato curto (ex.: "7ºE", já usado nas gravações
+// atuais) quanto o código completo do boletim (caso restem linhas de uma
+// sincronização antiga, de antes da conversão para o formato curto), pra
+// nunca deixar duplicidade nem lixo órfão lá.
+async function deleteNotasTrimestraisSupabase(className){
   const turmaLabel = shortTurmaLabel(className) || className;
-
-  // Limpa tanto o formato curto (sincronizações anteriores já corrigidas)
-  // quanto o código completo (caso ainda restem linhas de uma sincronização
-  // antiga, de antes desta correção), pra nunca deixar duplicidade.
   const delUrls = [
     `${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(turmaLabel)}`,
     ...(turmaLabel !== className ? [`${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(className)}`] : [])
@@ -707,9 +708,16 @@ async function syncNotasTrimestraisSupabase(className, data){
   for(const delUrl of delUrls){
     const delResp = await fetch(delUrl, { method:'DELETE', headers: sbHeaders() });
     if(!delResp.ok){
-      throw new Error('Falha ao limpar notas anteriores da turma no Supabase ('+delResp.status+')');
+      throw new Error('Falha ao limpar notas da turma no Supabase ('+delResp.status+')');
     }
   }
+}
+async function syncNotasTrimestraisSupabase(className, data){
+  const {subjects, students} = data;
+
+  // Antes de gravar, remove as linhas antigas dessa turma para evitar
+  // duplicidade quando o mesmo PDF é reimportado (ex.: correção de nota).
+  await deleteNotasTrimestraisSupabase(className);
 
   const rows = [];
   students.forEach(st=>{
@@ -770,6 +778,10 @@ async function loadAllClasses(){
 async function deleteClass(name){
   try{ localStorage.removeItem(slugKey(name)); }
   catch(e){ console.error('erro ao remover', e); }
+  // Também remove as notas trimestrais desta turma no Supabase, que é de lá
+  // que o Perfil Individual (index.html) lê os dados — sem isso, a turma
+  // some da lista aqui mas as notas continuam aparecendo lá.
+  await deleteNotasTrimestraisSupabase(name);
 }
 function loadGlobalConfig(){
   try{ return JSON.parse(localStorage.getItem('config:global')||'{}'); }
@@ -796,13 +808,36 @@ function renderSidebar(){
     renderSidebar(); renderMain();
   };
   const delBtn = document.getElementById('classDelBtn');
-  delBtn.onclick = ()=>{
+  delBtn.onclick = async ()=>{
     const name = select.value;
     if(!name){ alert('Selecione uma turma para remover.'); return; }
-    if(confirm('Remover a turma "'+name+'"?')){
-      deleteClass(name); delete currentClasses[name];
+    if(confirm('Remover a turma "'+name+'"? Isso também apaga as notas trimestrais dela no Supabase (usadas no Perfil Individual).')){
+      delBtn.disabled = true;
+      let erro = null;
+      try{ await deleteClass(name); }
+      catch(e){ erro = e; console.error('Falha ao remover notas no Supabase:', e); }
+      delete currentClasses[name];
       if(activeClass===name) activeClass=null;
+      delBtn.disabled = false;
       renderSidebar(); renderMain();
+      if(erro){ alert('A turma foi removida aqui, mas houve falha ao limpar as notas no Supabase: '+erro.message); }
+    }
+  };
+  const delAllBtn = document.getElementById('classDelAllBtn');
+  delAllBtn.onclick = async ()=>{
+    if(!names.length){ alert('Não há nenhuma turma carregada para remover.'); return; }
+    if(confirm('Remover TODAS as '+names.length+' turma(s) carregada(s)? Isso também apaga as notas trimestrais delas no Supabase (usadas no Perfil Individual). Esta ação não pode ser desfeita.')){
+      delAllBtn.disabled = true;
+      const falhas = [];
+      for(const name of names){
+        try{ await deleteClass(name); }
+        catch(e){ falhas.push(name); console.error('Falha ao remover notas no Supabase para', name, e); }
+        delete currentClasses[name];
+      }
+      activeClass = null;
+      delAllBtn.disabled = false;
+      renderSidebar(); renderMain();
+      if(falhas.length){ alert('Turmas removidas aqui, mas houve falha ao limpar as notas no Supabase de: '+falhas.join(', ')); }
     }
   };
 }
