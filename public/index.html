@@ -9496,11 +9496,63 @@ function ltDesenharGraficoNotas(canvasEl, rows){
   return true;
 }
 
-// Versão em tabela (usada na impressão, onde não há canvas/Chart.js disponível
-// na janela do relatório) — mesma informação, em formato de tabela por disciplina.
-// Usa estilos inline (em vez da classe .perfil-table) porque esta tabela também
-// é usada dentro da janela independente de impressão, que tem sua própria
-// folha de estilos e não inclui as regras de .perfil-table do app principal.
+// Gera o MESMO gráfico de barras (Rendimento Trimestral) como uma imagem PNG
+// (dataURL), desenhando num canvas temporário fora da tela. A janela de
+// impressão é aberta com window.open/document.write — um documento à parte,
+// sem acesso ao Chart.js nem aos dados carregados na página principal — então
+// não dá pra desenhar um <canvas> interativo lá dentro. Em vez disso, o
+// gráfico é renderizado aqui (onde o Chart.js já está carregado) e embutido
+// como <img> no HTML do relatório. animation:false garante que o desenho já
+// esteja completo no canvas assim que o Chart termina de ser construído,
+// pronto pra ser capturado com toDataURL.
+function ltGerarImagemGraficoNotas(rows){
+  if(typeof Chart==='undefined') return null;
+  const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
+  if(!disciplinas.length) return null;
+  const datasets = [1,2,3].map(tri=>{
+    const data = disciplinas.map(d=>{
+      const row = rows.find(r=>r.disciplina===d && r.trimestre===tri);
+      return row && row.percentual!=null ? row.percentual : null;
+    });
+    return { label: tri+'º Trimestre', data, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+  });
+  const canvas = document.createElement('canvas');
+  // Tamanho fixo e maior que a exibição final (o CSS do <img> reduz depois),
+  // pra a imagem sair nítida também numa impressão/PDF em alta resolução.
+  canvas.width = 1100; canvas.height = 460;
+  let chart;
+  try{
+    chart = new Chart(canvas.getContext('2d'), {
+      type:'bar',
+      data:{ labels: disciplinas, datasets },
+      options:{
+        responsive:false,
+        animation:false,
+        plugins:{
+          legend:{position:'bottom', labels:{font:{size:15}, boxWidth:16}},
+          tooltip:{enabled:false}
+        },
+        scales:{
+          y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%', font:{size:13}} },
+          x:{ ticks:{font:{size:13}} }
+        }
+      }
+    });
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    return dataUrl;
+  }catch(e){
+    return null;
+  }finally{
+    if(chart) chart.destroy();
+  }
+}
+
+// Versão em tabela (usada na impressão como reserva, caso o Chart.js não
+// esteja disponível ou a geração da imagem falhe por algum motivo) — mesma
+// informação, em formato de tabela por disciplina. Usa estilos inline (em vez
+// da classe .perfil-table) porque esta tabela também é usada dentro da janela
+// independente de impressão, que tem sua própria folha de estilos e não
+// inclui as regras de .perfil-table do app principal.
 function ltRenderTabelaNotas(rows){
   if(!rows.length) return '';
   const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
@@ -9860,10 +9912,14 @@ async function imprimirLinhaDoTempo(){
   const paginas = selecionados.map((x,idx)=>{
     const eventos = eventosPorAluno[idx];
     const notasRows = notasPorAluno[idx];
+    const imgGraficoNotas = notasRows.length ? ltGerarImagemGraficoNotas(notasRows) : null;
+    const conteudoNotas = imgGraficoNotas
+      ? `<div style="padding:8px 9px 4px"><img src="${imgGraficoNotas}" style="width:100%;max-width:580px;display:block;margin:0 auto"></div>`
+      : (notasRows.length ? ltRenderTabelaNotas(notasRows) : '<div class="lt-secao-vazia">Nenhuma nota trimestral encontrada para este estudante.</div>');
     const blocoNotas = `
       <div class="lt-secao">
         <div class="lt-secao-titulo">Rendimento Trimestral</div>
-        ${notasRows.length ? ltRenderTabelaNotas(notasRows) : '<div class="lt-secao-vazia">Nenhuma nota trimestral encontrada para este estudante.</div>'}
+        ${conteudoNotas}
       </div>`;
     const secoes = ltAgruparPorSecao(eventos);
 
