@@ -9419,7 +9419,7 @@ async function buscarEventosPipLeituraLT(x){
     const eventos = rows.map(rec=>({
       data: rec.data_avaliacao || null,
       tipo: 'Fluência de leitura',
-      desc: `${rec.classificacao||'—'}${rec.ppm!=null && rec.ppm!==''?' · '+rec.ppm+' PPM':''}${rec.professor?' · '+rec.professor:''}${!rec.estudante_matricula?' · (correspondência por nome — não vinculado)':''}`,
+      desc: `${rec.classificacao||'—'}${rec.ppm!=null && rec.ppm!==''?' · '+rec.ppm+' PPM':''}${rec.prosodia?' · '+rec.prosodia:''}${rec.compreensao?' · '+rec.compreensao:''}${rec.professor?' · '+rec.professor:''}${!rec.estudante_matricula?' · (correspondência por nome — não vinculado)':''}`,
       por: rec.professor||'—',
       categoria: 'fluencia'
     }));
@@ -9471,6 +9471,86 @@ async function buscarNotasTrimestraisLT(x){
 
 const LT_TRI_COLORS = ['#2F6F63','#B4802A','#6E4A7E'];
 
+// Plugin Chart.js: desenha uma linha horizontal tracejada e mais grossa em y=60,
+// marcando o critério de aprovação (60% do acumulado). Mesmo visual usado no
+// Dashboard do analise-trimestral.html, agora também no Perfil Individual.
+const ltLinhaCorte60Plugin = {
+  id: 'ltLinhaCorte60',
+  afterDraw(chart){
+    const {ctx, chartArea, scales} = chart;
+    const y = scales.y;
+    if(!y || !chartArea) return;
+    const yPixel = y.getPixelForValue(60);
+    if(yPixel < chartArea.top || yPixel > chartArea.bottom) return;
+    ctx.save();
+    ctx.strokeStyle = '#9C3E2C';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([9,6]);
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, yPixel);
+    ctx.lineTo(chartArea.right, yPixel);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+// Posiciona o tooltip sem encobrir a linha tracejada de 60% — mesma lógica do
+// gráfico "Rendimento individual por trimestre" do Dashboard.
+if(typeof Chart!=='undefined' && Chart.Tooltip && Chart.Tooltip.positioners){
+  Chart.Tooltip.positioners.ltAvoid60Line = function(items){
+    if(!items || !items.length) return false;
+    const chart = this.chart;
+    const area = chart.chartArea;
+    const yScale = chart.scales && chart.scales.y;
+    const lineY = yScale ? yScale.getPixelForValue(60) : null;
+    const el = items[0].element;
+    const x = el && Number.isFinite(el.x) ? el.x : (area.left + area.right) / 2;
+    const elementY = el && Number.isFinite(el.y) ? el.y : lineY;
+    if(!Number.isFinite(lineY)) return {x, y:elementY};
+    const gap = 18;
+    if(elementY <= lineY) return {x, y:Math.min(area.bottom - 10, lineY + gap)};
+    return {x, y:Math.max(area.top + 10, lineY - gap)};
+  };
+}
+
+// Desenha um pequeno ícone de atenção acima das colunas cuja média final veio da
+// recuperação (row.status==='recuperada'). Mantém a cor da barra intacta.
+const ltRecuperacaoAttentionPlugin = {
+  id:'ltRecuperacaoAttentionPlugin',
+  afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    chart.$ltRecuperacaoHits = [];
+    chart.data.datasets.forEach((ds, di)=>{
+      if(!ds.recoveredAttention) return;
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar, i)=>{
+        if(!ds.recoveredAttention[i] || !bar || ds.data[i]===null) return;
+        const x = bar.x;
+        const y = Math.max(chart.chartArea.top + 12, bar.y - 10);
+        ctx.save();
+        ctx.font = 'bold 15px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚠', x, y);
+        ctx.restore();
+        chart.$ltRecuperacaoHits.push({x, y, r:12});
+      });
+    });
+  },
+  afterEvent(chart, args){
+    const e = args.event;
+    const hits = chart.$ltRecuperacaoHits || [];
+    const hit = hits.some(h=>Math.hypot(e.x-h.x, e.y-h.y)<=h.r);
+    if(hit){
+      chart.canvas.style.cursor='pointer';
+      chart.canvas.title='Atenção: a média final deste trimestre foi obtida após recuperação.';
+    } else {
+      chart.canvas.style.cursor='default';
+      chart.canvas.title='';
+    }
+  }
+};
+
 // Desenha (ou redesenha) o gráfico de barras de rendimento por disciplina/trimestre
 // no canvas informado, a partir das linhas vindas de buscarNotasTrimestraisLT.
 function ltDesenharGraficoNotas(canvasEl, rows){
@@ -9478,11 +9558,10 @@ function ltDesenharGraficoNotas(canvasEl, rows){
   const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
   if(!disciplinas.length) return false;
   const datasets = [1,2,3].map(tri=>{
-    const data = disciplinas.map(d=>{
-      const row = rows.find(r=>r.disciplina===d && r.trimestre===tri);
-      return row && row.percentual!=null ? row.percentual : null;
-    });
-    return { label: tri+'º Trimestre', data, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+    const rowsPorDisciplina = disciplinas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
+    const data = rowsPorDisciplina.map(row=> row && row.percentual!=null ? row.percentual : null);
+    const recoveredAttention = rowsPorDisciplina.map(row=> !!(row && row.status==='recuperada'));
+    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
   });
   if(canvasEl._chartInstance) canvasEl._chartInstance.destroy();
   canvasEl._chartInstance = new Chart(canvasEl.getContext('2d'), {
@@ -9492,10 +9571,22 @@ function ltDesenharGraficoNotas(canvasEl, rows){
       responsive:true,
       plugins:{
         legend:{position:'bottom'},
-        tooltip:{callbacks:{ label:(c)=> c.dataset.label+': '+(c.raw==null?'—':c.raw+'%') }}
+        tooltip:{
+          position:'ltAvoid60Line',
+          caretPadding:10,
+          callbacks:{
+            label:(c)=>{
+              if(c.raw==null) return c.dataset.label+': —';
+              const recuperada = c.dataset.recoveredAttention && c.dataset.recoveredAttention[c.dataIndex];
+              const aviso = recuperada ? ' ⚠ Atenção: média obtida após recuperação' : '';
+              return c.dataset.label+': '+c.raw+'%'+aviso;
+            }
+          }
+        }
       },
       scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} } }
-    }
+    },
+    plugins:[ltLinhaCorte60Plugin,ltRecuperacaoAttentionPlugin]
   });
   return true;
 }
@@ -9514,11 +9605,10 @@ function ltGerarImagemGraficoNotas(rows){
   const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
   if(!disciplinas.length) return null;
   const datasets = [1,2,3].map(tri=>{
-    const data = disciplinas.map(d=>{
-      const row = rows.find(r=>r.disciplina===d && r.trimestre===tri);
-      return row && row.percentual!=null ? row.percentual : null;
-    });
-    return { label: tri+'º Trimestre', data, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+    const rowsPorDisciplina = disciplinas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
+    const data = rowsPorDisciplina.map(row=> row && row.percentual!=null ? row.percentual : null);
+    const recoveredAttention = rowsPorDisciplina.map(row=> !!(row && row.status==='recuperada'));
+    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
   });
   const canvas = document.createElement('canvas');
   // Tamanho fixo e maior que a exibição final (o CSS do <img> reduz depois),
@@ -9540,7 +9630,8 @@ function ltGerarImagemGraficoNotas(rows){
           y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%', font:{size:13}} },
           x:{ ticks:{font:{size:13}} }
         }
-      }
+      },
+      plugins:[ltLinhaCorte60Plugin,ltRecuperacaoAttentionPlugin]
     });
     const dataUrl = canvas.toDataURL('image/png', 1.0);
     return dataUrl;
@@ -9817,8 +9908,11 @@ function ltRenderEventos(eventos, carregando){
 }
 
 function ltRenderCabecalho(x){
+  // Fixa o cabeçalho de identificação (nome, tag, turma, matrícula) no topo da
+  // prévia enquanto o restante do perfil rola por baixo — assim o estudante em
+  // exibição continua identificável mesmo depois de rolar a tela para baixo.
   return `
-    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+    <div style="position:sticky;top:0;z-index:3;background:var(--bg-card,#fff);display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--border-col,#E8E7E3)">
       <span style="font-size:18px;font-weight:700">${ltEsc(x.n)}</span>
       ${ltBadgePerfil(x)}
       <span style="font-size:11.5px;color:#999">Turma ${ltEsc(x.t)}</span>
