@@ -368,6 +368,28 @@ const CUM_MAX  = [30, 60, 100]; // acumulado após 1, 2 ou 3 trimestres lançado
 const CUM_PASS = [18, 36, 60];  // 60% do acumulado
 const DIRECT='direct', RECOVERED='recovered', NOTREC='notrec', NA='na';
 
+// ---------- SUPABASE (sincronização das notas trimestrais) ----------
+// Mesmo projeto/anon key usado no monitoramento-pedagogico (index.html), para que
+// o Perfil Individual do aluno leia os mesmos dados gravados aqui.
+const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+function sbHeaders(){
+  return {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=minimal'
+  };
+}
+const STATUS_LABELS = { [DIRECT]:'direta', [RECOVERED]:'recuperada', [NOTREC]:'nao_recuperada' };
+// Normaliza a matrícula para "só dígitos" — evita falha de cruzamento com o
+// cadastro de estudantes por causa de hífen, zero à esquerda, espaços etc.
+function soDigitos(v){
+  if(v==null) return null;
+  const d = String(v).replace(/\D/g,'');
+  return d || null;
+}
+
 const SUBJECT_DICT = [
   'EDUCAÇÃO FÍSICA','LÍNGUA PORTUGUESA','LÍNGUA ESTRANGEIRA','ENSINO RELIGIOSO',
   'CIÊNCIAS','GEOGRAFIA','HISTÓRIA','MATEMÁTICA','ARTE',
@@ -641,7 +663,73 @@ async function saveClass(name, data){
   }catch(e){
     throw new Error('Falha ao salvar a turma no navegador: '+e.message);
   }
+  // Sincroniza as notas trimestrais com o Supabase, para que o Perfil Individual
+  // do aluno (index.html) possa exibir o gráfico de rendimento sem depender do
+  // localStorage deste navegador. Falha na sincronização não bloqueia o salvamento
+  // local — só é registrada no console para não travar o fluxo de importação.
+  try{
+    await syncNotasTrimestraisSupabase(name, data);
+  }catch(e){
+    console.error('Falha ao sincronizar notas trimestrais no Supabase:', e);
+  }
   return true;
+}
+
+// Envia para o Supabase o resultado calculado de cada aluno/disciplina/trimestre
+// desta turma (notas brutas + total/percentual/status já calculados). Antes de
+// gravar, remove as linhas antigas dessa turma para evitar duplicidade quando
+// o mesmo PDF é reimportado (ex.: correção de nota).
+async function syncNotasTrimestraisSupabase(className, data){
+  const {subjects, students} = data;
+
+  const delUrl = `${SUPABASE_URL}/rest/v1/notas_trimestrais?turma=eq.${encodeURIComponent(className)}`;
+  const delResp = await fetch(delUrl, { method:'DELETE', headers: sbHeaders() });
+  if(!delResp.ok){
+    throw new Error('Falha ao limpar notas anteriores da turma no Supabase ('+delResp.status+')');
+  }
+
+  const rows = [];
+  students.forEach(st=>{
+    subjects.forEach((discName, idx)=>{
+      const s = st.subjects[idx];
+      if(!s) return;
+      [0,1,2].forEach(triIdx=>{
+        const notaRaw = triIdx===0 ? s.n1 : triIdx===1 ? s.n2 : s.n3;
+        const recRaw  = triIdx===0 ? s.r1 : triIdx===1 ? s.r2 : s.r3;
+        if(isEmpty(notaRaw)) return; // nada lançado nesse trimestre — não grava linha vazia
+        const calc = trimestreCalc(notaRaw, recRaw, triIdx);
+        rows.push({
+          matricula: soDigitos(st.rme),
+          aluno_nome: st.name,
+          turma: className,
+          disciplina: discName,
+          trimestre: triIdx+1,
+          nota: String(notaRaw),
+          recuperacao: isEmpty(recRaw) ? null : String(recRaw),
+          nota_total: calc.total,
+          nota_maxima: calc.max,
+          percentual: calc.total!=null ? Math.round((calc.total/calc.max)*100) : null,
+          status: STATUS_LABELS[calc.status] || null
+        });
+      });
+    });
+  });
+  if(rows.length===0) return;
+
+  // Envia em lotes para não estourar o limite de tamanho de requisição.
+  const CHUNK = 500;
+  for(let i=0; i<rows.length; i+=CHUNK){
+    const chunk = rows.slice(i, i+CHUNK);
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/notas_trimestrais`, {
+      method:'POST',
+      headers: sbHeaders(),
+      body: JSON.stringify(chunk)
+    });
+    if(!resp.ok){
+      const errText = await resp.text().catch(()=>'');
+      throw new Error('Falha ao gravar notas no Supabase ('+resp.status+'): '+errText);
+    }
+  }
 }
 async function loadAllClasses(){
   const out = {};
