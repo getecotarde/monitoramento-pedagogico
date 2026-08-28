@@ -714,6 +714,7 @@ async function deleteNotasTrimestraisSupabase(className){
 }
 async function syncNotasTrimestraisSupabase(className, data){
   const {subjects, students} = data;
+  const turmaLabel = shortTurmaLabel(className) || className;
 
   // Antes de gravar, remove as linhas antigas dessa turma para evitar
   // duplicidade quando o mesmo PDF é reimportado (ex.: correção de nota).
