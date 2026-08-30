@@ -769,9 +769,6 @@ async function syncNotasTrimestraisSupabase(className, data){
 }
 async function loadAllClasses(){
   const out = {};
-
-  // 1) Carrega o que já existe no localStorage (dado "rico": notas brutas,
-  //    taBruto etc. que o Supabase não guarda).
   for(let i=0; i<localStorage.length; i++){
     const k = localStorage.key(i);
     if(k && k.startsWith('turma:')){
@@ -781,79 +778,7 @@ async function loadAllClasses(){
       }catch(e){ console.error('erro lendo', k, e); }
     }
   }
-
-  // 2) Busca no Supabase todas as linhas de notas_trimestrais e reconstrói
-  //    as turmas que existam lá mas não tenham sido encontradas no passo 1
-  //    (ex.: importadas em outro navegador/dispositivo). O Supabase passa a
-  //    ser a fonte de verdade; o localStorage vira cache/fallback local.
-  try{
-    const resp = await fetch(
-      `${SUPABASE_URL}/rest/v1/notas_trimestrais?select=*&order=turma.asc,aluno_nome.asc,disciplina.asc,trimestre.asc`,
-      { headers: sbHeaders() }
-    );
-    if(resp.ok){
-      const rows = await resp.json();
-      const porTurma = {};
-      rows.forEach(r => {
-        (porTurma[r.turma] ||= []).push(r);
-      });
-
-      // Chaves já existentes (vindas do localStorage) na forma "curta" usada
-      // pelo Supabase — ex.: uma turma salva com o nome bruto do PDF (código
-      // interno tipo "3T6A") aparece aqui também como "6ºA", que é o valor
-      // gravado na coluna `turma`. Sem essa comparação, a mesma turma entraria
-      // duas vezes: uma com a chave bruta (do localStorage) e outra com a
-      // chave curta (reconstruída do Supabase).
-      const chavesCurtasExistentes = new Set(Object.keys(out).map(shortTurmaLabel));
-
-      for(const turma in porTurma){
-        // Se essa turma já veio "completa" do localStorage (na chave bruta OU
-        // já normalizada para o formato curto), não sobrescreve — o
-        // localStorage tem dados mais ricos: notas brutas, taBruto etc.
-        if(out[turma] || chavesCurtasExistentes.has(turma)) continue;
-        out[turma] = reconstruirTurmaDeSupabase(turma, porTurma[turma]);
-      }
-    }
-  }catch(e){
-    console.error('Falha ao buscar turmas do Supabase (fallback continua com localStorage):', e);
-  }
-
   return out;
-}
-
-// Reconstrói o objeto {className, subjects, students} a partir das linhas
-// já calculadas na tabela notas_trimestrais (uma linha por aluno/disciplina/
-// trimestre). Não recupera o campo "taBruto" (não gravado no Supabase, e
-// também não é usado em nenhum cálculo).
-function reconstruirTurmaDeSupabase(turma, rows){
-  const disciplinasSet = [];
-  const alunosMap = new Map(); // key: matricula||nome -> {rme, name, subjectsByName: {}}
-
-  rows.forEach(r => {
-    if(!disciplinasSet.includes(r.disciplina)) disciplinasSet.push(r.disciplina);
-
-    const key = (r.matricula || '') + '|' + (r.aluno_nome || '');
-    if(!alunosMap.has(key)){
-      alunosMap.set(key, { rme: r.matricula || '', name: r.aluno_nome, subjectsByName: {} });
-    }
-    const aluno = alunosMap.get(key);
-    if(!aluno.subjectsByName[r.disciplina]){
-      aluno.subjectsByName[r.disciplina] = { n1:null, r1:null, n2:null, r2:null, n3:null, r3:null, taBruto:'-' };
-    }
-    const slot = aluno.subjectsByName[r.disciplina];
-    const idx = Number(r.trimestre); // 1, 2 ou 3
-    if(idx === 1){ slot.n1 = r.nota; slot.r1 = r.recuperacao; }
-    else if(idx === 2){ slot.n2 = r.nota; slot.r2 = r.recuperacao; }
-    else if(idx === 3){ slot.n3 = r.nota; slot.r3 = r.recuperacao; }
-  });
-
-  const students = [...alunosMap.values()].map(a => ({
-    rme: a.rme,
-    name: a.name,
-    subjects: disciplinasSet.map(d => a.subjectsByName[d] || { n1:null, r1:null, n2:null, r2:null, n3:null, r3:null, taBruto:'-' })
-  }));
-
-  return { className: turma, subjects: disciplinasSet, students };
 }
 async function deleteClass(name){
   try{ localStorage.removeItem(slugKey(name)); }
