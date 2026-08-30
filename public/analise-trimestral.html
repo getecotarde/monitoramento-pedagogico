@@ -798,10 +798,19 @@ async function loadAllClasses(){
         (porTurma[r.turma] ||= []).push(r);
       });
 
+      // Chaves já existentes (vindas do localStorage) na forma "curta" usada
+      // pelo Supabase — ex.: uma turma salva com o nome bruto do PDF (código
+      // interno tipo "3T6A") aparece aqui também como "6ºA", que é o valor
+      // gravado na coluna `turma`. Sem essa comparação, a mesma turma entraria
+      // duas vezes: uma com a chave bruta (do localStorage) e outra com a
+      // chave curta (reconstruída do Supabase).
+      const chavesCurtasExistentes = new Set(Object.keys(out).map(shortTurmaLabel));
+
       for(const turma in porTurma){
-        // Se essa turma já veio "completa" do localStorage, não sobrescreve
-        // (o localStorage tem dados mais ricos: notas brutas, taBruto etc.).
-        if(out[turma]) continue;
+        // Se essa turma já veio "completa" do localStorage (na chave bruta OU
+        // já normalizada para o formato curto), não sobrescreve — o
+        // localStorage tem dados mais ricos: notas brutas, taBruto etc.
+        if(out[turma] || chavesCurtasExistentes.has(turma)) continue;
         out[turma] = reconstruirTurmaDeSupabase(turma, porTurma[turma]);
       }
     }
