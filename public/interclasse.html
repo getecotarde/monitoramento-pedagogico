@@ -750,6 +750,22 @@
             padding: 0.55rem 0.7rem; margin-top: 0.6rem;
         }
 
+        .qr-schedule-card {
+            border-radius: 16px; background: linear-gradient(135deg, #0c4a6e, var(--primary-light));
+            color: #fff; padding: 1.1rem 1.2rem 1rem; box-shadow: 0 0 0 4px rgba(59,130,246,0.22), 0 8px 18px rgba(0,0,0,0.18);
+            border: 3px solid var(--primary); position: relative; margin-top: 0.9rem;
+        }
+        .qr-schedule-ribbon {
+            position: absolute; top: -14px; left: 18px; background: var(--accent); color: #1e1b4b;
+            font-size: 0.72rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 999px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3); letter-spacing: 0.4px; text-transform: uppercase;
+        }
+        .qr-schedule-card p { font-size: 0.87rem; margin: 0.35rem 0; opacity: 0.97; }
+        .qr-schedule-card .info-sinal {
+            background: rgba(255,255,255,0.18); border: 1px dashed rgba(255,255,255,0.6); border-radius: 10px;
+            padding: 0.55rem 0.7rem; margin-top: 0.6rem;
+        }
+
         .qr-flags-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; }
         .qr-flag-card {
             display: flex; align-items: center; gap: 0.55rem; border: 1px solid var(--border); border-radius: 12px;
@@ -821,6 +837,12 @@
         .qrp-uniform { border-radius: 8px; background: linear-gradient(135deg, #78350f, var(--accent)); color: #fff; padding: 6px 9px; font-size: 11px; border: 2px solid #92400e; box-shadow: 0 0 0 2.5px rgba(245,158,11,0.35); }
         .qrp-uniform b { display: block; font-size: 12px; margin-bottom: 2px; }
         .qrp-uniform .qrp-colete-box { background: rgba(255,255,255,0.2); border: 1px dashed rgba(255,255,255,0.7); border-radius: 6px; padding: 2px 5px; margin: 3px 0; display: block; }
+        .qrp-schedule { border-radius: 8px; background: linear-gradient(135deg, #0c4a6e, var(--primary-light)); color: #fff; padding: 6px 9px; font-size: 11px; border: 2px solid var(--primary); box-shadow: 0 0 0 2.5px rgba(59,130,246,0.3); margin-top: 4px; }
+        .qrp-schedule b { display: block; font-size: 12px; margin-bottom: 2px; }
+        .qrp-schedule .qrp-sinal-box { background: rgba(255,255,255,0.2); border: 1px dashed rgba(255,255,255,0.7); border-radius: 6px; padding: 2px 5px; margin: 3px 0; display: block; }
+        .qrp-page.qrp-eco .qrp-schedule { background: #fff !important; color: #000 !important; border: 1.8px solid #000; box-shadow: none; }
+        .qrp-page.qrp-eco .qrp-schedule .qrp-sinal-box { background: #fff; border: 1.3px dashed #000; }
+        .qrp-page p.qrp-note { font-size: 10.3px; color: #333; margin: 2px 0; }
         .qrp-flags { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; font-size: 9px; }
         .qrp-flags div { border: 1px solid #333; border-radius: 5px; padding: 2px 2px; text-align: center; }
         .qrp-flags div b { display: block; font-size: 10.5px; }
@@ -926,6 +948,12 @@
                     <p style="margin-top: 0.5rem;"><strong>Encerramento & Premiação:</strong> Dia <strong>11/09</strong>, logo após o término das últimas partidas, seguido pelo recreio e limpeza coletiva da quadra.</p>
                 </div>
             </div>
+
+            <div class="card">
+                <h2>⚠️ Alterações na Organização e Casos Omissos</h2>
+                <p><strong>Alterações na Organização:</strong> A organização dos jogos e eventos está sujeita a alterações. Havendo modificações, o repasse das informações será feito em sala de aula, pelos professores de Educação Física.</p>
+                <p style="margin-top: 0.5rem;"><strong>Casos Omissos:</strong> Situações não previstas serão deliberadas pelo <strong>Conselho Técnico</strong> — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
+            </div>
         </div>
 
         <!-- TAB QUADRO RESUMO (VOLTADO PARA OS ALUNOS) -->
@@ -967,7 +995,14 @@
                         </ul>
                     </div>
                 </div>
-                <p style="margin-top:0.8rem; color: var(--text-muted); font-size: 0.88rem;">📌 No seu dia de jogo, sua turma fica na quadra durante todos os horários de aula — chega de uniforme e com muita energia pra torcer e jogar!</p>
+                <div class="qr-schedule-card">
+                    <span class="qr-schedule-ribbon">📌 Fique de olho</span>
+                    <p style="margin-top:0.3rem;"><strong>No seu dia de jogo</strong>, sua turma fica na quadra durante todos os horários de aula — chega de uniforme e com muita energia pra torcer e jogar!</p>
+                    <div class="info-sinal">
+                        <p style="margin:0;"><strong>Subida e descida da quadra:</strong> no início da aula (1º Horário), as turmas sobem para a sala e aguardam por lá, com os professores, até a hora da descida.</p>
+                        <p style="margin:0.4rem 0 0;">Por isso, devem subir no momento certo — na batida do <strong>segundo sinal</strong> — e aguardar o(a) professor(a) em sala.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -1072,6 +1107,12 @@
                     <div class="qr-flag-card"><span class="fl">🇺🇾</span><div><div class="pais">Uruguai</div><div class="turma">7º Ano D</div></div></div>
                     <div class="qr-flag-card"><span class="fl">🇺🇸</span><div><div class="pais">Estados Unidos</div><div class="turma">7º Ano E</div></div></div>
                 </div>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">⚠️</span> Alterações na Organização e Casos Omissos</div>
+                <p><strong>Alterações na Organização:</strong> a organização dos jogos e eventos está sujeita a alterações; havendo modificações, o repasse das informações será feito em sala de aula, pelos professores de Educação Física.</p>
+                <p style="margin-top: 0.5rem;"><strong>Casos Omissos:</strong> situações não previstas serão deliberadas pelo Conselho Técnico — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
             </div>
         </div>
 
@@ -1279,6 +1320,12 @@
                         <p>Todos os chaveamentos de modalidades individuais/duplas (Basquete de Trilha, Damas e Atletismo) e definição das tabelas serão efetuados por sorteio com a presença do(a) Capitão/Capitã de cada turma.</p>
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2>⚠️ Alterações na Organização e Casos Omissos</h2>
+                <p><strong>Alterações na Organização:</strong> A organização dos jogos e eventos está sujeita a alterações. Havendo modificações, o repasse das informações será feito em sala de aula, pelos professores de Educação Física.</p>
+                <p style="margin-top: 0.5rem;"><strong>Casos Omissos:</strong> Situações não previstas serão deliberadas pelo <strong>Conselho Técnico</strong> — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
             </div>
         </div>
 
@@ -5652,6 +5699,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     <p><strong>Juramento do Atleta:</strong> um atleta representante conduz o juramento com o braço direito erguido, acompanhado por todos os demais participantes.</p>
                     <p><strong>Encerramento & Premiação:</strong> dia 11/09, logo após as últimas partidas, seguido de recreio e limpeza coletiva da quadra.</p>
 
+                    <h3>⚠️ Alterações na Organização e Casos Omissos</h3>
+                    <p><strong>Alterações na Organização:</strong> a organização dos jogos e eventos está sujeita a alterações; havendo modificações, o repasse das informações será feito em sala de aula, pelos professores de Educação Física.</p>
+                    <p><strong>Casos Omissos:</strong> situações não previstas serão deliberadas pelo Conselho Técnico — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
+
                     <h3>🏆 Modalidades — Referência Rápida</h3>
                     <table>
                         <thead><tr><th>Modalidade</th><th>Composição / Cota</th><th>Duração</th></tr></thead>
@@ -5703,6 +5754,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         <div class="qrp-day-card qrp-day-6"><b>6º Anos — 08/09 e 09/09</b>08/09: Fase de Grupos • 09/09: Semifinais e Finais</div>
                         <div class="qrp-day-card qrp-day-7"><b>7º Anos — 10/09 e 11/09</b>10/09: Fase de Grupos • 11/09: Semifinais, Finais e Premiação</div>
                     </div>
+                    <div class="qrp-schedule">
+                        <b>📌 No seu dia de jogo</b>
+                        Sua turma fica na quadra durante todos os horários de aula — chegue de uniforme e com muita energia pra torcer e jogar!
+                        <span class="qrp-sinal-box">🔔 <strong>Subida e descida:</strong> no início da aula (1º Horário), as turmas sobem para a sala e aguardam por lá, com os professores, até a hora da descida. Devem subir no momento certo — na batida do <strong>segundo sinal</strong> — e aguardar o(a) professor(a) em sala.</span>
+                    </div>
 
                     <h3>⚡ Como funciona a disputa</h3>
                     <div class="qrp-flow">
@@ -5745,6 +5801,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
                     <h3>🌐 Sua seleção</h3>
                     <div class="qrp-flags">${flagsHtml}</div>
+
+                    <h3>⚠️ Alterações na Organização e Casos Omissos</h3>
+                    <p class="qrp-note"><strong>Alterações na Organização:</strong> a organização dos jogos e eventos está sujeita a alterações; havendo modificações, o repasse das informações será feito em sala de aula, pelos professores de Educação Física.</p>
+                    <p class="qrp-note"><strong>Casos Omissos:</strong> situações não previstas serão deliberadas pelo Conselho Técnico — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
 
                     <div class="qrp-footer">Consulte as abas completas do sistema (Modalidades &amp; Regras, Fases do Campeonato) para o regulamento detalhado de cada modalidade.</div>
                 </div>`;
