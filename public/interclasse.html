@@ -1509,6 +1509,11 @@
                 <div id="scheduleEditStatus" class="alert alert-info"></div>
                 <div id="scheduleContainer"></div>
             </div>
+            <div class="card">
+                <h2>📊 Resultados e Classificação por Modalidade</h2>
+                <p>Para cada modalidade, os resultados já lançados e a classificação (pontos corridos: vitória = 3 pts, empate = 1 pt, derrota = 0 pts) das turmas/seleções que já entraram em quadra.</p>
+                <div id="classificacaoContainer"></div>
+            </div>
         </div>
 
         <!-- TAB 7: LISTAGEM DE INSCRIÇÃO / FICHAS DOS ALUNOS -->
@@ -2631,6 +2636,15 @@ function put(e,d,h,v){
   save();
 }
 
+// Mostra a turma junto com a seleção que ela representa nas células do quadro
+// (ex.: "6º Ano A — 🇧🇷 Brasil"). Cai no próprio texto quando não há seleção
+// cadastrada para o valor (times digitados manualmente: dupla, atleta etc.).
+function timeLabelCompleto(turma){
+  if(!turma) return '';
+  const item = TURMAS_LISTA.find(t=>t.turma===turma);
+  return (item && item.selecao) ? `${turma} — ${item.selecao}` : turma;
+}
+
 // ─ RENDER ─
 function cellHTML(esp, d, h){
   const ESPACOS=getEspacos();
@@ -2643,7 +2657,7 @@ function cellHTML(esp, d, h){
     <div class="esp-slot ${s?.mod||'livre'}">
       ${m
         ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
-          ${s.timeA||s.timeB?`<div class="s-times">${s.timeA||''}${s.timeB?' × '+s.timeB:''}</div>`:''}
+          ${s.timeA||s.timeB?`<div class="s-times">${timeLabelCompleto(s.timeA)}${s.timeB?' × '+timeLabelCompleto(s.timeB):''}</div>`:''}
           ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
         :`<span>livre</span>`}
     </div>
@@ -5521,6 +5535,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 container.innerHTML = `
                     <div class="alert alert-info">Os horários e resultados dos jogos serão publicados aqui assim que forem marcados na aba "Quadro de Marcação de Jogos".</div>
                 `;
+                renderClassificacaoModalidades();
                 return;
             }
 
@@ -5590,6 +5605,95 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 html += `</tbody></table></div>`;
             });
 
+            container.innerHTML = html;
+            renderClassificacaoModalidades();
+        }
+
+        // ---------------------------------------------------------------
+        // RESULTADOS E CLASSIFICAÇÃO POR MODALIDADE
+        // Agrupa os jogos com placar já lançado por modalidade e monta, para
+        // cada uma: a lista de resultados (confrontos e placares) e a tabela
+        // de classificação (pontos corridos: vitória=3, empate=1, derrota=0),
+        // ordenada por pontos, depois saldo, depois pontos feitos.
+        // Jogos ainda sem placar não entram na classificação (só aparecem na
+        // Grade de Horários & Resultados, como "Agendado — sem resultado").
+        // ---------------------------------------------------------------
+        function calcularClassificacaoPorModalidade() {
+            const porModalidade = {};
+            gamesData.forEach(g => {
+                if (g.score1 === null || g.score1 === undefined || g.score2 === null || g.score2 === undefined) return;
+                if (!porModalidade[g.modal]) porModalidade[g.modal] = { resultados: [], tabela: {} };
+                const grupo = porModalidade[g.modal];
+                grupo.resultados.push(g);
+                const tabela = grupo.tabela;
+                [g.team1, g.team2].forEach(t => {
+                    if (!tabela[t]) tabela[t] = { time: t, jogos: 0, vitorias: 0, empates: 0, derrotas: 0, pf: 0, ps: 0, pontos: 0 };
+                });
+                tabela[g.team1].jogos++; tabela[g.team2].jogos++;
+                tabela[g.team1].pf += g.score1; tabela[g.team1].ps += g.score2;
+                tabela[g.team2].pf += g.score2; tabela[g.team2].ps += g.score1;
+                if (g.score1 > g.score2) { tabela[g.team1].vitorias++; tabela[g.team1].pontos += 3; tabela[g.team2].derrotas++; }
+                else if (g.score2 > g.score1) { tabela[g.team2].vitorias++; tabela[g.team2].pontos += 3; tabela[g.team1].derrotas++; }
+                else { tabela[g.team1].empates++; tabela[g.team2].empates++; tabela[g.team1].pontos += 1; tabela[g.team2].pontos += 1; }
+            });
+            return porModalidade;
+        }
+
+        // Mostra a turma junto com a seleção/país que ela representa (ex.: "6º Ano A — 🇧🇷 Brasil").
+        function timeComSelecaoLabel(turma) {
+            const s = selecaoDaTurma(turma);
+            return s ? `${turma} — ${s.flag} ${s.pais}` : turma;
+        }
+
+        function renderClassificacaoModalidades() {
+            const container = document.getElementById('classificacaoContainer');
+            if (!container) return;
+            const porModalidade = calcularClassificacaoPorModalidade();
+            const modalidades = Object.keys(porModalidade);
+            if (modalidades.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Os resultados e a classificação de cada modalidade aparecem aqui assim que os primeiros placares forem lançados.</div>';
+                return;
+            }
+            let html = '';
+            modalidades.forEach(mod => {
+                const grupo = porModalidade[mod];
+                const resultadosOrdenados = grupo.resultados.slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+                const linhas = Object.values(grupo.tabela).sort((a, b) => {
+                    const saldoA = a.pf - a.ps, saldoB = b.pf - b.ps;
+                    return b.pontos - a.pontos || (saldoB - saldoA) || (b.pf - a.pf);
+                });
+
+                html += `<h3 style="margin-top: 1.5rem;">${mod}</h3>`;
+
+                html += `<p style="font-weight: 600; margin-bottom: 0.4rem;">Resultados</p>`;
+                html += `<div class="table-responsive" style="margin-bottom: 1rem;"><table><thead><tr>
+                    <th>Data</th><th>Fase</th><th>Confronto</th><th>Placar</th>
+                </tr></thead><tbody>`;
+                resultadosOrdenados.forEach(g => {
+                    html += `<tr>
+                        <td>${formatDateBr(g.date)}</td>
+                        <td>${g.phase || '—'}</td>
+                        <td>${timeComSelecaoLabel(g.team1)} × ${timeComSelecaoLabel(g.team2)}</td>
+                        <td><span class="badge badge-blue">${g.score1} x ${g.score2}</span></td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+
+                html += `<p style="font-weight: 600; margin-bottom: 0.4rem;">Classificação</p>`;
+                html += `<div class="table-responsive" style="margin-bottom: 1rem;"><table><thead><tr>
+                    <th>#</th><th>Turma / Seleção</th><th>J</th><th>V</th><th>E</th><th>D</th><th>PF</th><th>PS</th><th>SG</th><th>Pts</th>
+                </tr></thead><tbody>`;
+                linhas.forEach((l, i) => {
+                    html += `<tr>
+                        <td>${i + 1}</td>
+                        <td>${timeComSelecaoLabel(l.time)}</td>
+                        <td>${l.jogos}</td><td>${l.vitorias}</td><td>${l.empates}</td><td>${l.derrotas}</td>
+                        <td>${l.pf}</td><td>${l.ps}</td><td>${l.pf - l.ps}</td>
+                        <td><strong>${l.pontos}</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            });
             container.innerHTML = html;
         }
 
