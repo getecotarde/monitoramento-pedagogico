@@ -5253,6 +5253,75 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // Guarda a atribuição de grupo de cada turma (vazio = ainda não definido)
         const groupAssignments = {};
 
+        // ─ Persistência dos Grupos (localStorage + Supabase) ─
+        // Antes disso, groupAssignments só existia em memória e se perdia a cada
+        // recarregamento da página. Reaproveita o mesmo projeto/tabela Supabase já
+        // usado pelo quadro de marcação de jogos (linha única id=1), guardando os
+        // grupos numa coluna própria (group_assignments) dessa mesma tabela.
+        const GRUPOS_SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+        const GRUPOS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+        const GRUPOS_TABLE = 'eventos_interclasse';
+        const GRUPOS_ROW_ID = 1;
+        const LS_GRUPOS = 'ic26_group_assignments';
+
+        function carregarGruposLocal() {
+            try {
+                const s = localStorage.getItem(LS_GRUPOS);
+                if (s) Object.assign(groupAssignments, JSON.parse(s));
+            } catch (e) { /* ignora cache corrompido */ }
+        }
+
+        function salvarGruposLocal() {
+            try { localStorage.setItem(LS_GRUPOS, JSON.stringify(groupAssignments)); } catch (e) { }
+            agendarSyncGruposSupabase();
+        }
+
+        let _syncGruposTimer = null;
+        function agendarSyncGruposSupabase() {
+            clearTimeout(_syncGruposTimer);
+            _syncGruposTimer = setTimeout(syncGruposSupabase, 600); // debounce
+        }
+
+        async function syncGruposSupabase() {
+            try {
+                const r = await fetch(`${GRUPOS_SUPABASE_URL}/rest/v1/${GRUPOS_TABLE}?on_conflict=id`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': GRUPOS_SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + GRUPOS_SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates,return=representation'
+                    },
+                    body: JSON.stringify([{ id: GRUPOS_ROW_ID, group_assignments: groupAssignments, updated_at: new Date().toISOString() }])
+                });
+                if (!r.ok) {
+                    const err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Falha ao sincronizar grupos');
+                }
+            } catch (err) {
+                console.error(err);
+                toast('⚠ Não foi possível sincronizar os grupos com o servidor (salvo apenas neste dispositivo).', 'warn');
+            }
+        }
+
+        async function carregarGruposDoSupabase() {
+            try {
+                const r = await fetch(`${GRUPOS_SUPABASE_URL}/rest/v1/${GRUPOS_TABLE}?id=eq.${GRUPOS_ROW_ID}&select=group_assignments`, {
+                    headers: { 'apikey': GRUPOS_SUPABASE_KEY, 'Authorization': 'Bearer ' + GRUPOS_SUPABASE_KEY }
+                });
+                const rows = await r.json();
+                if (!r.ok) throw new Error(rows.message || 'Erro ao carregar grupos');
+                if (Array.isArray(rows) && rows.length && rows[0].group_assignments) {
+                    Object.assign(groupAssignments, rows[0].group_assignments);
+                    try { localStorage.setItem(LS_GRUPOS, JSON.stringify(groupAssignments)); } catch (e) { }
+                    initGroupOrganization();
+                    sincronizarPermissaoQuadro();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         function buildGroupTable(tbodyId, turmas) {
             const tbody = document.getElementById(tbodyId);
             if (!tbody) return;
@@ -5277,6 +5346,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         function setGroup(turma, valor) {
             groupAssignments[turma] = valor;
+            salvarGruposLocal();
             renderGroupSummary();
             sincronizarPermissaoQuadro();
         }
@@ -6401,6 +6471,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // Initialize table on load
         window.addEventListener('DOMContentLoaded', () => {
             updateHeaderHeightVar();
+            carregarGruposLocal();
             renderTurmasSelecoesGrid();
             initParticipationStore();
             renderStudentTable();
@@ -6410,6 +6481,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             applyEditLockUI();
             carregarQuadroFrame();
             renderMuralCamisas();
+            carregarGruposDoSupabase();
         });
     </script>
 </body>
