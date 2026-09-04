@@ -1810,6 +1810,10 @@ body.somente-consulta .esp-row:hover{filter:none}
 .s-mod  {font-weight:700;font-size:11px;line-height:1.2}
 .s-times{font-size:10px;line-height:1.2}
 .s-fase {font-size:9px;opacity:.65;margin-top:1px}
+.s-categoria{display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:0 4px;border-radius:3px;margin-left:3px;vertical-align:middle}
+.s-categoria.cat-masc{background:#dbeafe;color:#0d3d7a}
+.s-categoria.cat-fem {background:#fde3ef;color:#8a1155}
+.s-categoria.cat-misto{background:#eee;color:#555}
 
 /* ── AMPLIAR HORÁRIO / DIA (melhor visualização) ── */
 .expand-btn{
@@ -1832,6 +1836,7 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
 .cell-expandida .s-times{font-size:13px}
 .cell-expandida .s-fase{font-size:11px}
 .cell-expandida .s-espaco{font-size:11px}
+.cell-expandida .s-categoria{font-size:10px;padding:1px 6px}
 
 /* ── TOTAIS ── */
 .totais{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
@@ -1847,6 +1852,12 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
 .modal{background:#fff;border-radius:8px;padding:20px;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(0,0,0,.28);position:relative;max-height:92vh;overflow-y:auto;border-top:4px solid var(--green2)}
 .modal-close{position:absolute;top:10px;right:12px;background:none;border:none;cursor:pointer;color:var(--gray3);font-size:20px;line-height:1}
 .modal-title{font-family:var(--font-head);font-size:17px;letter-spacing:1px;color:var(--dark);margin-bottom:2px}
+/* Janela de marcação de jogo — arrastável pelo cabeçalho */
+#modal-jogo.draggable-modal{position:fixed;margin:0;transition:none}
+#modal-jogo .modal-drag-handle{cursor:grab;user-select:none;margin:-20px -20px 10px -20px;padding:14px 34px 10px 20px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,#f3f8f5,#fff);border-bottom:1px solid var(--gray1,#eee)}
+#modal-jogo .modal-drag-handle:active{cursor:grabbing}
+#modal-jogo.dragging{transition:none;user-select:none}
+#modal-jogo .modal-drag-hint{font-size:9px;font-family:var(--font-cond);letter-spacing:.5px;color:var(--gray3);text-transform:uppercase;margin-top:2px;opacity:.7}
 .modal-sub{font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-bottom:14px;line-height:1.4}
 .fg{margin-bottom:10px}
 .fg label{display:block;font-size:10px;font-family:var(--font-cond);font-weight:700;color:var(--gray3);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
@@ -2060,10 +2071,13 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
 
 <!-- MODAL -->
 <div class="modal-bg" id="modal">
-  <div class="modal">
+  <div class="modal" id="modal-jogo">
     <button class="modal-close" onclick="fecharModal()">✕</button>
-    <div class="modal-title" id="m-title"></div>
-    <div class="modal-sub"   id="m-sub"></div>
+    <div class="modal-drag-handle" id="modal-drag-handle">
+      <div class="modal-title" id="m-title"></div>
+      <div class="modal-sub"   id="m-sub"></div>
+      <div class="modal-drag-hint">✥ arraste para mover esta janela</div>
+    </div>
     <input type="hidden" id="m-esp">
     <input type="hidden" id="m-dia">
     <input type="hidden" id="m-hora">
@@ -2078,6 +2092,15 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
         <option value="reservado">⏸ Reservado / Pausa</option>
       </select>
     </div>
+    <div class="fg" id="fg-categoria">
+      <label>Categoria (naipe)</label>
+      <select id="m-categoria" onchange="atualizarPreview()">
+        <option value="">— não definida —</option>
+        <option value="Masculino">🔵 Masculino</option>
+        <option value="Feminino">🔴 Feminino</option>
+        <option value="Misto">⚪ Misto</option>
+      </select>
+    </div>
     <div class="fg">
       <label>Espaço / Local</label>
       <select id="m-espaco" onchange="atualizarPreview()">
@@ -2089,8 +2112,16 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
       </select>
     </div>
     <div class="preview" id="m-preview">— livre —</div>
-    <div class="fg"><label>Time A / Turma A</label><input id="m-tA" placeholder="Ex: 7º A" oninput="atualizarPreview()"></div>
-    <div class="fg"><label>Time B / Turma B</label><input id="m-tB" placeholder="Ex: 7º B" oninput="atualizarPreview()"></div>
+    <div class="fg">
+      <label>Time A / Turma A</label>
+      <select id="m-tA" onchange="onTimeSelectChange('A')"></select>
+      <input id="m-tA-manual" placeholder="Digite o nome do time/dupla/atleta" oninput="atualizarPreview()" style="display:none;margin-top:6px">
+    </div>
+    <div class="fg">
+      <label>Time B / Turma B</label>
+      <select id="m-tB" onchange="onTimeSelectChange('B')"></select>
+      <input id="m-tB-manual" placeholder="Digite o nome do time/dupla/atleta" oninput="atualizarPreview()" style="display:none;margin-top:6px">
+    </div>
     <div class="fg"><label>Fase</label>
       <select id="m-fase" onchange="atualizarPreview()">
         <option value="">— não definida —</option>
@@ -2611,7 +2642,7 @@ function cellHTML(esp, d, h){
     <div class="esp-tag ${esp.css}"${tagStyle}>${espObj.lbl}</div>
     <div class="esp-slot ${s?.mod||'livre'}">
       ${m
-        ?`<div class="s-mod">${m.icon} ${m.nome}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
+        ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
           ${s.timeA||s.timeB?`<div class="s-times">${s.timeA||''}${s.timeB?' × '+s.timeB:''}</div>`:''}
           ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
         :`<span>livre</span>`}
@@ -2783,9 +2814,10 @@ function abrirModal(ev,esp,dia,hora){
   document.getElementById('m-dia').value=dia;
   document.getElementById('m-hora').value=hora;
   document.getElementById('m-mod').value=s.mod||'';
+  document.getElementById('m-categoria').value=s.categoria||'';
   document.getElementById('m-espaco').value=s.espaco||'';
-  document.getElementById('m-tA').value=s.timeA||'';
-  document.getElementById('m-tB').value=s.timeB||'';
+  setTimeValue('A', s.timeA||'');
+  setTimeValue('B', s.timeB||'');
   setFaseSelectValue(s.fase||'');
   atualizarPreview();
   posicionarModalPertoDoSlot(ev);
@@ -2831,11 +2863,156 @@ function setFaseSelectValue(fase){
   sel.value=fase;
 }
 function fecharModal(){document.getElementById('modal').classList.remove('open');}
+// ─ LISTA DE TIMES/TURMAS × SELEÇÕES (recebida do documento principal) ─
+// O quadro roda isolado num iframe, então não tem acesso direto às turmas e
+// seleções cadastradas na aba "Organização dos Grupos" do documento principal.
+// Este quadro recebe essa lista via window.setListaTurmas(...), chamada pelo
+// documento principal sempre que o iframe carrega/recarrega ou quando os
+// grupos (A/B) são alterados — ver sincronizarPermissaoQuadro() no documento
+// principal. Cada item: {turma, ano, grupo, selecao} (selecao já formatada,
+// ex.: "🇦🇷 Argentina").
+let TURMAS_LISTA=[];
+const TIME_MANUAL='__manual__';
+function setListaTurmas(lista){
+  TURMAS_LISTA=Array.isArray(lista)?lista:[];
+  renderTimeSelectOptions('A');
+  renderTimeSelectOptions('B');
+}
+window.setListaTurmas=setListaTurmas;
+function opcoesTimeHTML(){
+  if(!TURMAS_LISTA.length){
+    return `<option value="">— nenhuma turma cadastrada ainda —</option><option value="${TIME_MANUAL}">✏️ Digitar manualmente</option>`;
+  }
+  const porAno={};
+  TURMAS_LISTA.forEach(t=>{ (porAno[t.ano||'Turmas']=porAno[t.ano||'Turmas']||[]).push(t); });
+  let html='<option value="">— selecionar turma/seleção —</option>';
+  Object.keys(porAno).forEach(ano=>{
+    html+=`<optgroup label="${ano}">`;
+    porAno[ano].forEach(t=>{
+      const grupoTxt=t.grupo?` · Grupo ${t.grupo}`:'';
+      html+=`<option value="${t.turma}">${t.selecao||''} — ${t.turma}${grupoTxt}</option>`;
+    });
+    html+='</optgroup>';
+  });
+  html+=`<option value="${TIME_MANUAL}">✏️ Outro / digitar manualmente (dupla, atleta...)</option>`;
+  return html;
+}
+function renderTimeSelectOptions(letra){
+  const sel=document.getElementById('m-t'+letra);
+  if(!sel) return;
+  const atual=sel.value;
+  sel.innerHTML=opcoesTimeHTML();
+  if([...sel.options].some(o=>o.value===atual)) sel.value=atual;
+}
+// Alterna a exibição do campo de texto livre quando "Outro / digitar manualmente" é escolhido
+function onTimeSelectChange(letra){
+  const sel=document.getElementById('m-t'+letra);
+  const manual=document.getElementById('m-t'+letra+'-manual');
+  if(!sel||!manual) return;
+  const ehManual=sel.value===TIME_MANUAL;
+  manual.style.display=ehManual?'':'none';
+  if(ehManual) manual.focus(); else manual.value='';
+  atualizarPreview();
+}
+// Lê o valor efetivo do time A/B (nome da turma escolhida, ou o texto digitado manualmente)
+function getTimeValue(letra){
+  const sel=document.getElementById('m-t'+letra);
+  if(!sel) return '';
+  if(sel.value===TIME_MANUAL) return document.getElementById('m-t'+letra+'-manual').value.trim();
+  return sel.value;
+}
+// Preenche o seletor com um valor já salvo — se bater com uma turma da lista, seleciona-a;
+// caso contrário (nome digitado à mão, ou turma antiga fora da lista atual), cai no modo manual.
+function setTimeValue(letra, valor){
+  const sel=document.getElementById('m-t'+letra);
+  const manual=document.getElementById('m-t'+letra+'-manual');
+  if(!sel||!manual) return;
+  renderTimeSelectOptions(letra);
+  if(valor && [...sel.options].some(o=>o.value===valor)){
+    sel.value=valor;
+    manual.style.display='none';
+    manual.value='';
+  }else if(valor){
+    sel.value=TIME_MANUAL;
+    manual.style.display='';
+    manual.value=valor;
+  }else{
+    sel.value='';
+    manual.style.display='none';
+    manual.value='';
+  }
+}
+// Torna a janela de marcação/edição de jogo arrastável, pegando pelo cabeçalho
+// (título + subtítulo). Funciona com mouse e toque (celular/tablet).
+(function initDragModalJogo(){
+  const handle=document.getElementById('modal-drag-handle');
+  const box=document.getElementById('modal-jogo');
+  if(!handle||!box) return;
+  let arrastando=false, startX=0, startY=0, startLeft=0, startTop=0;
+  function posDoEvento(ev){ return ev.touches && ev.touches[0] ? ev.touches[0] : ev; }
+  function onDown(ev){
+    if(ev.target.closest('.modal-close')) return;
+    const rect=box.getBoundingClientRect();
+    box.style.position='fixed';
+    box.style.margin='0';
+    box.style.left=rect.left+'px';
+    box.style.top=rect.top+'px';
+    startLeft=rect.left; startTop=rect.top;
+    const p=posDoEvento(ev);
+    startX=p.clientX; startY=p.clientY;
+    arrastando=true;
+    box.classList.add('dragging');
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onUp);
+  }
+  function onMove(ev){
+    if(!arrastando) return;
+    if(ev.cancelable) ev.preventDefault();
+    const p=posDoEvento(ev);
+    const rect=box.getBoundingClientRect();
+    const vw=window.innerWidth, vh=window.innerHeight;
+    let newLeft=startLeft+(p.clientX-startX);
+    let newTop=startTop+(p.clientY-startY);
+    newLeft=Math.max(4,Math.min(vw-rect.width-4,newLeft));
+    newTop=Math.max(4,Math.min(vh-rect.height-4,newTop));
+    box.style.left=newLeft+'px';
+    box.style.top=newTop+'px';
+  }
+  function onUp(){
+    arrastando=false;
+    box.classList.remove('dragging');
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onUp);
+  }
+  handle.addEventListener('mousedown',onDown);
+  handle.addEventListener('touchstart',onDown,{passive:true});
+})();
+// A categoria (Masculino/Feminino/Misto) não faz sentido para o slot "Reservado/Pausa";
+// nesses casos o campo fica oculto e seu valor é ignorado.
+function categoriaEhPertinente(mod){ return !!mod && mod!=='reservado'; }
+function atualizarVisibilidadeCategoria(){
+  const mod=document.getElementById('m-mod').value;
+  const fg=document.getElementById('fg-categoria');
+  if(!fg) return;
+  fg.style.display=categoriaEhPertinente(mod)?'':'none';
+}
+function categoriaCssClass(categoria){
+  return categoria==='Masculino'?'cat-masc':(categoria==='Feminino'?'cat-fem':'cat-misto');
+}
+function categoriaIcone(categoria){
+  return categoria==='Masculino'?'🔵':(categoria==='Feminino'?'🔴':'⚪');
+}
 function atualizarPreview(){
+  atualizarVisibilidadeCategoria();
   const mod=document.getElementById('m-mod').value;
   const espaco=document.getElementById('m-espaco').value;
-  const tA=document.getElementById('m-tA').value.trim();
-  const tB=document.getElementById('m-tB').value.trim();
+  const categoria=categoriaEhPertinente(mod)?document.getElementById('m-categoria').value:'';
+  const tA=getTimeValue('A');
+  const tB=getTimeValue('B');
   const fase=document.getElementById('m-fase').value.trim();
   const el=document.getElementById('m-preview');
   if(!mod){el.style.cssText='border-radius:6px;padding:14px 16px;margin-bottom:12px;font-family:var(--font-cond);font-size:15px;font-weight:700;min-height:52px;border:2px solid #eee;color:#aaa;display:flex;align-items:center';el.textContent='— livre —';return;}
@@ -2846,6 +3023,7 @@ function atualizarPreview(){
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span style="font-size:18px">${m.icon}</span>
         <span>${m.nome}</span>
+        ${categoria?`<span style="font-size:11px;font-weight:700;opacity:.85;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">${categoriaIcone(categoria)} ${categoria}</span>`:''}
         ${espaco?`<span style="font-size:11px;font-weight:600;opacity:.65;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">${espaco}</span>`:''}
       </div>
       ${tA||tB?`<div style="font-size:16px;font-weight:800">${tA||'?'}${tB?' × '+tB:''}</div>`:''}
@@ -2855,13 +3033,14 @@ function atualizarPreview(){
 function salvar(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
   const mod=document.getElementById('m-mod').value;
+  const categoria=categoriaEhPertinente(mod)?document.getElementById('m-categoria').value:'';
   const espaco=document.getElementById('m-espaco').value;
-  const tA=document.getElementById('m-tA').value.trim();
-  const tB=document.getElementById('m-tB').value.trim();
+  const tA=getTimeValue('A');
+  const tB=getTimeValue('B');
   const fase=document.getElementById('m-fase').value.trim();
-  put(_e,_d,_h,mod?{mod,espaco,timeA:tA,timeB:tB,fase}:null);
+  put(_e,_d,_h,mod?{mod,categoria,espaco,timeA:tA,timeB:tB,fase}:null);
   fecharModal();render();toast(mod?'✅ Slot salvo!':'🗑 Slot limpo.');
-  sincronizarComCadastro(mod,espaco,tA,tB,fase);
+  sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria);
 }
 function limparSlot(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
@@ -2890,7 +3069,7 @@ function temPontePaiDisponivel(nomeFn){
   try{ return !!(window.parent && window.parent!==window && typeof window.parent[nomeFn]==='function'); }
   catch(e){ return false; }
 }
-function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase){
+function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria){
   try{
     if(!mod || !tA || !tB) return;
     if(!temPontePaiDisponivel('receberJogoDoQuadro')) return;
@@ -2909,15 +3088,16 @@ function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase){
       year: anoDetectado,
       modal: modDisplayName(mod),
       phase: fase,
+      category: categoria||'',
       space: espacoFinal,
       team1: tA,
       team2: tB
     });
   }catch(e){ /* documento principal indisponível — quadro segue funcionando normalmente */ }
 }
-function sincronizarComCadastro(mod,espaco,tA,tB,fase){
+function sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria){
   if(!mod || !tA || !tB){ sincronizarRemocao(); return; }
-  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase);
+  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase,categoria);
 }
 function sincronizarRemocao(){
   try{
@@ -2937,7 +3117,7 @@ function enviarSlotsIniciaisAoPai(){
       Object.keys(G[eKey][dKey]||{}).forEach(hKey=>{
         const s=G[eKey][dKey][hKey];
         if(s && s.mod && s.timeA && s.timeB){
-          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase);
+          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase,s.categoria);
         }
       });
     });
@@ -3008,7 +3188,7 @@ function toast(msg,tipo){
 
 // ─ INIT ─
 load();loadLbls();loadEspacosCustom();loadModCustom();loadHorasCustom();loadHoraOvr();
-renderModSelectOptions();renderEspacoSelectOptions();
+renderModSelectOptions();renderEspacoSelectOptions();renderTimeSelectOptions('A');renderTimeSelectOptions('B');
 aplicarBloqueioUI(); // inicia bloqueado (perfil geral/comunidade) até o pai liberar
 render();
 enviarSlotsIniciaisAoPai(); // repõe no cadastro principal os jogos já salvos localmente
@@ -5052,7 +5232,22 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (frame && frame.contentWindow && typeof frame.contentWindow.setEdicaoPermitida === 'function') {
                     frame.contentWindow.setEdicaoPermitida(editUnlocked);
                 }
+                if (frame && frame.contentWindow && typeof frame.contentWindow.setListaTurmas === 'function') {
+                    frame.contentWindow.setListaTurmas(listaTurmasComSelecao());
+                }
             } catch (e) { /* iframe ainda não carregado — será sincronizado no evento "load" */ }
+        }
+
+        // Monta a lista de turmas com sua respectiva seleção (país/bandeira da Gincana) e,
+        // quando já definido, o grupo (A/B) — para popular as listas suspensas de Time A/Time B
+        // dentro do Quadro de Marcação de Jogos (iframe isolado, sem acesso direto a estes dados).
+        function listaTurmasComSelecao() {
+            return turmas6.concat(turmas7).map(turma => ({
+                turma,
+                ano: turmas6.includes(turma) ? '6º Ano' : '7º Ano',
+                grupo: groupAssignments[turma] || '',
+                selecao: selecaoLabel(turma)
+            }));
         }
 
         // Guarda a atribuição de grupo de cada turma (vazio = ainda não definido)
@@ -5083,6 +5278,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function setGroup(turma, valor) {
             groupAssignments[turma] = valor;
             renderGroupSummary();
+            sincronizarPermissaoQuadro();
         }
 
         function renderGroupSummary() {
@@ -5154,6 +5350,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 year: dados.year || '',
                 modal: dados.modal,
                 phase: dados.phase || '',
+                category: dados.category || '',
                 space: dados.space,
                 team1: dados.team1,
                 team2: dados.team2,
@@ -5181,6 +5378,13 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 return '<span style="color: var(--text-muted); font-size: 0.85rem;">Agendado — sem resultado</span>';
             }
             return `<span class="badge badge-blue">${game.score1} x ${game.score2}</span>`;
+        }
+
+        function categoryBadge(category) {
+            if (!category) return '<span style="color: var(--text-muted); font-size: 0.85rem;">—</span>';
+            const cores = { Masculino: { bg: '#dbeafe', fg: '#0d3d7a', ic: '🔵' }, Feminino: { bg: '#fde3ef', fg: '#8a1155', ic: '🔴' }, Misto: { bg: '#eee', fg: '#555', ic: '⚪' } };
+            const c = cores[category] || cores.Misto;
+            return `<span class="badge" style="background:${c.bg};color:${c.fg}">${c.ic} ${category}</span>`;
         }
 
         function gameWinnerLabel(game) {
@@ -5267,6 +5471,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                                     <th>Horário do Jogo</th>
                                     <th>Ano</th>
                                     <th>Modalidade</th>
+                                    <th>Categoria</th>
                                     <th>Fase</th>
                                     <th>Espaço</th>
                                     <th>Confronto</th>
@@ -5304,6 +5509,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                             <td>${game.time}</td>
                             <td>${game.year}</td>
                             <td>${game.modal}</td>
+                            <td>${categoryBadge(game.category)}</td>
                             <td>${game.phase}</td>
                             <td><span class="badge badge-blue">${game.space || '—'}</span></td>
                             <td>${game.team1} vs ${game.team2}</td>
