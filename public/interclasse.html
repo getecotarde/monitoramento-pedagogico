@@ -17,6 +17,8 @@
             --border: #e2e8f0;
             --success: #10b981;
             --danger: #ef4444;
+            --purple: #7c3aed;
+            --gold: #eab308;
         }
 
         * {
@@ -496,6 +498,221 @@
         .resumo-print-uniforme strong.titulo { font-size: 11px; color: #92400e; display: block; margin-bottom: 3px; }
         .resumo-print-uniforme p { font-size: 11px; margin: 2px 0; }
         .resumo-print-uniforme .destaque-camisa { background: #fde68a; padding: 1px 4px; border-radius: 2px; font-weight: 700; }
+
+        /* =================================================================
+           QUADRO RESUMO — versão jovem/esportiva voltada para os alunos
+           ================================================================= */
+        .qr-hero {
+            background: linear-gradient(135deg, #0f172a 0%, var(--primary) 45%, var(--primary-light) 100%);
+            color: #fff;
+            border-radius: 18px;
+            padding: 1.9rem 1.7rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px -6px rgba(30,58,138,0.45);
+        }
+        .qr-hero::before {
+            content: "";
+            position: absolute; top: -30px; right: -50px; width: 220px; height: 220px;
+            background: var(--accent); opacity: 0.22; transform: rotate(25deg); border-radius: 40px;
+        }
+        .qr-hero::after {
+            content: "";
+            position: absolute; bottom: -60px; left: -40px; width: 180px; height: 180px;
+            background: var(--secondary); opacity: 0.22; transform: rotate(15deg); border-radius: 40px;
+        }
+        .qr-hero-tag {
+            display: inline-block; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);
+            padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800;
+            letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.7rem; position: relative;
+        }
+        .qr-hero h2 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0.4rem; position: relative; }
+        .qr-hero p { opacity: 0.94; font-size: 0.95rem; max-width: 680px; position: relative; }
+        .qr-hero-badges { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.1rem; position: relative; }
+        .qr-hero-badge {
+            background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.35);
+            padding: 0.5rem 0.9rem; border-radius: 12px; font-weight: 700; font-size: 0.82rem;
+        }
+        .qr-hero-badge b { display: block; font-size: 1.05rem; font-weight: 800; }
+
+        .qr-section-title {
+            display: flex; align-items: center; gap: 0.55rem; font-size: 1.2rem; font-weight: 800;
+            color: var(--primary); margin: 0 0 0.9rem;
+        }
+        .qr-section-title .emoji { font-size: 1.3rem; }
+
+        .qr-flow { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .qr-flow-step {
+            flex: 1; min-width: 150px; background: #fff; border: 2px solid var(--border); border-radius: 14px;
+            padding: 1rem 0.9rem; text-align: center;
+        }
+        .qr-flow-step .n {
+            width: 30px; height: 30px; border-radius: 50%; background: var(--primary); color: #fff;
+            display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 0.5rem;
+            font-size: 0.9rem;
+        }
+        .qr-flow-step strong { display: block; font-size: 0.92rem; margin-bottom: 0.2rem; color: var(--text); }
+        .qr-flow-step span { font-size: 0.8rem; color: var(--text-muted); }
+        .qr-flow-arrow { font-size: 1.5rem; color: var(--primary-light); font-weight: 800; }
+
+        .qr-mod-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .qr-mod-card {
+            border-radius: 16px; padding: 1.1rem 1.2rem; color: #fff; position: relative; overflow: hidden;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+        }
+        .qr-mod-card h4 { font-size: 1.08rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.45rem; font-weight: 800; }
+        .qr-mod-card .qr-mod-icon { font-size: 1.5rem; }
+        .qr-mod-card p { font-size: 0.83rem; opacity: 0.97; margin: 0.2rem 0; line-height: 1.4; }
+        .qr-mod-card .tag {
+            display: inline-block; background: rgba(255,255,255,0.24); padding: 0.18rem 0.6rem; border-radius: 999px;
+            font-size: 0.72rem; font-weight: 800; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .qr-mod-futsal    { background: linear-gradient(140deg, #1e3a8a, #3b82f6); }
+        .qr-mod-queimada  { background: linear-gradient(140deg, #b91c1c, #ef4444); }
+        .qr-mod-basquete  { background: linear-gradient(140deg, #c2410c, #f59e0b); }
+        .qr-mod-damas     { background: linear-gradient(140deg, #5b21b6, #8b5cf6); }
+        .qr-mod-atletismo { background: linear-gradient(140deg, #065f46, #10b981); }
+
+        .qr-day-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+        .qr-day-card { border-radius: 16px; padding: 1.1rem 1.2rem; color: #fff; box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+        .qr-day-6 { background: linear-gradient(140deg, #1e3a8a, #3b82f6); }
+        .qr-day-7 { background: linear-gradient(140deg, #9a3412, #f59e0b); }
+        .qr-day-card .fase { font-weight: 800; opacity: 0.92; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px; }
+        .qr-day-card .date { font-size: 1.7rem; font-weight: 800; margin: 0.15rem 0 0.5rem; }
+        .qr-day-card ul { margin: 0 0 0 1.1rem; font-size: 0.85rem; }
+        .qr-day-card li { margin-bottom: 0.2rem; }
+
+        .qr-score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+        .qr-score-item { border-radius: 14px; padding: 0.9rem 0.5rem; text-align: center; color: #fff; font-weight: 800; }
+        .qr-score-item .n { font-size: 1.5rem; display: block; }
+        .qr-score-item .l { font-size: 0.78rem; opacity: 0.95; text-transform: uppercase; letter-spacing: 0.4px; }
+        .qr-score-win  { background: linear-gradient(140deg, #059669, #10b981); }
+        .qr-score-draw { background: linear-gradient(140deg, #1d4ed8, #3b82f6); }
+        .qr-score-loss { background: linear-gradient(140deg, #b91c1c, #ef4444); }
+
+        .qr-golden { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.9rem; }
+        .qr-golden-item {
+            background: #fff; border: 2px dashed var(--primary-light); border-radius: 14px; padding: 1rem;
+            display: flex; gap: 0.7rem; align-items: flex-start;
+        }
+        .qr-golden-item .ic { font-size: 1.5rem; line-height: 1; }
+        .qr-golden-item strong { display: block; color: var(--primary); font-size: 0.92rem; margin-bottom: 0.15rem; }
+        .qr-golden-item span { font-size: 0.83rem; color: var(--text-muted); }
+
+        .qr-uniform-card {
+            border-radius: 16px; background: linear-gradient(135deg, #78350f, var(--accent));
+            color: #fff; padding: 1.3rem 1.3rem 1.1rem; box-shadow: 0 0 0 4px rgba(245,158,11,0.28), 0 8px 18px rgba(0,0,0,0.2);
+            border: 3px solid #92400e; position: relative; margin-top: 0.6rem;
+        }
+        .qr-uniform-ribbon {
+            position: absolute; top: -14px; left: 18px; background: var(--danger); color: #fff;
+            font-size: 0.72rem; font-weight: 800; padding: 0.3rem 0.8rem; border-radius: 999px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3); letter-spacing: 0.4px; text-transform: uppercase;
+        }
+        .qr-uniform-card h4 { font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; gap: 0.4rem; align-items: center; }
+        .qr-uniform-card p { font-size: 0.87rem; margin: 0.35rem 0; opacity: 0.97; }
+        .qr-uniform-card .destaque { background: rgba(255,255,255,0.25); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 800; }
+        .qr-uniform-card .info-colete {
+            background: rgba(255,255,255,0.18); border: 1px dashed rgba(255,255,255,0.6); border-radius: 10px;
+            padding: 0.55rem 0.7rem; margin-top: 0.6rem;
+        }
+
+        .qr-flags-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.6rem; }
+        .qr-flag-card {
+            display: flex; align-items: center; gap: 0.55rem; border: 1px solid var(--border); border-radius: 12px;
+            padding: 0.55rem 0.7rem; background: #fafafa;
+        }
+        .qr-flag-card .fl { font-size: 1.4rem; }
+        .qr-flag-card .pais { font-weight: 800; color: var(--primary); font-size: 0.85rem; line-height: 1.1; }
+        .qr-flag-card .turma { font-size: 0.72rem; color: var(--text-muted); }
+
+        @media (max-width: 700px) {
+            .qr-score-grid { grid-template-columns: 1fr; }
+            .qr-flow { flex-direction: column; }
+            .qr-flow-arrow { transform: rotate(90deg); }
+        }
+
+        /* ---- Impressão do Quadro Resumo (versão colorida, estilo esportivo) ---- */
+        @page quadroResumo { size: A4 portrait; margin: 7mm 9mm; }
+        html.quadro-print-mode { page: quadroResumo; }
+        #quadroResumoPrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-quadro header,
+            body.printing-quadro > .container { display: none !important; }
+            body.printing-quadro #quadroResumoPrintContainer.roster-print-only { display: block !important; }
+            .qrp-page * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+        }
+        .qrp-page { width: 100%; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.2; }
+        .qrp-hero {
+            background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; border-radius: 10px;
+            padding: 8px 12px; margin-bottom: 6px;
+        }
+        .qrp-hero .tag { font-size: 9.3px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85; font-weight: 700; }
+        .qrp-hero h1 { font-size: 18px; margin: 2px 0; }
+        .qrp-hero p { font-size: 11.5px; opacity: 0.92; }
+        .qrp-hero-stats { display: flex; gap: 6px; margin-top: 5px; }
+        .qrp-hero-stats div { background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 3px 6px; text-align: center; flex: 1; }
+        .qrp-hero-stats b { display: block; font-size: 12.5px; }
+        .qrp-hero-stats span { font-size: 8.3px; text-transform: uppercase; opacity: 0.9; }
+        .qrp-page h3 {
+            font-size: 13.5px; color: var(--primary); border-bottom: 1.5px solid var(--primary); padding-bottom: 2px;
+            margin: 7px 0 3px; font-weight: 800;
+        }
+        .qrp-page h3:first-of-type { margin-top: 2px; }
+        .qrp-flow { display: flex; gap: 4px; }
+        .qrp-flow div { flex: 1; border: 1.3px solid #333; border-radius: 6px; padding: 4px 3px; text-align: center; font-size: 11px; }
+        .qrp-flow div b { display: block; font-size: 11.5px; }
+        .qrp-day-grid { display: flex; gap: 5px; }
+        .qrp-day-card { flex: 1; border-radius: 8px; padding: 5px 7px; color: #fff; font-size: 11px; }
+        .qrp-day-card b { display: block; font-size: 13px; }
+        .qrp-day-6 { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+        .qrp-day-7 { background: linear-gradient(135deg, #9a3412, #f59e0b); }
+        .qrp-mod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .qrp-mod-card { border-radius: 8px; padding: 5px 7px; color: #fff; font-size: 10.8px; }
+        .qrp-mod-card b { display: block; font-size: 12px; margin-bottom: 1px; }
+        .qrp-mod-futsal    { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+        .qrp-mod-queimada  { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+        .qrp-mod-basquete  { background: linear-gradient(135deg, #c2410c, #f59e0b); }
+        .qrp-mod-damas     { background: linear-gradient(135deg, #5b21b6, #8b5cf6); }
+        .qrp-mod-atletismo { background: linear-gradient(135deg, #065f46, #10b981); grid-column: span 2; }
+        .qrp-score-grid { display: flex; gap: 4px; }
+        .qrp-score-item { flex: 1; border-radius: 7px; padding: 4px; text-align: center; color: #fff; }
+        .qrp-score-item b { display: block; font-size: 14px; }
+        .qrp-score-item span { font-size: 9px; text-transform: uppercase; }
+        .qrp-score-win  { background: linear-gradient(135deg, #059669, #10b981); }
+        .qrp-score-draw { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+        .qrp-score-loss { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+        .qrp-golden { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+        .qrp-golden-item { border: 1.3px dashed var(--primary-light); border-radius: 6px; padding: 3px 5px; font-size: 10.8px; }
+        .qrp-golden-item b { color: var(--primary); font-size: 11.3px; display: block; }
+        .qrp-uniform { border-radius: 8px; background: linear-gradient(135deg, #78350f, var(--accent)); color: #fff; padding: 6px 9px; font-size: 11px; border: 2px solid #92400e; box-shadow: 0 0 0 2.5px rgba(245,158,11,0.35); }
+        .qrp-uniform b { display: block; font-size: 12px; margin-bottom: 2px; }
+        .qrp-uniform .qrp-colete-box { background: rgba(255,255,255,0.2); border: 1px dashed rgba(255,255,255,0.7); border-radius: 6px; padding: 2px 5px; margin: 3px 0; display: block; }
+        .qrp-flags { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; font-size: 9px; }
+        .qrp-flags div { border: 1px solid #333; border-radius: 5px; padding: 2px 2px; text-align: center; }
+        .qrp-flags div b { display: block; font-size: 10.5px; }
+        .qrp-footer { margin-top: 5px; font-size: 8.3px; color: #555; text-align: center; border-top: 1px solid #ccc; padding-top: 2px; }
+
+        /* ---- Versão econômica (P&B, alto contraste, sem preenchimentos coloridos) ---- */
+        .qrp-page.qrp-eco .qrp-hero,
+        .qrp-page.qrp-eco .qrp-day-card,
+        .qrp-page.qrp-eco .qrp-mod-card,
+        .qrp-page.qrp-eco .qrp-score-item,
+        .qrp-page.qrp-eco .qrp-uniform {
+            background: #fff !important;
+            color: #000 !important;
+            border: 1.8px solid #000;
+        }
+        .qrp-page.qrp-eco .qrp-hero-stats div { background: #fff; border: 1.2px solid #000; }
+        .qrp-page.qrp-eco .qrp-uniform { box-shadow: none; border: 2.4px solid #000; }
+        .qrp-page.qrp-eco .qrp-uniform .qrp-colete-box { background: #fff; border: 1.3px dashed #000; }
+        .qrp-page.qrp-eco h3 { color: #000; border-bottom-color: #000; }
+        .qrp-page.qrp-eco .qrp-flow div { border-color: #000; }
+        .qrp-page.qrp-eco .qrp-golden-item { border: 1.3px solid #000; }
+        .qrp-page.qrp-eco .qrp-golden-item b { color: #000; }
+        .qrp-page.qrp-eco .qrp-flags div { border-color: #000; }
+        .qrp-page.qrp-eco .qrp-footer { color: #000; border-top-color: #000; }
     </style>
 </head>
 <body>
@@ -509,6 +726,7 @@
         <!-- Navigation Tabs -->
         <nav class="tabs">
             <button class="tab-btn active" onclick="switchTab('resumo')">📌 Resumo Geral</button>
+            <button class="tab-btn" onclick="switchTab('quadroresumo')">🏅 Quadro Resumo (Alunos)</button>
             <button class="tab-btn" onclick="switchTab('relatorio')">📄 Relatório Apresentado</button>
             <button class="tab-btn" onclick="switchTab('modalidades')">🏆 Modalidades & Regras</button>
             <button class="tab-btn" onclick="switchTab('organizacao')">📅 Organização & Cronograma</button>
@@ -573,6 +791,153 @@
                     <p><strong>Cerimônia de Abertura:</strong> Desfile oficial das equipes seguidas do protocolo formal do evento.</p>
                     <p style="margin-top: 0.5rem;"><strong>Juramento do Atleta:</strong> Um atleta representante conduzirá o juramento com o braço direito erguido, sendo acompanhado por todos os demais participantes em sinal de respeito.</p>
                     <p style="margin-top: 0.5rem;"><strong>Encerramento & Premiação:</strong> Dia <strong>11/09</strong>, logo após o término das últimas partidas, seguido pelo recreio e limpeza coletiva da quadra.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB QUADRO RESUMO (VOLTADO PARA OS ALUNOS) -->
+        <div id="quadroresumo" class="tab-content">
+            <div class="card no-print" style="padding: 0.75rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.5rem;">
+                <button type="button" class="tab-btn" style="width: auto; background: var(--text-muted); color: #fff;" onclick="imprimirQuadroResumoEconomico()">🖨️ Versão Econômica (P&amp;B, alto contraste)</button>
+                <button type="button" class="tab-btn" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirQuadroResumo()">🖨️ Gerar Quadro Resumo em PDF (A4)</button>
+            </div>
+
+            <div class="qr-hero">
+                <span class="qr-hero-tag">🏅 Fica ligado, atleta!</span>
+                <h2>COMO FUNCIONA O INTERCLASSE GETECO 2026</h2>
+                <p>Este é o seu guia rápido: as datas do seu ano, as modalidades, as regras principais e tudo que você precisa saber antes de entrar na quadra pra defender sua seleção!</p>
+                <div class="qr-hero-badges">
+                    <div class="qr-hero-badge"><b>5</b>Modalidades</div>
+                    <div class="qr-hero-badge"><b>6º e 7º</b>Anos disputando</div>
+                    <div class="qr-hero-badge"><b>08 a 11/09</b>Dias de jogo</div>
+                    <div class="qr-hero-badge"><b>11/09</b>Grande final e premiação</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">🗓️</span> Quando é o SEU dia de jogo?</div>
+                <div class="qr-day-grid">
+                    <div class="qr-day-card qr-day-6">
+                        <div class="fase">6º Anos</div>
+                        <div class="date">08/09 e 09/09</div>
+                        <ul>
+                            <li><strong>08/09:</strong> Fase de Grupos / Eliminatórias iniciais</li>
+                            <li><strong>09/09:</strong> Semifinais e Finais</li>
+                        </ul>
+                    </div>
+                    <div class="qr-day-card qr-day-7">
+                        <div class="fase">7º Anos</div>
+                        <div class="date">10/09 e 11/09</div>
+                        <ul>
+                            <li><strong>10/09:</strong> Fase de Grupos / Eliminatórias iniciais</li>
+                            <li><strong>11/09:</strong> Semifinais, Finais e Premiação</li>
+                        </ul>
+                    </div>
+                </div>
+                <p style="margin-top:0.8rem; color: var(--text-muted); font-size: 0.88rem;">📌 No seu dia de jogo, sua turma fica na quadra durante todos os horários de aula — chega de uniforme e com muita energia pra torcer e jogar!</p>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">⚡</span> Como funciona a disputa</div>
+                <div class="qr-flow">
+                    <div class="qr-flow-step"><div class="n">1</div><strong>Fase de Grupos</strong><span>Sua turma joga contra as demais do seu grupo (Futsal e Queimada)</span></div>
+                    <div class="qr-flow-arrow">➜</div>
+                    <div class="qr-flow-step"><div class="n">2</div><strong>Classificação</strong><span>As melhores colocadas avançam para o mata-mata</span></div>
+                    <div class="qr-flow-arrow">➜</div>
+                    <div class="qr-flow-step"><div class="n">3</div><strong>Semifinal</strong><span>Eliminatória direta: quem perde, está fora</span></div>
+                    <div class="qr-flow-arrow">➜</div>
+                    <div class="qr-flow-step"><div class="n">4</div><strong>🏆 Grande Final</strong><span>Disputa de 3º lugar e a decisão do título!</span></div>
+                </div>
+                <p style="margin-top:0.9rem; color: var(--text-muted); font-size: 0.88rem;">🎯 Basquete de Trilha, Damas e Atletismo já começam direto na <strong>eliminatória simples</strong> (mata-mata) desde a primeira rodada.</p>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">🏆</span> As 5 modalidades em disputa</div>
+                <div class="qr-mod-grid">
+                    <div class="qr-mod-card qr-mod-futsal">
+                        <h4><span class="qr-mod-icon">⚽</span> Futsal</h4>
+                        <p>6 a 12 atletas por turma</p>
+                        <p>Masc.: 2×15min • Fem.: 2×10min</p>
+                        <span class="tag">Fase de grupos + mata-mata</span>
+                    </div>
+                    <div class="qr-mod-card qr-mod-queimada">
+                        <h4><span class="qr-mod-icon">🔥</span> Queimada</h4>
+                        <p>12 a 14 atletas (50% M / 50% F)</p>
+                        <p>Partida única de até 20 min</p>
+                        <span class="tag">Fase de grupos + mata-mata</span>
+                    </div>
+                    <div class="qr-mod-card qr-mod-basquete">
+                        <h4><span class="qr-mod-icon">🏀</span> Basquete de Trilha</h4>
+                        <p>3 duplas masc. + 3 duplas fem.</p>
+                        <p>Partida única de até 10 min</p>
+                        <span class="tag">Eliminatória simples</span>
+                    </div>
+                    <div class="qr-mod-card qr-mod-damas">
+                        <h4><span class="qr-mod-icon">♟️</span> Damas</h4>
+                        <p>4 participantes (2M + 2F)</p>
+                        <p>Partida única por bateria</p>
+                        <span class="tag">Eliminatória simples</span>
+                    </div>
+                    <div class="qr-mod-card qr-mod-atletismo">
+                        <h4><span class="qr-mod-icon">🏃</span> Atletismo</h4>
+                        <p>6 participantes (3F + 3M)</p>
+                        <p>Fem.: 15m • Masc.: 20m</p>
+                        <span class="tag">Eliminatória simples</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="qr-section-title"><span class="emoji">💯</span> Pontuação (Futsal)</div>
+                    <div class="qr-score-grid">
+                        <div class="qr-score-item qr-score-win"><span class="n">3</span><span class="l">Vitória</span></div>
+                        <div class="qr-score-item qr-score-draw"><span class="n">2</span><span class="l">Empate</span></div>
+                        <div class="qr-score-item qr-score-loss"><span class="n">0</span><span class="l">Derrota</span></div>
+                    </div>
+                    <p style="margin-top:0.7rem; font-size: 0.82rem; color: var(--text-muted);">⚖️ Em caso de empate na fase de grupos: 1º Confronto direto → 2º Saldo de gols → 3º Menos faltas/cartões. No mata-mata, decide nos pênaltis!</p>
+                </div>
+
+                <div class="card">
+                    <div class="qr-section-title"><span class="emoji">🌟</span> Regras de Ouro</div>
+                    <div class="qr-golden">
+                        <div class="qr-golden-item"><span class="ic">🙌</span><div><strong>Todo mundo joga</strong><span>Quem está na súmula tem o direito e o dever de entrar em quadra.</span></div></div>
+                        <div class="qr-golden-item"><span class="ic">🤝</span><div><strong>Respeito acima de tudo</strong><span>Fair play com adversários, árbitros e colegas de equipe.</span></div></div>
+                        <div class="qr-golden-item"><span class="ic">👟</span><div><strong>Uniforme correto</strong><span>Sem uniforme, sem jogo — confira o item abaixo.</span></div></div>
+                        <div class="qr-golden-item"><span class="ic">📋</span><div><strong>Só quem está na ficha joga</strong><span>Sem trocas de nome no dia da partida.</span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">👕</span> Uniforme obrigatório</div>
+                <div class="qr-uniform-card">
+                    <span class="qr-uniform-ribbon">⚠️ Atenção, atleta!</span>
+                    <h4>Vale para TODAS as modalidades:</h4>
+                    <p>Shorts/bermuda leve, camiseta da equipe/colete <span class="destaque">ou a camisa do Interclasse</span>, e tênis.</p>
+                    <div class="info-colete">
+                        <p style="margin: 0;">🎽 <strong>A escola oferece coletes para os jogos</strong> — quem não tiver a camisa do Interclasse não fica de fora, é só usar o colete da equipe!</p>
+                    </div>
+                    <p><strong>Sobre a camisa do Interclasse:</strong> ela foi uma opção escolhida pela própria turma/pelos estudantes (não é item obrigatório de compra). Quem tiver, pode usar — mas só durante o próprio evento e, depois, exclusivamente às sextas-feiras e nas aulas de Educação Física.</p>
+                    <p><strong>Proibido:</strong> calça/short jeans, jogar descalço ou com roupas curtas.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="qr-section-title"><span class="emoji">🌐</span> Sua seleção</div>
+                <p style="margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.88rem;">Cada turma defende as cores de um país, reaproveitando as seleções da Gincana escolar.</p>
+                <div class="qr-flags-grid">
+                    <div class="qr-flag-card"><span class="fl">🇦🇷</span><div><div class="pais">Argentina</div><div class="turma">6º Ano A</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇪🇸</span><div><div class="pais">Espanha</div><div class="turma">6º Ano B</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇲🇽</span><div><div class="pais">México</div><div class="turma">6º Ano C</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇭🇷</span><div><div class="pais">Croácia</div><div class="turma">6º Ano D</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇩🇪</span><div><div class="pais">Alemanha</div><div class="turma">6º Ano E</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇳🇴</span><div><div class="pais">Noruega</div><div class="turma">6º Ano F</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇸🇳</span><div><div class="pais">Senegal</div><div class="turma">7º Ano A</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇲🇦</span><div><div class="pais">Marrocos</div><div class="turma">7º Ano B</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇨🇴</span><div><div class="pais">Colômbia</div><div class="turma">7º Ano C</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇺🇾</span><div><div class="pais">Uruguai</div><div class="turma">7º Ano D</div></div></div>
+                    <div class="qr-flag-card"><span class="fl">🇺🇸</span><div><div class="pais">Estados Unidos</div><div class="turma">7º Ano E</div></div></div>
                 </div>
             </div>
         </div>
@@ -1099,6 +1464,7 @@
 
     <!-- Conteúdo montado dinamicamente na hora de imprimir o Resumo Geral (paisagem, 2 folhas) -->
     <div id="resumoPrintContainer" class="roster-print-only"></div>
+    <div id="quadroResumoPrintContainer" class="roster-print-only"></div>
 
     <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
          formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
@@ -4976,7 +5342,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         window.addEventListener('afterprint', () => {
             document.body.classList.remove('printing-roster');
             document.body.classList.remove('printing-resumo');
+            document.body.classList.remove('printing-quadro');
             document.documentElement.classList.remove('resumo-print-mode');
+            document.documentElement.classList.remove('quadro-print-mode');
         });
 
         // ---------------------------------------------------------------
@@ -5087,6 +5455,103 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             container.innerHTML = gerarHtmlResumoImpressao();
             document.documentElement.classList.add('resumo-print-mode');
             document.body.classList.add('printing-resumo');
+            setTimeout(() => window.print(), 50);
+        }
+
+        // ---------------------------------------------------------------
+        // QUADRO RESUMO (ALUNOS) — PDF colorido, estilo esportivo/jovem
+        // ---------------------------------------------------------------
+        function gerarHtmlQuadroResumoImpressao(eco) {
+            const flagsHtml = [
+                ['🇦🇷','Argentina','6º Ano A'], ['🇪🇸','Espanha','6º Ano B'], ['🇲🇽','México','6º Ano C'],
+                ['🇭🇷','Croácia','6º Ano D'], ['🇩🇪','Alemanha','6º Ano E'], ['🇳🇴','Noruega','6º Ano F'],
+                ['🇸🇳','Senegal','7º Ano A'], ['🇲🇦','Marrocos','7º Ano B'], ['🇨🇴','Colômbia','7º Ano C'],
+                ['🇺🇾','Uruguai','7º Ano D'], ['🇺🇸','Estados Unidos','7º Ano E'],
+            ].map(([fl, pais, turma]) => `<div><b>${fl}</b>${pais}<br>${turma}</div>`).join('');
+
+            return `
+                <div class="qrp-page${eco ? ' qrp-eco' : ''}">
+                    <div class="qrp-hero">
+                        <div class="tag">🏅 Fica ligado, atleta!</div>
+                        <h1>COMO FUNCIONA O INTERCLASSE GETECO 2026</h1>
+                        <p>Guia rápido do estudante — Escola Municipal Geraldo Teixeira Costa</p>
+                        <div class="qrp-hero-stats">
+                            <div><b>5</b><span>Modalidades</span></div>
+                            <div><b>6º/7º</b><span>Anos</span></div>
+                            <div><b>08 a 11/09</b><span>Dias de jogo</span></div>
+                            <div><b>11/09</b><span>Final</span></div>
+                        </div>
+                    </div>
+
+                    <h3>🗓️ Quando é o seu dia de jogo?</h3>
+                    <div class="qrp-day-grid">
+                        <div class="qrp-day-card qrp-day-6"><b>6º Anos — 08/09 e 09/09</b>08/09: Fase de Grupos • 09/09: Semifinais e Finais</div>
+                        <div class="qrp-day-card qrp-day-7"><b>7º Anos — 10/09 e 11/09</b>10/09: Fase de Grupos • 11/09: Semifinais, Finais e Premiação</div>
+                    </div>
+
+                    <h3>⚡ Como funciona a disputa</h3>
+                    <div class="qrp-flow">
+                        <div><b>1. Grupos</b>Turmas se enfrentam no grupo</div>
+                        <div><b>2. Classificação</b>As melhores avançam</div>
+                        <div><b>3. Semifinal</b>Mata-mata direto</div>
+                        <div><b>4. 🏆 Final</b>Decisão do título</div>
+                    </div>
+                    <p style="font-size:10.3px; color:${eco ? '#000' : '#555'}; margin-top:2px;">Basquete de Trilha, Damas e Atletismo já começam em eliminatória simples desde a 1ª rodada.</p>
+
+                    <h3>🏆 As 5 modalidades</h3>
+                    <div class="qrp-mod-grid">
+                        <div class="qrp-mod-card qrp-mod-futsal"><b>⚽ Futsal</b>6 a 12 atletas • Masc. 2×15min / Fem. 2×10min</div>
+                        <div class="qrp-mod-card qrp-mod-queimada"><b>🔥 Queimada</b>12 a 14 atletas (50% M/F) • até 20 min</div>
+                        <div class="qrp-mod-card qrp-mod-basquete"><b>🏀 Basquete de Trilha</b>3 duplas M + 3 duplas F • até 10 min</div>
+                        <div class="qrp-mod-card qrp-mod-damas"><b>♟️ Damas</b>4 participantes (2M + 2F) • bateria única</div>
+                        <div class="qrp-mod-card qrp-mod-atletismo"><b>🏃 Atletismo</b>6 participantes (3F + 3M) • Fem. 15m / Masc. 20m</div>
+                    </div>
+
+                    <h3>💯 Pontuação (Futsal) &amp; Regras de Ouro</h3>
+                    <div class="qrp-score-grid">
+                        <div class="qrp-score-item qrp-score-win"><b>3</b><span>Vitória</span></div>
+                        <div class="qrp-score-item qrp-score-draw"><b>2</b><span>Empate</span></div>
+                        <div class="qrp-score-item qrp-score-loss"><b>0</b><span>Derrota</span></div>
+                    </div>
+                    <div class="qrp-golden" style="margin-top:5px;">
+                        <div class="qrp-golden-item"><b>🙌 Todo mundo joga</b>Quem está na súmula tem o dever de entrar em quadra.</div>
+                        <div class="qrp-golden-item"><b>🤝 Respeito acima de tudo</b>Fair play com todos.</div>
+                        <div class="qrp-golden-item"><b>👟 Uniforme correto</b>Sem uniforme, sem jogo.</div>
+                        <div class="qrp-golden-item"><b>📋 Só quem está na ficha joga</b>Sem trocas de nome no dia.</div>
+                    </div>
+
+                    <h3>👕 Uniforme obrigatório</h3>
+                    <div class="qrp-uniform">
+                        <b>⚠️ Vale para todas as modalidades:</b>
+                        Shorts/bermuda leve, camiseta da equipe/colete ou a camisa do Interclasse, e tênis.
+                        <span class="qrp-colete-box">🎽 <strong>A escola oferece coletes para os jogos</strong> — quem não tiver a camisa, usa o colete da equipe.</span>
+                        A camisa do Interclasse foi uma <strong>opção da turma/dos estudantes</strong> (não é item obrigatório) e só pode ser usada no evento e, depois, às sextas-feiras e nas aulas de Educação Física. Proibido calça/short jeans, jogar descalço ou com roupas curtas.
+                    </div>
+
+                    <h3>🌐 Sua seleção</h3>
+                    <div class="qrp-flags">${flagsHtml}</div>
+
+                    <div class="qrp-footer">Consulte as abas completas do sistema (Modalidades &amp; Regras, Fases do Campeonato) para o regulamento detalhado de cada modalidade.</div>
+                </div>`;
+        }
+
+        function imprimirQuadroResumo() {
+            const container = document.getElementById('quadroResumoPrintContainer');
+            if (!container) return;
+
+            container.innerHTML = gerarHtmlQuadroResumoImpressao(false);
+            document.documentElement.classList.add('quadro-print-mode');
+            document.body.classList.add('printing-quadro');
+            setTimeout(() => window.print(), 50);
+        }
+
+        function imprimirQuadroResumoEconomico() {
+            const container = document.getElementById('quadroResumoPrintContainer');
+            if (!container) return;
+
+            container.innerHTML = gerarHtmlQuadroResumoImpressao(true);
+            document.documentElement.classList.add('quadro-print-mode');
+            document.body.classList.add('printing-quadro');
             setTimeout(() => window.print(), 50);
         }
 
