@@ -180,6 +180,8 @@
             table { font-size: 0.85rem; }
             th, td { padding: 0.55rem 0.6rem; }
 
+            #studentRosterWrap { max-height: 55vh; }
+
             .form-actions-row {
                 flex-direction: column;
             }
@@ -449,6 +451,21 @@
             background-color: #f1f5f9;
             color: var(--primary);
             font-weight: 600;
+        }
+
+        /* Cabeçalho fixo (sticky) da tabela de Inscrição/Mapeamento de Atletas por
+           Turma: como a lista pode ter até 33 alunos, ao rolar a área da tabela o
+           cabeçalho (Nº, Matrícula, Nome, Sexo, Futsal, Queimada...) permanece
+           visível no topo, evitando errar a coluna ao marcar Sim/Não. */
+        #studentRosterWrap {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        #studentRosterTable thead th {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
 
         tr:hover {
@@ -1627,7 +1644,7 @@
                         <span id="classInfoBadge" class="badge badge-blue" style="font-size: 0.95rem; padding: 0.5rem 1rem;">6º Ano A - 33 Alunos</span>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive" id="studentRosterWrap" style="max-height: 65vh; overflow-y: auto;">
                         <table id="studentRosterTable">
                             <thead>
                                 <tr>
@@ -2164,6 +2181,7 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
       <select id="m-mod" onchange="atualizarPreview()">
         <option value="">— Livre / Vazio —</option>
         <option value="futsal">⚽ Futsal</option>
+        <option value="queimada">🔥 Queimada</option>
         <option value="volei">🏐 Vôlei</option>
         <option value="basquete">🏀 Basquete</option>
         <option value="final">🏆 Final</option>
@@ -2208,6 +2226,7 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
       <select id="m-tB" onchange="onTimeSelectChange('B')"></select>
       <input id="m-tB-manual" placeholder="Ex.: Pedro (7º Ano B)" oninput="atualizarPreview()" style="display:none;margin-top:6px">
     </div>
+    <div id="m-grupo-hint" style="font-size:11px;color:#888;margin:-8px 0 12px;line-height:1.4"></div>
     <div class="fg"><label>Fase</label>
       <select id="m-fase" onchange="atualizarPreview()">
         <option value="">— não definida —</option>
@@ -2561,6 +2580,7 @@ function resetarEspacos(){
 let ESPACOS=getEspacos();
 const MOD = {
   futsal:   {bg:'#e4f3ea',brd:'#23a050',txt:'#0f5a2a',icon:'⚽',nome:'Futsal'},
+  queimada: {bg:'#fde8e8',brd:'#c0392b',txt:'#7a1f1f',icon:'🔥',nome:'Queimada'},
   volei:    {bg:'#fffbe6',brd:'#d4a017',txt:'#7a4a00',icon:'🏐',nome:'Vôlei'},
   basquete: {bg:'#e0eeff',brd:'#1565c0',txt:'#0d3d7a',icon:'🏀',nome:'Basquete'},
   final:    {bg:'#fff3cd',brd:'#d4a017',txt:'#7a4a00',icon:'🏆',nome:'Final'},
@@ -3003,6 +3023,40 @@ function opcoesVencedorPerdedorHTML(){
   html+='</optgroup>';
   return html;
 }
+// Modalidades/categorias em que o cruzamento pré-definido por grupo (1º/2º
+// colocado do Grupo A ou B) fica disponível como opção de Time A/B — por ora,
+// só Futsal Masculino e Queimada (que joga uma categoria só: Mista), a pedido
+// da coordenação. Nas demais modalidades, Time A/B seguem só com turma
+// cadastrada, Vencedor/Perdedor de jogo numerado, ou digitação manual.
+function elegivelParaGrupoCruzado(mod,categoria){
+  if(mod==='queimada') return true;
+  if(mod==='futsal' && categoria==='Masculino') return true;
+  return false;
+}
+// Opções "🥇 1º colocado" / "🥈 2º colocado" de cada Grupo (A/B) já formado na
+// aba "Organização dos Grupos" — uma opção por combinação (ano + grupo)
+// realmente existente em TURMAS_LISTA, sem precisar hardcodar quantas turmas
+// ou grupos existem. O valor salvo (ex.: "🥇 1º Grupo A — 6º Ano") é só um
+// texto-referência, do mesmo jeito que "🏆 Vencedor Jogo Nº X": quem resolve
+// para o nome real da turma classificada é o documento principal, assim que
+// os jogos da fase de grupos daquela modalidade/categoria/ano tiverem placar.
+function opcoesGrupoCruzadoHTML(){
+  const mod=document.getElementById('m-mod')?.value;
+  const categoria=document.getElementById('m-categoria')?.value||'';
+  if(!elegivelParaGrupoCruzado(mod,categoria)) return '';
+  const combos={};
+  TURMAS_LISTA.forEach(t=>{ if(t.grupo && t.ano) combos[t.ano+'|'+t.grupo]=true; });
+  const chaves=Object.keys(combos).sort();
+  if(!chaves.length) return '';
+  let html=`<optgroup label="🥇 Classificado da Fase de Grupos (${getMOD()[mod]?.nome||mod}${categoria?' · '+categoria:''})">`;
+  chaves.forEach(k=>{
+    const [ano,grupo]=k.split('|');
+    html+=`<option value="🥇 1º Grupo ${grupo} — ${ano}">🥇 1º colocado — Grupo ${grupo} (${ano})</option>`;
+    html+=`<option value="🥈 2º Grupo ${grupo} — ${ano}">🥈 2º colocado — Grupo ${grupo} (${ano})</option>`;
+  });
+  html+='</optgroup>';
+  return html;
+}
 function opcoesTimeHTML(){
   let html;
   if(!TURMAS_LISTA.length){
@@ -3020,6 +3074,7 @@ function opcoesTimeHTML(){
       html+='</optgroup>';
     });
   }
+  html+=opcoesGrupoCruzadoHTML();
   html+=opcoesVencedorPerdedorHTML();
   html+=`<option value="${TIME_MANUAL}">✏️ Outro / digitar manualmente (dupla, atleta...)</option>`;
   return html;
@@ -3184,9 +3239,18 @@ function categoriaIcone(categoria){
   return categoria==='Masculino'?'🔵':(categoria==='Feminino'?'🔴':'⚪');
 }
 let _ultimoContextoNumeracao='';
+function atualizarDicaGrupo(){
+  const hint=document.getElementById('m-grupo-hint');
+  if(!hint) return;
+  const mod=document.getElementById('m-mod').value;
+  const categoria=document.getElementById('m-categoria').value;
+  if(!elegivelParaGrupoCruzado(mod,categoria)){ hint.textContent=''; return; }
+  hint.textContent='💡 Nesta modalidade, Time A/B também podem ser o "1º/2º colocado" de um Grupo (A ou B) da fase de grupos. Cruzamento recomendado: 1º Grupo A × 2º Grupo B, e 1º Grupo B × 2º Grupo A.';
+}
 function atualizarPreview(){
   atualizarVisibilidadeCategoria();
   atualizarDicaNumero();
+  atualizarDicaGrupo();
   const mod=document.getElementById('m-mod').value;
   const espaco=document.getElementById('m-espaco').value;
   const categoria=categoriaEhPertinente(mod)?document.getElementById('m-categoria').value:'';
@@ -3326,7 +3390,7 @@ function boardKeyAtual(){ return boardKeyFor(_e,_d,_h); }
 // com o vocabulário já usado na Grade de Horários). Espaços/modalidades adicionados
 // em edição usam o nome informado por quem os criou.
 const ESPACO_MASTER_MAP={q1:'Futsal 01', q2:'Futsal 02', b1:'Basquete', v1:'Vôlei'};
-const MOD_MASTER_MAP={futsal:'Futsal', volei:'Vôlei', basquete:'Basquete', final:'Final (Grande Final)', reservado:'Reservado / Pausa'};
+const MOD_MASTER_MAP={futsal:'Futsal', queimada:'Queimada', volei:'Vôlei', basquete:'Basquete', final:'Final (Grande Final)', reservado:'Reservado / Pausa'};
 function espacoDisplayName(key){
   return ESPACO_MASTER_MAP[key] || getEspacos().find(e=>e.key===key)?.nome || key.toUpperCase();
 }
@@ -5804,24 +5868,90 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function encontrarJogoPorNumero(numero, modal, category) {
             return gamesData.find(g => g.number === numero && g.modal === modal && (g.category || '') === (category || ''));
         }
+
+        // ---------------------------------------------------------------
+        // CLASSIFICAÇÃO RESTRITA A UM GRUPO (A/B) — usada para resolver as
+        // referências "1º/2º colocado — Grupo X" (hoje disponíveis só para
+        // Futsal Masculino e Queimada). Igual à classificação geral por
+        // modalidade, mas filtrando também por ano (6º/7º — os grupos "A" do
+        // 6º e do 7º Ano são turmas diferentes, mesmo com a mesma letra) e
+        // só contando confrontos entre duas turmas do mesmo grupo.
+        // ---------------------------------------------------------------
+        function calcularClassificacaoPorGrupo(modal, categoria, ano, grupoLetra) {
+            const tabela = {};
+            gamesData.forEach(g => {
+                if (g.phase !== 'Grupos') return;
+                if (g.modal !== modal) return;
+                if ((g.category || '') !== (categoria || '')) return;
+                if (g.year !== ano) return;
+                if ((groupAssignments[g.team1] || '') !== grupoLetra) return;
+                if ((groupAssignments[g.team2] || '') !== grupoLetra) return;
+                if (g.score1 === null || g.score1 === undefined || g.score2 === null || g.score2 === undefined) return;
+                [g.team1, g.team2].forEach(t => {
+                    if (!tabela[t]) tabela[t] = { time: t, jogos: 0, vitorias: 0, empates: 0, derrotas: 0, pf: 0, ps: 0, pontos: 0 };
+                });
+                tabela[g.team1].jogos++; tabela[g.team2].jogos++;
+                tabela[g.team1].pf += g.score1; tabela[g.team1].ps += g.score2;
+                tabela[g.team2].pf += g.score2; tabela[g.team2].ps += g.score1;
+                if (g.score1 > g.score2) { tabela[g.team1].vitorias++; tabela[g.team1].pontos += 3; tabela[g.team2].derrotas++; }
+                else if (g.score2 > g.score1) { tabela[g.team2].vitorias++; tabela[g.team2].pontos += 3; tabela[g.team1].derrotas++; }
+                else { tabela[g.team1].empates++; tabela[g.team2].empates++; tabela[g.team1].pontos += 1; tabela[g.team2].pontos += 1; }
+            });
+            return Object.values(tabela).sort((a, b) => {
+                const saldoA = a.pf - a.ps, saldoB = b.pf - b.ps;
+                return b.pontos - a.pontos || (saldoB - saldoA) || (b.pf - a.pf);
+            });
+        }
+        // Quantidade de turmas daquele grupo/ano (todas contra todas, uma vez cada) —
+        // usada só para estimar se a fase de grupos já rodou o suficiente para o
+        // 1º/2º colocado serem considerados "fechados" (cada turma já jogou contra
+        // todas as outras do seu grupo) antes de resolver a referência.
+        function qtdTurmasNoGrupo(ano, grupoLetra) {
+            const turmasDoAno = ano === '6º Ano' ? turmas6 : (ano === '7º Ano' ? turmas7 : []);
+            return turmasDoAno.filter(t => (groupAssignments[t] || '') === grupoLetra).length;
+        }
         function resolverReferenciaTime(valor, categoria, modal) {
             const m = /^(🏆 Vencedor|❌ Perdedor) Jogo (\d+)$/.exec(valor || '');
-            if (!m) return { texto: valor, pendente: false, ehReferencia: false };
-            const tipo = m[1] === '🏆 Vencedor' ? 'V' : 'P';
-            const num = parseInt(m[2], 10);
-            const jogoRef = encontrarJogoPorNumero(num, modal, categoria);
-            const rotuloTipo = tipo === 'V' ? 'Vencedor' : 'Perdedor';
-            if (!jogoRef) return { texto: `${rotuloTipo} do Jogo ${num} (jogo não encontrado)`, pendente: true, ehReferencia: true };
-            if (jogoRef.score1 === null || jogoRef.score1 === undefined || jogoRef.score2 === null || jogoRef.score2 === undefined || jogoRef.score1 === jogoRef.score2) {
-                return { texto: `${rotuloTipo} do Jogo ${num} (aguardando resultado)`, pendente: true, ehReferencia: true };
+            if (m) {
+                const tipo = m[1] === '🏆 Vencedor' ? 'V' : 'P';
+                const num = parseInt(m[2], 10);
+                const jogoRef = encontrarJogoPorNumero(num, modal, categoria);
+                const rotuloTipo = tipo === 'V' ? 'Vencedor' : 'Perdedor';
+                if (!jogoRef) return { texto: `${rotuloTipo} do Jogo ${num} (jogo não encontrado)`, pendente: true, ehReferencia: true };
+                if (jogoRef.score1 === null || jogoRef.score1 === undefined || jogoRef.score2 === null || jogoRef.score2 === undefined || jogoRef.score1 === jogoRef.score2) {
+                    return { texto: `${rotuloTipo} do Jogo ${num} (aguardando resultado)`, pendente: true, ehReferencia: true };
+                }
+                const vencedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team1 : jogoRef.team2;
+                const perdedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team2 : jogoRef.team1;
+                const nomeFinal = tipo === 'V' ? vencedor : perdedor;
+                // O próprio nome final pode, em tese, ser outra referência encadeada (ex.: semifinal
+                // apontando para o vencedor de uma partida que também referenciava outro jogo).
+                const resolvidoRecursivo = resolverReferenciaTime(nomeFinal, categoria, modal);
+                return { texto: resolvidoRecursivo.texto, pendente: resolvidoRecursivo.pendente, ehReferencia: true };
             }
-            const vencedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team1 : jogoRef.team2;
-            const perdedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team2 : jogoRef.team1;
-            const nomeFinal = tipo === 'V' ? vencedor : perdedor;
-            // O próprio nome final pode, em tese, ser outra referência encadeada (ex.: semifinal
-            // apontando para o vencedor de uma partida que também referenciava outro jogo).
-            const resolvidoRecursivo = resolverReferenciaTime(nomeFinal, categoria, modal);
-            return { texto: resolvidoRecursivo.texto, pendente: resolvidoRecursivo.pendente, ehReferencia: true };
+
+            // "🥇 1º Grupo A — 6º Ano" / "🥈 2º Grupo B — 7º Ano" (Futsal Masculino e
+            // Queimada) — resolve para a turma na posição indicada da classificação
+            // daquele grupo/ano/modalidade/categoria, assim que houver jogos de
+            // grupo suficientes; enquanto isso, mostra "aguardando fase de grupos".
+            const mg = /^(🥇 1º|🥈 2º) Grupo ([A-Z]) — (\d+º Ano)$/.exec(valor || '');
+            if (mg) {
+                const posicao = mg[1] === '🥇 1º' ? 0 : 1;
+                const rotuloPos = posicao === 0 ? '1º colocado' : '2º colocado';
+                const grupoLetra = mg[2];
+                const ano = mg[3];
+                const tabela = calcularClassificacaoPorGrupo(modal, categoria, ano, grupoLetra);
+                const totalTurmasGrupo = qtdTurmasNoGrupo(ano, grupoLetra);
+                const jogosEsperadosPorTurma = Math.max(0, totalTurmasGrupo - 1);
+                const linha = tabela[posicao];
+                if (!linha || linha.jogos < jogosEsperadosPorTurma) {
+                    return { texto: `${rotuloPos} — Grupo ${grupoLetra} (${ano}) — aguardando fase de grupos`, pendente: true, ehReferencia: true };
+                }
+                const resolvidoRecursivo = resolverReferenciaTime(linha.time, categoria, modal);
+                return { texto: resolvidoRecursivo.texto, pendente: resolvidoRecursivo.pendente, ehReferencia: true };
+            }
+
+            return { texto: valor, pendente: false, ehReferencia: false };
         }
 
         // Monta o texto do confronto (Time A × Time B) já acrescido do nome do
