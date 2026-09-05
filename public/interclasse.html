@@ -807,8 +807,10 @@
         .grade-mural-table { width: 100%; border-collapse: collapse; font-size: 16px; }
         .grade-mural-table th, .grade-mural-table td { border: 2px solid #333; padding: 8px 6px; text-align: center; }
         .grade-mural-table thead th { background: #1e3a8a; color: #fff; font-size: 15px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .grade-mural-table td.mural-placar { font-weight: 800; font-size: 18px; }
+        .grade-mural-table td.mural-confronto-placar { text-align: left; }
+        .grade-mural-table .mural-time { font-weight: 700; }
         .grade-mural-table .mural-vs { color: #b91c1c; font-weight: 800; }
+        .grade-mural-table .mural-score-blank { display: inline-block; min-width: 34px; border-bottom: 2px solid #333; text-align: center; font-weight: 800; font-size: 18px; margin: 0 3px; }
         .grade-mural-footer { text-align: center; font-size: 11px; color: #666; margin-top: 12px; }
 
         /* ---- Impressão do Quadro Resumo (versão colorida, estilo esportivo) ---- */
@@ -1574,6 +1576,7 @@
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;" class="no-print">
                     <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirGradeNormal()">🖨️ Imprimir Grade (com dados)</button>
                     <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--accent); color: #fff;" onclick="imprimirGradeMural()">🖨️ Imprimir para Mural (cartaz)</button>
+                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--purple); color: #fff;" onclick="abrirVisualizacaoOnline()">🌐 Abrir Visualização Online (Jogos, Classificação e Chaveamento)</button>
                 </div>
                 <div id="scheduleEditStatus" class="alert alert-info"></div>
                 <div id="scheduleContainer"></div>
@@ -5821,6 +5824,25 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return { texto: resolvidoRecursivo.texto, pendente: resolvidoRecursivo.pendente, ehReferencia: true };
         }
 
+        // Monta o texto do confronto (Time A × Time B) já acrescido do nome do
+        // país/seleção de cada turma (ex.: "6º Ano A — 🇦🇷 Argentina"), usado em
+        // toda a Grade de Horários (tela, impressões e visualização online).
+        // Referências ainda pendentes (ex.: "Vencedor do Jogo 3 — aguardando
+        // resultado") são mantidas como estão, sem tentar buscar país.
+        function confrontoComPais(game, opcoes) {
+            const opts = opcoes || {};
+            const separador = opts.separador || 'vs';
+            const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
+            const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
+            const nome1 = t1r.pendente ? t1r.texto : timeComSelecaoLabel(t1r.texto);
+            const nome2 = t2r.pendente ? t2r.texto : timeComSelecaoLabel(t2r.texto);
+            if (opts.destacarPendente) {
+                const wrap = (txt, pendente) => pendente ? `<span style="font-style:italic;color:var(--text-muted)">${txt}</span>` : txt;
+                return `${wrap(nome1, t1r.pendente)} ${separador} ${wrap(nome2, t2r.pendente)}`;
+            }
+            return `${nome1} ${separador} ${nome2}`;
+        }
+
         // Lançamento/edição do placar — disponível apenas com a edição liberada
         // (perfil professor/coordenador). Chamada pelos campos exibidos em
         // "Grade de Horários & Resultados".
@@ -5932,9 +5954,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     } else {
                         placarCell = `${scoreLabel(game)} <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong>`;
                     }
-                    const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
-                    const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
-                    const confrontoHtml = `<span${t1r.pendente ? ' style="font-style:italic;color:var(--text-muted)"' : ''}>${t1r.texto}</span> vs <span${t2r.pendente ? ' style="font-style:italic;color:var(--text-muted)"' : ''}>${t2r.texto}</span>`;
+                    const confrontoHtml = confrontoComPais(game, { destacarPendente: true, separador: 'vs' });
                     html += `
                         <tr>
                             <td>${game.number ? `<span class="badge badge-blue">Jogo ${game.number}</span>` : '—'}</td>
@@ -6006,9 +6026,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 gamesOfDate.forEach(game => {
                     const winner = gameWinnerLabel(game);
                     const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
-                    const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
-                    const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
-                    const confronto = `${t1r.texto} vs ${t2r.texto}`;
+                    const confronto = confrontoComPais(game, { separador: 'vs' });
                     const placarTxt = jaTemPlacar
                         ? `${game.score1} x ${game.score2}${winner.text ? ' — ' + winner.text : ''}`
                         : 'Agendado — sem resultado';
@@ -6075,8 +6093,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                                     <th>Horário</th>
                                     <th>Ano</th>
                                     <th>Modalidade</th>
-                                    <th>Confronto</th>
-                                    <th>Placar</th>
+                                    <th>Confronto / Placar</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -6085,16 +6102,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
                     const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
                     const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
-                    const confronto = `${t1r.texto} <span class="mural-vs">×</span> ${t2r.texto}`;
-                    const placarTxt = jaTemPlacar ? `${game.score1} × ${game.score2}` : '— × —';
+                    const nome1 = t1r.pendente ? t1r.texto : timeComSelecaoLabel(t1r.texto);
+                    const nome2 = t2r.pendente ? t2r.texto : timeComSelecaoLabel(t2r.texto);
+                    const placar1 = jaTemPlacar ? game.score1 : '____';
+                    const placar2 = jaTemPlacar ? game.score2 : '____';
+                    const confrontoPlacar = `<span class="mural-time">${nome1}</span> <span class="mural-score-blank">${placar1}</span> <span class="mural-vs">×</span> <span class="mural-score-blank">${placar2}</span> <span class="mural-time">${nome2}</span>`;
                     html += `
                         <tr>
                             <td>${game.number || '—'}</td>
                             <td>${game.time}</td>
                             <td>${game.year}</td>
                             <td>${game.modal}${game.category ? ' (' + game.category + ')' : ''}</td>
-                            <td>${confronto}</td>
-                            <td class="mural-placar">${placarTxt}</td>
+                            <td class="mural-confronto-placar">${confrontoPlacar}</td>
                         </tr>
                     `;
                 });
@@ -6206,6 +6225,208 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             container.innerHTML = html;
         }
 
+        // ---------------------------------------------------------------
+        // CHAVEAMENTO DE ELIMINATÓRIAS (Eliminatória, Quartas, Semifinal,
+        // Disputa de 3º Lugar e Final) — agrupa por modalidade + categoria,
+        // organizando os jogos de cada fase na ordem correta do mata-mata.
+        // Jogos da fase "Grupos" não entram aqui (ficam na Grade normal e
+        // na Classificação por pontos corridos).
+        // ---------------------------------------------------------------
+        const FASES_CHAVEAMENTO_ORDEM = ['Eliminatória', 'Quartas de Final', 'Semi-final', 'Disputa de 3º Lugar', 'Final'];
+
+        function calcularChaveamentoPorModalidade() {
+            const grupos = {};
+            gamesData.forEach(g => {
+                if (!FASES_CHAVEAMENTO_ORDEM.includes(g.phase)) return;
+                const chave = g.modal + (g.category ? ' — ' + g.category : '');
+                if (!grupos[chave]) grupos[chave] = {};
+                if (!grupos[chave][g.phase]) grupos[chave][g.phase] = [];
+                grupos[chave][g.phase].push(g);
+            });
+            Object.values(grupos).forEach(porFase => {
+                Object.values(porFase).forEach(lista => {
+                    lista.sort((a, b) => (a.number || 0) - (b.number || 0) || (a.date + a.time).localeCompare(b.date + b.time));
+                });
+            });
+            return grupos;
+        }
+
+        function gerarChaveamentoHtml() {
+            const grupos = calcularChaveamentoPorModalidade();
+            const chaves = Object.keys(grupos).sort();
+            if (chaves.length === 0) {
+                return '<div class="alert alert-info">Nenhum jogo de fase eliminatória (Eliminatória, Quartas de Final, Semi-final, Disputa de 3º Lugar ou Final) foi marcado ainda.</div>';
+            }
+            let html = '';
+            chaves.forEach(chave => {
+                html += `<h3 style="margin-top:1.5rem;">🏆 ${chave}</h3>`;
+                html += `<div class="bracket-row">`;
+                FASES_CHAVEAMENTO_ORDEM.forEach(fase => {
+                    const jogos = grupos[chave][fase];
+                    if (!jogos || jogos.length === 0) return;
+                    html += `<div class="bracket-col"><h4>${fase}</h4>`;
+                    jogos.forEach(g => {
+                        const confronto = confrontoComPais(g, { destacarPendente: true, separador: '×' });
+                        html += `
+                            <div class="bracket-game">
+                                <div class="bracket-game-num">${g.number ? 'Jogo ' + g.number : ''}</div>
+                                <div class="bracket-game-conf">${confronto}</div>
+                                <div class="bracket-game-score">${scoreLabel(g)}</div>
+                            </div>`;
+                    });
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            });
+            return html;
+        }
+
+        // ---------------------------------------------------------------
+        // VISUALIZAÇÃO ONLINE — abre uma aba independente (autocontida, sem
+        // dependências externas) reunindo, em três seções com abas: a
+        // Listagem de Jogos, a Classificação por modalidade e o Chaveamento
+        // das eliminatórias/semifinais/final. É uma "foto" dos dados no
+        // momento em que o botão é clicado (mesmo princípio das impressões),
+        // pensada para ser aberta em outra tela/projetor ou compartilhada.
+        // ---------------------------------------------------------------
+        function gerarListagemJogosOnlineHtml() {
+            if (gamesData.length === 0) {
+                return '<div class="alert alert-info">Os horários e resultados dos jogos serão publicados aqui assim que forem marcados.</div>';
+            }
+            const allDates = [...new Set(gamesData.map(g => g.date))].sort();
+            let html = '';
+            allDates.forEach(date => {
+                const gamesOfDate = gamesData.filter(g => g.date === date).sort((a, b) => a.time.localeCompare(b.time));
+                html += `<h3 style="margin-top:1.5rem;">📅 ${formatDateBr(date)}</h3>`;
+                html += `<table><thead><tr>
+                        <th>Jogo Nº</th><th>Horário</th><th>Ano</th><th>Modalidade</th><th>Categoria</th>
+                        <th>Fase</th><th>Espaço</th><th>Confronto</th><th>Placar / Status</th>
+                    </tr></thead><tbody>`;
+                gamesOfDate.forEach(game => {
+                    const winner = gameWinnerLabel(game);
+                    const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
+                    const confronto = confrontoComPais(game, { destacarPendente: true, separador: 'vs' });
+                    const placarTxt = jaTemPlacar
+                        ? `${game.score1} x ${game.score2}${winner.text ? ' — ' + winner.text : ''}`
+                        : 'Agendado — sem resultado';
+                    html += `<tr>
+                        <td>${game.number ? 'Jogo ' + game.number : '—'}</td>
+                        <td>${game.time}</td>
+                        <td>${game.year}</td>
+                        <td>${game.modal}</td>
+                        <td>${game.category || '—'}</td>
+                        <td>${game.phase}</td>
+                        <td>${game.space || '—'}</td>
+                        <td>${confronto}</td>
+                        <td>${placarTxt}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+            });
+            return html;
+        }
+
+        function gerarHtmlVisualizacaoOnline() {
+            const agora = new Date().toLocaleString('pt-BR');
+            return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GETECO 2026 — Jogos, Classificação e Chaveamento</title>
+<style>
+    :root { --primary:#1e3a8a; --primary-light:#3b82f6; --secondary:#0d9488; --accent:#f59e0b; --purple:#7c3aed; --text-muted:#64748b; --border:#e2e8f0; }
+    * { box-sizing: border-box; margin:0; padding:0; font-family:'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background:#f8fafc; color:#1e293b; line-height:1.6; padding-bottom:2.5rem; }
+    header { background: linear-gradient(135deg, var(--primary), #1e1b4b); color:#fff; padding:1.1rem 1rem; text-align:center; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); position:sticky; top:0; z-index:10; }
+    header h1 { font-size:1.3rem; margin-bottom:0.2rem; }
+    header p { font-size:0.85rem; opacity:0.9; }
+    .container { max-width:1100px; margin:1.5rem auto; padding:0 1rem; }
+    .tabs-online { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .tabs-online button { flex:1; min-width:150px; padding:0.75rem 1rem; border:none; border-radius:8px; font-weight:700; font-size:0.9rem; cursor:pointer; background:#fff; color:var(--text-muted); border:1px solid var(--border); transition: all 0.15s ease; }
+    .tabs-online button.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .card { background:#fff; border-radius:12px; padding:1.2rem; box-shadow:0 2px 4px rgba(0,0,0,0.05); border:1px solid var(--border); }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+    table { width:100%; border-collapse:collapse; margin-bottom:0.8rem; font-size:0.88rem; }
+    th, td { border:1px solid var(--border); padding:0.5rem 0.6rem; text-align:left; }
+    thead th { background:#f1f5f9; }
+    .alert-info { background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; padding:0.8rem 1rem; border-radius:8px; }
+    .bracket-row { display:flex; gap:0.9rem; overflow-x:auto; padding-bottom:0.5rem; }
+    .bracket-col { flex:0 0 220px; }
+    .bracket-col h4 { font-size:0.85rem; text-transform:uppercase; letter-spacing:0.4px; color:var(--primary); border-bottom:2px solid var(--primary); padding-bottom:0.3rem; margin-bottom:0.6rem; }
+    .bracket-game { background:#fafafa; border:1px solid var(--border); border-radius:8px; padding:0.6rem 0.7rem; margin-bottom:0.7rem; }
+    .bracket-game-num { font-size:0.72rem; font-weight:800; color:var(--purple); margin-bottom:0.2rem; }
+    .bracket-game-conf { font-size:0.85rem; margin-bottom:0.35rem; }
+    .bracket-game-score { font-size:0.85rem; font-weight:700; }
+    .badge-blue { background:#dbeafe; color:#0d3d7a; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.82rem; font-weight:700; }
+    .footer-nota { text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:1.5rem; }
+</style>
+</head>
+<body>
+    <header>
+        <h1>🏆 Jogos Estudantis do GETECO 2026</h1>
+        <p>Jogos • Classificação • Chaveamento das Eliminatórias — atualizado em ${agora}</p>
+    </header>
+    <div class="container">
+        <div class="tabs-online">
+            <button class="active" onclick="mudarAbaOnline(event,'painelJogos')">📋 Jogos</button>
+            <button onclick="mudarAbaOnline(event,'painelClassificacao')">📊 Classificação</button>
+            <button onclick="mudarAbaOnline(event,'painelChaveamento')">🏆 Chaveamento</button>
+        </div>
+        <div id="painelJogos" class="tab-pane active card">${gerarListagemJogosOnlineHtml()}</div>
+        <div id="painelClassificacao" class="tab-pane card">${(() => {
+            const porModalidade = calcularClassificacaoPorModalidade();
+            const modalidades = Object.keys(porModalidade);
+            if (modalidades.length === 0) return '<div class="alert-info">Os resultados e a classificação de cada modalidade aparecem aqui assim que os primeiros placares forem lançados.</div>';
+            let out = '';
+            modalidades.forEach(mod => {
+                const grupo = porModalidade[mod];
+                const resultadosOrdenados = grupo.resultados.slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+                const linhas = Object.values(grupo.tabela).sort((a, b) => {
+                    const saldoA = a.pf - a.ps, saldoB = b.pf - b.ps;
+                    return b.pontos - a.pontos || (saldoB - saldoA) || (b.pf - a.pf);
+                });
+                out += `<h3 style="margin-top:1.2rem;">${mod}</h3>`;
+                out += `<p style="font-weight:600;margin-bottom:0.4rem;">Resultados</p>`;
+                out += `<table><thead><tr><th>Data</th><th>Fase</th><th>Confronto</th><th>Placar</th></tr></thead><tbody>`;
+                resultadosOrdenados.forEach(g => {
+                    out += `<tr><td>${formatDateBr(g.date)}</td><td>${g.phase || '—'}</td><td>${timeComSelecaoLabel(g.team1)} × ${timeComSelecaoLabel(g.team2)}</td><td><span class="badge-blue">${g.score1} x ${g.score2}</span></td></tr>`;
+                });
+                out += `</tbody></table>`;
+                out += `<p style="font-weight:600;margin-bottom:0.4rem;">Classificação</p>`;
+                out += `<table><thead><tr><th>#</th><th>Turma / Seleção</th><th>J</th><th>V</th><th>E</th><th>D</th><th>PF</th><th>PS</th><th>SG</th><th>Pts</th></tr></thead><tbody>`;
+                linhas.forEach((l, i) => {
+                    out += `<tr><td>${i + 1}</td><td>${timeComSelecaoLabel(l.time)}</td><td>${l.jogos}</td><td>${l.vitorias}</td><td>${l.empates}</td><td>${l.derrotas}</td><td>${l.pf}</td><td>${l.ps}</td><td>${l.pf - l.ps}</td><td><strong>${l.pontos}</strong></td></tr>`;
+                });
+                out += `</tbody></table>`;
+            });
+            return out;
+        })()}</div>
+        <div id="painelChaveamento" class="tab-pane card">${gerarChaveamentoHtml()}</div>
+        <p class="footer-nota">Consulta pública — o lançamento dos placares é feito pela coordenação/professor de Educação Física. Esta página é uma foto dos dados no momento em que foi aberta; gere uma nova a partir do sistema para ver atualizações.</p>
+    </div>
+    <script>
+        function mudarAbaOnline(ev, id) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tabs-online button').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            ev.currentTarget.classList.add('active');
+        }
+    <\/script>
+</body>
+</html>`;
+        }
+
+        function abrirVisualizacaoOnline() {
+            const html = gerarHtmlVisualizacaoOnline();
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const janela = window.open(url, '_blank');
+            if (!janela) {
+                alert('Não foi possível abrir a nova aba. Verifique se o navegador está bloqueando pop-ups para este site e tente novamente.');
+            }
+        }
 
         // ---------------------------------------------------------------
         // ARMAZENAMENTO CENTRAL DE PARTICIPAÇÃO (SEXO + MODALIDADES)
