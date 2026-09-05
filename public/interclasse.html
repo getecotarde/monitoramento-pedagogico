@@ -1510,8 +1510,14 @@
             <div class="card" style="margin-top:0.6rem;">
                 <p>Este painel serve para organizar as turmas nos Grupos A e B (fase de grupos de Futsal e Queimada). Utilize os seletores abaixo para montar cada grupo.</p>
 
-                <div class="alert alert-warning">
+                <div id="noGroupsAlert" class="alert alert-warning" style="display: none;">
                     <strong>⚠️ Nenhum grupo formado até o momento.</strong> Defina o grupo de cada turma nas tabelas abaixo.
+                </div>
+                <div id="groupsFormedAlert" class="alert alert-info" style="display: none;">
+                    <strong>✅ Grupos já formados.</strong> Utilize os seletores abaixo para consultar ou, se necessário, ajustar a montagem.
+                </div>
+                <div id="partialGroupsAlert" class="alert alert-warning" style="display: none;">
+                    <strong>⚠️ Ainda faltam turmas sem grupo definido.</strong> Complete a montagem nas tabelas abaixo.
                 </div>
 
                 <div id="groupSelectLockedMsg" class="alert alert-info" style="display: none;">🔒 Os seletores abaixo estão bloqueados. Insira o código de acesso no topo desta aba para editar a montagem dos grupos.</div>
@@ -5744,6 +5750,31 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function renderGroupSummary() {
             renderSummaryFor('summary6', turmas6);
             renderSummaryFor('summary7', turmas7);
+            atualizarAvisoStatusGrupos();
+        }
+
+        // Atualiza o aviso no topo do painel de acordo com o estado real
+        // dos grupos: nenhum definido, parcialmente definido, ou todos definidos.
+        function atualizarAvisoStatusGrupos() {
+            const todasTurmas = turmas6.concat(turmas7);
+            const totalComGrupo = todasTurmas.filter(t => groupAssignments[t]).length;
+
+            const noGroupsAlert = document.getElementById('noGroupsAlert');
+            const groupsFormedAlert = document.getElementById('groupsFormedAlert');
+            const partialGroupsAlert = document.getElementById('partialGroupsAlert');
+            if (!noGroupsAlert || !groupsFormedAlert || !partialGroupsAlert) return;
+
+            noGroupsAlert.style.display = 'none';
+            groupsFormedAlert.style.display = 'none';
+            partialGroupsAlert.style.display = 'none';
+
+            if (totalComGrupo === 0) {
+                noGroupsAlert.style.display = 'block';
+            } else if (totalComGrupo === todasTurmas.length) {
+                groupsFormedAlert.style.display = 'block';
+            } else {
+                partialGroupsAlert.style.display = 'block';
+            }
         }
 
         function renderSummaryFor(containerId, turmas) {
