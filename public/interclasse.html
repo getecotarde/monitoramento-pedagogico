@@ -781,6 +781,36 @@
             .qr-flow-arrow { transform: rotate(90deg); }
         }
 
+        /* Impressão da Grade de Horários & Resultados — versão completa (com dados) */
+        @page gradeNormal { size: A4 portrait; margin: 12mm 10mm; }
+        html.grade-print-mode { page: gradeNormal; }
+        #gradePrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-grade-normal header,
+            body.printing-grade-normal > .container { display: none !important; }
+            body.printing-grade-normal #gradePrintContainer.roster-print-only { display: block !important; }
+            body.printing-grade-mural header,
+            body.printing-grade-mural > .container { display: none !important; }
+            body.printing-grade-mural #gradePrintContainer.roster-print-only { display: block !important; }
+        }
+        .grade-print-page { padding: 4px 2px; }
+
+        /* Impressão para o Mural (Quadro de Avisos) — cartaz com fonte grande,
+           uma folha por dia de jogos, pensado para ser lido a distância pelos alunos. */
+        @page gradeMural { size: A4 portrait; margin: 10mm; }
+        html.grade-mural-mode { page: gradeMural; }
+        .grade-mural-page { page-break-after: always; padding: 10px 6px; }
+        .grade-mural-page:last-child { page-break-after: auto; }
+        .grade-mural-header { text-align: center; margin-bottom: 14px; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; }
+        .grade-mural-header h1 { font-size: 26px; color: #1e3a8a; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .grade-mural-header p { font-size: 16px; color: #333; font-weight: 700; }
+        .grade-mural-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+        .grade-mural-table th, .grade-mural-table td { border: 2px solid #333; padding: 8px 6px; text-align: center; }
+        .grade-mural-table thead th { background: #1e3a8a; color: #fff; font-size: 15px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .grade-mural-table td.mural-placar { font-weight: 800; font-size: 18px; }
+        .grade-mural-table .mural-vs { color: #b91c1c; font-weight: 800; }
+        .grade-mural-footer { text-align: center; font-size: 11px; color: #666; margin-top: 12px; }
+
         /* ---- Impressão do Quadro Resumo (versão colorida, estilo esportivo) ---- */
         @page quadroResumo { size: A4 portrait; margin: 7mm 9mm; }
         html.quadro-print-mode { page: quadroResumo; }
@@ -1541,6 +1571,10 @@
             <div class="card">
                 <h2>🗓️ Grade de Horários & Resultados dos Jogos</h2>
                 <p>Consulte aqui os dias, horários e modalidades dos Jogos Estudantis do GETECO 2026, marcados na aba "Quadro de Marcação de Jogos", com os resultados já lançados. Esta tabela é de acompanhamento público para estudantes, professores e famílias (perfil geral).</p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;" class="no-print">
+                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirGradeNormal()">🖨️ Imprimir Grade (com dados)</button>
+                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--accent); color: #fff;" onclick="imprimirGradeMural()">🖨️ Imprimir para Mural (cartaz)</button>
+                </div>
                 <div id="scheduleEditStatus" class="alert alert-info"></div>
                 <div id="scheduleContainer"></div>
             </div>
@@ -1705,6 +1739,7 @@
     <!-- Conteúdo montado dinamicamente na hora de imprimir o Resumo Geral (paisagem, 2 folhas) -->
     <div id="resumoPrintContainer" class="roster-print-only"></div>
     <div id="quadroResumoPrintContainer" class="roster-print-only"></div>
+    <div id="gradePrintContainer" class="roster-print-only"></div>
 
     <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
          formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
@@ -5922,6 +5957,168 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
         // ---------------------------------------------------------------
+        // IMPRESSÃO DA GRADE DE HORÁRIOS & RESULTADOS
+        // Duas versões:
+        //  1) "Normal" — tabela completa (todas as colunas), igual à consulta
+        //     pública em tela, pronta para arquivar/anexar a um ofício.
+        //  2) "Mural" — cartaz com fonte grande, uma folha por dia de jogos,
+        //     pensado para ser afixado no quadro de avisos da escola, para
+        //     os alunos acompanharem horários e resultados à distância.
+        // Ambas usam os mesmos dados (gamesData) já lançados na tela.
+        // ---------------------------------------------------------------
+        function gerarHtmlGradeImpressaoNormal() {
+            const cabecalho = `
+                <div class="roster-print-header">
+                    <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
+                    <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Resultados</span><br>
+                    <span style="font-size:9px;color:#666;">Impresso em ${new Date().toLocaleDateString('pt-BR')}</span>
+                </div>`;
+
+            if (gamesData.length === 0) {
+                return `<div class="grade-print-page resumo-print-page">${cabecalho}<p>Nenhum jogo cadastrado ainda.</p></div>`;
+            }
+
+            const allDates = [...new Set(gamesData.map(g => g.date))].sort();
+            let html = `<div class="grade-print-page resumo-print-page">${cabecalho}`;
+
+            allDates.forEach(date => {
+                const gamesOfDate = gamesData.filter(g => g.date === date)
+                    .sort((a, b) => a.time.localeCompare(b.time));
+
+                html += `<h3>📅 ${formatDateBr(date)}</h3>`;
+                html += `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Jogo Nº</th>
+                                <th>Horário</th>
+                                <th>Ano</th>
+                                <th>Modalidade</th>
+                                <th>Categoria</th>
+                                <th>Fase</th>
+                                <th>Espaço</th>
+                                <th>Confronto</th>
+                                <th>Placar / Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                gamesOfDate.forEach(game => {
+                    const winner = gameWinnerLabel(game);
+                    const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
+                    const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
+                    const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
+                    const confronto = `${t1r.texto} vs ${t2r.texto}`;
+                    const placarTxt = jaTemPlacar
+                        ? `${game.score1} x ${game.score2}${winner.text ? ' — ' + winner.text : ''}`
+                        : 'Agendado — sem resultado';
+                    html += `
+                        <tr>
+                            <td style="text-align:center;">${game.number ? 'Jogo ' + game.number : '—'}</td>
+                            <td style="text-align:center;">${game.time}</td>
+                            <td style="text-align:center;">${game.year}</td>
+                            <td>${game.modal}</td>
+                            <td>${game.category || '—'}</td>
+                            <td>${game.phase}</td>
+                            <td style="text-align:center;">${game.space || '—'}</td>
+                            <td>${confronto}</td>
+                            <td>${placarTxt}</td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table>`;
+            });
+
+            html += `<p class="nota-rodape" style="margin-top:6px;">Consulta pública dos horários e resultados. O lançamento dos placares é feito pela coordenação/professor de Educação Física.</p>`;
+            html += `</div>`;
+            return html;
+        }
+
+        function imprimirGradeNormal() {
+            const container = document.getElementById('gradePrintContainer');
+            if (!container) return;
+            container.innerHTML = gerarHtmlGradeImpressaoNormal();
+            document.documentElement.classList.add('grade-print-mode');
+            document.body.classList.add('printing-grade-normal');
+            setTimeout(() => window.print(), 50);
+        }
+
+        function gerarHtmlGradeImpressaoMural() {
+            if (gamesData.length === 0) {
+                return `
+                    <div class="grade-mural-page">
+                        <div class="grade-mural-header">
+                            <h1>🏆 JOGOS ESTUDANTIS GETECO 2026</h1>
+                            <p>Grade de Horários &amp; Resultados</p>
+                        </div>
+                        <p style="text-align:center;font-size:16px;margin-top:40px;">Nenhum jogo cadastrado ainda.</p>
+                    </div>`;
+            }
+
+            const allDates = [...new Set(gamesData.map(g => g.date))].sort();
+            let html = '';
+
+            allDates.forEach(date => {
+                const gamesOfDate = gamesData.filter(g => g.date === date)
+                    .sort((a, b) => a.time.localeCompare(b.time));
+
+                html += `
+                    <div class="grade-mural-page">
+                        <div class="grade-mural-header">
+                            <h1>🏆 JOGOS ESTUDANTIS GETECO 2026</h1>
+                            <p>Grade de Horários &amp; Resultados — 📅 ${formatDateBr(date)}</p>
+                        </div>
+                        <table class="grade-mural-table">
+                            <thead>
+                                <tr>
+                                    <th>Jogo</th>
+                                    <th>Horário</th>
+                                    <th>Ano</th>
+                                    <th>Modalidade</th>
+                                    <th>Confronto</th>
+                                    <th>Placar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                gamesOfDate.forEach(game => {
+                    const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
+                    const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
+                    const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
+                    const confronto = `${t1r.texto} <span class="mural-vs">×</span> ${t2r.texto}`;
+                    const placarTxt = jaTemPlacar ? `${game.score1} × ${game.score2}` : '— × —';
+                    html += `
+                        <tr>
+                            <td>${game.number || '—'}</td>
+                            <td>${game.time}</td>
+                            <td>${game.year}</td>
+                            <td>${game.modal}${game.category ? ' (' + game.category + ')' : ''}</td>
+                            <td>${confronto}</td>
+                            <td class="mural-placar">${placarTxt}</td>
+                        </tr>
+                    `;
+                });
+                html += `
+                            </tbody>
+                        </table>
+                        <p class="grade-mural-footer">Atualizado em ${new Date().toLocaleDateString('pt-BR')} • Dúvidas: fale com a coordenação/Educação Física.</p>
+                    </div>
+                `;
+            });
+
+            return html;
+        }
+
+        function imprimirGradeMural() {
+            const container = document.getElementById('gradePrintContainer');
+            if (!container) return;
+            container.innerHTML = gerarHtmlGradeImpressaoMural();
+            document.documentElement.classList.add('grade-mural-mode');
+            document.body.classList.add('printing-grade-mural');
+            setTimeout(() => window.print(), 50);
+        }
+
+        // ---------------------------------------------------------------
         // RESULTADOS E CLASSIFICAÇÃO POR MODALIDADE
         // Agrupa os jogos com placar já lançado por modalidade e monta, para
         // cada uma: a lista de resultados (confrontos e placares) e a tabela
@@ -6297,8 +6494,12 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             document.body.classList.remove('printing-roster');
             document.body.classList.remove('printing-resumo');
             document.body.classList.remove('printing-quadro');
+            document.body.classList.remove('printing-grade-normal');
+            document.body.classList.remove('printing-grade-mural');
             document.documentElement.classList.remove('resumo-print-mode');
             document.documentElement.classList.remove('quadro-print-mode');
+            document.documentElement.classList.remove('grade-print-mode');
+            document.documentElement.classList.remove('grade-mural-mode');
         });
 
         // ---------------------------------------------------------------
