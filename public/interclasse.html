@@ -880,14 +880,12 @@
         <!-- Navigation Tabs -->
         <nav class="tabs">
             <button class="tab-btn active" onclick="switchTab('resumo')">📌 Resumo Geral</button>
-            <button class="tab-btn" onclick="switchTab('quadroresumo')">🏅 Quadro Resumo (Alunos)</button>
-            <button class="tab-btn" onclick="switchTab('camisas')">🎽 Camisas</button>
-            <button class="tab-btn" onclick="switchTab('relatorio')">📄 Relatório Apresentado</button>
-            <button class="tab-btn" onclick="switchTab('modalidades')">🏆 Modalidades & Regras</button>
             <button class="tab-btn" onclick="switchTab('organizacao')">📅 Organização & Cronograma</button>
             <button class="tab-btn" onclick="switchTab('fases')">⚡ Fases do Campeonato</button>
-            <button class="tab-btn" onclick="switchTab('registro')">🗂️ Organização dos Grupos</button>
-            <button class="tab-btn" onclick="switchTab('quadro')">🗂️ Quadro de Marcação de Jogos</button>
+            <button class="tab-btn" onclick="switchTab('modalidades')">🏆 Modalidades & Regras</button>
+            <button class="tab-btn" onclick="switchTab('quadroresumo')">🏅 Quadro Resumo (Alunos)</button>
+            <button class="tab-btn" onclick="switchTab('camisas')">🎽 Camisas</button>
+            <button class="tab-btn" onclick="switchTab('registro')">🗂️ Organização dos Grupos & Marcação de Jogos</button>
             <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Resultados</button>
             <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Listagem & Fichas (Alunos)</button>
         </nav>
@@ -915,6 +913,55 @@
             </div>
 
             <div class="card">
+                <h2>📋 Relatório de Apresentação do Projeto</h2>
+                <div class="table-responsive">
+                    <table>
+                        <tr>
+                            <th width="30%">Instituição</th>
+                            <td>Escola Municipal Geraldo Teixeira Costa (GETECO)</td>
+                        </tr>
+                        <tr>
+                            <th>Projeto</th>
+                            <td>Projeto Multidisciplinar - Jogos Estudantis GETECO 2026</td>
+                        </tr>
+                        <tr>
+                            <th>Componente Curricular</th>
+                            <td>Educação Física</td>
+                        </tr>
+                        <tr>
+                            <th>Professores Responsáveis</th>
+                            <td>Dênis José, Mello, Ramon</td>
+                        </tr>
+                        <tr>
+                            <th>Público Alvo</th>
+                            <td>Estudantes do 6º e 7º anos do Ensino Fundamental</td>
+                        </tr>
+                        <tr>
+                            <th>Caráter do Evento</th>
+                            <td>Educacional, Competitivo, Inclusivo e Integrador</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📌 Princípios Pedagógicos & Diretrizes de Inscrição</h2>
+                <div class="alert alert-info">
+                    <strong>Participação Ampla e Igualitária:</strong> Todos os estudantes inscritos na súmula têm o direito e o dever de jogar. As regras foram adaptadas especificamente para impedir a exclusão de estudantes reservas ou menos experientes.
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <h3>Regras de Inscrição Intermodalidades</h3>
+                        <p>O estudante poderá participar de mais de uma modalidade esportiva, desde que haja acordo com a turma e não ocorra simultaneidade de partidas entre modalidades diferentes nas quais esteja inscrito.</p>
+                    </div>
+                    <div>
+                        <h3>Prazos e Fichas Finais</h3>
+                        <p>As inscrições devem ser oficializadas impreterivelmente até o prazo limite estipulado pela Comissão Organizadora, utilizando as fichas oficiais (Anexo) devidamente assinadas pelo Capitão e Professor Referência.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>🎯 Objetivos dos Jogos Estudantis GETECO 2026</h2>
                 <p>Os <strong>Jogos Estudantis do GETECO 2026</strong> têm o caráter pedagógico e integrador de estimular a participação coletiva de todas e todos os estudantes, com o intuito de desenvolver:</p>
                 <ul style="margin: 1rem 0 1rem 2rem; color: var(--text);">
@@ -924,13 +971,56 @@
                 </ul>
             </div>
 
-            <div class="card">
-                <h2>🌐 Turmas e Seleções</h2>
-                <p style="margin-bottom: 1rem; color: var(--text-muted);">Cada turma representa uma seleção, reaproveitando os países da Gincana escolar. Essa identificação é usada nos grupos, nos jogos e nas súmulas.</p>
-                <div class="grid-3" id="turmasSelecoesGrid" style="gap: 0.8rem;"></div>
+            <div class="card" style="padding: 1rem;">
+                <h2 style="font-size: 1.15rem; margin-bottom: 0.6rem; padding-bottom: 0.4rem;">🌐 Turmas e Seleções</h2>
+                <p style="margin-bottom: 0.7rem; color: var(--text-muted); font-size: 0.85rem;">Cada turma representa uma seleção, reaproveitando os países da Gincana escolar. Essa identificação é usada nos grupos, nos jogos e nas súmulas.</p>
+                <div class="grid-3" id="turmasSelecoesGrid" style="gap: 0.5rem;"></div>
+
+                <div class="alert alert-info" style="margin-top: 0.8rem; padding: 0.6rem 0.8rem; font-size: 0.85rem;">
+                    <strong>🎲 Sorteio — Redistribuição dos alunos do 8º Ano X:</strong> Para os Jogos Estudantis, os estudantes da Turma 8º Ano X foram sorteados e redistribuídos entre as turmas do 7º Ano, passando a integrar a seleção correspondente durante o evento.
+                </div>
+                <div class="table-responsive">
+                    <table style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 0.4rem 0.6rem;">Turma (7º Ano)</th>
+                                <th style="padding: 0.4rem 0.6rem;">Alunos do 8º Ano X</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.4rem 0.6rem;"><strong>7º Ano A</strong> <span style="color: var(--text-muted);">— 🇸🇳 Senegal</span></td>
+                                <td style="padding: 0.4rem 0.6rem;">Richard e Guilherme</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.4rem 0.6rem;"><strong>7º Ano B</strong> <span style="color: var(--text-muted);">— 🇲🇦 Marrocos</span></td>
+                                <td style="padding: 0.4rem 0.6rem;">Taylor</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.4rem 0.6rem;"><strong>7º Ano C</strong> <span style="color: var(--text-muted);">— 🇨🇴 Colômbia</span></td>
+                                <td style="padding: 0.4rem 0.6rem;">Kauã</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.4rem 0.6rem;"><strong>7º Ano D</strong> <span style="color: var(--text-muted);">— 🇺🇾 Uruguai</span></td>
+                                <td style="padding: 0.4rem 0.6rem;">Yuri e Thiago</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.4rem 0.6rem;"><strong>7º Ano E</strong> <span style="color: var(--text-muted);">— 🇺🇸 Estados Unidos</span></td>
+                                <td style="padding: 0.4rem 0.6rem;">Arthur e Maria Eduarda</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="grid-2">
+                <div class="card">
+                    <h2>🎉 Abertura, Protocolo e Encerramento</h2>
+                    <p><strong>Cerimônia de Abertura:</strong> Desfile oficial das equipes seguidas do protocolo formal do evento.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Juramento do Atleta:</strong> Um atleta representante conduzirá o juramento com o braço direito erguido, sendo acompanhado por todos os demais participantes em sinal de respeito.</p>
+                    <p style="margin-top: 0.5rem;"><strong>Encerramento & Premiação:</strong> Dia <strong>11/09</strong>, logo após o término das últimas partidas, seguido pelo recreio e limpeza coletiva da quadra.</p>
+                </div>
+
                 <div class="card">
                     <h2>👥 Das Equipes e Organização</h2>
                     <p><strong>Composição:</strong> As equipes serão formadas por turmas dos respectivos anos/salas, respeitando as características e especificidades de cada idade.</p>
@@ -939,13 +1029,6 @@
                         <li>O nome da equipe será o nome do país/seleção da Gincana escolar (ver associação completa em <strong>🌐 Turmas e Seleções</strong>, acima).</li>
                         <li>Eleição de um(a) <strong>Capitão/Capitã</strong> representante no Congresso Técnico, preenchimento de fichas e decisões organizacionais.</li>
                     </ul>
-                </div>
-
-                <div class="card">
-                    <h2>🎉 Abertura, Protocolo e Encerramento</h2>
-                    <p><strong>Cerimônia de Abertura:</strong> Desfile oficial das equipes seguidas do protocolo formal do evento.</p>
-                    <p style="margin-top: 0.5rem;"><strong>Juramento do Atleta:</strong> Um atleta representante conduzirá o juramento com o braço direito erguido, sendo acompanhado por todos os demais participantes em sinal de respeito.</p>
-                    <p style="margin-top: 0.5rem;"><strong>Encerramento & Premiação:</strong> Dia <strong>11/09</strong>, logo após o término das últimas partidas, seguido pelo recreio e limpeza coletiva da quadra.</p>
                 </div>
             </div>
 
@@ -1128,58 +1211,6 @@
             </div>
         </div>
 
-        <!-- TAB 2: RELATÓRIO APRESENTADO -->
-        <div id="relatorio" class="tab-content">
-            <div class="card">
-                <h2>📋 Relatório de Apresentação do Projeto</h2>
-                <div class="table-responsive">
-                    <table>
-                        <tr>
-                            <th width="30%">Instituição</th>
-                            <td>Escola Municipal Geraldo Teixeira Costa (GETECO)</td>
-                        </tr>
-                        <tr>
-                            <th>Projeto</th>
-                            <td>Projeto Multidisciplinar - Jogos Estudantis GETECO 2026</td>
-                        </tr>
-                        <tr>
-                            <th>Componente Curricular</th>
-                            <td>Educação Física</td>
-                        </tr>
-                        <tr>
-                            <th>Professores Responsáveis</th>
-                            <td>Dênis José, Mello, Ramon</td>
-                        </tr>
-                        <tr>
-                            <th>Público Alvo</th>
-                            <td>Estudantes do 6º e 7º anos do Ensino Fundamental</td>
-                        </tr>
-                        <tr>
-                            <th>Caráter do Evento</th>
-                            <td>Educacional, Competitivo, Inclusivo e Integrador</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>📌 Princípios Pedagógicos & Diretrizes de Inscrição</h2>
-                <div class="alert alert-info">
-                    <strong>Participação Ampla e Igualitária:</strong> Todos os estudantes inscritos na súmula têm o direito e o dever de jogar. As regras foram adaptadas especificamente para impedir a exclusão de estudantes reservas ou menos experientes.
-                </div>
-                <div class="grid-2">
-                    <div>
-                        <h3>Regras de Inscrição Intermodalidades</h3>
-                        <p>O estudante poderá participar de mais de uma modalidade esportiva, desde que haja acordo com a turma e não ocorra simultaneidade de partidas entre modalidades diferentes nas quais esteja inscrito.</p>
-                    </div>
-                    <div>
-                        <h3>Prazos e Fichas Finais</h3>
-                        <p>As inscrições devem ser oficializadas impreterivelmente até o prazo limite estipulado pela Comissão Organizadora, utilizando as fichas oficiais (Anexo) devidamente assinadas pelo Capitão e Professor Referência.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- TAB 3: MODALIDADES & REGRAS -->
         <div id="modalidades" class="tab-content">
             <div class="card">
@@ -1276,32 +1307,32 @@
                             <tr>
                                 <th>Ano/Ciclo</th>
                                 <th>Data</th>
-                                <th>Fases Programadas</th>
                                 <th>Modalidades</th>
+                                <th>Fases Programadas</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td rowspan="2"><strong>6ºs Anos</strong></td>
                                 <td><span class="badge badge-blue">08/09</span></td>
+                                <td style="color: #1e40af; font-weight: 600;">Futsal (M/F), Basquete de Trilha, Damas</td>
                                 <td>Fase de Grupos / Eliminatórias Iniciais</td>
-                                <td>Futsal (M/F), Basquete de Trilha, Damas</td>
                             </tr>
                             <tr>
                                 <td><span class="badge badge-blue">09/09</span></td>
+                                <td style="color: #1e40af; font-weight: 600;">Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
                                 <td>Semifinais e Finais</td>
-                                <td>Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
                             </tr>
                             <tr>
                                 <td rowspan="2"><strong>7ºs Anos</strong></td>
                                 <td><span class="badge badge-orange">10/09</span></td>
+                                <td style="color: #9a3412; font-weight: 600;">Futsal (M/F), Basquete de Trilha, Damas</td>
                                 <td>Fase de Grupos / Eliminatórias Iniciais</td>
-                                <td>Futsal (M/F), Basquete de Trilha, Damas</td>
                             </tr>
                             <tr>
                                 <td><span class="badge badge-orange">11/09</span></td>
+                                <td style="color: #9a3412; font-weight: 600;">Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
                                 <td>Semifinais e Finais</td>
-                                <td>Futsal (M/F), Queimada Mista, Atletismo (M/F)</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1393,17 +1424,17 @@
             </div>
         </div>
 
-        <!-- TAB 6: ORGANIZAÇÃO DOS GRUPOS, HORÁRIOS E REGISTRO DE JOGOS (INTERATIVO) -->
+        <!-- TAB 6: ORGANIZAÇÃO DOS GRUPOS, MARCAÇÃO DE JOGOS E REGISTRO (INTERATIVO) -->
         <div id="registro" class="tab-content">
 
             <div class="card" id="editLockCard">
                 <h2>🔒 Área Restrita de Edição</h2>
                 <div class="alert alert-warning">
-                    A <strong>montagem dos grupos</strong>, a <strong>marcação das partidas</strong> (data, horário, espaço, turmas e modalidade, feita na aba <strong>🗂️ Quadro de Marcação de Jogos</strong>) e o <strong>lançamento dos placares</strong> (feito na aba <strong>🗓️ Grade de Horários & Resultados</strong>) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida pelo mesmo código de acesso em todas as três abas.
+                    A <strong>montagem dos grupos</strong>, a <strong>marcação das partidas</strong> (data, horário, espaço, turmas e modalidade) e o <strong>lançamento dos placares</strong> (feito na aba <strong>🗓️ Grade de Horários & Resultados</strong>) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida pelo mesmo código de acesso em toda esta aba e na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
                 </div>
 
                 <div id="lockedView">
-                    <p style="margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">Consultar os grupos, horários e resultados já cadastrados não exige código — role a página para visualizá-los. Para <strong>editar</strong>, insira o código de acesso abaixo:</p>
+                    <p style="margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">Consultar os grupos, o quadro de jogos e os resultados já cadastrados não exige código — role a página para visualizá-los. Para <strong>editar</strong>, insira o código de acesso abaixo:</p>
                     <form id="unlockForm" onsubmit="tryUnlockEditing(event)" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
                         <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
                             <label for="editCodeInput">Código de acesso</label>
@@ -1422,8 +1453,12 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>🗂️ Organização e Lançamento dos Grupos</h2>
+            <div style="display:flex; align-items:center; gap:0.6rem; margin: 1.6rem 0 0.6rem;">
+                <span style="background:var(--primary); color:#fff; font-weight:700; font-size:0.8rem; border-radius:999px; padding:0.25rem 0.7rem; white-space:nowrap;">ETAPA 1</span>
+                <h2 style="border:none; margin:0; padding:0; font-size:1.2rem;">🗂️ Organização dos Grupos</h2>
+            </div>
+
+            <div class="card" style="margin-top:0.6rem;">
                 <p>Este painel serve para organizar as turmas nos Grupos A e B (fase de grupos de Futsal e Queimada). Utilize os seletores abaixo para montar cada grupo.</p>
 
                 <div class="alert alert-warning">
@@ -1480,20 +1515,17 @@
                 </div>
             </div>
 
-            <div class="alert alert-info">
-                ℹ️ A marcação das partidas (data, horário, espaço, turmas e modalidade) não é feita mais nesta aba — ela é feita exclusivamente na aba <strong>🗂️ Quadro de Marcação de Jogos</strong>. Os placares são lançados na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
+            <div style="display:flex; align-items:center; gap:0.6rem; margin: 2rem 0 0.6rem;">
+                <span style="background:var(--secondary); color:#fff; font-weight:700; font-size:0.8rem; border-radius:999px; padding:0.25rem 0.7rem; white-space:nowrap;">ETAPA 2</span>
+                <h2 style="border:none; margin:0; padding:0; font-size:1.2rem;">🗂️ Quadro de Marcação de Jogos</h2>
             </div>
-        </div>
 
-        <!-- TAB: QUADRO DE MARCAÇÃO DE JOGOS (GRADE DE DISPONIBILIDADE) -->
-        <div id="quadro" class="tab-content">
-            <div class="card" style="padding: 1.5rem 1.5rem 0.5rem;">
-                <h2>🗂️ Quadro de Marcação de Jogos — Grade de Disponibilidade</h2>
+            <div class="card" style="margin-top:0.6rem; padding: 1.5rem 1.5rem 0.5rem;">
                 <p style="color: var(--text-muted); font-size: 0.9rem;">
-                    Esta é a <strong>única</strong> aba onde as partidas são marcadas. Clique em qualquer célula do quadro abaixo (espaço, dia e horário) para marcar um jogo: modalidade, times/turmas e fase.
+                    Esta é a <strong>única</strong> seção onde as partidas são marcadas. Clique em qualquer célula do quadro abaixo (espaço, dia e horário) para marcar um jogo: modalidade, times/turmas e fase.
                     Cada jogo marcado aqui é adicionado automaticamente à lista pública de jogos na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
                     Como o quadro não registra placar, o resultado da partida (placar final) deve ser lançado depois, diretamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
-                    A edição do quadro (marcar/limpar jogos, adicionar espaços, modalidades e horários) é restrita à coordenação e ao professor de Educação Física, com o mesmo código de acesso da aba <strong>🗂️ Organização dos Grupos</strong>.
+                    A edição do quadro (marcar/limpar jogos, adicionar espaços, modalidades e horários) usa o mesmo código de acesso liberado no topo desta aba.
                 </p>
                 <div class="alert alert-info" style="margin-top:0.5rem">
                     🔢 <strong>Numeração dos jogos (para o mata-mata):</strong> ao marcar um jogo, o sistema sugere automaticamente um <strong>número sequencial</strong> (Jogo 1, Jogo 2...), separado para cada combinação de <strong>modalidade + categoria</strong>. A partir da 2ª fase, em vez de escolher a turma no Time A/B, você pode selecionar diretamente <strong>"🏆 Vencedor — Jogo Nº"</strong> ou <strong>"❌ Perdedor — Jogo Nº"</strong> de um jogo já numerado — o sistema só deixa referenciar jogos com número menor (que já aconteceram antes) e nunca deixa repetir um número dentro da mesma modalidade/categoria. Assim que o placar do jogo referenciado for lançado, a "Grade de Horários & Resultados" mostra automaticamente o nome real da turma classificada.
@@ -5350,6 +5382,17 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return SELECOES[turma] || null;
         }
 
+        // Retorna a lista de alunos de uma turma ordenada alfabeticamente pelo
+        // nome (mantendo o número/matrícula original de cada aluno intactos).
+        // Usada em toda a aba "Listagem & Fichas" para exibir e imprimir os
+        // alunos em ordem alfabética, em vez da ordem de cadastro/matrícula.
+        function alunosOrdenadosPorNome(classObj) {
+            if (!classObj || !classObj.students) return [];
+            return [...classObj.students].sort((a, b) =>
+                a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+            );
+        }
+
         // Texto "🇦🇷 Argentina" (sem a turma) para uso em rótulos compactos
         function selecaoLabel(turma) {
             const s = selecaoDaTurma(turma);
@@ -5360,11 +5403,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             const box = document.getElementById('turmasSelecoesGrid');
             if (!box) return;
             const cardHTML = (turma, s) => `
-                <div style="display:flex;align-items:center;gap:0.7rem;border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.9rem;background:#fafafa;">
-                    <span style="font-size:1.6rem;line-height:1;">${s.flag}</span>
+                <div style="display:flex;align-items:center;gap:0.5rem;border:1px solid var(--border);border-radius:8px;padding:0.45rem 0.6rem;background:#fafafa;">
+                    <span style="font-size:1.2rem;line-height:1;">${s.flag}</span>
                     <div>
-                        <div style="font-weight:700;color:var(--primary);font-size:0.95rem;">${s.pais}</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);">${turma}</div>
+                        <div style="font-weight:700;color:var(--primary);font-size:0.82rem;">${s.pais}</div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);">${turma}</div>
                     </div>
                 </div>`;
             let html = '';
@@ -6080,7 +6123,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             tbody.innerHTML = '';
 
             if (classObj && classObj.students) {
-                classObj.students.forEach((student) => {
+                alunosOrdenadosPorNome(classObj).forEach((student) => {
                     const numStr = student.num < 10 ? '0' + student.num : student.num;
                     const entry = ensureParticipationEntry(selectedCode, student.num);
                     const tr = document.createElement('tr');
@@ -6137,7 +6180,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             const selecaoTxt = s ? ` — Seleção: ${s.flag} ${s.pais}` : '';
 
             let linhas = '';
-            classObj.students.forEach(student => {
+            alunosOrdenadosPorNome(classObj).forEach(student => {
                 const numStr = student.num < 10 ? '0' + student.num : student.num;
                 const entry = ensureParticipationEntry(classCode, student.num, student.nome);
                 const sexoTxt = entry.sexo || '—';
@@ -6283,6 +6326,19 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                             ${linhasTurma(turmas6)}
                             ${linhasTurma(turmas7)}
                             <tr><td>${SELECAO_RESERVA.refTurma}</td><td>${SELECAO_RESERVA.flag} ${SELECAO_RESERVA.pais} (reserva)</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>🎲 Sorteio — Redistribuição dos Alunos do 8º Ano X</h3>
+                    <p>Para os Jogos Estudantis, os estudantes da Turma 8º Ano X foram sorteados e redistribuídos entre as turmas do 7º Ano:</p>
+                    <table>
+                        <thead><tr><th>Turma (7º Ano)</th><th>Alunos do 8º Ano X</th></tr></thead>
+                        <tbody>
+                            <tr><td>7º Ano A</td><td>Richard e Guilherme</td></tr>
+                            <tr><td>7º Ano B</td><td>Taylor</td></tr>
+                            <tr><td>7º Ano C</td><td>Kauã</td></tr>
+                            <tr><td>7º Ano D</td><td>Yuri e Thiago</td></tr>
+                            <tr><td>7º Ano E</td><td>Arthur e Maria Eduarda</td></tr>
                         </tbody>
                     </table>
 
