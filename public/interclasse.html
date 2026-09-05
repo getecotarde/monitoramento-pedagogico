@@ -2201,12 +2201,12 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
     <div class="fg">
       <label>Time A / Turma A</label>
       <select id="m-tA" onchange="onTimeSelectChange('A')"></select>
-      <input id="m-tA-manual" placeholder="Digite o nome do time/dupla/atleta" oninput="atualizarPreview()" style="display:none;margin-top:6px">
+      <input id="m-tA-manual" placeholder="Ex.: Maria e João (6º Ano A)" oninput="atualizarPreview()" style="display:none;margin-top:6px">
     </div>
     <div class="fg">
       <label>Time B / Turma B</label>
       <select id="m-tB" onchange="onTimeSelectChange('B')"></select>
-      <input id="m-tB-manual" placeholder="Digite o nome do time/dupla/atleta" oninput="atualizarPreview()" style="display:none;margin-top:6px">
+      <input id="m-tB-manual" placeholder="Ex.: Pedro (7º Ano B)" oninput="atualizarPreview()" style="display:none;margin-top:6px">
     </div>
     <div class="fg"><label>Fase</label>
       <select id="m-fase" onchange="atualizarPreview()">
@@ -5843,6 +5843,32 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return `${nome1} ${separador} ${nome2}`;
         }
 
+        // Abrevia "6º Ano A" → "6ºA" (e "7º Ano B" → "7ºB") onde quer que apareça
+        // dentro de um texto — usada no cartaz de mural para caber mais em cada
+        // linha, tanto no nome já resolvido de uma turma quanto dentro de um
+        // nome digitado manualmente (dupla/atleta) que mencione a turma.
+        function abreviarTurmasNoTexto(txt) {
+            return (txt || '').replace(/(\d+)º Ano ([A-Za-z])\b/g, '$1º$2');
+        }
+
+        // Formato específico do CARTAZ (mural): para confrontos entre turmas
+        // cadastradas com seleção/país (esportes coletivos: Futsal, Queimada),
+        // mostra "País(Turma)" do lado esquerdo e "(Turma)País" do lado direito
+        // — ex.: "Argentina(6ºA)" ... "(6ºB) Espanha". Para nomes que não batem
+        // com nenhuma turma cadastrada (times digitados manualmente, comuns nas
+        // modalidades individuais/duplas — Basquete de Trilha, Damas, Atletismo),
+        // mantém o texto exatamente como foi informado ao marcar o jogo, só
+        // abreviando a turma dentro dele, se houver ("Maria e João (6º Ano A)"
+        // → "Maria e João (6ºA)").
+        function nomeTimeMural(nomeResolvido, ladoEsquerdo) {
+            const selecao = selecaoDaTurma(nomeResolvido);
+            if (selecao) {
+                const turmaAbrev = abreviarTurmasNoTexto(nomeResolvido);
+                return ladoEsquerdo ? `${selecao.pais}(${turmaAbrev})` : `(${turmaAbrev}) ${selecao.pais}`;
+            }
+            return abreviarTurmasNoTexto(nomeResolvido);
+        }
+
         // Lançamento/edição do placar — disponível apenas com a edição liberada
         // (perfil professor/coordenador). Chamada pelos campos exibidos em
         // "Grade de Horários & Resultados".
@@ -6102,8 +6128,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     const jaTemPlacar = game.score1 !== null && game.score1 !== undefined && game.score2 !== null && game.score2 !== undefined;
                     const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
                     const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
-                    const nome1 = t1r.pendente ? t1r.texto : timeComSelecaoLabel(t1r.texto);
-                    const nome2 = t2r.pendente ? t2r.texto : timeComSelecaoLabel(t2r.texto);
+                    const nome1 = t1r.pendente ? t1r.texto : nomeTimeMural(t1r.texto, true);
+                    const nome2 = t2r.pendente ? t2r.texto : nomeTimeMural(t2r.texto, false);
                     const placar1 = jaTemPlacar ? game.score1 : '____';
                     const placar2 = jaTemPlacar ? game.score2 : '____';
                     const confrontoPlacar = `<span class="mural-time">${nome1}</span> <span class="mural-score-blank">${placar1}</span> <span class="mural-vs">×</span> <span class="mural-score-blank">${placar2}</span> <span class="mural-time">${nome2}</span>`;
