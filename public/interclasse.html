@@ -2610,7 +2610,7 @@ let G={};
 /* ── Integração com Supabase (mesmo projeto do Monitoramento Pedagógico) ── */
 const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
-const INTERCLASSE_TABLE = 'eventos_interclasse';
+const INTERCLASSE_TABLE = 'interclasse_state';
 const INTERCLASSE_ROW_ID = 1; // grade única (singleton) — sempre a mesma linha
 
 function sbHeaders(extra={}){
@@ -5502,7 +5502,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // grupos numa coluna própria (group_assignments) dessa mesma tabela.
         const GRUPOS_SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
         const GRUPOS_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
-        const GRUPOS_TABLE = 'eventos_interclasse';
+        const GRUPOS_TABLE = 'interclasse_state';
         const GRUPOS_ROW_ID = 1;
         const LS_GRUPOS = 'ic26_group_assignments';
 
