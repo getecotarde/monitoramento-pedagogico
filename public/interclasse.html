@@ -1495,6 +1495,9 @@
                     Como o quadro não registra placar, o resultado da partida (placar final) deve ser lançado depois, diretamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
                     A edição do quadro (marcar/limpar jogos, adicionar espaços, modalidades e horários) é restrita à coordenação e ao professor de Educação Física, com o mesmo código de acesso da aba <strong>🗂️ Organização dos Grupos</strong>.
                 </p>
+                <div class="alert alert-info" style="margin-top:0.5rem">
+                    🔢 <strong>Numeração dos jogos (para o mata-mata):</strong> ao marcar um jogo, o sistema sugere automaticamente um <strong>número sequencial</strong> (Jogo 1, Jogo 2...), separado para cada combinação de <strong>modalidade + categoria</strong>. A partir da 2ª fase, em vez de escolher a turma no Time A/B, você pode selecionar diretamente <strong>"🏆 Vencedor — Jogo Nº"</strong> ou <strong>"❌ Perdedor — Jogo Nº"</strong> de um jogo já numerado — o sistema só deixa referenciar jogos com número menor (que já aconteceram antes) e nunca deixa repetir um número dentro da mesma modalidade/categoria. Assim que o placar do jogo referenciado for lançado, a "Grade de Horários & Resultados" mostra automaticamente o nome real da turma classificada.
+                </div>
             </div>
             <div class="card" style="padding: 0; overflow: hidden;">
                 <iframe id="quadroFrame" title="Quadro de Marcação de Jogos" style="width: 100%; min-height: 1600px; border: none; display: block;"></iframe>
@@ -2106,6 +2109,14 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
         <option value="Misto">⚪ Misto</option>
       </select>
     </div>
+    <div class="fg" id="fg-numero">
+      <label>Nº do Jogo (sequencial nesta modalidade + categoria)</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="m-numero" min="1" step="1" style="flex:1" oninput="atualizarPreview()" placeholder="Sugerido automaticamente ao salvar">
+        <button type="button" class="mb mb-ghost" style="padding:8px 10px;white-space:nowrap;flex:none" onclick="sugerirNumeroJogo()">🔄 Sugerir nº</button>
+      </div>
+      <div id="m-numero-hint" style="font-size:11px;color:#888;margin-top:4px;line-height:1.4"></div>
+    </div>
     <div class="fg">
       <label>Espaço / Local</label>
       <select id="m-espaco" onchange="atualizarPreview()">
@@ -2131,8 +2142,10 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
       <select id="m-fase" onchange="atualizarPreview()">
         <option value="">— não definida —</option>
         <option value="Grupos">Grupos</option>
-        <option value="Eliminatória">Eliminatória</option>
+        <option value="Eliminatória">Eliminatória (1ª rodada / eliminatória simples)</option>
+        <option value="Quartas de Final">Quartas de Final</option>
         <option value="Semi-final">Semi-final</option>
+        <option value="Disputa de 3º Lugar">Disputa de 3º Lugar</option>
         <option value="Final">Final</option>
       </select>
     </div>
@@ -2656,7 +2669,7 @@ function cellHTML(esp, d, h){
     <div class="esp-tag ${esp.css}"${tagStyle}>${espObj.lbl}</div>
     <div class="esp-slot ${s?.mod||'livre'}">
       ${m
-        ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
+        ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.numero?` <span class="s-categoria" style="background:#fff3cd;color:#7a4a00">🔢 Jogo ${s.numero}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
           ${s.timeA||s.timeB?`<div class="s-times">${timeLabelCompleto(s.timeA)}${s.timeB?' × '+timeLabelCompleto(s.timeB):''}</div>`:''}
           ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
         :`<span>livre</span>`}
@@ -2829,6 +2842,7 @@ function abrirModal(ev,esp,dia,hora){
   document.getElementById('m-hora').value=hora;
   document.getElementById('m-mod').value=s.mod||'';
   document.getElementById('m-categoria').value=s.categoria||'';
+  document.getElementById('m-numero').value=s.numero||'';
   document.getElementById('m-espaco').value=s.espaco||'';
   setTimeValue('A', s.timeA||'');
   setTimeValue('B', s.timeB||'');
@@ -2893,30 +2907,52 @@ function setListaTurmas(lista){
   renderTimeSelectOptions('B');
 }
 window.setListaTurmas=setListaTurmas;
-function opcoesTimeHTML(){
-  if(!TURMAS_LISTA.length){
-    return `<option value="">— nenhuma turma cadastrada ainda —</option><option value="${TIME_MANUAL}">✏️ Digitar manualmente</option>`;
-  }
-  const porAno={};
-  TURMAS_LISTA.forEach(t=>{ (porAno[t.ano||'Turmas']=porAno[t.ano||'Turmas']||[]).push(t); });
-  let html='<option value="">— selecionar turma/seleção —</option>';
-  Object.keys(porAno).forEach(ano=>{
-    html+=`<optgroup label="${ano}">`;
-    porAno[ano].forEach(t=>{
-      const grupoTxt=t.grupo?` · Grupo ${t.grupo}`:'';
-      html+=`<option value="${t.turma}">${t.selecao||''} — ${t.turma}${grupoTxt}</option>`;
-    });
-    html+='</optgroup>';
+// Opções de "Vencedor do Jogo Nº X" / "Perdedor do Jogo Nº X" para o mata-mata.
+// Só entram na lista jogos JÁ numerados da mesma modalidade+categoria, e — regra
+// do regulamento — só jogos com número MENOR que o jogo atual (o resultado de um
+// confronto só pode alimentar uma fase seguinte, nunca uma fase anterior ou ele
+// mesmo). Isso "sugere" as referências válidas e, ao mesmo tempo, "impede" na
+// origem referências circulares ou a jogos que ainda não existem.
+function opcoesVencedorPerdedorHTML(){
+  const mod=document.getElementById('m-mod')?.value;
+  if(!mod || !categoriaEhPertinente(mod)) return '';
+  const categoria=document.getElementById('m-categoria')?.value||'';
+  const numeroAtualRaw=document.getElementById('m-numero')?.value;
+  const numeroAtual=numeroAtualRaw?parseInt(numeroAtualRaw):null;
+  let jogos=jogosDaMesmaCategoria(mod,categoria,true).filter(o=>o.s.numero);
+  if(numeroAtual) jogos=jogos.filter(o=>o.s.numero<numeroAtual);
+  if(!jogos.length) return '';
+  jogos.sort((a,b)=>a.s.numero-b.s.numero);
+  let html=`<optgroup label="🏆 Vencedor/Perdedor de jogo já numerado (${getMOD()[mod]?.nome||mod}${categoria?' · '+categoria:''})">`;
+  jogos.forEach(o=>{
+    const s=o.s;
+    const desc=`${s.timeA?timeLabelCompleto(s.timeA):'?'} × ${s.timeB?timeLabelCompleto(s.timeB):'?'}`;
+    html+=`<option value="🏆 Vencedor Jogo ${s.numero}">🏆 Vencedor — Jogo ${s.numero} (${desc})</option>`;
+    html+=`<option value="❌ Perdedor Jogo ${s.numero}">❌ Perdedor — Jogo ${s.numero} (${desc})</option>`;
   });
-  html+=`<option value="${TIME_MANUAL}">✏️ Outro / digitar manualmente (dupla, atleta...)</option>`;
+  html+='</optgroup>';
   return html;
 }
-function renderTimeSelectOptions(letra){
-  const sel=document.getElementById('m-t'+letra);
-  if(!sel) return;
-  const atual=sel.value;
-  sel.innerHTML=opcoesTimeHTML();
-  if([...sel.options].some(o=>o.value===atual)) sel.value=atual;
+function opcoesTimeHTML(){
+  let html;
+  if(!TURMAS_LISTA.length){
+    html='<option value="">— nenhuma turma cadastrada ainda —</option>';
+  }else{
+    const porAno={};
+    TURMAS_LISTA.forEach(t=>{ (porAno[t.ano||'Turmas']=porAno[t.ano||'Turmas']||[]).push(t); });
+    html='<option value="">— selecionar turma/seleção —</option>';
+    Object.keys(porAno).forEach(ano=>{
+      html+=`<optgroup label="${ano}">`;
+      porAno[ano].forEach(t=>{
+        const grupoTxt=t.grupo?` · Grupo ${t.grupo}`:'';
+        html+=`<option value="${t.turma}">${t.selecao||''} — ${t.turma}${grupoTxt}</option>`;
+      });
+      html+='</optgroup>';
+    });
+  }
+  html+=opcoesVencedorPerdedorHTML();
+  html+=`<option value="${TIME_MANUAL}">✏️ Outro / digitar manualmente (dupla, atleta...)</option>`;
+  return html;
 }
 // Alterna a exibição do campo de texto livre quando "Outro / digitar manualmente" é escolhido
 function onTimeSelectChange(letra){
@@ -2928,20 +2964,22 @@ function onTimeSelectChange(letra){
   if(ehManual) manual.focus(); else manual.value='';
   atualizarPreview();
 }
-// Lê o valor efetivo do time A/B (nome da turma escolhida, ou o texto digitado manualmente)
+// Lê o valor efetivo do time A/B (nome da turma escolhida, referência de vencedor/perdedor,
+// ou o texto digitado manualmente)
 function getTimeValue(letra){
   const sel=document.getElementById('m-t'+letra);
   if(!sel) return '';
   if(sel.value===TIME_MANUAL) return document.getElementById('m-t'+letra+'-manual').value.trim();
   return sel.value;
 }
-// Preenche o seletor com um valor já salvo — se bater com uma turma da lista, seleciona-a;
-// caso contrário (nome digitado à mão, ou turma antiga fora da lista atual), cai no modo manual.
-function setTimeValue(letra, valor){
+// Aplica um valor já conhecido ao select SEM reconstruir suas opções — se o valor bater com
+// alguma opção existente, seleciona-a; caso contrário (nome digitado à mão, referência de
+// vencedor/perdedor que saiu da lista, ou turma antiga fora da lista atual), cai no modo manual
+// preservando o texto, em vez de simplesmente descartar o que estava salvo.
+function aplicarValorTimeNoSelect(letra, valor){
   const sel=document.getElementById('m-t'+letra);
   const manual=document.getElementById('m-t'+letra+'-manual');
   if(!sel||!manual) return;
-  renderTimeSelectOptions(letra);
   if(valor && [...sel.options].some(o=>o.value===valor)){
     sel.value=valor;
     manual.style.display='none';
@@ -2955,6 +2993,18 @@ function setTimeValue(letra, valor){
     manual.style.display='none';
     manual.value='';
   }
+}
+function renderTimeSelectOptions(letra){
+  const sel=document.getElementById('m-t'+letra);
+  if(!sel) return;
+  const valorAnterior=getTimeValue(letra);
+  sel.innerHTML=opcoesTimeHTML();
+  aplicarValorTimeNoSelect(letra, valorAnterior);
+}
+// Preenche o seletor com um valor já salvo (usado ao abrir o modal de edição de um slot)
+function setTimeValue(letra, valor){
+  renderTimeSelectOptions(letra);
+  aplicarValorTimeNoSelect(letra, valor);
 }
 // Torna a janela de marcação/edição de jogo arrastável, pegando pelo cabeçalho
 // (título + subtítulo). Funciona com mouse e toque (celular/tablet).
@@ -3011,8 +3061,51 @@ function categoriaEhPertinente(mod){ return !!mod && mod!=='reservado'; }
 function atualizarVisibilidadeCategoria(){
   const mod=document.getElementById('m-mod').value;
   const fg=document.getElementById('fg-categoria');
-  if(!fg) return;
-  fg.style.display=categoriaEhPertinente(mod)?'':'none';
+  const fgn=document.getElementById('fg-numero');
+  const pertinente=categoriaEhPertinente(mod);
+  if(fg) fg.style.display=pertinente?'':'none';
+  if(fgn) fgn.style.display=pertinente?'':'none';
+}
+
+// ── NUMERAÇÃO SEQUENCIAL DE JOGOS POR MODALIDADE + CATEGORIA ──
+// Cada combinação (modalidade, categoria) tem sua própria sequência de números
+// (Jogo 1, Jogo 2, ...). É essa numeração que permite, no mata-mata, marcar um
+// confronto como "Vencedor do Jogo 3" ou "Perdedor do Jogo 5" em vez de já saber
+// de antemão qual turma vai passar de fase.
+function todosOsSlotsComChave(){
+  const out=[];
+  Object.keys(G).forEach(e=>Object.keys(G[e]||{}).forEach(d=>Object.keys(G[e][d]||{}).forEach(h=>{
+    const s=G[e][d][h];
+    if(s) out.push({chave:boardKeyFor(e,d,h),s});
+  })));
+  return out;
+}
+function jogosDaMesmaCategoria(mod,categoria,excluirAtual){
+  return todosOsSlotsComChave().filter(o=>
+    (!excluirAtual || o.chave!==boardKeyAtual()) &&
+    o.s.mod===mod && (o.s.categoria||'')===(categoria||'')
+  );
+}
+function proximoNumeroSugerido(mod,categoria){
+  const jogos=jogosDaMesmaCategoria(mod,categoria,true).filter(o=>o.s.numero);
+  if(!jogos.length) return 1;
+  return Math.max(...jogos.map(o=>o.s.numero))+1;
+}
+function sugerirNumeroJogo(){
+  const mod=document.getElementById('m-mod').value;
+  if(!categoriaEhPertinente(mod)){ toast('Escolha antes a modalidade (e a categoria, se houver).','warn'); return; }
+  const categoria=document.getElementById('m-categoria').value;
+  document.getElementById('m-numero').value=proximoNumeroSugerido(mod,categoria);
+  atualizarPreview();
+}
+function atualizarDicaNumero(){
+  const hint=document.getElementById('m-numero-hint');
+  if(!hint) return;
+  const mod=document.getElementById('m-mod').value;
+  if(!categoriaEhPertinente(mod)){ hint.textContent=''; return; }
+  const categoria=document.getElementById('m-categoria').value;
+  const proximo=proximoNumeroSugerido(mod,categoria);
+  hint.textContent=`Próximo número livre para ${getMOD()[mod]?.nome||mod}${categoria?' · '+categoria:''}: Jogo ${proximo}. Deixe em branco para usar esse número automaticamente ao salvar.`;
 }
 function categoriaCssClass(categoria){
   return categoria==='Masculino'?'cat-masc':(categoria==='Feminino'?'cat-fem':'cat-misto');
@@ -3020,11 +3113,22 @@ function categoriaCssClass(categoria){
 function categoriaIcone(categoria){
   return categoria==='Masculino'?'🔵':(categoria==='Feminino'?'🔴':'⚪');
 }
+let _ultimoContextoNumeracao='';
 function atualizarPreview(){
   atualizarVisibilidadeCategoria();
+  atualizarDicaNumero();
   const mod=document.getElementById('m-mod').value;
   const espaco=document.getElementById('m-espaco').value;
   const categoria=categoriaEhPertinente(mod)?document.getElementById('m-categoria').value:'';
+  const numero=categoriaEhPertinente(mod)?(document.getElementById('m-numero').value||''):'';
+  // Se mudou modalidade/categoria/número, as opções de "Vencedor/Perdedor de jogo" válidas
+  // mudam junto — recalcula os seletores de time preservando o que já estava escolhido.
+  const contexto=mod+'|'+categoria+'|'+numero;
+  if(contexto!==_ultimoContextoNumeracao){
+    _ultimoContextoNumeracao=contexto;
+    renderTimeSelectOptions('A');
+    renderTimeSelectOptions('B');
+  }
   const tA=getTimeValue('A');
   const tB=getTimeValue('B');
   const fase=document.getElementById('m-fase').value.trim();
@@ -3038,6 +3142,7 @@ function atualizarPreview(){
         <span style="font-size:18px">${m.icon}</span>
         <span>${m.nome}</span>
         ${categoria?`<span style="font-size:11px;font-weight:700;opacity:.85;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">${categoriaIcone(categoria)} ${categoria}</span>`:''}
+        ${numero?`<span style="font-size:11px;font-weight:800;opacity:.9;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">🔢 Jogo ${numero}</span>`:''}
         ${espaco?`<span style="font-size:11px;font-weight:600;opacity:.65;border:1px solid ${m.brd};border-radius:4px;padding:1px 6px">${espaco}</span>`:''}
       </div>
       ${tA||tB?`<div style="font-size:16px;font-weight:800">${tA||'?'}${tB?' × '+tB:''}</div>`:''}
@@ -3052,9 +3157,88 @@ function salvar(){
   const tA=getTimeValue('A');
   const tB=getTimeValue('B');
   const fase=document.getElementById('m-fase').value.trim();
-  put(_e,_d,_h,mod?{mod,categoria,espaco,timeA:tA,timeB:tB,fase}:null);
-  fecharModal();render();toast(mod?'✅ Slot salvo!':'🗑 Slot limpo.');
-  sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria);
+  let numero=null;
+  if(categoriaEhPertinente(mod)){
+    const numeroDigitado=document.getElementById('m-numero').value;
+    numero = numeroDigitado ? parseInt(numeroDigitado) : proximoNumeroSugerido(mod,categoria);
+  }
+  if(mod){
+    const {erros,avisos}=validarJogoAntesDeSalvar(mod,categoria,numero,tA,tB,fase);
+    if(erros.length){
+      alert('🚫 Não foi possível salvar este jogo:\n\n— '+erros.join('\n— '));
+      return;
+    }
+    if(avisos.length && !confirm('⚠️ Atenção antes de salvar:\n\n— '+avisos.join('\n— ')+'\n\nDeseja salvar mesmo assim?')){
+      return;
+    }
+  }
+  put(_e,_d,_h,mod?{mod,categoria,numero,espaco,timeA:tA,timeB:tB,fase}:null);
+  fecharModal();render();toast(mod?('✅ Slot salvo!'+(numero?' (Jogo '+numero+')':'')):'🗑 Slot limpo.');
+  sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria,numero);
+}
+// Regras do regulamento aplicadas na hora de marcar um jogo: algumas coisas são
+// IMPEDIDAS (erros — bloqueiam o salvamento) e outras são apenas SUGERIDAS/avisadas
+// (avisos — pedem confirmação, mas podem ser ignoradas pela coordenação em casos
+// especiais previstos no próprio regulamento como "Casos Omissos").
+function validarJogoAntesDeSalvar(mod,categoria,numero,tA,tB,fase){
+  const erros=[];
+  const avisos=[];
+  const chaveAtual=boardKeyAtual();
+
+  if(categoriaEhPertinente(mod) && numero){
+    // IMPEDIDO: dois jogos com o mesmo número na mesma modalidade+categoria — é esse
+    // número que identifica o jogo nas referências de "Vencedor/Perdedor" do mata-mata.
+    const conflito=jogosDaMesmaCategoria(mod,categoria,true).find(o=>o.s.numero===numero);
+    if(conflito){
+      erros.push(`Já existe um "Jogo ${numero}" marcado para ${getMOD()[mod]?.nome||mod}${categoria?' · '+categoria:''}. Cada jogo precisa de um número único dentro da mesma modalidade e categoria — use "🔄 Sugerir nº" ou escolha outro número.`);
+    }
+  }
+
+  // IMPEDIDO: time A e time B iguais (mesmo valor exato) — exceto quando ambos são
+  // referências de chaveamento diferentes (Vencedor X vs Perdedor Y nunca são strings iguais).
+  if(tA && tB && tA===tB){
+    erros.push('Time A e Time B não podem ser o mesmo time/turma/dupla no mesmo jogo.');
+  }
+
+  // Referências "Vencedor/Perdedor do Jogo N": mesmo que a lista do seletor já filtre
+  // isso, revalida aqui (cobre digitação manual e edições feitas fora de ordem).
+  [tA,tB].forEach(valor=>{
+    const m=/^(?:🏆 Vencedor|❌ Perdedor) Jogo (\d+)$/.exec(valor||'');
+    if(!m) return;
+    const nRef=parseInt(m[1]);
+    if(numero && nRef>=numero){
+      erros.push(`Não é possível referenciar o "Jogo ${nRef}" aqui: no mata-mata, só se pode apontar para um jogo com número MENOR que o jogo atual (Jogo ${numero}), pois o resultado de um jogo só alimenta uma fase seguinte.`);
+      return;
+    }
+    const existe=jogosDaMesmaCategoria(mod,categoria,false).some(o=>o.chave!==chaveAtual && o.s.numero===nRef);
+    if(!existe){
+      erros.push(`O "Jogo ${nRef}" referenciado não existe (ainda) em ${getMOD()[mod]?.nome||mod}${categoria?' · '+categoria:''}. Numere e salve esse jogo primeiro.`);
+    }
+  });
+
+  // SUGERIDO/AVISO: modalidades individuais/duplas (Basquete de Trilha, Damas, Atletismo)
+  // disputam eliminatória simples desde a 1ª rodada — o regulamento não prevê fase de
+  // grupos para elas.
+  const nomeMod=(getMOD()[mod]?.nome||'').toLowerCase();
+  const somenteEliminatoria=['basquete de trilha','damas','atletismo'].some(n=>nomeMod.includes(n));
+  if(somenteEliminatoria && fase==='Grupos'){
+    avisos.push(`Pelo regulamento, "${getMOD()[mod].nome}" é disputado em eliminatória simples (mata-mata) desde a 1ª rodada, sem fase de grupos.`);
+  }
+
+  // AVISO: mesmo time escalado em dois jogos no mesmo dia e horário (possível conflito de
+  // agenda — a turma não pode estar em dois lugares ao mesmo tempo).
+  [tA,tB].filter(Boolean).forEach(t=>{
+    if(/^(?:🏆|❌)/.test(t)) return; // referências dinâmicas não são checadas aqui
+    todosOsSlotsComChave().forEach(o=>{
+      if(o.chave===chaveAtual) return;
+      const [, dK, hK]=o.chave.split('_');
+      if(dK===_d && hK===_h && (o.s.timeA===t || o.s.timeB===t)){
+        avisos.push(`"${timeLabelCompleto(t)}" já está escalado(a) em outro jogo neste mesmo dia e horário. Confira se não é conflito de agenda.`);
+      }
+    });
+  });
+
+  return {erros,avisos};
 }
 function limparSlot(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
@@ -3083,7 +3267,7 @@ function temPontePaiDisponivel(nomeFn){
   try{ return !!(window.parent && window.parent!==window && typeof window.parent[nomeFn]==='function'); }
   catch(e){ return false; }
 }
-function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria){
+function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria,numero){
   try{
     if(!mod || !tA || !tB) return;
     if(!temPontePaiDisponivel('receberJogoDoQuadro')) return;
@@ -3103,15 +3287,16 @@ function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria){
       modal: modDisplayName(mod),
       phase: fase,
       category: categoria||'',
+      number: numero||null,
       space: espacoFinal,
       team1: tA,
       team2: tB
     });
   }catch(e){ /* documento principal indisponível — quadro segue funcionando normalmente */ }
 }
-function sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria){
+function sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria,numero){
   if(!mod || !tA || !tB){ sincronizarRemocao(); return; }
-  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase,categoria);
+  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase,categoria,numero);
 }
 function sincronizarRemocao(){
   try{
@@ -3131,7 +3316,7 @@ function enviarSlotsIniciaisAoPai(){
       Object.keys(G[eKey][dKey]||{}).forEach(hKey=>{
         const s=G[eKey][dKey][hKey];
         if(s && s.mod && s.timeA && s.timeB){
-          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase,s.categoria);
+          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase,s.categoria,s.numero);
         }
       });
     });
@@ -5435,6 +5620,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 modal: dados.modal,
                 phase: dados.phase || '',
                 category: dados.category || '',
+                number: (dados.number === null || dados.number === undefined) ? null : dados.number,
                 space: dados.space,
                 team1: dados.team1,
                 team2: dados.team2,
@@ -5478,6 +5664,37 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (game.score1 > game.score2) return { text: `Vencedor: ${game.team1}`, color: 'var(--success)' };
             if (game.score2 > game.score1) return { text: `Vencedor: ${game.team2}`, color: 'var(--success)' };
             return { text: 'Empate', color: 'var(--accent)' };
+        }
+
+        // ---------------------------------------------------------------
+        // REFERÊNCIAS DE CHAVEAMENTO ("Vencedor Jogo Nº X" / "Perdedor Jogo Nº X")
+        // No mata-mata, o Time A/B de um jogo pode ser o vencedor ou perdedor de
+        // outro jogo já numerado (marcado no Quadro). Aqui resolvemos essa
+        // referência para o nome real da turma/seleção assim que o placar do
+        // jogo referenciado for lançado — enquanto isso, mostramos "aguardando
+        // resultado" no lugar do time.
+        // ---------------------------------------------------------------
+        function encontrarJogoPorNumero(numero, modal, category) {
+            return gamesData.find(g => g.number === numero && g.modal === modal && (g.category || '') === (category || ''));
+        }
+        function resolverReferenciaTime(valor, categoria, modal) {
+            const m = /^(🏆 Vencedor|❌ Perdedor) Jogo (\d+)$/.exec(valor || '');
+            if (!m) return { texto: valor, pendente: false, ehReferencia: false };
+            const tipo = m[1] === '🏆 Vencedor' ? 'V' : 'P';
+            const num = parseInt(m[2], 10);
+            const jogoRef = encontrarJogoPorNumero(num, modal, categoria);
+            const rotuloTipo = tipo === 'V' ? 'Vencedor' : 'Perdedor';
+            if (!jogoRef) return { texto: `${rotuloTipo} do Jogo ${num} (jogo não encontrado)`, pendente: true, ehReferencia: true };
+            if (jogoRef.score1 === null || jogoRef.score1 === undefined || jogoRef.score2 === null || jogoRef.score2 === undefined || jogoRef.score1 === jogoRef.score2) {
+                return { texto: `${rotuloTipo} do Jogo ${num} (aguardando resultado)`, pendente: true, ehReferencia: true };
+            }
+            const vencedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team1 : jogoRef.team2;
+            const perdedor = jogoRef.score1 > jogoRef.score2 ? jogoRef.team2 : jogoRef.team1;
+            const nomeFinal = tipo === 'V' ? vencedor : perdedor;
+            // O próprio nome final pode, em tese, ser outra referência encadeada (ex.: semifinal
+            // apontando para o vencedor de uma partida que também referenciava outro jogo).
+            const resolvidoRecursivo = resolverReferenciaTime(nomeFinal, categoria, modal);
+            return { texto: resolvidoRecursivo.texto, pendente: resolvidoRecursivo.pendente, ehReferencia: true };
         }
 
         // Lançamento/edição do placar — disponível apenas com a edição liberada
@@ -5553,6 +5770,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         <table>
                             <thead>
                                 <tr>
+                                    <th>Jogo Nº</th>
                                     <th>Horário do Jogo</th>
                                     <th>Ano</th>
                                     <th>Modalidade</th>
@@ -5589,15 +5807,19 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     } else {
                         placarCell = `${scoreLabel(game)} <strong style="color: ${winner.color}; margin-left: 0.4rem;">${winner.text}</strong>`;
                     }
+                    const t1r = resolverReferenciaTime(game.team1, game.category, game.modal);
+                    const t2r = resolverReferenciaTime(game.team2, game.category, game.modal);
+                    const confrontoHtml = `<span${t1r.pendente ? ' style="font-style:italic;color:var(--text-muted)"' : ''}>${t1r.texto}</span> vs <span${t2r.pendente ? ' style="font-style:italic;color:var(--text-muted)"' : ''}>${t2r.texto}</span>`;
                     html += `
                         <tr>
+                            <td>${game.number ? `<span class="badge badge-blue">Jogo ${game.number}</span>` : '—'}</td>
                             <td>${game.time}</td>
                             <td>${game.year}</td>
                             <td>${game.modal}</td>
                             <td>${categoryBadge(game.category)}</td>
                             <td>${game.phase}</td>
                             <td><span class="badge badge-blue">${game.space || '—'}</span></td>
-                            <td>${game.team1} vs ${game.team2}</td>
+                            <td>${confrontoHtml}</td>
                             <td>${placarCell}</td>
                         </tr>
                     `;
