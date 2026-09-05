@@ -5427,19 +5427,65 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // (Trava de interface: reduz o risco de edição indevida por acesso
         // casual, mas não substitui um controle de acesso real de servidor.)
         // ---------------------------------------------------------------
-        const EDIT_CODE = '15948263';
+        // ---------------------------------------------------------------
+        // BLOQUEIO DE EDIÇÃO POR CÓDIGO DE ACESSO
+        // A montagem dos grupos, o cadastro de horários e o registro de
+        // partidas/placares são de responsabilidade da Coordenação e do
+        // Professor de Educação Física. Por padrão, ao acessar a página,
+        // essas áreas ficam bloqueadas para a comunidade escolar; a edição
+        // só é liberada após a digitação do código de acesso correto.
+        // (Trava de interface: reduz o risco de edição indevida por acesso
+        // casual, mas não substitui um controle de acesso real de servidor.)
+        //
+        // O código correto fica guardado na coluna "edit_code" da tabela
+        // interclasse_state no Supabase (linha id=1) — para trocar o código,
+        // basta editar essa célula direto no Table Editor do Supabase, sem
+        // precisar editar ou reenviar este arquivo. Um cache local
+        // (localStorage) garante que a verificação ainda funcione mesmo sem
+        // internet no momento da tentativa, usando o último código conhecido.
+        // ---------------------------------------------------------------
         let editUnlocked = false;
+        let EDIT_CODE_CACHE = null;
+        const LS_EDIT_CODE = 'ic26_edit_code_cache';
 
-        function tryUnlockEditing(e) {
+        async function buscarCodigoAtual() {
+            try {
+                const r = await fetch(`${GRUPOS_SUPABASE_URL}/rest/v1/${GRUPOS_TABLE}?id=eq.${GRUPOS_ROW_ID}&select=edit_code`, {
+                    headers: { 'apikey': GRUPOS_SUPABASE_KEY, 'Authorization': 'Bearer ' + GRUPOS_SUPABASE_KEY }
+                });
+                if (r.ok) {
+                    const data = await r.json();
+                    const codigo = data && data[0] && data[0].edit_code;
+                    if (codigo) {
+                        EDIT_CODE_CACHE = codigo;
+                        localStorage.setItem(LS_EDIT_CODE, codigo);
+                        return codigo;
+                    }
+                }
+            } catch (e) {
+                console.error('Não foi possível buscar o código de acesso atualizado do Supabase:', e);
+            }
+            // Sem conexão ou erro na busca: usa o último código conhecido localmente
+            return EDIT_CODE_CACHE || localStorage.getItem(LS_EDIT_CODE) || null;
+        }
+
+        async function tryUnlockEditing(e) {
             e.preventDefault();
             const input = document.getElementById('editCodeInput');
             const errorMsg = document.getElementById('unlockErrorMsg');
-            if (input.value === EDIT_CODE) {
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = '🔄 Verificando...'; }
+            const codigoAtual = await buscarCodigoAtual();
+            if (btn) { btn.disabled = false; btn.textContent = '🔓 Liberar Edição'; }
+            if (codigoAtual && input.value === codigoAtual) {
                 editUnlocked = true;
                 errorMsg.style.display = 'none';
                 input.value = '';
                 applyEditLockUI();
             } else {
+                errorMsg.textContent = codigoAtual
+                    ? 'Código incorreto. Consulte a coordenação ou o professor de Educação Física.'
+                    : 'Não foi possível verificar o código agora (sem conexão). Tente novamente.';
                 errorMsg.style.display = 'block';
             }
         }
@@ -5749,10 +5795,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // já lançados.
         let scoresDesbloqueados = new Set();
 
-        function editarPlacar(boardKey) {
+        async function editarPlacar(boardKey) {
             const codigo = prompt('Digite o código de acesso para editar este placar:');
             if (codigo === null) return; // cancelado
-            if (codigo !== EDIT_CODE) {
+            const codigoAtual = await buscarCodigoAtual();
+            if (!codigoAtual || codigo !== codigoAtual) {
                 alert('Código incorreto.');
                 return;
             }
