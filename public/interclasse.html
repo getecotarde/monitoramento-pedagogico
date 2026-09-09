@@ -528,6 +528,25 @@
         .mod-detail-body { display:none; margin-top:1rem; }
         .mod-detail-body.aberto { display:block; animation: fadeIn .25s ease-in-out; }
 
+        .mod-pill-nav { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.2rem; }
+        .mod-pill {
+            padding:0.55rem 1rem; border-radius:999px; border:2px solid var(--border);
+            background:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; transition:.15s;
+        }
+        .mod-pill:hover { border-color: var(--primary); }
+        .mod-pill.active { color:#fff; border-color:transparent; }
+        .mod-pill-geral.active { background:#374151; }
+        .mod-pill-futsal-m.active { background:#3b82f6; }
+        .mod-pill-futsal-f.active { background:#ec4899; }
+        .mod-pill-queimada.active { background:#f59e0b; }
+        .mod-pill-basquete.active { background:#8b5cf6; }
+        .mod-pill-damas.active { background:#22c55e; }
+
+        /* Visão específica: um card por vez, ocupando toda a largura disponível */
+        .mod-card-full { display: none; }
+        .mod-card-full.mod-ativo { display: block; animation: fadeIn .25s ease-in-out; }
+        .mod-card-full .grid-2 { gap: 1.5rem; }
+
         .mod-summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem; }
         .mod-summary-card {
             border-radius: 14px; padding: 1.3rem; border-left: 6px solid transparent;
@@ -1585,8 +1604,17 @@
             <!-- VISÃO ESPECÍFICA: cards completos por modalidade -->
             <div id="registroVisaoDetalhada" style="display:none;">
 
+            <div class="mod-pill-nav" id="modPillNav">
+                <button type="button" class="mod-pill mod-pill-geral" onclick="switchRegistroView('geral')">📋 Visão Geral</button>
+                <button type="button" class="mod-pill mod-pill-futsal-m" onclick="mostrarApenasModalidade('mod-futsal-masculino')">⚽ Futsal Masc.</button>
+                <button type="button" class="mod-pill mod-pill-futsal-f" onclick="mostrarApenasModalidade('mod-futsal-feminino')">⚽ Futsal Fem.</button>
+                <button type="button" class="mod-pill mod-pill-queimada" onclick="mostrarApenasModalidade('mod-queimada-mista')">🔥 Queimada</button>
+                <button type="button" class="mod-pill mod-pill-basquete" onclick="mostrarApenasModalidade('mod-basquete-trilha')">🏀 Basquete Trilha</button>
+                <button type="button" class="mod-pill mod-pill-damas" onclick="mostrarApenasModalidade('mod-damas')">♟️ Damas</button>
+            </div>
+
             <!-- FUTSAL MASCULINO -->
-            <div class="card mod-card mod-futsal-m" id="mod-futsal-masculino">
+            <div class="card mod-card mod-futsal-m mod-card-full" id="mod-futsal-masculino">
                 <h2>⚽ Futsal Masculino</h2>
                 <div class="grid-2">
                     <div>
@@ -1636,6 +1664,30 @@
                         </div>
                     </div>
                 </div>
+
+                <h3 style="margin-top:1.4rem;">📊 Classificação dos Grupos</h3>
+                <div class="grid-2">
+                    <div>
+                        <span class="badge badge-blue" style="margin-bottom:0.4rem; display:inline-block;">Grupo 1</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classFutsalMGrupo1"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-green" style="margin-bottom:0.4rem; display:inline-block;">Grupo 2</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classFutsalMGrupo2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Classificação calculada automaticamente a partir dos placares lançados na aba 🗓️ Grade de Horários & Placares.</p>
+
                 <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais <span class="badge badge-orange">09/09</span></h3>
                 <div class="table-responsive">
                     <table>
@@ -1651,7 +1703,7 @@
             </div>
 
             <!-- FUTSAL FEMININO -->
-            <div class="card mod-card mod-futsal-f" id="mod-futsal-feminino">
+            <div class="card mod-card mod-futsal-f mod-card-full" id="mod-futsal-feminino">
                 <h2>⚽ Futsal Feminino</h2>
                 <div class="grid-2">
                     <div>
@@ -1701,6 +1753,30 @@
                         </div>
                     </div>
                 </div>
+
+                <h3 style="margin-top:1.4rem;">📊 Classificação dos Grupos</h3>
+                <div class="grid-2">
+                    <div>
+                        <span class="badge badge-blue" style="margin-bottom:0.4rem; display:inline-block;">Grupo 1</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classFutsalFGrupo1"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-green" style="margin-bottom:0.4rem; display:inline-block;">Grupo 2</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classFutsalFGrupo2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Classificação calculada automaticamente a partir dos placares lançados na aba 🗓️ Grade de Horários & Placares.</p>
+
                 <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais <span class="badge badge-orange">09/09</span></h3>
                 <div class="table-responsive">
                     <table>
@@ -1716,7 +1792,7 @@
             </div>
 
             <!-- QUEIMADA MISTA -->
-            <div class="card mod-card mod-queimada" id="mod-queimada-mista">
+            <div class="card mod-card mod-queimada mod-card-full" id="mod-queimada-mista">
                 <h2>🔥 Queimada Mista</h2>
                 <div class="grid-2">
                     <div>
@@ -1766,6 +1842,29 @@
                         </div>
                     </div>
                 </div>
+
+                <h3 style="margin-top:1.4rem;">📊 Classificação dos Grupos</h3>
+                <div class="grid-2">
+                    <div>
+                        <span class="badge badge-blue" style="margin-bottom:0.4rem; display:inline-block;">Grupo 1</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classQueimadaGrupo1"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-green" style="margin-bottom:0.4rem; display:inline-block;">Grupo 2</span>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>#</th><th>Turma</th><th>PG</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                <tbody id="classQueimadaGrupo2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais</h3>
                 <div class="table-responsive">
                     <table>
@@ -1778,11 +1877,11 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista não consta na programação de quadras/horários do dia 08/09 na Súmula Oficial — datas dos jogos a confirmar pela Coordenação/Educação Física.</div>
+                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista não consta na programação de quadras/horários do dia 08/09 na Súmula Oficial — datas dos jogos a confirmar pela Coordenação/Educação Física. A classificação abaixo é calculada automaticamente assim que os placares forem lançados.</div>
             </div>
 
             <!-- BASQUETE DE TRILHA -->
-            <div class="card mod-card mod-basquete" id="mod-basquete-trilha">
+            <div class="card mod-card mod-basquete mod-card-full" id="mod-basquete-trilha">
                 <h2>🏀 Basquete de Trilha (Masculino) — Rodada Eliminatória Única</h2>
                 <p style="color: var(--text-muted);">Devido ao número pequeno de inscrições, as partidas acontecem em <strong>rodada única</strong>; o sorteio dos confrontos é feito 5 minutos antes de cada partida. Duplas inscritas: veja a aba <strong>📋 Inscrições — Duplas</strong>.</p>
                 <div class="table-responsive">
@@ -1808,7 +1907,7 @@
             </div>
 
             <!-- DAMAS -->
-            <div class="card mod-card mod-damas" id="mod-damas">
+            <div class="card mod-card mod-damas mod-card-full" id="mod-damas">
                 <h2>♟️ Jogo de Tabuleiro — Damas</h2>
                 <p>Disputa em eliminatórias, com as <strong>partidas iniciais</strong> na Quadra 3 (14h30 às 15h20) e as <strong>partidas finais</strong> na Quadra 4 (15h40 às 17h20). Confrontos individuais definidos no momento das partidas — resultados registrados diretamente pela arbitragem.</p>
             </div>
@@ -8195,6 +8294,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 valor = { texto: t ? t.value : '' };
             }
             var dados = salvarPlacarNoStorage(id, valor);
+            if (typeof renderClassificacoes === 'function') renderClassificacoes();
             mostrarStatusPlacar('💾 Salvando...');
             var ok = await salvarPlacaresNoSupabase(dados);
             if (ok) {
@@ -8206,11 +8306,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         window.addEventListener('DOMContentLoaded', async function () {
             renderTabelaPlacares0809(); // mostra cache local (ou vazio) imediatamente
+            renderClassificacoes();
             var doServidor = await carregarPlacaresDoSupabase();
-            if (doServidor) renderTabelaPlacares0809(doServidor); // atualiza com o que está no banco
+            if (doServidor) {
+                renderTabelaPlacares0809(doServidor); // atualiza com o que está no banco
+                renderClassificacoes();
+            }
         });
 
         // ===== Visão Geral / Específica — aba Registro de Grupos & Chaveamento =====
+        var MOD_IDS = ['mod-futsal-masculino', 'mod-futsal-feminino', 'mod-queimada-mista', 'mod-basquete-trilha', 'mod-damas'];
+        var _ultimaModalidadeAberta = null;
+
         window.switchRegistroView = function (view) {
             var geral = document.getElementById('registroVisaoGeral');
             var detalhada = document.getElementById('registroVisaoDetalhada');
@@ -8222,6 +8329,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 detalhada.style.display = 'block';
                 if (btnGeral) btnGeral.classList.remove('active');
                 if (btnEspecifica) btnEspecifica.classList.add('active');
+                mostrarApenasModalidade(_ultimaModalidadeAberta || MOD_IDS[0]);
             } else {
                 geral.style.display = 'block';
                 detalhada.style.display = 'none';
@@ -8230,13 +8338,111 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
         };
 
+        // Mostra o card de UMA modalidade por vez, usando toda a largura da página
+        window.mostrarApenasModalidade = function (idModalidade) {
+            _ultimaModalidadeAberta = idModalidade;
+            MOD_IDS.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) el.classList.toggle('mod-ativo', id === idModalidade);
+            });
+            document.querySelectorAll('#modPillNav .mod-pill').forEach(function (p) { p.classList.remove('active'); });
+            var pillClass = {
+                'mod-futsal-masculino': 'mod-pill-futsal-m',
+                'mod-futsal-feminino': 'mod-pill-futsal-f',
+                'mod-queimada-mista': 'mod-pill-queimada',
+                'mod-basquete-trilha': 'mod-pill-basquete',
+                'mod-damas': 'mod-pill-damas'
+            }[idModalidade];
+            if (pillClass) {
+                var btn = document.querySelector('#modPillNav .' + pillClass);
+                if (btn) btn.classList.add('active');
+            }
+            renderClassificacoes();
+            var detalhada = document.getElementById('registroVisaoDetalhada');
+            if (detalhada) detalhada.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
         window.irParaDetalheModalidade = function (idModalidade) {
             switchRegistroView('especifica');
-            setTimeout(function () {
-                var el = document.getElementById(idModalidade);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 60);
+            mostrarApenasModalidade(idModalidade);
         };
+
+        // ===== Classificação dos grupos (calculada a partir dos placares) =====
+        var GRUPOS_ESPORTES_COLETIVOS = {
+            'Futsal Masculino': {
+                alvo: 'FutsalM',
+                grupo1: ['Croácia (6º D)', 'Espanha (6º B)', 'Alemanha (6º E)'],
+                grupo2: ['Argentina (6º A)', 'México (6º C)', 'Noruega (6º F)']
+            },
+            'Futsal Feminino': {
+                alvo: 'FutsalF',
+                grupo1: ['Argentina (6º A)', 'México (6º C)', 'Noruega (6º F)'],
+                grupo2: ['Croácia (6º D)', 'Espanha (6º B)', 'Alemanha (6º E)']
+            },
+            'Queimada Mista': {
+                alvo: 'Queimada',
+                grupo1: ['Noruega (6º F)', 'Alemanha (6º E)', 'Argentina (6º A)'],
+                grupo2: ['México (6º C)', 'Espanha (6º B)', 'Croácia (6º D)']
+            }
+        };
+
+        function calcularClassificacaoGrupo(modLabel, times, placares) {
+            var stats = {};
+            times.forEach(function (t) { stats[t] = { time: t, pg: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 }; });
+            JOGOS_0809.forEach(function (g) {
+                if (g.mod !== modLabel || g.tipo !== 'placar') return;
+                var partes = g.confronto.split(' x ');
+                if (partes.length !== 2) return;
+                var timeA = partes[0].trim(), timeB = partes[1].trim();
+                if (!(timeA in stats) || !(timeB in stats)) return;
+                var salvo = placares[g.id];
+                if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return;
+                var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
+                if (isNaN(golsA) || isNaN(golsB)) return;
+                stats[timeA].pg++; stats[timeB].pg++;
+                stats[timeA].gp += golsA; stats[timeA].gc += golsB;
+                stats[timeB].gp += golsB; stats[timeB].gc += golsA;
+                if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
+                else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
+                else { stats[timeA].e++; stats[timeB].e++; }
+            });
+            var arr = times.map(function (t) { return stats[t]; });
+            arr.forEach(function (s) { s.sg = s.gp - s.gc; s.pts = s.v * 3 + s.e; });
+            arr.sort(function (a, b) { return b.pts - a.pts || b.sg - a.sg || b.gp - a.gp; });
+            return arr;
+        }
+
+        function linhaClassificacao(pos, s) {
+            return '<tr>' +
+                '<td>' + pos + 'º</td>' +
+                '<td>' + s.time + '</td>' +
+                '<td>' + s.pg + '</td>' +
+                '<td>' + s.v + '</td>' +
+                '<td>' + s.e + '</td>' +
+                '<td>' + s.d + '</td>' +
+                '<td>' + s.gp + '</td>' +
+                '<td>' + s.gc + '</td>' +
+                '<td>' + s.sg + '</td>' +
+                '<td><strong>' + s.pts + '</strong></td>' +
+                '</tr>';
+        }
+
+        function renderClassificacoes() {
+            var placares = carregarPlacaresSalvos();
+            var alvos = {
+                FutsalM: ['classFutsalMGrupo1', 'classFutsalMGrupo2'],
+                FutsalF: ['classFutsalFGrupo1', 'classFutsalFGrupo2'],
+                Queimada: ['classQueimadaGrupo1', 'classQueimadaGrupo2']
+            };
+            Object.keys(GRUPOS_ESPORTES_COLETIVOS).forEach(function (modLabel) {
+                var cfg = GRUPOS_ESPORTES_COLETIVOS[modLabel];
+                var idsTbody = alvos[cfg.alvo];
+                var tbody1 = document.getElementById(idsTbody[0]);
+                var tbody2 = document.getElementById(idsTbody[1]);
+                if (tbody1) tbody1.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo1, placares).map(function (s, i) { return linhaClassificacao(i + 1, s); }).join('');
+                if (tbody2) tbody2.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo2, placares).map(function (s, i) { return linhaClassificacao(i + 1, s); }).join('');
+            });
+        }
     })();
     </script>
 </body>
