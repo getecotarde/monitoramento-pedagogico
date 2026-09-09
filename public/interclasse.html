@@ -2150,11 +2150,7 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
   <!-- Legenda (só na tela) -->
   <div class="legend">
     <span class="leg-label">Modalidades:</span>
-    <span class="leg-chip" style="background:#e4f3ea;border-color:#23a050;color:#0f5a2a">⚽ Futsal</span>
-    <span class="leg-chip" style="background:#fffbe6;border-color:#d4a017;color:#7a4a00">🏐 Vôlei</span>
-    <span class="leg-chip" style="background:#e0eeff;border-color:#1565c0;color:#0d3d7a">🏀 Basquete</span>
-    <span class="leg-chip" style="background:#fff3cd;border-color:#d4a017;color:#7a4a00;font-weight:700">🏆 Final</span>
-    <span class="leg-chip" style="background:#f0f0f0;border-color:#aaa;color:#666">⏸ Reservado</span>
+    <span id="leg-default"></span>
     <span id="leg-custom"></span>
     <span id="leg-hint" style="font-size:11px;font-family:var(--font-cond);color:var(--gray3);margin-left:4px"></span>
   </div>
@@ -2342,8 +2338,25 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
   <div class="modal modal-esp">
     <button class="modal-close" onclick="fecharModalModalidades()">✕</button>
     <div class="modal-title">✏️ EDITAR MODALIDADES</div>
-    <div class="modal-sub" style="margin-bottom:16px">Adicione novas modalidades/esportes para marcar nos jogos</div>
+    <div class="modal-sub" style="margin-bottom:16px">Edite, remova ou restaure as modalidades padrão e as criadas recentemente, ou adicione novas</div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Modalidades padrão</div>
+    <div id="mod-default-list"></div>
+
+    <div id="mod-default-hidden-wrap" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px">Modalidades padrão removidas</div>
+      <div id="mod-default-hidden-list"></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px">Modalidades adicionadas</div>
     <div id="mod-custom-list"></div>
+
+    <div class="m-act" style="margin:6px 0 16px">
+      <button class="mb mb-green" onclick="salvarModalidades()">💾 Salvar alterações</button>
+      <button class="mb mb-ghost" onclick="restaurarModalidadesPadrao()">↩ Restaurar nomes/ícones padrão</button>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--gray3);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px">Adicionar nova modalidade</div>
     <div class="fg"><label>Nome da modalidade (ex: Handebol, Xadrez)</label><input id="mod-novo-nome" placeholder="Nome completo"></div>
     <div class="fg"><label>Ícone (opcional)</label>
       <select id="mod-novo-icon">
@@ -2608,7 +2621,23 @@ const LS_MOD_CUSTOM='ic26_mod_custom';
 let MOD_CUSTOM={};
 function loadModCustom(){try{const s=localStorage.getItem(LS_MOD_CUSTOM);if(s)MOD_CUSTOM=JSON.parse(s)||{};}catch(e){}}
 function saveModCustom(){try{localStorage.setItem(LS_MOD_CUSTOM,JSON.stringify(MOD_CUSTOM));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
-function getMOD(){return Object.assign({},MOD,MOD_CUSTOM);}
+// Edições (nome/ícone) das modalidades PADRÃO — carregadas do localStorage/Supabase
+const LS_MOD_OVERRIDES='ic26_mod_overrides';
+let MOD_OVERRIDES={};
+function loadModOverrides(){try{const s=localStorage.getItem(LS_MOD_OVERRIDES);if(s)MOD_OVERRIDES=JSON.parse(s)||{};}catch(e){}}
+function saveModOverrides(){try{localStorage.setItem(LS_MOD_OVERRIDES,JSON.stringify(MOD_OVERRIDES));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+// Modalidades padrão removidas da lista de opções (mas nunca apagadas do código-fonte) — carregadas do localStorage/Supabase
+const LS_MOD_HIDDEN='ic26_mod_hidden';
+let MOD_HIDDEN=[];
+function loadModHidden(){try{const s=localStorage.getItem(LS_MOD_HIDDEN);if(s)MOD_HIDDEN=JSON.parse(s)||[];}catch(e){}}
+function saveModHidden(){try{localStorage.setItem(LS_MOD_HIDDEN,JSON.stringify(MOD_HIDDEN));}catch(e){} if(typeof agendarSyncSupabase==='function') agendarSyncSupabase();}
+// getMOD() combina: modalidades padrão não removidas (com eventuais edições de nome/ícone) + modalidades adicionadas
+function getMOD(){
+  const out={};
+  Object.keys(MOD).forEach(k=>{ if(!MOD_HIDDEN.includes(k)) out[k]=Object.assign({},MOD[k],MOD_OVERRIDES[k]||{}); });
+  Object.keys(MOD_CUSTOM).forEach(k=>{ out[k]=Object.assign({},MOD_CUSTOM[k]); });
+  return out;
+}
 const MOD_COLOR_PALETTE=[
   {bg:'#fde8e8',brd:'#c0392b',txt:'#7a1f1f'},
   {bg:'#e8f0fe',brd:'#1a56b0',txt:'#0d2f6e'},
@@ -2616,25 +2645,132 @@ const MOD_COLOR_PALETTE=[
   {bg:'#e6f7f7',brd:'#0f7a7a',txt:'#0a4d4d'},
   {bg:'#fef3e2',brd:'#c77800',txt:'#7a4a00'},
 ];
+// Mesma lista de ícones do seletor "Adicionar nova modalidade", reaproveitada nas linhas de edição
+const MOD_ICON_OPTIONS=[
+  ['⭐','Estrela (genérico)'],['⚽','Futebol / Futsal'],['🏐','Vôlei'],['🏀','Basquete'],
+  ['🤾','Handebol'],['🏓','Tênis de mesa'],['🏸','Badminton'],['🎾','Tênis'],['⚾','Beisebol'],
+  ['🏒','Hóquei'],['🥋','Lutas / Artes marciais'],['🏊','Natação'],['🏃','Atletismo / Corrida'],
+  ['🤸','Ginástica'],['♟️','Xadrez / Damas'],['🎯','Jogos de precisão'],['🎮','Jogos eletrônicos'],
+  ['🏆','Troféu / Final'],['🔥','Fogo / Queimada'],['⏸','Pausa / Intervalo'],
+];
+function modIconSelectHtml(id,selecionado){
+  const opts=MOD_ICON_OPTIONS.some(([ic])=>ic===selecionado) ? MOD_ICON_OPTIONS : [[selecionado,'Atual'],...MOD_ICON_OPTIONS];
+  return `<select id="${id}">` + opts.map(([ic,lbl])=>`<option value="${ic}" ${ic===selecionado?'selected':''}>${ic} ${lbl}</option>`).join('') + `</select>`;
+}
 function abrirModalModalidades(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada. Libere o acesso na aba "Organização dos Grupos".','warn'); return; }
+  renderModDefaultList();
   renderModCustomList();
   document.getElementById('modal-modalidades').classList.add('open');
 }
 function fecharModalModalidades(){document.getElementById('modal-modalidades').classList.remove('open');}
+function renderModDefaultList(){
+  const box=document.getElementById('mod-default-list');
+  if(!box) return;
+  const ativos=Object.keys(MOD).filter(k=>!MOD_HIDDEN.includes(k));
+  box.innerHTML=(ativos.length?ativos:['__none__']).map(k=>{
+    if(k==='__none__') return '<p style="font-size:12px;color:#888;margin-bottom:10px">Todas as modalidades padrão foram removidas da lista.</p>';
+    const base=MOD[k];
+    const atual=Object.assign({},base,MOD_OVERRIDES[k]||{});
+    const editado=!!MOD_OVERRIDES[k];
+    return `<div class="esp-edit-row">
+      <span class="esp-preview-tag" id="modf-tag-${k}" style="background:${atual.brd}">${atual.icon}</span>
+      <input id="modf-nome-${k}" value="${atual.nome}" placeholder="${base.nome}" maxlength="24">
+      ${modIconSelectHtml('modf-icon-'+k, atual.icon)}
+      ${editado?`<button type="button" class="mb mb-ghost" style="padding:4px 10px" onclick="restaurarUmaModalidade('${k}')">↩</button>`:''}
+      <button type="button" class="mb mb-del" style="padding:4px 10px" onclick="removerModalidadePadrao('${k}')">✕ Remover</button>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('select[id^="modf-icon-"]').forEach(sel=>{
+    sel.onchange=()=>{ const k=sel.id.replace('modf-icon-',''); const tag=document.getElementById('modf-tag-'+k); if(tag) tag.textContent=sel.value; };
+  });
+  const hiddenBox=document.getElementById('mod-default-hidden-list');
+  const hiddenWrap=document.getElementById('mod-default-hidden-wrap');
+  if(hiddenBox && hiddenWrap){
+    if(!MOD_HIDDEN.length){ hiddenWrap.style.display='none'; hiddenBox.innerHTML=''; }
+    else{
+      hiddenWrap.style.display='';
+      hiddenBox.innerHTML=MOD_HIDDEN.map(k=>{
+        const atual=Object.assign({},MOD[k],MOD_OVERRIDES[k]||{});
+        return `<div class="esp-edit-row">
+          <span class="esp-preview-tag" style="background:${atual.brd};opacity:.5">${atual.icon}</span>
+          <label>${atual.nome}</label>
+          <button type="button" class="mb mb-green" style="padding:4px 10px" onclick="reexibirModalidadePadrao('${k}')">↩ Restaurar</button>
+        </div>`;
+      }).join('');
+    }
+  }
+}
 function renderModCustomList(){
   const box=document.getElementById('mod-custom-list');
   if(!box) return;
   const chaves=Object.keys(MOD_CUSTOM);
-  if(!chaves.length){ box.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:10px">Nenhuma modalidade adicionada ainda (Futsal, Vôlei, Basquete, Final e Reservado já vêm prontos).</p>'; return; }
+  if(!chaves.length){ box.innerHTML='<p style="font-size:12px;color:#888;margin-bottom:10px">Nenhuma modalidade adicionada ainda.</p>'; return; }
   box.innerHTML=chaves.map(k=>{
     const m=MOD_CUSTOM[k];
     return `<div class="esp-edit-row">
-      <span class="esp-preview-tag" style="background:${m.brd}">${m.icon}</span>
-      <label>${m.nome}</label>
+      <span class="esp-preview-tag" id="modc-tag-${k}" style="background:${m.brd}">${m.icon}</span>
+      <input id="modc-nome-${k}" value="${m.nome}" maxlength="24">
+      ${modIconSelectHtml('modc-icon-'+k, m.icon)}
       <button type="button" class="mb mb-del" style="padding:4px 10px" onclick="removerModalidade('${k}')">✕ Remover</button>
     </div>`;
   }).join('');
+  box.querySelectorAll('select[id^="modc-icon-"]').forEach(sel=>{
+    sel.onchange=()=>{ const k=sel.id.replace('modc-icon-',''); const tag=document.getElementById('modc-tag-'+k); if(tag) tag.textContent=sel.value; };
+  });
+}
+function salvarModalidades(){
+  if(!edicaoPermitida) return;
+  // Modalidades padrão: grava só o que difere do original; se voltou a ficar igual, remove a edição
+  Object.keys(MOD).forEach(k=>{
+    const nomeInput=document.getElementById('modf-nome-'+k)?.value.trim();
+    const iconInput=document.getElementById('modf-icon-'+k)?.value.trim();
+    const nome=nomeInput||MOD[k].nome;
+    const icon=iconInput||MOD[k].icon;
+    if(nome!==MOD[k].nome || icon!==MOD[k].icon){ MOD_OVERRIDES[k]={nome,icon}; }
+    else { delete MOD_OVERRIDES[k]; }
+  });
+  saveModOverrides();
+  // Modalidades adicionadas: atualiza nome/ícone direto no objeto
+  Object.keys(MOD_CUSTOM).forEach(k=>{
+    const nomeInput=document.getElementById('modc-nome-'+k)?.value.trim();
+    const iconInput=document.getElementById('modc-icon-'+k)?.value.trim();
+    if(nomeInput) MOD_CUSTOM[k].nome=nomeInput;
+    if(iconInput) MOD_CUSTOM[k].icon=iconInput;
+  });
+  saveModCustom();
+  renderModDefaultList();renderModCustomList();renderModSelectOptions();renderLegend();render();
+  toast('✅ Modalidades atualizadas!');
+}
+function restaurarUmaModalidade(key){
+  delete MOD_OVERRIDES[key];
+  saveModOverrides();
+  renderModDefaultList();renderModSelectOptions();renderLegend();render();
+  toast('↩ "'+MOD[key].nome+'" restaurada ao padrão.');
+}
+function removerModalidadePadrao(key){
+  if(!edicaoPermitida) return;
+  if(!confirm('Remover "'+MOD[key].nome+'" da lista de modalidades? Jogos já marcados com ela permanecerão salvos, mas ela some da lista de opções. Você pode restaurá-la depois.')) return;
+  if(!MOD_HIDDEN.includes(key)) MOD_HIDDEN.push(key);
+  saveModHidden();
+  renderModDefaultList();renderModSelectOptions();renderLegend();render();
+  toast('🗑 "'+MOD[key].nome+'" removida da lista.');
+}
+function reexibirModalidadePadrao(key){
+  MOD_HIDDEN=MOD_HIDDEN.filter(k=>k!==key);
+  saveModHidden();
+  renderModDefaultList();renderModSelectOptions();renderLegend();render();
+  toast('↩ "'+MOD[key].nome+'" de volta à lista.');
+}
+function restaurarModalidadesPadrao(){
+  if(!edicaoPermitida) return;
+  if(!confirm('Restaurar nome, ícone e visibilidade de TODAS as modalidades padrão para o original? As modalidades adicionadas não são afetadas.')) return;
+  MOD_OVERRIDES={};
+  MOD_HIDDEN=[];
+  saveModOverrides();
+  saveModHidden();
+  renderModDefaultList();renderModSelectOptions();renderLegend();render();
+  toast('↩ Modalidades padrão restauradas.');
 }
 function adicionarModalidade(){
   if(!edicaoPermitida) return;
@@ -3731,7 +3867,16 @@ function setEdicaoPermitida(v){
   edicaoPermitida=!!v;
   aplicarBloqueioUI();
 }
+const LEG_DEFAULT_KEYS=['futsal','volei','basquete','final','reservado'];
 function renderLegend(){
+  const defBox=document.getElementById('leg-default');
+  if(defBox){
+    const mods=getMOD();
+    defBox.innerHTML=LEG_DEFAULT_KEYS.filter(k=>mods[k]).map(k=>{
+      const m=mods[k];
+      return `<span class="leg-chip" style="background:${m.bg};border-color:${m.brd};color:${m.txt}">${m.icon} ${m.nome}</span>`;
+    }).join('');
+  }
   const box=document.getElementById('leg-custom');
   if(box){
     box.innerHTML=Object.keys(MOD_CUSTOM).map(k=>{
@@ -3781,7 +3926,7 @@ function toast(msg,tipo){
 }
 
 // ─ INIT ─
-load();loadLbls();loadEspacosCustom();loadModCustom();loadHorasCustom();loadHoraOvr();
+load();loadLbls();loadEspacosCustom();loadModCustom();loadModOverrides();loadModHidden();loadHorasCustom();loadHoraOvr();
 renderModSelectOptions();renderEspacoSelectOptions();renderTimeSelectOptions('A');renderTimeSelectOptions('B');
 aplicarBloqueioUI(); // inicia bloqueado (perfil geral/comunidade) até o pai liberar
 render();
