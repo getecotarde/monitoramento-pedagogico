@@ -486,6 +486,62 @@
         .badge-orange { background: #ffedd5; color: #9a3412; }
         .badge-purple { background: #f3e8ff; color: #6b21a8; }
 
+        /* ===== Cards de modalidade (aba Registro de Grupos & Chaveamento) ===== */
+        .view-toggle-bar { display:flex; gap:0.6rem; flex-wrap:wrap; margin-top:0.8rem; }
+        .view-toggle-btn {
+            padding:0.55rem 1.1rem; border-radius:999px; border:2px solid var(--border);
+            background:#fff; font-weight:700; font-size:0.88rem; cursor:pointer; transition:.15s;
+            font-family: var(--font-cond, inherit);
+        }
+        .view-toggle-btn:hover { border-color: var(--primary); }
+        .view-toggle-btn.active { background: var(--primary); border-color: var(--primary); color:#fff; }
+
+        .mod-card {
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid transparent;
+            border-left: 6px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .mod-card h2 { border-bottom-color: rgba(0,0,0,0.08); }
+        .mod-card .table-responsive table thead { background: rgba(255,255,255,0.65); }
+        .mod-card table { background: rgba(255,255,255,0.55); }
+
+        .mod-futsal-m   { background:#eaf3ff; border-left-color:#3b82f6; }
+        .mod-futsal-m   h2 { color:#1d4ed8; }
+        .mod-futsal-f   { background:#fdeef4; border-left-color:#ec4899; }
+        .mod-futsal-f   h2 { color:#be185d; }
+        .mod-queimada   { background:#fff4e6; border-left-color:#f59e0b; }
+        .mod-queimada   h2 { color:#b45309; }
+        .mod-basquete   { background:#f4eefe; border-left-color:#8b5cf6; }
+        .mod-basquete   h2 { color:#6d28d9; }
+        .mod-damas      { background:#eafaf0; border-left-color:#22c55e; }
+        .mod-damas      h2 { color:#15803d; }
+
+        .mod-toggle-detail {
+            width:auto; padding:0.4rem 0.85rem; font-size:0.82rem; border-radius:999px;
+            border:1.5px solid rgba(0,0,0,0.15); background:rgba(255,255,255,0.75);
+            cursor:pointer; font-weight:700; margin-top:0.8rem;
+        }
+        .mod-toggle-detail:hover { background:#fff; }
+        .mod-detail-body { display:none; margin-top:1rem; }
+        .mod-detail-body.aberto { display:block; animation: fadeIn .25s ease-in-out; }
+
+        .mod-summary-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem; }
+        .mod-summary-card {
+            border-radius: 14px; padding: 1.3rem; border-left: 6px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor:pointer; transition:.15s;
+        }
+        .mod-summary-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .mod-summary-card h3 { margin:0 0 0.5rem; font-size:1.05rem; display:flex; align-items:center; gap:0.4rem; }
+        .mod-summary-card p { margin:0.2rem 0; font-size:0.86rem; color:#374151; }
+        .mod-summary-card .mod-summary-link { display:inline-block; margin-top:0.6rem; font-size:0.8rem; font-weight:700; }
+
+        @media (max-width: 640px) {
+            .mod-card { padding: 1.1rem; }
+        }
+
         /* Forms & Inputs */
         .form-group {
             margin-bottom: 1rem;
@@ -934,9 +990,9 @@
             <button class="tab-btn" onclick="switchTab('modalidades')">🏆 Modalidades & Regras</button>
             <button class="tab-btn" onclick="switchTab('quadroresumo')">🏅 Quadro Resumo (Alunos)</button>
             <button class="tab-btn" onclick="switchTab('camisas')">🎽 Camisas</button>
-            <button class="tab-btn" onclick="switchTab('registro')">🗂️ Organização dos Grupos & Marcação de Jogos</button>
-            <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Resultados</button>
-            <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Listagem & Fichas (Alunos)</button>
+            <button class="tab-btn" onclick="switchTab('registro')">🗂️ Registro de Grupos & Chaveamento</button>
+            <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Placares</button>
+            <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Inscrições — Duplas</button>
         </nav>
 
         <div class="main-content">
@@ -1473,282 +1529,353 @@
             </div>
         </div>
 
-        <!-- TAB 6: ORGANIZAÇÃO DOS GRUPOS, MARCAÇÃO DE JOGOS E REGISTRO (INTERATIVO) -->
+        <!-- TAB 6: REGISTRO DE GRUPOS & CHAVEAMENTO -->
         <div id="registro" class="tab-content">
 
-            <div class="card" id="editLockCard">
-                <h2>🔒 Área Restrita de Edição</h2>
-                <div class="alert alert-warning">
-                    A <strong>montagem dos grupos</strong>, a <strong>marcação das partidas</strong> (data, horário, espaço, turmas e modalidade) e o <strong>lançamento dos placares</strong> (feito na aba <strong>🗓️ Grade de Horários & Resultados</strong>) são de <strong>responsabilidade da Coordenação Pedagógica e do Professor de Educação Física</strong>. Para evitar alterações indevidas por parte da comunidade escolar, a edição dessas informações é protegida pelo mesmo código de acesso em toda esta aba e na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
-                </div>
-
-                <div id="lockedView">
-                    <p style="margin-bottom: 0.8rem; color: var(--text-muted); font-size: 0.9rem;">Consultar os grupos, o quadro de jogos e os resultados já cadastrados não exige código — role a página para visualizá-los. Para <strong>editar</strong>, insira o código de acesso abaixo:</p>
-                    <form id="unlockForm" onsubmit="tryUnlockEditing(event)" style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
-                        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
-                            <label for="editCodeInput">Código de acesso</label>
-                            <input type="password" id="editCodeInput" placeholder="Digite o código" autocomplete="off">
-                        </div>
-                        <button type="submit" class="btn">🔓 Liberar Edição</button>
-                    </form>
-                    <p id="unlockErrorMsg" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem; display: none;">Código incorreto. Consulte a coordenação ou o professor de Educação Física.</p>
-                </div>
-
-                <div id="unlockedView" style="display: none;">
-                    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                        <span>🔓 <strong>Edição liberada</strong> para esta sessão de navegação.</span>
-                        <button type="button" class="btn" style="background: var(--text-muted);" onclick="lockEditing()">🔒 Bloquear Novamente</button>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:flex; align-items:center; gap:0.6rem; margin: 1.6rem 0 0.6rem;">
-                <span style="background:var(--primary); color:#fff; font-weight:700; font-size:0.8rem; border-radius:999px; padding:0.25rem 0.7rem; white-space:nowrap;">ETAPA 1</span>
-                <h2 style="border:none; margin:0; padding:0; font-size:1.2rem;">🗂️ Organização dos Grupos</h2>
-            </div>
-
-            <div class="card" style="margin-top:0.6rem;">
-                <p>Este painel serve para organizar as turmas nos Grupos A e B (fase de grupos de Futsal e Queimada). Utilize os seletores abaixo para montar cada grupo.</p>
-
-                <div id="noGroupsAlert" class="alert alert-warning" style="display: none;">
-                    <strong>⚠️ Nenhum grupo formado até o momento.</strong> Defina o grupo de cada turma nas tabelas abaixo.
-                </div>
-                <div id="groupsFormedAlert" class="alert alert-info" style="display: none;">
-                    <strong>✅ Grupos já formados.</strong> Utilize os seletores abaixo para consultar ou, se necessário, ajustar a montagem.
-                </div>
-                <div id="partialGroupsAlert" class="alert alert-warning" style="display: none;">
-                    <strong>⚠️ Ainda faltam turmas sem grupo definido.</strong> Complete a montagem nas tabelas abaixo.
-                </div>
-
-                <div id="groupSelectLockedMsg" class="alert alert-info" style="display: none;">🔒 Os seletores abaixo estão bloqueados. Insira o código de acesso no topo desta aba para editar a montagem dos grupos.</div>
-
-                <div class="grid-2">
-                    <div>
-                        <h3>6ºs Anos — 6 turmas (2 grupos de 3 equipes)</h3>
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Turma</th>
-                                        <th>Seleção</th>
-                                        <th style="width: 160px;">Grupo</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groupTable6"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div>
-                        <h3>7ºs Anos — 5 turmas (grupo de 3 + grupo de 2 equipes)</h3>
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Turma</th>
-                                        <th>Seleção</th>
-                                        <th style="width: 160px;">Grupo</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="groupTable7"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="card">
-                <h2>📋 Resumo dos Grupos Formados</h2>
+                <h2>🗂️ Registro de Grupos & Chaveamento — 6º Anos</h2>
+                <p style="color: var(--text-muted);">Organização das turmas nos grupos e estrutura de chaveamento (fase de grupos, semifinais, final e disputa de 3º lugar) de cada modalidade dos <strong>Jogos Estudantis GETECO 2026</strong>, conforme a Súmula Oficial. Os placares dos jogos do dia 08/09 são lançados na aba <strong>🗓️ Grade de Horários & Placares</strong>.</p>
+                <div class="alert alert-info">📅 6º Anos: fase de grupos em <strong>08/09</strong> · semifinais e finais em <strong>09/09</strong>.</div>
+                <div class="view-toggle-bar">
+                    <button type="button" class="view-toggle-btn active" id="btnVisaoGeral" onclick="switchRegistroView('geral')">📋 Visão Geral</button>
+                    <button type="button" class="view-toggle-btn" id="btnVisaoEspecifica" onclick="switchRegistroView('especifica')">🔍 Visão Específica</button>
+                </div>
+            </div>
+
+            <!-- VISÃO GERAL: cards-resumo por modalidade -->
+            <div id="registroVisaoGeral">
+                <div class="mod-summary-grid">
+                    <div class="mod-summary-card mod-futsal-m" onclick="irParaDetalheModalidade('mod-futsal-masculino')">
+                        <h3>⚽ Futsal Masculino</h3>
+                        <p><strong>Grupo 1:</strong> Croácia, Espanha, Alemanha</p>
+                        <p><strong>Grupo 2:</strong> Argentina, México, Noruega</p>
+                        <p>Semifinais e final <span class="badge badge-orange">09/09</span></p>
+                        <span class="mod-summary-link">Ver detalhes →</span>
+                    </div>
+                    <div class="mod-summary-card mod-futsal-f" onclick="irParaDetalheModalidade('mod-futsal-feminino')">
+                        <h3>⚽ Futsal Feminino</h3>
+                        <p><strong>Grupo 1:</strong> Argentina, México, Noruega</p>
+                        <p><strong>Grupo 2:</strong> Croácia, Espanha, Alemanha</p>
+                        <p>Semifinais e final <span class="badge badge-orange">09/09</span></p>
+                        <span class="mod-summary-link">Ver detalhes →</span>
+                    </div>
+                    <div class="mod-summary-card mod-queimada" onclick="irParaDetalheModalidade('mod-queimada-mista')">
+                        <h3>🔥 Queimada Mista</h3>
+                        <p><strong>Grupo 1:</strong> Noruega, Alemanha, Argentina</p>
+                        <p><strong>Grupo 2:</strong> México, Espanha, Croácia</p>
+                        <p>Datas dos jogos a confirmar</p>
+                        <span class="mod-summary-link">Ver detalhes →</span>
+                    </div>
+                    <div class="mod-summary-card mod-basquete" onclick="irParaDetalheModalidade('mod-basquete-trilha')">
+                        <h3>🏀 Basquete de Trilha</h3>
+                        <p><strong>12 duplas</strong> inscritas</p>
+                        <p>Rodada eliminatória única — 8 jogos</p>
+                        <p>Sorteio 5 min antes de cada partida</p>
+                        <span class="mod-summary-link">Ver detalhes →</span>
+                    </div>
+                    <div class="mod-summary-card mod-damas" onclick="irParaDetalheModalidade('mod-damas')">
+                        <h3>♟️ Damas</h3>
+                        <p>Partidas iniciais — Quadra 3 (14h30–15h20)</p>
+                        <p>Partidas finais — Quadra 4 (15h40–17h20)</p>
+                        <span class="mod-summary-link">Ver detalhes →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISÃO ESPECÍFICA: cards completos por modalidade -->
+            <div id="registroVisaoDetalhada" style="display:none;">
+
+            <!-- FUTSAL MASCULINO -->
+            <div class="card mod-card mod-futsal-m" id="mod-futsal-masculino">
+                <h2>⚽ Futsal Masculino</h2>
                 <div class="grid-2">
                     <div>
-                        <h3>6ºs Anos</h3>
-                        <div id="summary6"></div>
+                        <h3><span class="badge badge-blue">Grupo 1</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇭🇷 Croácia — 6º D</td></tr>
+                                    <tr><td>🇪🇸 Espanha — 6º B</td></tr>
+                                    <tr><td>🇩🇪 Alemanha — 6º E</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Croácia (6º D) x Alemanha (6º E)</td></tr>
+                                    <tr><td>2</td><td>Alemanha (6º E) x Espanha (6º B)</td></tr>
+                                    <tr><td>3</td><td>Espanha (6º B) x Croácia (6º D) <span class="badge badge-orange">09/09</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <div>
-                        <h3>7ºs Anos</h3>
-                        <div id="summary7"></div>
+                        <h3><span class="badge badge-green">Grupo 2</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇦🇷 Argentina — 6º A</td></tr>
+                                    <tr><td>🇲🇽 México — 6º C</td></tr>
+                                    <tr><td>🇳🇴 Noruega — 6º F</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Argentina (6º A) x Noruega (6º F)</td></tr>
+                                    <tr><td>2</td><td>Noruega (6º F) x México (6º C)</td></tr>
+                                    <tr><td>3</td><td>México (6º C) x Argentina (6º A) <span class="badge badge-orange">09/09</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div style="display:flex; align-items:center; gap:0.6rem; margin: 2rem 0 0.6rem;">
-                <span style="background:var(--secondary); color:#fff; font-weight:700; font-size:0.8rem; border-radius:999px; padding:0.25rem 0.7rem; white-space:nowrap;">ETAPA 2</span>
-                <h2 style="border:none; margin:0; padding:0; font-size:1.2rem;">🗂️ Quadro de Marcação de Jogos</h2>
-            </div>
-
-            <div class="card" style="margin-top:0.6rem; padding: 1.5rem 1.5rem 0.5rem;">
-                <p style="color: var(--text-muted); font-size: 0.9rem;">
-                    Esta é a <strong>única</strong> seção onde as partidas são marcadas. Clique em qualquer célula do quadro abaixo (espaço, dia e horário) para marcar um jogo: modalidade, times/turmas e fase.
-                    Cada jogo marcado aqui é adicionado automaticamente à lista pública de jogos na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
-                    Como o quadro não registra placar, o resultado da partida (placar final) deve ser lançado depois, diretamente na aba <strong>🗓️ Grade de Horários & Resultados</strong>.
-                    A edição do quadro (marcar/limpar jogos, adicionar espaços, modalidades e horários) usa o mesmo código de acesso liberado no topo desta aba.
-                </p>
-                <div class="alert alert-info" style="margin-top:0.5rem">
-                    🔢 <strong>Numeração dos jogos (para o mata-mata):</strong> ao marcar um jogo, o sistema sugere automaticamente um <strong>número sequencial</strong> (Jogo 1, Jogo 2...), separado para cada combinação de <strong>modalidade + categoria</strong>. A partir da 2ª fase, em vez de escolher a turma no Time A/B, você pode selecionar diretamente <strong>"🏆 Vencedor — Jogo Nº"</strong> ou <strong>"❌ Perdedor — Jogo Nº"</strong> de um jogo já numerado — o sistema só deixa referenciar jogos com número menor (que já aconteceram antes) e nunca deixa repetir um número dentro da mesma modalidade/categoria. Assim que o placar do jogo referenciado for lançado, a "Grade de Horários & Resultados" mostra automaticamente o nome real da turma classificada.
+                <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais <span class="badge badge-orange">09/09</span></h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Confronto</th><th>Times</th></tr></thead>
+                        <tbody>
+                            <tr><td>Semifinal 1</td><td>1º Grupo 1 <strong>x</strong> 2º Grupo 2</td></tr>
+                            <tr><td>Semifinal 2</td><td>1º Grupo 2 <strong>x</strong> 2º Grupo 1</td></tr>
+                            <tr><td>Final</td><td>Vencedor SF1 <strong>x</strong> Vencedor SF2</td></tr>
+                            <tr><td>3º Lugar</td><td>Perdedor SF1 <strong>x</strong> Perdedor SF2</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <iframe id="quadroFrame" title="Quadro de Marcação de Jogos" style="width: 100%; min-height: 1600px; border: none; display: block;"></iframe>
+
+            <!-- FUTSAL FEMININO -->
+            <div class="card mod-card mod-futsal-f" id="mod-futsal-feminino">
+                <h2>⚽ Futsal Feminino</h2>
+                <div class="grid-2">
+                    <div>
+                        <h3><span class="badge badge-blue">Grupo 1</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇦🇷 Argentina — 6º A</td></tr>
+                                    <tr><td>🇲🇽 México — 6º C</td></tr>
+                                    <tr><td>🇳🇴 Noruega — 6º F</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Argentina (6º A) x Noruega (6º F)</td></tr>
+                                    <tr><td>2</td><td>Noruega (6º F) x México (6º C)</td></tr>
+                                    <tr><td>3</td><td>México (6º C) x Argentina (6º A)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3><span class="badge badge-green">Grupo 2</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇭🇷 Croácia — 6º D</td></tr>
+                                    <tr><td>🇪🇸 Espanha — 6º B</td></tr>
+                                    <tr><td>🇩🇪 Alemanha — 6º E</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Croácia (6º D) x Espanha (6º B)</td></tr>
+                                    <tr><td>2</td><td>Espanha (6º B) x Alemanha (6º E)</td></tr>
+                                    <tr><td>3</td><td>Alemanha (6º E) x Croácia (6º D) <span class="badge badge-orange">09/09</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais <span class="badge badge-orange">09/09</span></h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Confronto</th><th>Times</th></tr></thead>
+                        <tbody>
+                            <tr><td>Semifinal 1</td><td>1º Grupo 1 <strong>x</strong> 2º Grupo 2</td></tr>
+                            <tr><td>Semifinal 2</td><td>1º Grupo 2 <strong>x</strong> 2º Grupo 1</td></tr>
+                            <tr><td>Final</td><td>Vencedor SF1 <strong>x</strong> Vencedor SF2</td></tr>
+                            <tr><td>3º Lugar</td><td>Perdedor SF1 <strong>x</strong> Perdedor SF2</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <!-- QUEIMADA MISTA -->
+            <div class="card mod-card mod-queimada" id="mod-queimada-mista">
+                <h2>🔥 Queimada Mista</h2>
+                <div class="grid-2">
+                    <div>
+                        <h3><span class="badge badge-blue">Grupo 1</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇳🇴 Noruega — 6º F</td></tr>
+                                    <tr><td>🇩🇪 Alemanha — 6º E</td></tr>
+                                    <tr><td>🇦🇷 Argentina — 6º A</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Noruega (6º F) x Argentina (6º A)</td></tr>
+                                    <tr><td>2</td><td>Argentina (6º A) x Alemanha (6º E)</td></tr>
+                                    <tr><td>3</td><td>Alemanha (6º E) x Noruega (6º F)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3><span class="badge badge-green">Grupo 2</span></h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Turma / Seleção</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🇲🇽 México — 6º C</td></tr>
+                                    <tr><td>🇪🇸 Espanha — 6º B</td></tr>
+                                    <tr><td>🇭🇷 Croácia — 6º D</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-responsive" style="margin-top:0.6rem;">
+                            <table>
+                                <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                                <tbody>
+                                    <tr><td>1</td><td>México (6º C) x Croácia (6º D)</td></tr>
+                                    <tr><td>2</td><td>Croácia (6º D) x Espanha (6º B)</td></tr>
+                                    <tr><td>3</td><td>Espanha (6º B) x México (6º C)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <h3 style="margin-top:1.2rem;">🏆 2ª Fase — Semifinais e Finais</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Confronto</th><th>Times</th></tr></thead>
+                        <tbody>
+                            <tr><td>Semifinal 1</td><td>1º Grupo 1 <strong>x</strong> 2º Grupo 2</td></tr>
+                            <tr><td>Semifinal 2</td><td>1º Grupo 2 <strong>x</strong> 2º Grupo 1</td></tr>
+                            <tr><td>Final</td><td>Vencedor SF1 <strong>x</strong> Vencedor SF2</td></tr>
+                            <tr><td>3º Lugar</td><td>Perdedor SF1 <strong>x</strong> Perdedor SF2</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista não consta na programação de quadras/horários do dia 08/09 na Súmula Oficial — datas dos jogos a confirmar pela Coordenação/Educação Física.</div>
+            </div>
+
+            <!-- BASQUETE DE TRILHA -->
+            <div class="card mod-card mod-basquete" id="mod-basquete-trilha">
+                <h2>🏀 Basquete de Trilha (Masculino) — Rodada Eliminatória Única</h2>
+                <p style="color: var(--text-muted);">Devido ao número pequeno de inscrições, as partidas acontecem em <strong>rodada única</strong>; o sorteio dos confrontos é feito 5 minutos antes de cada partida. Duplas inscritas: veja a aba <strong>📋 Inscrições — Duplas</strong>.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Jogo</th><th>Confronto</th><th>Fase</th></tr></thead>
+                        <tbody>
+                            <tr><td>1</td><td>(6º E) Guilherme Oliveira / Lucas Alberto <strong>x</strong> (6º F) Cláudio Calixto / Arthur Guimarães</td><td>Eliminatória</td></tr>
+                            <tr><td>2</td><td>(6º C) Luiz Cláudio / Luiz Miguel <strong>x</strong> (6º D) Davi Gregio / Marcos Antônio</td><td>Eliminatória</td></tr>
+                            <tr><td>3</td><td>(6º C) Yuri Cândida / Arthur Ventura <strong>x</strong> (6º C) Davi Vitor / Enzo Neves</td><td>Eliminatória</td></tr>
+                            <tr><td>4</td><td>(6º D) Daniel Caetano / Bryan Felipe <strong>x</strong> (6º A) Aleph Andrade / Christopher Ferreira</td><td>Eliminatória</td></tr>
+                            <tr><td>5</td><td>(6º A) Kaique Eduardo / Lorenzo Santos <strong>x</strong> (6º D) Davi Kenedy / Matheus Rezende</td><td>Eliminatória</td></tr>
+                            <tr><td>6</td><td>(6º A) André Xavier / Miguel Gonçalves <strong>x</strong> (6º E) Isaac Augusto / Henrique da Silva</td><td>Eliminatória</td></tr>
+                            <tr><td>7</td><td>Semifinal única (uma das duplas teve <em>bye</em>, avançando direto para definir finalista)</td><td>Eliminatória</td></tr>
+                            <tr><td>8</td><td><strong>FINAL</strong></td><td>Eliminatória</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="grid-3" style="margin-top:0.8rem;">
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥇 1º Lugar:</strong> ______________________</div>
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥈 2º Lugar:</strong> ______________________</div>
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥉 3º Lugar:</strong> ______________________</div>
+                </div>
+            </div>
+
+            <!-- DAMAS -->
+            <div class="card mod-card mod-damas" id="mod-damas">
+                <h2>♟️ Jogo de Tabuleiro — Damas</h2>
+                <p>Disputa em eliminatórias, com as <strong>partidas iniciais</strong> na Quadra 3 (14h30 às 15h20) e as <strong>partidas finais</strong> na Quadra 4 (15h40 às 17h20). Confrontos individuais definidos no momento das partidas — resultados registrados diretamente pela arbitragem.</p>
+            </div>
+
+            </div><!-- fim #registroVisaoDetalhada -->
+
         </div>
 
-        <!-- TAB 6b: GRADE DE HORÁRIOS & RESULTADOS (PÚBLICA) -->
+        <!-- TAB 6b: GRADE DE HORÁRIOS & PLACARES (08 DE SETEMBRO) -->
         <div id="grade" class="tab-content">
             <div class="card">
-                <h2>🗓️ Grade de Horários & Resultados dos Jogos</h2>
-                <p>Consulte aqui os dias, horários e modalidades dos Jogos Estudantis do GETECO 2026, marcados na aba "Quadro de Marcação de Jogos", com os resultados já lançados. Esta tabela é de acompanhamento público para estudantes, professores e famílias (perfil geral).</p>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem;" class="no-print">
-                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirGradeNormal()">🖨️ Imprimir Grade (com dados)</button>
-                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--accent); color: #fff;" onclick="imprimirGradeMural()">🖨️ Imprimir para Mural (cartaz)</button>
-                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--purple); color: #fff;" onclick="abrirVisualizacaoOnline()">🌐 Abrir Visualização Online (Jogos, Classificação e Chaveamento)</button>
+                <h2>🗓️ Grade de Horários & Placares — 08 de Setembro</h2>
+                <p style="color: var(--text-muted);">Programação oficial de jogos, locais (quadras) e horários previstos para o dia <strong>08/09</strong>, conforme a Súmula dos Jogos Estudantis GETECO 2026. Informe o placar de cada partida e clique em 💾 <strong>Salvar</strong> — o resultado é sincronizado com o banco de dados (visível em qualquer dispositivo) e também guardado neste navegador como cópia local.</p>
+                <div class="alert alert-warning">
+                    ⚠️ <strong>Atenção:</strong> os Jogos 03 da fase de grupos (Grupo 2) do Futsal Masculino e Feminino acontecerão no dia <strong>09 de setembro</strong>, seguidos das semifinais, finais e disputa de 3º lugar das duas modalidades.
                 </div>
-                <div id="scheduleEditStatus" class="alert alert-info"></div>
-                <div id="scheduleContainer"></div>
+                <div id="placarSaveStatus" class="alert alert-info" style="display:none;"></div>
             </div>
-            <div class="card">
-                <h2>📊 Resultados e Classificação por Modalidade</h2>
-                <p>Para cada modalidade, os resultados já lançados e a classificação (pontos corridos: vitória = 3 pts, empate = 1 pt, derrota = 0 pts) das turmas/seleções que já entraram em quadra.</p>
-                <div id="classificacaoContainer"></div>
+
+            <div class="card" style="padding: 0.5rem 0.5rem 1rem;">
+                <div class="table-responsive">
+                    <table id="tabelaPlacares08">
+                        <thead>
+                            <tr>
+                                <th>Horário</th>
+                                <th>Modalidade</th>
+                                <th>Jogo</th>
+                                <th>Confronto</th>
+                                <th>Local</th>
+                                <th>Fase</th>
+                                <th style="min-width:170px;">Placar</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoTabelaPlacares"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- TAB 7: LISTAGEM DE INSCRIÇÃO / FICHAS DOS ALUNOS -->
+        <!-- TAB 7: INSCRIÇÕES — DUPLAS DO BASQUETE DE TRILHA -->
         <div id="inscricoes" class="tab-content">
-
-            <div class="card" style="padding: 0.75rem;">
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button type="button" class="tab-btn sub-tab-btn active" style="width: auto;" onclick="switchSubTab(event,'subListagem')">📋 Listagem por Turma</button>
-                    <button type="button" class="tab-btn sub-tab-btn" style="width: auto;" onclick="switchSubTab(event,'subDashboard')">📊 Dashboard das Fichas</button>
-                    <button type="button" class="tab-btn sub-tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirListagemPorTurma()">🖨️ Imprimir Listagem por Turma</button>
+            <div class="card">
+                <h2>📋 Inscrições — Duplas do Basquete de Trilha (6º Anos)</h2>
+                <p style="color: var(--text-muted);">Relação oficial das duplas inscritas na modalidade Basquete de Trilha, conforme a Súmula dos Jogos Estudantis GETECO 2026.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th style="width:8%;">Turma</th><th>Dupla</th></tr></thead>
+                        <tbody>
+                            <tr><td>6º E</td><td>Guilherme Oliveira &amp; Lucas Alberto</td></tr>
+                            <tr><td>6º F</td><td>Cláudio Calixto &amp; Arthur Guimarães</td></tr>
+                            <tr><td>6º C</td><td>Luiz Cláudio &amp; Luiz Miguel</td></tr>
+                            <tr><td>6º D</td><td>Davi Gregio &amp; Marco Antônio</td></tr>
+                            <tr><td>6º C</td><td>Yuri Cândida &amp; Arthur Ventura</td></tr>
+                            <tr><td>6º C</td><td>Davi Victor &amp; Enzo Neves</td></tr>
+                            <tr><td>6º D</td><td>Daniel Caetano &amp; Bryan Felipe</td></tr>
+                            <tr><td>6º A</td><td>Aleph Andrade &amp; Christopher Ferreira</td></tr>
+                            <tr><td>6º A</td><td>Kaique Eduardo &amp; Lorenzo Santos</td></tr>
+                            <tr><td>6º D</td><td>Davi Kenedy &amp; Matheus Rezende</td></tr>
+                            <tr><td>6º A</td><td>André Xavier &amp; Miguel Gonçalves</td></tr>
+                            <tr><td>6º E</td><td>Isaac Augusto &amp; Henrique da Silva</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+                <p style="font-size:0.85rem; color: var(--text-muted); margin-top:0.6rem;">12 duplas inscritas · disputa em rodada eliminatória única (sorteio dos confrontos 5 minutos antes de cada partida).</p>
             </div>
-
-            <!-- SUB-ABA: LISTAGEM POR TURMA -->
-            <div id="subListagem" class="sub-tab-content active">
-                <div class="card">
-                    <h2>📋 Inscrição e Mapeamento Oficial de Atletas por Turma</h2>
-                    <p>Selecione a turma para carregar a listagem oficial de alunos importada do sistema, informar o sexo (<strong>M</strong>/<strong>F</strong>) de cada estudante e indicar a participação (<strong>Sim</strong> / <strong>Não</strong>) em cada modalidade esportiva.</p>
-
-                    <div style="margin: 1.5rem 0; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; background: #f1f5f9; padding: 1rem; border-radius: 8px;">
-                        <label for="classSelect" style="font-weight: 700; font-size: 1rem; margin: 0;">Selecione a Turma:</label>
-                        <select id="classSelect" onchange="renderStudentTable()" style="max-width: 320px; font-weight: 600; padding: 0.5rem;">
-                            <optgroup label="6ºs Anos (6 Turmas)">
-                                <option value="601">6º Ano A — Argentina</option>
-                                <option value="602">6º Ano B — Espanha</option>
-                                <option value="603">6º Ano C — México</option>
-                                <option value="604">6º Ano D — Croácia</option>
-                                <option value="605">6º Ano E — Alemanha</option>
-                                <option value="606">6º Ano F — Noruega</option>
-                            </optgroup>
-                            <optgroup label="7ºs Anos (5 Turmas)">
-                                <option value="701">7º Ano A — Senegal</option>
-                                <option value="702">7º Ano B — Marrocos</option>
-                                <option value="703">7º Ano C — Colômbia</option>
-                                <option value="704">7º Ano D — Uruguai</option>
-                                <option value="705">7º Ano E — Estados Unidos</option>
-                            </optgroup>
-                        </select>
-                        <span id="classInfoBadge" class="badge badge-blue" style="font-size: 0.95rem; padding: 0.5rem 1rem;">6º Ano A - 33 Alunos</span>
-                    </div>
-
-                    <div class="table-responsive" id="studentRosterWrap" style="max-height: 65vh; overflow-y: auto;">
-                        <table id="studentRosterTable">
-                            <thead>
-                                <tr>
-                                    <th width="4%">Nº</th>
-                                    <th width="9%">Matrícula</th>
-                                    <th width="23%">Nome do Aluno / Atleta</th>
-                                    <th width="5%" style="text-align: center;">Sexo</th>
-                                    <th width="11.4%" style="text-align: center;">Futsal</th>
-                                    <th width="11.4%" style="text-align: center;">Queimada</th>
-                                    <th width="11.4%" style="text-align: center;">Basquete</th>
-                                    <th width="11.4%" style="text-align: center;">Damas</th>
-                                    <th width="11.4%" style="text-align: center;">Atletismo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentRosterBody">
-                                <!-- Preenchido dinamicamente via JavaScript com os alunos da planilha -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2>📑 Resumo do Mapeamento de Vagas & Cotas por Modalidade</h2>
-                    <div class="grid-2">
-                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                            <h3>⚽ Futsal (Masc. / Fem.)</h3>
-                            <p><strong>Cota:</strong> 6 a 12 inscritos por naipe por turma.</p>
-                            <p style="font-size: 0.85rem; color: var(--text-muted);">* Rodízio obrigatório no intervalo (mínimo 3 substituições) e todos jogam.</p>
-                        </div>
-
-                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                            <h3>🔥 Queimada (Mista)</h3>
-                            <p><strong>Cota:</strong> 12 a 14 atletas (50% Masc. / 50% Fem.).</p>
-                            <p style="font-size: 0.85rem; color: var(--text-muted);">* Composição paritária obrigatória entre meninos e meninas.</p>
-                        </div>
-                    </div>
-
-                    <div class="grid-3" style="margin-top: 1rem;">
-                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                            <h3>🏀 Basquete de Trilha</h3>
-                            <p><strong>Cota:</strong> 3 Duplas Fem. + 3 Duplas Masc. (12 alunos).</p>
-                        </div>
-
-                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                            <h3>♟️ Damas (Mista)</h3>
-                            <p><strong>Cota:</strong> 4 Atletas (2 Masc. / 2 Fem.).</p>
-                        </div>
-
-                        <div style="border: 1px solid var(--border); padding: 1rem; border-radius: 8px; background: #fafafa;">
-                            <h3>🏃 Atletismo</h3>
-                            <p><strong>Cota:</strong> 6 Atletas (3 Fem. - 15m / 3 Masc. - 20m).</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB-ABA: DASHBOARD DAS FICHAS -->
-            <div id="subDashboard" class="sub-tab-content">
-                <div class="alert alert-info">
-                    ℹ️ Este painel é calculado automaticamente a partir do sexo (M/F) e das inscrições (Sim/Não) informados na sub-aba <strong>📋 Listagem por Turma</strong>. Ele não é salvo entre sessões — abra a Listagem por Turma de cada turma pelo menos uma vez para atualizar os números aqui.
-                </div>
-
-                <div class="card" style="padding: 1rem;">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
-                        <div>
-                            <label for="dashboardFiltroAno" style="font-weight: 700; display: block; margin-bottom: 0.3rem;">Ano/Ciclo:</label>
-                            <select id="dashboardFiltroAno" onchange="preencherFiltroTurmasDashboard(); renderDashboardFichas();" style="padding: 0.5rem; font-weight: 600;">
-                                <option value="todos">Todos os anos</option>
-                                <option value="6">6º Ano</option>
-                                <option value="7">7º Ano</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="dashboardFiltroTurma" style="font-weight: 700; display: block; margin-bottom: 0.3rem;">Turma:</label>
-                            <select id="dashboardFiltroTurma" onchange="renderDashboardFichas();" style="padding: 0.5rem; font-weight: 600; min-width: 220px;">
-                                <option value="todas">Todas as turmas</option>
-                            </select>
-                        </div>
-                        <button type="button" class="tab-btn no-print" style="width: auto; background: var(--secondary); color: #fff;" onclick="imprimirDashboardFichas()">🖨️ Imprimir Dashboard (conforme filtro)</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2>📊 Duplas / Individuais × Modalidade — Consolidado Geral</h2>
-                    <p style="color: var(--text-muted);">Total de inscritos, por sexo, em cada modalidade — coletivas (Futsal, Queimada), em duplas (Basquete de Trilha) e individuais (Damas, Atletismo) — somando as turmas/seleções do filtro acima.</p>
-                    <div id="dashboardResumoModalidade"></div>
-                </div>
-
-                <div class="card">
-                    <h2>🗂️ Fichas por Turma / Seleção × Modalidade</h2>
-                    <p style="color: var(--text-muted);">Situação da ficha de cada turma/seleção em cada modalidade, comparada com a cota exigida (turmas/seleções do filtro acima).</p>
-                    <div id="dashboardFichasGrid"></div>
-                </div>
-            </div>
-
         </div>
-
-
 
         </div>
     </div>
@@ -7919,8 +8046,198 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             applyEditLockUI();
             carregarQuadroFrame();
             renderMuralCamisas();
-            carregarGruposDoSupabase();
+            // carregarGruposDoSupabase() removido: dependia da coluna "group_assignments"
+            // da antiga tabela interclasse_state, recriada sem essa coluna.
         });
+    </script>
+
+    <!-- Script independente da Grade de Horários & Placares (08/09), baseado na Súmula Oficial -->
+    <script>
+    (function () {
+        var JOGOS_0809 = [
+            { id: 'r01', hora: '14h às 14h40', mod: 'Futsal Masculino',      jogo: '1', confronto: 'Croácia (6º D) x Alemanha (6º E)', local: 'Quadra 1', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
+            { id: 'r02', hora: '14h às 14h30', mod: 'Futsal Feminino',       jogo: '1', confronto: 'Argentina (6º A) x Noruega (6º F)', local: 'Quadra 2', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
+            { id: 'r03', hora: '14h às 14h25', mod: 'Basquete de Trilha (M)', jogo: '1', confronto: '(6º E) Guilherme/Lucas x (6º F) Cláudio/Arthur', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r04', hora: '14h às 14h25', mod: 'Basquete de Trilha (M)', jogo: '2', confronto: '(6º C) Luiz Cláudio/Luiz Miguel x (6º D) Davi Gregio/Marcos Antônio', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r05', hora: '14h30 às 15h20', mod: 'Damas', jogo: '—', confronto: 'Partidas iniciais das eliminatórias', local: 'Quadra 3', fase: 'Eliminatórias', tipo: 'texto' },
+            { id: 'r06', hora: '14h30 às 15h10', mod: 'Futsal Feminino', jogo: '1', confronto: 'Croácia (6º D) x Espanha (6º B)', local: 'Quadra 1', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r07', hora: '14h35 às 14h55', mod: 'Basquete de Trilha (M)', jogo: '3', confronto: '(6º C) Yuri Cândida/Arthur Ventura x (6º C) Davi Vitor/Enzo Neves', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r08', hora: '14h35 às 14h55', mod: 'Basquete de Trilha (M)', jogo: '4', confronto: '(6º D) Daniel Caetano/Bryan Felipe x (6º A) Aleph Andrade/Christopher Ferreira', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r09', hora: '14h50 às 15h30', mod: 'Futsal Masculino', jogo: '1', confronto: 'Argentina (6º A) x Noruega (6º F)', local: 'Quadra 2', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r10', hora: '15h às 15h20', mod: 'Basquete de Trilha (M)', jogo: '5', confronto: '(6º A) Kaique Eduardo/Lorenzo Santos x (6º D) Davi Kenedy/Matheus Rezende', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r11', hora: '15h às 15h20', mod: 'Basquete de Trilha (M)', jogo: '6', confronto: '(6º A) André Xavier/Miguel Gonçalves x (6º E) Isaac Augusto/Henrique da Silva', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'placar' },
+            { id: 'r12', hora: '15h40 às 16h10', mod: 'Futsal Masculino', jogo: '2', confronto: 'Alemanha (6º E) x Espanha (6º B)', local: 'Quadra 1', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
+            { id: 'r13', hora: '15h40 às 16h10', mod: 'Futsal Feminino', jogo: '2', confronto: 'Noruega (6º F) x México (6º C)', local: 'Quadra 2', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
+            { id: 'r14', hora: '15h40 às 17h20', mod: 'Damas', jogo: '—', confronto: 'Partidas finais das eliminatórias', local: 'Quadra 4', fase: 'Eliminatórias', tipo: 'texto' },
+            { id: 'r15', hora: '15h50 às 16h20', mod: 'Basquete de Trilha (M)', jogo: '7', confronto: 'Semifinal única (uma dupla teve bye)', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'texto' },
+            { id: 'r16', hora: '16h15 às 16h45', mod: 'Futsal Feminino', jogo: '2', confronto: 'Espanha (6º B) x Alemanha (6º E)', local: 'Quadra 1', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r17', hora: '16h15 às 16h50', mod: 'Futsal Masculino', jogo: '2', confronto: 'Noruega (6º F) x México (6º C)', local: 'Quadra 2', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r18', hora: '16h40 às 17h', mod: 'Basquete de Trilha (M)', jogo: '8', confronto: 'FINAL', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'texto' },
+            { id: 'r19', hora: '16h50 às 17h25', mod: 'Futsal Masculino', jogo: '3', confronto: 'Espanha (6º B) x Croácia (6º D)', local: 'Quadra 1', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
+            { id: 'r20', hora: '17h às 17h25', mod: 'Futsal Feminino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'Quadra 2', fase: 'Grupos (Grupo 1)', tipo: 'placar' }
+        ];
+
+        var LS_KEY_PLACARES = 'geteco2026_placares_0809';
+
+        // ===== Sincronização com Supabase (tabela interclasse_state recriada) =====
+        // Estrutura nova: id serial, ano text (ex: '6', '7'), jogos jsonb, updated_at timestamptz
+        var SB_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
+        var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+        var SB_TABLE = 'interclasse_state';
+        var SB_ANO = '6'; // 6º Ano — quando o 7º Ano entrar, usar ano: '7' em outra linha
+
+        function sbHeaders() {
+            return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+        }
+
+        function carregarPlacaresSalvos() {
+            try {
+                var s = localStorage.getItem(LS_KEY_PLACARES);
+                return s ? JSON.parse(s) : {};
+            } catch (e) { return {}; }
+        }
+
+        async function carregarPlacaresDoSupabase() {
+            try {
+                var r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?ano=eq.' + SB_ANO + '&select=jogos', { headers: sbHeaders() });
+                var rows = await r.json();
+                if (!r.ok) throw new Error((rows && rows.message) || 'Erro ao carregar placares');
+                if (Array.isArray(rows) && rows.length && rows[0].jogos) {
+                    try { localStorage.setItem(LS_KEY_PLACARES, JSON.stringify(rows[0].jogos)); } catch (e) { }
+                    return rows[0].jogos;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+            return null;
+        }
+
+        async function salvarPlacaresNoSupabase(dados) {
+            try {
+                var r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?on_conflict=ano', {
+                    method: 'POST',
+                    headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+                    body: JSON.stringify([{ ano: SB_ANO, jogos: dados, updated_at: new Date().toISOString() }])
+                });
+                if (!r.ok) {
+                    var err = await r.json().catch(function () { return {}; });
+                    throw new Error(err.message || 'Falha ao sincronizar placares');
+                }
+                return true;
+            } catch (err) {
+                console.error(err);
+                return false;
+            }
+        }
+
+        function salvarPlacarNoStorage(id, valor) {
+            var dados = carregarPlacaresSalvos();
+            dados[id] = valor;
+            try { localStorage.setItem(LS_KEY_PLACARES, JSON.stringify(dados)); } catch (e) { }
+            return dados;
+        }
+
+        function montarLinhaJogo(g, salvos) {
+            var salvo = salvos[g.id];
+            var celulaPlacar;
+            if (g.tipo === 'placar') {
+                var timeA = g.confronto.split(' x ')[0] || 'Time A';
+                var timeB = g.confronto.split(' x ')[1] || 'Time B';
+                var golsA = salvo && typeof salvo === 'object' ? salvo.a : '';
+                var golsB = salvo && typeof salvo === 'object' ? salvo.b : '';
+                celulaPlacar =
+                    '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' +
+                    '<input type="number" min="0" id="placarA_' + g.id + '" value="' + (golsA === undefined ? '' : golsA) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeA + '">' +
+                    '<strong>x</strong>' +
+                    '<input type="number" min="0" id="placarB_' + g.id + '" value="' + (golsB === undefined ? '' : golsB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeB + '">' +
+                    '</div>';
+            } else {
+                var texto = salvo && typeof salvo === 'object' ? salvo.texto : '';
+                celulaPlacar = '<input type="text" id="placarTexto_' + g.id + '" value="' + (texto === undefined ? '' : (texto || '').replace(/"/g, '&quot;')) + '" placeholder="Resultado / classificado" style="width:100%; padding:0.3rem;">';
+            }
+            var btn = '<button type="button" class="tab-btn" style="width:auto; padding:0.4rem 0.7rem; font-size:0.85rem; background: var(--secondary); color:#fff;" onclick="window.__salvarPlacarLinha(\'' + g.id + '\', \'' + g.tipo + '\')">💾 Salvar</button>';
+            return '<tr id="linha_' + g.id + '">' +
+                '<td>' + g.hora + '</td>' +
+                '<td>' + g.mod + '</td>' +
+                '<td>' + g.jogo + '</td>' +
+                '<td>' + g.confronto + '</td>' +
+                '<td>' + g.local + '</td>' +
+                '<td>' + g.fase + '</td>' +
+                '<td>' + celulaPlacar + '</td>' +
+                '<td>' + btn + '</td>' +
+                '</tr>';
+        }
+
+        function renderTabelaPlacares0809(salvos) {
+            var corpo = document.getElementById('corpoTabelaPlacares');
+            if (!corpo) return;
+            salvos = salvos || carregarPlacaresSalvos();
+            corpo.innerHTML = JOGOS_0809.map(function (g) { return montarLinhaJogo(g, salvos); }).join('');
+        }
+
+        function mostrarStatusPlacar(msg) {
+            var status = document.getElementById('placarSaveStatus');
+            if (!status) return;
+            status.style.display = 'block';
+            status.textContent = msg;
+            clearTimeout(window.__placarStatusTimeout);
+            window.__placarStatusTimeout = setTimeout(function () { status.style.display = 'none'; }, 4500);
+        }
+
+        window.__salvarPlacarLinha = async function (id, tipo) {
+            var valor;
+            if (tipo === 'placar') {
+                var a = document.getElementById('placarA_' + id);
+                var b = document.getElementById('placarB_' + id);
+                valor = { a: a ? a.value : '', b: b ? b.value : '' };
+            } else {
+                var t = document.getElementById('placarTexto_' + id);
+                valor = { texto: t ? t.value : '' };
+            }
+            var dados = salvarPlacarNoStorage(id, valor);
+            mostrarStatusPlacar('💾 Salvando...');
+            var ok = await salvarPlacaresNoSupabase(dados);
+            if (ok) {
+                mostrarStatusPlacar('✅ Placar/resultado salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').');
+            } else {
+                mostrarStatusPlacar('⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', async function () {
+            renderTabelaPlacares0809(); // mostra cache local (ou vazio) imediatamente
+            var doServidor = await carregarPlacaresDoSupabase();
+            if (doServidor) renderTabelaPlacares0809(doServidor); // atualiza com o que está no banco
+        });
+
+        // ===== Visão Geral / Específica — aba Registro de Grupos & Chaveamento =====
+        window.switchRegistroView = function (view) {
+            var geral = document.getElementById('registroVisaoGeral');
+            var detalhada = document.getElementById('registroVisaoDetalhada');
+            var btnGeral = document.getElementById('btnVisaoGeral');
+            var btnEspecifica = document.getElementById('btnVisaoEspecifica');
+            if (!geral || !detalhada) return;
+            if (view === 'especifica') {
+                geral.style.display = 'none';
+                detalhada.style.display = 'block';
+                if (btnGeral) btnGeral.classList.remove('active');
+                if (btnEspecifica) btnEspecifica.classList.add('active');
+            } else {
+                geral.style.display = 'block';
+                detalhada.style.display = 'none';
+                if (btnGeral) btnGeral.classList.add('active');
+                if (btnEspecifica) btnEspecifica.classList.remove('active');
+            }
+        };
+
+        window.irParaDetalheModalidade = function (idModalidade) {
+            switchRegistroView('especifica');
+            setTimeout(function () {
+                var el = document.getElementById(idModalidade);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 60);
+        };
+    })();
     </script>
 </body>
 </html>
