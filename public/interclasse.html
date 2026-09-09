@@ -1873,13 +1873,19 @@ td.td-cell:last-child{border-right:none}
 .esp-row{
   display:flex;align-items:stretch;
   border:2px solid #bbb;border-radius:3px;
-  margin-bottom:3px;cursor:pointer;
+  margin-bottom:3px;
   overflow:hidden;transition:filter .1s
 }
 .esp-row:last-child{margin-bottom:0}
-.esp-row:hover{filter:brightness(.93)}
-body.somente-consulta .esp-row{cursor:default}
-body.somente-consulta .esp-row:hover{filter:none}
+.esp-slots{flex:1;display:flex;flex-direction:column}
+.esp-slots .esp-slot{cursor:pointer;border-top:1px solid rgba(0,0,0,.08)}
+.esp-slots .esp-slot:first-child{border-top:none}
+.esp-slots .esp-slot:hover{filter:brightness(.93)}
+.esp-slots .esp-slot.esp-add{opacity:.55;font-style:italic;font-size:10px;min-height:22px;justify-content:center;align-items:center;flex-direction:row;display:flex}
+.esp-slots .esp-slot.esp-add:hover{opacity:.9}
+body.somente-consulta .esp-slots .esp-slot{cursor:default}
+body.somente-consulta .esp-slots .esp-slot:hover{filter:none}
+body.somente-consulta .esp-slot.esp-add{display:none}
 
 .esp-tag{
   writing-mode:vertical-rl;text-orientation:mixed;
@@ -2127,6 +2133,9 @@ td.td-cell.cell-expandida{background:rgba(255,246,218,.35)}
     <button class="btn btn-ghost" id="btn-modalidades" onclick="abrirModalModalidades()">✏️ Modalidades</button>
     <button class="btn btn-ghost" id="btn-horarios" onclick="abrirModalHorarios()">🕐 Horários</button>
     <button class="btn btn-ghost" id="btn-limpar" onclick="limparGrade()">🗑 Limpar</button>
+    <button class="btn btn-ghost" id="btn-modelo-csv" onclick="baixarModeloCSV()">📄 Modelo CSV</button>
+    <button class="btn btn-ghost" id="btn-importar-csv" onclick="abrirSeletorCSV()">📥 Importar CSV</button>
+    <input type="file" id="input-csv" accept=".csv,text/csv" style="display:none" onchange="onArquivoCSVSelecionado(event)">
     <button class="btn btn-gold"    onclick="imprimir(false)">🖨 Imprimir preenchido</button>
     <button class="btn btn-outline" onclick="imprimir(true)">🖨 Em branco</button>
   </div>
@@ -2375,13 +2384,15 @@ const DIAS = [
   {key:'d10',num:'10',nome:'QUINTA',  data:'2026-09-10',turma:'',cor:'#d4a017'},
   {key:'d11',num:'11',nome:'SEXTA',   data:'2026-09-11',turma:'',cor:'#c0392b'},
 ];
+// A partir de 2026, a grade usa 3 faixas largas (em vez de 6 períodos fixos de aula):
+// uma faixa antes do recreio, o próprio recreio (pausa — sem jogos) e uma faixa depois
+// do recreio. Dentro de cada faixa (exceto o recreio), o mesmo espaço pode receber
+// VÁRIOS jogos marcados em sequência (jogos simultâneos ficam em espaços diferentes).
+// Os horários abaixo são apenas o valor inicial — todos são editáveis em "🕐 Horários".
 const HORAS_DEFAULT = [
-  {id:'H1',label:'H1',range:'13:20 – 14:00',rec:false},
-  {id:'H2',label:'H2',range:'14:00 – 14:40',rec:false},
-  {id:'H3',label:'H3',range:'14:40 – 15:20',rec:false},
-  {id:'R0',label:'RECREIO',range:'15:20 – 16:00',rec:true},
-  {id:'H4',label:'H4',range:'16:00 – 16:40',rec:false},
-  {id:'H5',label:'H5',range:'16:40 – 17:20',rec:false},
+  {id:'F1',label:'FAIXA 1',range:'13:10 – 15:30',rec:false},
+  {id:'R0',label:'RECREIO',range:'15:30 – 15:50',rec:true},
+  {id:'F2',label:'FAIXA 2',range:'15:50 – 17:30',rec:false},
 ];
 // Horários adicionados em edição (além dos 6 padrão) — carregados do localStorage/Supabase
 const LS_HORA_CUSTOM='ic26_horas_custom';
@@ -2671,6 +2682,32 @@ function renderEspacoSelectOptions(){
 const LS='ic26_grade3';
 let G={};
 
+// Migração de compatibilidade: até a versão anterior, cada célula (espaço×dia×hora)
+// guardava NO MÁXIMO 1 jogo, como um objeto ({mod,categoria,...}). Agora guarda uma
+// LISTA de jogos (permite vários jogos em sequência no mesmo espaço/faixa). Dados
+// antigos — já salvos no Supabase ou no localStorage de quem já usava a grade — ainda
+// estão no formato de objeto único, então esta função os converte automaticamente para
+// o novo formato de lista assim que são carregados. Não requer nenhuma alteração na
+// tabela do Supabase (a coluna "grade" continua sendo um jsonb "solto"; só o formato
+// do JSON dentro dela muda, e essa função cuida da conversão de forma transparente).
+function migrarGradeParaListas(grade){
+  if(!grade || typeof grade!=='object') return grade;
+  Object.keys(grade).forEach(e=>{
+    const porDia=grade[e];
+    if(!porDia || typeof porDia!=='object') return;
+    Object.keys(porDia).forEach(d=>{
+      const porHora=porDia[d];
+      if(!porHora || typeof porHora!=='object') return;
+      Object.keys(porHora).forEach(h=>{
+        const v=porHora[h];
+        if(v && !Array.isArray(v)) porHora[h]=[v]; // objeto único antigo → lista com 1 jogo
+        else if(!v) porHora[h]=[];
+      });
+    });
+  });
+  return grade;
+}
+
 /* ── Integração com Supabase (mesmo projeto do Monitoramento Pedagógico) ── */
 const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
@@ -2720,7 +2757,7 @@ async function carregarDoSupabase(){
     const rows = await r.json();
     if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
     if(Array.isArray(rows) && rows.length){
-      if(rows[0].grade) G = rows[0].grade;
+      if(rows[0].grade) G = migrarGradeParaListas(rows[0].grade);
       if(rows[0].labels) _lbls = rows[0].labels;
       if(rows[0].espacos_custom) ESPACOS_CUSTOM = rows[0].espacos_custom;
       if(rows[0].mod_custom) MOD_CUSTOM = rows[0].mod_custom;
@@ -2736,12 +2773,41 @@ async function carregarDoSupabase(){
   }
 }
 
-function load(){try{const s=localStorage.getItem(LS);if(s)G=JSON.parse(s);}catch(e){}}
+function load(){try{const s=localStorage.getItem(LS);if(s)G=migrarGradeParaListas(JSON.parse(s));}catch(e){}}
 function save(){try{localStorage.setItem(LS,JSON.stringify(G));}catch(e){} agendarSyncSupabase();}
-function get(e,d,h){return G[e]?.[d]?.[h]||null;}
-function put(e,d,h,v){
-  if(!G[e])G[e]={};if(!G[e][d])G[e][d]={};
-  if(!v||!v.mod)delete G[e][d][h];else G[e][d][h]=v;
+// ── MODELO DE DADOS DA CÉLULA ──
+// A partir da grade em 3 faixas, um mesmo espaço pode receber vários jogos dentro da
+// mesma faixa (jogos em sequência), então cada célula (espaço×dia×faixa) guarda uma
+// LISTA de jogos, não mais um único jogo.
+function get(e,d,h){return (G[e] && G[e][d] && G[e][d][h]) || [];}
+function _celula(e,d,h){
+  if(!G[e])G[e]={};
+  if(!G[e][d])G[e][d]={};
+  if(!G[e][d][h])G[e][d][h]=[];
+  return G[e][d][h];
+}
+function _limparCelulaVaziaSeNecessario(e,d,h){
+  if(G[e] && G[e][d] && G[e][d][h] && G[e][d][h].length===0){
+    delete G[e][d][h];
+    if(Object.keys(G[e][d]).length===0) delete G[e][d];
+    if(Object.keys(G[e]).length===0) delete G[e];
+  }
+}
+function adicionarJogo(e,d,h,v){
+  _celula(e,d,h).push(v);
+  save();
+}
+function atualizarJogo(e,d,h,idx,v){
+  const lista=_celula(e,d,h);
+  if(idx>=0 && idx<lista.length) lista[idx]=v;
+  save();
+}
+function removerJogo(e,d,h,idx){
+  const lista=(G[e] && G[e][d] && G[e][d][h]) || [];
+  if(idx>=0 && idx<lista.length){
+    lista.splice(idx,1);
+    _limparCelulaVaziaSeNecessario(e,d,h);
+  }
   save();
 }
 
@@ -2755,21 +2821,36 @@ function timeLabelCompleto(turma){
 }
 
 // ─ RENDER ─
+// Um único slot de jogo (dentro da lista de jogos de uma célula espaço×dia×faixa).
+function slotJogoHTML(esp, d, h, s, idx){
+  const m=s?.mod?getMOD()[s.mod]:null;
+  const clique=`abrirModal(event,'${esp.key}','${d.key}','${h.id}',${idx})`;
+  return `<div class="esp-slot ${s?.mod||'livre'}" onclick="${clique}">
+    ${m
+      ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.numero?` <span class="s-categoria" style="background:#fff3cd;color:#7a4a00">🔢 Jogo ${s.numero}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
+        ${s.timeA||s.timeB?`<div class="s-times">${timeLabelCompleto(s.timeA)}${s.timeB?' × '+timeLabelCompleto(s.timeB):''}</div>`:''}
+        ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
+      :`<span>livre</span>`}
+  </div>`;
+}
 function cellHTML(esp, d, h){
   const ESPACOS=getEspacos();
   const espObj=ESPACOS.find(e=>e.key===esp.key)||esp;
-  const s=get(esp.key,d.key,h.id);
-  const m=s?.mod?getMOD()[s.mod]:null;
+  const lista=get(esp.key,d.key,h.id); // agora é sempre uma lista (pode ter 0, 1 ou vários jogos)
   const tagStyle=esp.css==='custom'?` style="background:${corEspacoCustom(esp.key)}"`:'';
-  return `<div class="esp-row" onclick="abrirModal(event,'${esp.key}','${d.key}','${h.id}')">
+  let slotsHtml;
+  if(!lista.length){
+    // célula vazia: um único slot "livre" clicável para marcar o primeiro jogo
+    slotsHtml=`<div class="esp-slot livre" onclick="abrirModal(event,'${esp.key}','${d.key}','${h.id}')"><span>livre</span></div>`;
+  }else{
+    slotsHtml = lista.map((s,i)=>slotJogoHTML(esp,d,h,s,i)).join('');
+    if(edicaoPermitida){
+      slotsHtml += `<div class="esp-slot livre esp-add" onclick="abrirModal(event,'${esp.key}','${d.key}','${h.id}')"><span>+ adicionar jogo</span></div>`;
+    }
+  }
+  return `<div class="esp-row">
     <div class="esp-tag ${esp.css}"${tagStyle}>${espObj.lbl}</div>
-    <div class="esp-slot ${s?.mod||'livre'}">
-      ${m
-        ?`<div class="s-mod">${m.icon} ${m.nome}${s.categoria?` <span class="s-categoria ${categoriaCssClass(s.categoria)}">${categoriaIcone(s.categoria)} ${s.categoria}</span>`:''}${s.numero?` <span class="s-categoria" style="background:#fff3cd;color:#7a4a00">🔢 Jogo ${s.numero}</span>`:''}${s.espaco?` <span class="s-espaco">[${s.espaco}]</span>`:''}</div>
-          ${s.timeA||s.timeB?`<div class="s-times">${timeLabelCompleto(s.timeA)}${s.timeB?' × '+timeLabelCompleto(s.timeB):''}</div>`:''}
-          ${s.fase?`<div class="s-fase">${s.fase}</div>`:''}`
-        :`<span>livre</span>`}
-    </div>
+    <div class="esp-slots">${slotsHtml}</div>
   </div>`;
 }
 
@@ -2890,15 +2971,20 @@ function render(){
     document.getElementById('tbody').innerHTML=html;
   }
 
-  // totais
+  // totais — como cada espaço×faixa agora pode ter vários jogos em sequência, mostramos
+  // tanto o total de jogos marcados quanto a fração de espaços/faixa com pelo menos 1 jogo.
   document.getElementById('totais').innerHTML=DIAS.map(d=>{
-    let t=0,f=0;
-    ESPACOS.forEach(esp=>HORAS_REAIS.forEach(h=>{t++;if(get(esp.key,d.key,h.id)?.mod)f++;}));
-    const pct=t?Math.round(f/t*100):0;
+    let celulas=0,celulasOcupadas=0,jogos=0;
+    ESPACOS.forEach(esp=>HORAS_REAIS.forEach(h=>{
+      celulas++;
+      const lista=get(esp.key,d.key,h.id);
+      if(lista.length){ celulasOcupadas++; jogos+=lista.length; }
+    }));
+    const pct=celulas?Math.round(celulasOcupadas/celulas*100):0;
     return `<div class="tot" style="border-top-color:${d.cor}">
-      <div class="tot-n" style="color:${d.cor}">${f}<span style="font-size:14px;opacity:.4">/${t}</span></div>
+      <div class="tot-n" style="color:${d.cor}">${jogos}<span style="font-size:14px;opacity:.4"> jogo${jogos===1?'':'s'}</span></div>
       <div class="tot-bar-bg"><div class="tot-bar" style="width:${pct}%;background:${d.cor}"></div></div>
-      <div class="tot-l">${d.nome} ${d.num}/Set — ${pct}% ocupado</div>
+      <div class="tot-l">${d.nome} ${d.num}/Set — ${celulasOcupadas}/${celulas} espaços·faixa usados (${pct}%)</div>
     </div>`;
   }).join('');
 }
@@ -2923,16 +3009,21 @@ function setOrient(o,btn){
 }
 
 // ─ MODAL ─
-let _e,_d,_h;
-function abrirModal(ev,esp,dia,hora){
+// _idx: índice do jogo dentro da lista da célula sendo editado; null = novo jogo
+// (será adicionado à lista, mantendo os jogos já marcados nesse espaço/faixa).
+let _e,_d,_h,_idx=null;
+function abrirModal(ev,esp,dia,hora,idx){
   if(!edicaoPermitida){ toast('🔒 Consulta apenas. Libere a edição na aba "Organização dos Grupos" para marcar jogos.','warn'); return; }
   _e=esp;_d=dia;_h=hora;
+  _idx=(typeof idx==='number')?idx:null;
   const eO=getEspacos().find(e=>e.key===esp);
   const dO=DIAS.find(d=>d.key===dia);
   const hO=getHoras().find(h=>h.id===hora);
-  const s=get(esp,dia,hora)||{};
+  const lista=get(esp,dia,hora);
+  const s=(_idx!==null && lista[_idx]) ? lista[_idx] : {};
   document.getElementById('m-title').textContent=`${eO.icon} ${eO.nome}`;
-  document.getElementById('m-sub').textContent=`${dO.nome} ${dO.num}/Set · ${hO.label} · ${hO.range} · ${dO.turma}`;
+  const contagem=lista.length ? ` · ${_idx!==null?`editando jogo ${_idx+1} de ${lista.length}`:`+ novo jogo (já há ${lista.length} nesta faixa)`}` : '';
+  document.getElementById('m-sub').textContent=`${dO.nome} ${dO.num}/Set · ${hO.label} · ${hO.range} · ${dO.turma}${contagem}`;
   document.getElementById('m-esp').value=esp;
   document.getElementById('m-dia').value=dia;
   document.getElementById('m-hora').value=hora;
@@ -3206,14 +3297,15 @@ function atualizarVisibilidadeCategoria(){
 function todosOsSlotsComChave(){
   const out=[];
   Object.keys(G).forEach(e=>Object.keys(G[e]||{}).forEach(d=>Object.keys(G[e][d]||{}).forEach(h=>{
-    const s=G[e][d][h];
-    if(s) out.push({chave:boardKeyFor(e,d,h),s});
+    const lista=G[e][d][h]||[];
+    lista.forEach((s,idx)=>{ if(s) out.push({chave:boardKeyFor(e,d,h,idx),s}); });
   })));
   return out;
 }
 function jogosDaMesmaCategoria(mod,categoria,excluirAtual){
+  const chaveAtual=boardKeyAtual();
   return todosOsSlotsComChave().filter(o=>
-    (!excluirAtual || o.chave!==boardKeyAtual()) &&
+    (!excluirAtual || chaveAtual===null || o.chave!==chaveAtual) &&
     o.s.mod===mod && (o.s.categoria||'')===(categoria||'')
   );
 }
@@ -3312,9 +3404,18 @@ function salvar(){
       return;
     }
   }
-  put(_e,_d,_h,mod?{mod,categoria,numero,espaco,timeA:tA,timeB:tB,fase}:null);
-  fecharModal();render();toast(mod?('✅ Slot salvo!'+(numero?' (Jogo '+numero+')':'')):'🗑 Slot limpo.');
-  sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria,numero);
+  if(!mod){
+    // Modalidade em branco = remover este jogo (se já existia) ou apenas fechar (se era novo).
+    if(_idx!==null){ removerJogo(_e,_d,_h,_idx); sincronizarRemocao(_idx); }
+    fecharModal();render();toast('🗑 Jogo removido.');
+    return;
+  }
+  const valor={mod,categoria,numero,espaco,timeA:tA,timeB:tB,fase};
+  const idxSalvo=(_idx!==null)?_idx:get(_e,_d,_h).length;
+  if(_idx!==null) atualizarJogo(_e,_d,_h,_idx,valor);
+  else adicionarJogo(_e,_d,_h,valor);
+  fecharModal();render();toast('✅ Jogo salvo!'+(numero?' (Jogo '+numero+')':''));
+  sincronizarComCadastro(idxSalvo,mod,espaco,tA,tB,fase,categoria,numero);
 }
 // Regras do regulamento aplicadas na hora de marcar um jogo: algumas coisas são
 // IMPEDIDAS (erros — bloqueiam o salvamento) e outras são apenas SUGERIDAS/avisadas
@@ -3382,7 +3483,10 @@ function validarJogoAntesDeSalvar(mod,categoria,numero,tA,tB,fase){
 }
 function limparSlot(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); fecharModal(); return; }
-  put(_e,_d,_h,null);sincronizarRemocao();fecharModal();render();toast('🗑 Slot limpo.');
+  if(_idx===null){ fecharModal(); return; } // nada a remover — jogo ainda não tinha sido salvo
+  removerJogo(_e,_d,_h,_idx);
+  sincronizarRemocao(_idx);
+  fecharModal();render();toast('🗑 Jogo removido.');
 }
 
 // ─ SINCRONIZAÇÃO COM O CADASTRO DE JOGOS DO DOCUMENTO PRINCIPAL ─
@@ -3390,8 +3494,10 @@ function limparSlot(){
 // cada slot marcado aqui é replicado como um jogo na aba "Grade de Horários & Resultados".
 // Se o quadro for aberto sozinho (fora do documento principal), essas chamadas são
 // simplesmente ignoradas e o quadro funciona normalmente, de forma independente.
-function boardKeyFor(eKey,dKey,hKey){ return eKey+'_'+dKey+'_'+hKey; }
-function boardKeyAtual(){ return boardKeyFor(_e,_d,_h); }
+function boardKeyFor(eKey,dKey,hKey,idx){ return eKey+'_'+dKey+'_'+hKey+'_'+idx; }
+// null quando se está adicionando um jogo NOVO (ainda não existe na lista, então não
+// há chave própria a excluir das checagens de conflito).
+function boardKeyAtual(){ return (_idx===null) ? null : boardKeyFor(_e,_d,_h,_idx); }
 // Nomes de exibição "bonitos" para os 4 espaços/modalidades padrão (compatibilidade
 // com o vocabulário já usado na Grade de Horários). Espaços/modalidades adicionados
 // em edição usam o nome informado por quem os criou.
@@ -3407,7 +3513,7 @@ function temPontePaiDisponivel(nomeFn){
   try{ return !!(window.parent && window.parent!==window && typeof window.parent[nomeFn]==='function'); }
   catch(e){ return false; }
 }
-function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria,numero){
+function enviarSlotAoPai(eKey,dKey,hKey,idx,mod,espaco,tA,tB,fase,categoria,numero){
   try{
     if(!mod || !tA || !tB) return;
     if(!temPontePaiDisponivel('receberJogoDoQuadro')) return;
@@ -3420,7 +3526,7 @@ function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria,numero){
     const espacoObj = espaco ? getEspacos().find(e=>e.lbl===espaco) : null;
     const espacoFinal = espaco ? (espacoObj?.nome || espaco) : espacoDisplayName(eKey);
     window.parent.receberJogoDoQuadro({
-      boardKey: boardKeyFor(eKey,dKey,hKey),
+      boardKey: boardKeyFor(eKey,dKey,hKey,idx),
       date: dO.data,
       time: horaInicio,
       year: anoDetectado,
@@ -3434,14 +3540,15 @@ function enviarSlotAoPai(eKey,dKey,hKey,mod,espaco,tA,tB,fase,categoria,numero){
     });
   }catch(e){ /* documento principal indisponível — quadro segue funcionando normalmente */ }
 }
-function sincronizarComCadastro(mod,espaco,tA,tB,fase,categoria,numero){
-  if(!mod || !tA || !tB){ sincronizarRemocao(); return; }
-  enviarSlotAoPai(_e,_d,_h,mod,espaco,tA,tB,fase,categoria,numero);
+function sincronizarComCadastro(idx,mod,espaco,tA,tB,fase,categoria,numero){
+  if(!mod || !tA || !tB){ sincronizarRemocao(idx); return; }
+  enviarSlotAoPai(_e,_d,_h,idx,mod,espaco,tA,tB,fase,categoria,numero);
 }
-function sincronizarRemocao(){
+function sincronizarRemocao(idx){
   try{
     if(!temPontePaiDisponivel('removerJogoDoQuadroPorKey')) return;
-    window.parent.removerJogoDoQuadroPorKey(boardKeyAtual());
+    const chave=(typeof idx==='number')?boardKeyFor(_e,_d,_h,idx):boardKeyAtual();
+    if(chave) window.parent.removerJogoDoQuadroPorKey(chave);
   }catch(e){}
 }
 // Reenvia ao documento principal TODOS os slots já preenchidos na grade atual.
@@ -3454,10 +3561,12 @@ function enviarSlotsIniciaisAoPai(){
   Object.keys(G).forEach(eKey=>{
     Object.keys(G[eKey]||{}).forEach(dKey=>{
       Object.keys(G[eKey][dKey]||{}).forEach(hKey=>{
-        const s=G[eKey][dKey][hKey];
-        if(s && s.mod && s.timeA && s.timeB){
-          enviarSlotAoPai(eKey,dKey,hKey,s.mod,s.espaco,s.timeA,s.timeB,s.fase,s.categoria,s.numero);
-        }
+        const lista=G[eKey][dKey][hKey]||[];
+        lista.forEach((s,idx)=>{
+          if(s && s.mod && s.timeA && s.timeB){
+            enviarSlotAoPai(eKey,dKey,hKey,idx,s.mod,s.espaco,s.timeA,s.timeB,s.fase,s.categoria,s.numero);
+          }
+        });
       });
     });
   });
@@ -3465,6 +3574,152 @@ function enviarSlotsIniciaisAoPai(){
 function limparGrade(){
   if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); return; }
   if(!confirm('Limpar toda a grade?'))return;G={};save();render();toast('Grade limpa.','warn');
+}
+
+// ─ IMPORTAÇÃO / EXPORTAÇÃO EM CSV ─
+// Colunas aceitas (cabeçalho na 1ª linha, separador ";" ou ","):
+// espaco;dia;hora;modalidade;categoria;numero;local;time_a;time_b;fase
+// - espaco: chave da linha da grade (q1, q2, b1, v1 ou espaço personalizado)
+// - dia: d08, d09, d10 ou d11
+// - hora: F1 (faixa antes do recreio) ou F2 (faixa depois do recreio) — ou o id do
+//   período personalizado que você tenha criado. Não usar o Recreio (é só pausa).
+// - modalidade: futsal, queimada, volei, basquete, final, reservado (ou personalizada)
+// - categoria: Masculino, Feminino ou Misto (opcional)
+// - numero: número do jogo dentro da modalidade+categoria (opcional)
+// - local: Q1, Q2, B1 ou V1 — texto exibido no card (opcional, pode repetir "espaco")
+// - time_a / time_b: nomes dos times/turmas
+// - fase: Grupos, Eliminatória, Quartas de Final, Semi-final, Disputa de 3º Lugar, Final (opcional)
+// IMPORTANTE: como agora um mesmo espaço pode ter vários jogos na mesma faixa (jogos em
+// sequência), a importação SEMPRE ADICIONA um jogo novo à célula — nunca sobrescreve os
+// jogos que já estavam marcados nela. Para marcar 2 jogos seguidos no mesmo espaço/faixa,
+// basta repetir a mesma combinação espaco;dia;hora em duas linhas do CSV.
+const CSV_COLUNAS=['espaco','dia','hora','modalidade','categoria','numero','local','time_a','time_b','fase'];
+
+function baixarModeloCSV(){
+  const linhas=[
+    CSV_COLUNAS.join(';'),
+    ['q1','d08','F1','futsal','Masculino','1','Q1','6º Ano A','6º Ano B','Grupos'].join(';'),
+    ['q1','d08','F1','futsal','Masculino','2','Q1','6º Ano C','6º Ano D','Grupos'].join(';'),
+    ['v1','d08','F1','volei','Feminino','1','V1','7º Ano A','7º Ano B','Grupos'].join(';'),
+    ['b1','d09','F2','basquete','','','B1','Vencedor Jogo 1','Perdedor Jogo 1',''].join(';')
+  ];
+  const csv='\uFEFF'+linhas.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='modelo_importacao_jogos_interclasse2026.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('📄 Modelo CSV baixado.','ok');
+}
+
+function abrirSeletorCSV(){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada. Libere o acesso na aba "Organização dos Grupos".','warn'); return; }
+  document.getElementById('input-csv').value='';
+  document.getElementById('input-csv').click();
+}
+
+function onArquivoCSVSelecionado(ev){
+  const file=ev.target.files && ev.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>importarCSVTexto(String(e.target.result||''));
+  reader.onerror=()=>toast('❌ Não foi possível ler o arquivo.','warn');
+  reader.readAsText(file,'UTF-8');
+}
+
+// Parser simples de linha CSV com suporte a aspas e ; ou , como separador
+function detectarSeparador(linhaCabecalho){
+  return (linhaCabecalho.match(/;/g)||[]).length >= (linhaCabecalho.match(/,/g)||[]).length ? ';' : ',';
+}
+function parseLinhaCSV(linha,sep){
+  const out=[];let cur='';let dentroAspas=false;
+  for(let i=0;i<linha.length;i++){
+    const c=linha[i];
+    if(dentroAspas){
+      if(c==='"'){
+        if(linha[i+1]==='"'){cur+='"';i++;}
+        else dentroAspas=false;
+      }else cur+=c;
+    }else{
+      if(c==='"')dentroAspas=true;
+      else if(c===sep){out.push(cur);cur='';}
+      else cur+=c;
+    }
+  }
+  out.push(cur);
+  return out.map(v=>v.trim());
+}
+
+function importarCSVTexto(texto){
+  if(!edicaoPermitida){ toast('🔒 Edição bloqueada.','warn'); return; }
+  const bruto=texto.replace(/^\uFEFF/,'').split(/\r\n|\n|\r/).filter(l=>l.trim()!=='');
+  if(bruto.length<2){ alert('⚠️ O arquivo CSV está vazio ou só tem o cabeçalho.'); return; }
+
+  const sep=detectarSeparador(bruto[0]);
+  const cab=parseLinhaCSV(bruto[0],sep).map(h=>h.toLowerCase().trim());
+  const idx={};
+  CSV_COLUNAS.forEach(col=>{ idx[col]=cab.indexOf(col); });
+  if(idx.espaco<0||idx.dia<0||idx.hora<0||idx.modalidade<0){
+    alert('🚫 Cabeçalho inválido. As colunas obrigatórias são:\n\n'+CSV_COLUNAS.join(';')+'\n\nBaixe o "📄 Modelo CSV" para ver o formato correto.');
+    return;
+  }
+
+  const espacosValidos=new Set(getEspacos().map(e=>e.key));
+  const diasValidos=new Set(DIAS.map(d=>d.key));
+  const horasValidas=getHoras().filter(h=>!h.rec);
+  const horasValidasSet=new Set(horasValidas.map(h=>h.id));
+  const modValidas=new Set(Object.keys(getMOD()));
+
+  let importados=0;
+  const erros=[];
+
+  for(let i=1;i<bruto.length;i++){
+    const numLinha=i+1;
+    const cols=parseLinhaCSV(bruto[i],sep);
+    const val=(chave)=> idx[chave]>=0 ? (cols[idx[chave]]||'').trim() : '';
+
+    const espaco=val('espaco').toLowerCase();
+    const dia=val('dia').toLowerCase();
+    const hora=val('hora').toUpperCase();
+    const modalidade=val('modalidade').toLowerCase();
+    const categoria=val('categoria');
+    const numeroTxt=val('numero');
+    const local=val('local').toUpperCase();
+    const timeA=val('time_a');
+    const timeB=val('time_b');
+    const fase=val('fase');
+
+    if(!espaco && !dia && !hora && !modalidade) continue; // linha em branco
+
+    if(!espacosValidos.has(espaco)){ erros.push(`Linha ${numLinha}: espaço "${val('espaco')}" não existe na grade.`); continue; }
+    if(!diasValidos.has(dia)){ erros.push(`Linha ${numLinha}: dia "${val('dia')}" inválido (use d08, d09, d10 ou d11).`); continue; }
+    if(!horasValidasSet.has(hora)){ erros.push(`Linha ${numLinha}: horário "${val('hora')}" inválido ou é um período de recreio/pausa.`); continue; }
+    if(!modValidas.has(modalidade)){ erros.push(`Linha ${numLinha}: modalidade "${val('modalidade')}" não cadastrada. Cadastre-a antes em "✏️ Modalidades".`); continue; }
+
+    let numero=null;
+    if(numeroTxt){
+      numero=parseInt(numeroTxt,10);
+      if(isNaN(numero)){ erros.push(`Linha ${numLinha}: número do jogo "${numeroTxt}" inválido.`); continue; }
+    }
+
+    const valor={mod:modalidade,categoria:categoria||'',numero,espaco:local||'',timeA:timeA||'',timeB:timeB||'',fase:fase||''};
+    const idxNovo=get(espaco,dia,hora).length; // adiciona ao final da lista, sem apagar jogos já marcados
+    adicionarJogo(espaco,dia,hora,valor);
+    if(modalidade && timeA && timeB){
+      enviarSlotAoPai(espaco,dia,hora,idxNovo,modalidade,local,timeA,timeB,fase,categoria,numero);
+    }
+    importados++;
+  }
+
+  render();
+  let msg=`✅ ${importados} jogo(s) importado(s) com sucesso.`;
+  if(erros.length){
+    msg+=` ⚠️ ${erros.length} linha(s) ignorada(s).`;
+    console.warn('Erros na importação do CSV:\n'+erros.join('\n'));
+    alert(msg+'\n\nDetalhes das linhas ignoradas:\n\n— '+erros.join('\n— '));
+  }
+  toast(msg, erros.length?'warn':'ok');
 }
 
 // ─ CONTROLE DE PERMISSÃO DE EDIÇÃO (sincronizado com a aba "Organização dos Grupos") ─
@@ -3488,7 +3743,7 @@ function renderLegend(){
   if(hint) hint.textContent = (edicaoPermitida ? '· Clique num espaço para marcar um jogo' : '· Modo consulta — edição bloqueada') + ' · Clique no 🔍 ao lado de um horário ou dia para ampliá-lo';
 }
 function aplicarBloqueioUI(){
-  ['btn-espacos','btn-modalidades','btn-horarios','btn-limpar'].forEach(id=>{
+  ['btn-espacos','btn-modalidades','btn-horarios','btn-limpar','btn-importar-csv'].forEach(id=>{
     const b=document.getElementById(id);
     if(b){ b.disabled=!edicaoPermitida; b.style.opacity=edicaoPermitida?'1':'.45'; b.style.cursor=edicaoPermitida?'pointer':'not-allowed'; }
   });
