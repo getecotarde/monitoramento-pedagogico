@@ -8408,6 +8408,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return dados;
         }
 
+        // Fases de mata-mata em que um empate no tempo normal é decidido nos
+        // pênaltis (cobranças lançadas no próprio placar, campos pa/pb).
+        var FASES_MATA_MATA_0809 = ['Eliminatória', 'Quartas de Final', 'Semi-final', 'Disputa de 3º Lugar', 'Final'];
+
         // ===== Resolução dinâmica de confrontos (classificado de grupo / vencedor / perdedor de jogo) =====
         // Usada pelas Semifinais/Final/3º Lugar do Futsal M/F (e pelos spans de
         // "2ª Fase" do Futsal M/F/Queimada), que não têm times fixos: os nomes só
@@ -8456,7 +8460,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
             if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return null;
             var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
-            if (isNaN(golsA) || isNaN(golsB) || golsA === golsB) return null; // empate: aguarda lançamento do resultado dos pênaltis no próprio placar
+            if (isNaN(golsA) || isNaN(golsB)) return null;
+            if (golsA === golsB) {
+                // Empate no tempo normal: nas fases de mata-mata (eliminatórias,
+                // semifinal, final e disputa de 3º lugar), o confronto é decidido
+                // nos pênaltis, lançados no próprio placar (campos pa/pb).
+                if (FASES_MATA_MATA_0809.indexOf(jogoRef.fase) === -1) return null;
+                if (salvo.pa === '' || salvo.pa === undefined || salvo.pb === '' || salvo.pb === undefined) return null;
+                var pensA = parseInt(salvo.pa, 10), pensB = parseInt(salvo.pb, 10);
+                if (isNaN(pensA) || isNaN(pensB) || pensA === pensB) return null; // pênaltis ainda empatados: aguarda cobranças alternadas
+                if (tipo === 'vencedor') return pensA > pensB ? infoRef.timeA : infoRef.timeB;
+                return pensA > pensB ? infoRef.timeB : infoRef.timeA;
+            }
             if (tipo === 'vencedor') return golsA > golsB ? infoRef.timeA : infoRef.timeB;
             return golsA > golsB ? infoRef.timeB : infoRef.timeA;
         }
@@ -8480,6 +8495,30 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         '<strong>x</strong>' +
                         '<input type="number" min="0" id="placarB_' + g.id + '" value="' + (golsB === undefined ? '' : golsB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeB + '">' +
                         '</div>';
+
+                    var numA = parseInt(golsA, 10), numB = parseInt(golsB, 10);
+                    var precisaPenaltis = FASES_MATA_MATA_0809.indexOf(g.fase) !== -1 &&
+                        golsA !== '' && golsA !== undefined && golsB !== '' && golsB !== undefined &&
+                        !isNaN(numA) && !isNaN(numB) && numA === numB;
+                    if (precisaPenaltis) {
+                        var penA = salvo && typeof salvo === 'object' ? salvo.pa : '';
+                        var penB = salvo && typeof salvo === 'object' ? salvo.pb : '';
+                        var numPA = parseInt(penA, 10), numPB = parseInt(penB, 10);
+                        var penValidos = penA !== '' && penA !== undefined && penB !== '' && penB !== undefined && !isNaN(numPA) && !isNaN(numPB);
+                        var penDefinidos = penValidos && numPA !== numPB;
+                        var penEmpatados = penValidos && numPA === numPB;
+                        celulaPlacar +=
+                            '<div style="margin-top:0.4rem; padding:0.4rem 0.5rem; background:#fff7ed; border:1px dashed var(--accent); border-radius:6px;">' +
+                            '<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.25rem;">⚽🥅 Empate no tempo normal — decide nos pênaltis:</div>' +
+                            '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' +
+                            '<input type="number" min="0" id="placarPenA_' + g.id + '" value="' + (penA === undefined ? '' : penA) + '" style="width:52px; padding:0.3rem; text-align:center;" title="Pênaltis — ' + timeA + '">' +
+                            '<strong>x</strong>' +
+                            '<input type="number" min="0" id="placarPenB_' + g.id + '" value="' + (penB === undefined ? '' : penB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="Pênaltis — ' + timeB + '">' +
+                            '</div>' +
+                            (penDefinidos ? '<div style="font-size:0.78rem; color:var(--success); font-weight:600; margin-top:0.3rem;">🏆 ' + (numPA > numPB ? timeA : timeB) + ' vence nos pênaltis</div>' : '') +
+                            (penEmpatados ? '<div style="font-size:0.78rem; color:var(--danger); margin-top:0.3rem;">⚠️ Pênaltis também empatados — siga com as cobranças alternadas e atualize o placar.</div>' : '') +
+                            '</div>';
+                    }
                 }
             } else if (g.tipo === 'vencedor') {
                 if (g.dinamico && !infoDin.pronto) {
@@ -8557,11 +8596,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 var a = document.getElementById('placarA_' + id);
                 var b = document.getElementById('placarB_' + id);
                 valor = { a: a ? a.value : '', b: b ? b.value : '' };
+                var pa = document.getElementById('placarPenA_' + id);
+                var pb = document.getElementById('placarPenB_' + id);
+                if (pa || pb) {
+                    valor.pa = pa ? pa.value : '';
+                    valor.pb = pb ? pb.value : '';
+                }
             } else {
                 var t = document.getElementById('placarTexto_' + id);
                 valor = { texto: t ? t.value : '' };
             }
             var dados = salvarPlacarNoStorage(id, valor);
+            renderTabelaPlacares0809(dados); // reexibe a linha — revela os campos de pênaltis se o jogo empatou na fase de mata-mata
             if (typeof renderClassificacoes === 'function') renderClassificacoes();
             mostrarStatusPlacar('💾 Salvando...');
             var ok = await salvarPlacaresNoSupabase(dados);
