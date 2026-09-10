@@ -1951,7 +1951,7 @@
                     </table>
                 </div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">🔄 Os nomes acima aparecem automaticamente assim que cada turma do grupo já tiver disputado pelo menos 2 rodadas na fase de grupos.</p>
-                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista não consta na programação de quadras/horários do dia 08/09 na Súmula Oficial — datas dos jogos a confirmar pela Coordenação/Educação Física. A classificação e os nomes dos times classificados acima são calculados automaticamente assim que os placares forem lançados.</div>
+                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista segue os mesmos moldes de disputa do Futsal (grupos + semifinais, final e disputa de 3º lugar), mas sem placar: em cada jogo marca-se apenas o time vencedor. Os jogos são lançados na aba 🗓️ Grade de Horários & Placares — datas/horários ainda a confirmar pela Coordenação/Educação Física. A classificação e os nomes dos times classificados acima são calculados automaticamente assim que os vencedores forem marcados.</div>
             </div>
 
             <!-- BASQUETE DE TRILHA -->
@@ -2004,6 +2004,7 @@
                     <button type="button" class="mod-pill mod-pill-futsal-f" onclick="filtrarGradeModalidade('Futsal Feminino')">⚽ Futsal Fem.</button>
                     <button type="button" class="mod-pill mod-pill-basquete" onclick="filtrarGradeModalidade('Basquete de Trilha (M)')">🏀 Basquete Trilha</button>
                     <button type="button" class="mod-pill mod-pill-damas" onclick="filtrarGradeModalidade('Damas')">♟️ Damas</button>
+                    <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade('Queimada Mista')">🔥 Queimada</button>
                 </div>
                 <div id="placarSaveStatus" class="alert alert-info" style="display:none;"></div>
             </div>
@@ -8300,7 +8301,21 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             { id: 'r27', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'vencedor', ref: 'r25', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r26', rotulo: 'Vencedor SF2' } } },
             { id: 'r28', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
-                dinamico: { mod: 'Futsal Feminino', a: { tipo: 'perdedor', ref: 'r25', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r26', rotulo: 'Perdedor SF2' } } }
+                dinamico: { mod: 'Futsal Feminino', a: { tipo: 'perdedor', ref: 'r25', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r26', rotulo: 'Perdedor SF2' } } },
+            { id: 'qm01', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '1', confronto: 'Noruega (6º F) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
+            { id: 'qm02', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '2', confronto: 'Argentina (6º A) x Alemanha (6º E)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
+            { id: 'qm03', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '3', confronto: 'Alemanha (6º E) x Noruega (6º F)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
+            { id: 'qm04', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '1', confronto: 'México (6º C) x Croácia (6º D)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'vencedor' },
+            { id: 'qm05', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '2', confronto: 'Croácia (6º D) x Espanha (6º B)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'vencedor' },
+            { id: 'qm06', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '3', confronto: 'Espanha (6º B) x México (6º C)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'vencedor' },
+            { id: 'qm07', hora: 'a confirmar', mod: 'Queimada Mista', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'vencedor',
+                dinamico: { mod: 'Queimada Mista', a: { tipo: 'classificacao', grupo: 1, pos: 1, rotulo: '1º Grupo 1' }, b: { tipo: 'classificacao', grupo: 2, pos: 2, rotulo: '2º Grupo 2' } } },
+            { id: 'qm08', hora: 'a confirmar', mod: 'Queimada Mista', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'vencedor',
+                dinamico: { mod: 'Queimada Mista', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
+            { id: 'qm09', hora: 'a confirmar', mod: 'Queimada Mista', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'vencedor',
+                dinamico: { mod: 'Queimada Mista', a: { tipo: 'vencedor', ref: 'qm07', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'qm08', rotulo: 'Vencedor SF2' } } },
+            { id: 'qm10', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'vencedor',
+                dinamico: { mod: 'Queimada Mista', a: { tipo: 'perdedor', ref: 'qm07', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'qm08', rotulo: 'Perdedor SF2' } } }
         ];
 
         // ===== Filtro por modalidade — aba Grade de Horários & Placares =====
@@ -8313,7 +8328,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 'Futsal Masculino': 'mod-pill-futsal-m',
                 'Futsal Feminino': 'mod-pill-futsal-f',
                 'Basquete de Trilha (M)': 'mod-pill-basquete',
-                'Damas': 'mod-pill-damas'
+                'Damas': 'mod-pill-damas',
+                'Queimada Mista': 'mod-pill-queimada'
             }[mod] || 'mod-pill-geral';
             var btn = document.querySelector('#gradeModPillNav .' + pillClass);
             if (btn) btn.classList.add('active');
@@ -8429,11 +8445,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var jogoRef = JOGOS_0809.filter(function (j) { return j.id === gameId; })[0];
             if (!jogoRef) return null;
             var salvo = placares[gameId];
+            var infoRef = resolverConfronto(jogoRef, placares);
+            if (!infoRef.timeA || !infoRef.timeB) return null;
+            if (jogoRef.tipo === 'vencedor') {
+                if (!salvo || typeof salvo !== 'object' || !salvo.nome) return null;
+                var vencedorNome = salvo.nome;
+                if (vencedorNome !== infoRef.timeA && vencedorNome !== infoRef.timeB) return null;
+                var perdedorNome = (vencedorNome === infoRef.timeA) ? infoRef.timeB : infoRef.timeA;
+                return tipo === 'vencedor' ? vencedorNome : perdedorNome;
+            }
             if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return null;
             var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
             if (isNaN(golsA) || isNaN(golsB) || golsA === golsB) return null; // empate: aguarda lançamento do resultado dos pênaltis no próprio placar
-            var infoRef = resolverConfronto(jogoRef, placares);
-            if (!infoRef.timeA || !infoRef.timeB) return null;
             if (tipo === 'vencedor') return golsA > golsB ? infoRef.timeA : infoRef.timeB;
             return golsA > golsB ? infoRef.timeB : infoRef.timeA;
         }
@@ -8441,14 +8464,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function montarLinhaJogo(g, salvos) {
             var salvo = salvos[g.id];
             var celulaPlacar, textoConfronto = g.confronto;
+            var infoDin = g.dinamico ? resolverConfronto(g, salvos) : null;
+            if (infoDin) textoConfronto = infoDin.texto;
             if (g.tipo === 'placar') {
-                var info = resolverConfronto(g, salvos);
-                textoConfronto = info.texto;
-                if (g.dinamico && !info.pronto) {
+                if (g.dinamico && !infoDin.pronto) {
                     celulaPlacar = '<span style="color:var(--text-muted); font-size:0.85rem;">⏳ Aguardando definição dos times classificados</span>';
                 } else {
-                    var timeA = info.timeA || 'Time A';
-                    var timeB = info.timeB || 'Time B';
+                    var timeA = (infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || 'Time A';
+                    var timeB = (infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || 'Time B';
                     var golsA = salvo && typeof salvo === 'object' ? salvo.a : '';
                     var golsB = salvo && typeof salvo === 'object' ? salvo.b : '';
                     celulaPlacar =
@@ -8459,18 +8482,21 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         '</div>';
                 }
             } else if (g.tipo === 'vencedor') {
-                var partesV = g.confronto.split(' x ');
-                var nomeA = (partesV[0] || '').trim();
-                var nomeB = (partesV[1] || '').trim();
-                var escolhido = salvo && typeof salvo === 'object' ? salvo.nome : '';
-                var fazBtn = function (nome) {
-                    var ativo = escolhido === nome;
-                    return '<button type="button" onclick="window.__marcarVencedorLinha(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\')" ' +
-                        'style="display:block; width:100%; text-align:left; margin-bottom:0.25rem; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; ' +
-                        'border:1px solid ' + (ativo ? 'var(--success)' : 'var(--border)') + '; background:' + (ativo ? '#d1fae5' : '#fff') + '; font-weight:' + (ativo ? '700' : '400') + ';">' +
-                        (ativo ? '✅ ' : '') + nome + '</button>';
-                };
-                celulaPlacar = '<div style="min-width:200px;">' + fazBtn(nomeA) + fazBtn(nomeB) + '</div>';
+                if (g.dinamico && !infoDin.pronto) {
+                    celulaPlacar = '<span style="color:var(--text-muted); font-size:0.85rem;">⏳ Aguardando definição dos times classificados</span>';
+                } else {
+                    var nomeA = ((infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || '').trim();
+                    var nomeB = ((infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || '').trim();
+                    var escolhido = salvo && typeof salvo === 'object' ? salvo.nome : '';
+                    var fazBtn = function (nome) {
+                        var ativo = escolhido === nome;
+                        return '<button type="button" onclick="window.__marcarVencedorLinha(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\')" ' +
+                            'style="display:block; width:100%; text-align:left; margin-bottom:0.25rem; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; ' +
+                            'border:1px solid ' + (ativo ? 'var(--success)' : 'var(--border)') + '; background:' + (ativo ? '#d1fae5' : '#fff') + '; font-weight:' + (ativo ? '700' : '400') + ';">' +
+                            (ativo ? '✅ ' : '') + nome + '</button>';
+                    };
+                    celulaPlacar = '<div style="min-width:200px;">' + fazBtn(nomeA) + fazBtn(nomeB) + '</div>';
+                }
             } else {
                 var texto = salvo && typeof salvo === 'object' ? salvo.texto : '';
                 celulaPlacar = '<input type="text" id="placarTexto_' + g.id + '" value="' + (texto === undefined ? '' : (texto || '').replace(/"/g, '&quot;')) + '" placeholder="Resultado / classificado" style="width:100%; padding:0.3rem;">';
@@ -8638,21 +8664,29 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var stats = {};
             times.forEach(function (t) { stats[t] = { time: t, pg: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 }; });
             JOGOS_0809.forEach(function (g) {
-                if (g.mod !== modLabel || g.tipo !== 'placar') return;
+                if (g.mod !== modLabel || (g.tipo !== 'placar' && g.tipo !== 'vencedor')) return;
                 var partes = g.confronto.split(' x ');
                 if (partes.length !== 2) return;
                 var timeA = partes[0].trim(), timeB = partes[1].trim();
                 if (!(timeA in stats) || !(timeB in stats)) return;
                 var salvo = placares[g.id];
-                if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return;
-                var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
-                if (isNaN(golsA) || isNaN(golsB)) return;
-                stats[timeA].pg++; stats[timeB].pg++;
-                stats[timeA].gp += golsA; stats[timeA].gc += golsB;
-                stats[timeB].gp += golsB; stats[timeB].gc += golsA;
-                if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
-                else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
-                else { stats[timeA].e++; stats[timeB].e++; }
+                if (g.tipo === 'placar') {
+                    if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return;
+                    var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
+                    if (isNaN(golsA) || isNaN(golsB)) return;
+                    stats[timeA].pg++; stats[timeB].pg++;
+                    stats[timeA].gp += golsA; stats[timeA].gc += golsB;
+                    stats[timeB].gp += golsB; stats[timeB].gc += golsA;
+                    if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
+                    else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
+                    else { stats[timeA].e++; stats[timeB].e++; }
+                } else { // 'vencedor' — sem placar (ex.: Queimada): só conta vitória/derrota
+                    var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : '';
+                    if (nomeVenc !== timeA && nomeVenc !== timeB) return;
+                    stats[timeA].pg++; stats[timeB].pg++;
+                    if (nomeVenc === timeA) { stats[timeA].v++; stats[timeB].d++; }
+                    else { stats[timeB].v++; stats[timeA].d++; }
+                }
             });
             var arr = times.map(function (t) { return stats[t]; });
             arr.forEach(function (s) { s.sg = s.gp - s.gc; s.pts = s.v * 3 + s.e; });
@@ -8715,7 +8749,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var configs = [
                 { mod: 'Futsal Masculino', prefixo: 'FutsalM', refSF1: 'r21', refSF2: 'r22' },
                 { mod: 'Futsal Feminino', prefixo: 'FutsalF', refSF1: 'r25', refSF2: 'r26' },
-                { mod: 'Queimada Mista', prefixo: 'Queimada', refSF1: null, refSF2: null }
+                { mod: 'Queimada Mista', prefixo: 'Queimada', refSF1: 'qm07', refSF2: 'qm08' }
             ];
             configs.forEach(function (c) {
                 preencherSpanDinamico('sf_' + c.prefixo + '_SF1_A', resolverNomeClassificacao(c.mod, 1, 1, placares), '1º Grupo 1');
