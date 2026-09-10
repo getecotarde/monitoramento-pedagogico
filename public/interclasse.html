@@ -957,6 +957,86 @@
         }
         .grade-print-page { padding: 4px 2px; }
 
+        /* Campos de placar — só a "janelinha" para digitar o número, sem as
+           setinhas de incrementar/decrementar (Chrome/Safari e Firefox). */
+        input.placar-input::-webkit-outer-spin-button,
+        input.placar-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input.placar-input {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Coluna "Confronto" da Grade de Horários & Placares — evita que o
+           nome das equipes quebre em duas linhas; role horizontalmente
+           (.table-responsive já tem overflow-x:auto) ou alargue a janela. */
+        .grade-confronto-cell { white-space: nowrap; }
+
+        /* Botão "Salvar" de cada linha da Grade — um pouco mais discreto */
+        .grade-btn-salvar { padding: 0.28rem 0.55rem !important; font-size: 0.72rem !important; line-height: 1.15 !important; }
+
+        /* =================================================================
+           PÓDIO POR MODALIDADE — aba Grade de Horários & Placares
+           ================================================================= */
+        .podio-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem 0.8rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .podio-titulo { font-size: 1.02rem; font-weight: 800; color: var(--primary); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+        .podio-modalidade-grid { display: flex; align-items: flex-end; justify-content: center; gap: 0.7rem; flex-wrap: wrap; }
+        .podio-lugar { flex: 1 1 140px; max-width: 190px; text-align: center; border-radius: 10px 10px 4px 4px; padding: 0.7rem 0.6rem 0.6rem; color: #fff; }
+        .podio-lugar .podio-medalha { font-size: 1.9rem; line-height: 1; }
+        .podio-lugar .podio-nome { font-weight: 700; font-size: 0.92rem; margin: 0.35rem 0; word-break: break-word; }
+        .podio-lugar .podio-posicao { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; opacity: 0.92; }
+        .podio-lugar .podio-pendente { font-size: 0.78rem; font-style: italic; opacity: 0.9; padding: 1.1rem 0; }
+        .podio-1 { order: 2; min-height: 140px; background: linear-gradient(160deg, #b8860b, var(--gold)); }
+        .podio-2 { order: 1; min-height: 112px; background: linear-gradient(160deg, #64748b, #94a3b8); align-self: flex-end; }
+        .podio-3 { order: 3; min-height: 96px; background: linear-gradient(160deg, #92400e, #c2703a); align-self: flex-end; }
+        .podio-sem-resultado { color: var(--text-muted); font-size: 0.85rem; margin: 0; }
+
+        /* ---- Impressão da Grade de Horários & Placares + Pódio (por modalidade, folha única) ---- */
+        @page gradePodioRetrato { size: A4 portrait; margin: 10mm; }
+        @page gradePodioPaisagem { size: A4 landscape; margin: 10mm; }
+        html.grade-podio-print-mode.grade-podio-orient-paisagem { page: gradePodioPaisagem; }
+        html.grade-podio-print-mode.grade-podio-orient-retrato { page: gradePodioRetrato; }
+        #gradePodioPrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-grade-podio header,
+            body.printing-grade-podio > .container { display: none !important; }
+            body.printing-grade-podio #gradePodioPrintContainer.roster-print-only { display: block !important; }
+            .grade-podio-print-page * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+        }
+        .grade-podio-print-page { width: 100%; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.3; }
+        .grade-podio-print-page .grade-print-table { width: 100%; border-collapse: collapse; font-size: 16px; margin-top: 10px; }
+        .grade-podio-print-page .grade-print-table th,
+        .grade-podio-print-page .grade-print-table td { border: 1px solid #333; padding: 6px 8px; text-align: left; }
+        .grade-podio-print-page .grade-print-table thead th { background: #e2e8f0; }
+        .grade-podio-print-page .grade-print-confronto { white-space: normal; }
+        .grade-podio-print-page .grade-print-confronto b { color: #111; }
+        .grade-podio-print-page .grade-print-confronto .gp-pendente,
+        .grade-podio-print-page .grade-print-confronto .gp-pen { color: #555; font-size: 13px; }
+        .grade-podio-print-page h3.grade-print-podio-titulo { font-size: 20px; margin: 14px 0 7px; border-bottom: 1.3px solid #333; padding-bottom: 3px; color: #111; }
+        .grade-podio-print-page .podio-card-print { margin-bottom: 8px; border: 1px solid #999; border-radius: 5px; padding: 8px 10px; break-inside: avoid; page-break-inside: avoid; }
+        .grade-podio-print-page .podio-card-print h4 { font-size: 17px; margin-bottom: 5px; color: #111; }
+        .grade-podio-print-page .podio-print-row { display: flex; gap: 8px; font-size: 15px; }
+        .grade-podio-print-page .podio-print-row > div { flex: 1; border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px; text-align: center; }
+        .grade-podio-print-page .podio-print-row .pp-ouro { background: #fef3c7; }
+        .grade-podio-print-page .podio-print-row .pp-prata { background: #f1f5f9; }
+        .grade-podio-print-page .podio-print-row .pp-bronze { background: #ffedd5; }
+        .grade-podio-print-page .podio-print-row b { display: block; font-size: 16px; }
+        /* Blocos por modalidade quando a impressão é "Todas" */
+        .grade-podio-print-page .bloco-modalidade { break-inside: avoid; page-break-inside: avoid; page-break-after: always; margin-bottom: 4px; }
+        .grade-podio-print-page .bloco-modalidade:last-child { page-break-after: auto; }
+        .grade-podio-print-page h2.bloco-modalidade-titulo { font-size: 21px; margin: 4px 0 6px; padding-bottom: 4px; border-bottom: 2px solid #1e3a8a; color: #1e3a8a; }
+        .grade-podio-print-page .roster-print-header { margin-bottom: 12px; }
+        .grade-podio-print-page .roster-print-header strong { font-size: 21px !important; }
+        .grade-podio-print-page .roster-print-header span:first-of-type { font-size: 16px !important; }
+        .grade-podio-print-page .roster-print-header span:last-of-type { font-size: 12px !important; }
+
+        /* Botões de orientação (retrato/paisagem) — aba Grade de Horários & Placares */
+        .grade-orient-toggle { display: inline-flex; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .grade-orient-btn { padding: 0.4rem 0.75rem; border: none; background: #fff; cursor: pointer; font-weight: 700; font-size: 0.8rem; color: var(--text-muted); }
+        .grade-orient-btn.active { background: var(--primary); color: #fff; }
+
         /* Impressão para o Mural (Quadro de Avisos) — cartaz com fonte grande,
            uma folha por dia de jogos, pensado para ser lido a distância pelos alunos. */
         @page gradeMural { size: A4 portrait; margin: 10mm; }
@@ -2006,6 +2086,14 @@
                     <button type="button" class="mod-pill mod-pill-damas" onclick="filtrarGradeModalidade('Damas')">♟️ Damas</button>
                     <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade('Queimada Mista')">🔥 Queimada</button>
                 </div>
+                <div style="margin-top:0.6rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirGradeModalidade()">🖨️ Imprimir Grade + Pódio (modalidade selecionada)</button>
+                    <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
+                    <div class="grade-orient-toggle">
+                        <button type="button" id="btnGradePodioOrientRetrato" class="grade-orient-btn active" onclick="definirOrientacaoGradePodio('retrato', this)">▯ Retrato</button>
+                        <button type="button" id="btnGradePodioOrientPaisagem" class="grade-orient-btn" onclick="definirOrientacaoGradePodio('paisagem', this)">▭ Paisagem</button>
+                    </div>
+                </div>
                 <div id="placarSaveStatus" class="alert alert-info" style="display:none;"></div>
             </div>
 
@@ -2017,16 +2105,21 @@
                                 <th>Horário</th>
                                 <th>Modalidade</th>
                                 <th>Jogo</th>
-                                <th>Confronto</th>
+                                <th style="min-width:280px;">Confronto / Placar</th>
                                 <th>Local</th>
                                 <th>Fase</th>
-                                <th style="min-width:170px;">Placar</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody id="corpoTabelaPlacares"></tbody>
                     </table>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2>🏆 Pódio</h2>
+                <p style="color: var(--text-muted);">Campeã, vice e 3ª colocada de cada modalidade, calculadas automaticamente a partir dos placares/vencedores lançados acima (Final e Disputa de 3º Lugar). Use os filtros de modalidade no topo para ver o pódio de uma modalidade só.</p>
+                <div id="podioResultadoContainer"></div>
             </div>
         </div>
 
@@ -2102,6 +2195,7 @@
     <div id="resumoPrintContainer" class="roster-print-only"></div>
     <div id="quadroResumoPrintContainer" class="roster-print-only"></div>
     <div id="gradePrintContainer" class="roster-print-only"></div>
+    <div id="gradePodioPrintContainer" class="roster-print-only"></div>
 
     <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
          formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
@@ -7640,10 +7734,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             document.body.classList.remove('printing-quadro');
             document.body.classList.remove('printing-grade-normal');
             document.body.classList.remove('printing-grade-mural');
+            document.body.classList.remove('printing-grade-podio');
             document.documentElement.classList.remove('resumo-print-mode');
             document.documentElement.classList.remove('quadro-print-mode');
             document.documentElement.classList.remove('grade-print-mode');
             document.documentElement.classList.remove('grade-mural-mode');
+            document.documentElement.classList.remove('grade-podio-print-mode');
+            document.documentElement.classList.remove('grade-podio-orient-retrato');
+            document.documentElement.classList.remove('grade-podio-orient-paisagem');
         });
 
         // ---------------------------------------------------------------
@@ -8284,23 +8382,23 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             { id: 'r18', hora: '16h40 às 17h', mod: 'Basquete de Trilha (M)', jogo: '8', confronto: 'FINAL — ver aba 🏆 Chaveamento (Basquete/Damas)', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'texto' },
             { id: 'r19', hora: '16h50 às 17h25', mod: 'Futsal Masculino', jogo: '3', confronto: 'Espanha (6º B) x Croácia (6º D)', local: 'Quadra 1', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
             { id: 'r20', hora: '17h às 17h25', mod: 'Futsal Feminino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'Quadra 2', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
-            { id: 'r29', hora: '09/09 — a confirmar', mod: 'Futsal Masculino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
-            { id: 'r30', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: '3', confronto: 'Alemanha (6º E) x Croácia (6º D)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
-            { id: 'r21', hora: '09/09 — a confirmar', mod: 'Futsal Masculino', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
+            { id: 'r29', hora: '09/09', mod: 'Futsal Masculino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r30', hora: '09/09', mod: 'Futsal Feminino', jogo: '3', confronto: 'Alemanha (6º E) x Croácia (6º D)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
+            { id: 'r21', hora: '09/09', mod: 'Futsal Masculino', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'classificacao', grupo: 1, pos: 1, rotulo: '1º Grupo 1' }, b: { tipo: 'classificacao', grupo: 2, pos: 2, rotulo: '2º Grupo 2' } } },
-            { id: 'r22', hora: '09/09 — a confirmar', mod: 'Futsal Masculino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
+            { id: 'r22', hora: '09/09', mod: 'Futsal Masculino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
-            { id: 'r23', hora: '09/09 — a confirmar', mod: 'Futsal Masculino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
+            { id: 'r23', hora: '09/09', mod: 'Futsal Masculino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'vencedor', ref: 'r21', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r22', rotulo: 'Vencedor SF2' } } },
-            { id: 'r24', hora: '09/09 — a confirmar', mod: 'Futsal Masculino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
+            { id: 'r24', hora: '09/09', mod: 'Futsal Masculino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'perdedor', ref: 'r21', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r22', rotulo: 'Perdedor SF2' } } },
-            { id: 'r25', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
+            { id: 'r25', hora: '09/09', mod: 'Futsal Feminino', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'classificacao', grupo: 1, pos: 1, rotulo: '1º Grupo 1' }, b: { tipo: 'classificacao', grupo: 2, pos: 2, rotulo: '2º Grupo 2' } } },
-            { id: 'r26', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
+            { id: 'r26', hora: '09/09', mod: 'Futsal Feminino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
-            { id: 'r27', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
+            { id: 'r27', hora: '09/09', mod: 'Futsal Feminino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'vencedor', ref: 'r25', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r26', rotulo: 'Vencedor SF2' } } },
-            { id: 'r28', hora: '09/09 — a confirmar', mod: 'Futsal Feminino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
+            { id: 'r28', hora: '09/09', mod: 'Futsal Feminino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'perdedor', ref: 'r25', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r26', rotulo: 'Perdedor SF2' } } },
             { id: 'qm01', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '1', confronto: 'Noruega (6º F) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
             { id: 'qm02', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '2', confronto: 'Argentina (6º A) x Alemanha (6º E)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
@@ -8318,6 +8416,237 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 dinamico: { mod: 'Queimada Mista', a: { tipo: 'perdedor', ref: 'qm07', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'qm08', rotulo: 'Perdedor SF2' } } }
         ];
 
+        // ================================================================
+        // ===== PÓDIO POR MODALIDADE (1º, 2º e 3º colocados) =====
+        // Futsal M/F e Queimada Mista: resolvidos a partir dos jogos fixos
+        // de Final e Disputa de 3º Lugar (JOGOS_0809). Basquete de Trilha e
+        // Damas: resolvidos a partir do chaveamento dinâmico (mata-mata).
+        // ================================================================
+        var CONFIG_PODIO = {
+            'Futsal Masculino': { idFinal: 'r23', idTerceiro: 'r24' },
+            'Futsal Feminino': { idFinal: 'r27', idTerceiro: 'r28' },
+            'Queimada Mista': { idFinal: 'qm09', idTerceiro: 'qm10' },
+            'Basquete de Trilha (M)': { chave: true },
+            'Damas': { chave: true }
+        };
+        var ICONE_PODIO_MOD = {
+            'Futsal Masculino': '⚽', 'Futsal Feminino': '⚽',
+            'Queimada Mista': '🔥', 'Basquete de Trilha (M)': '🏀', 'Damas': '♟️'
+        };
+
+        function calcularPodioModalidade(modLabel, placares) {
+            var cfg = CONFIG_PODIO[modLabel];
+            if (!cfg) return null;
+            if (!cfg.chave) {
+                return {
+                    ouro: resolverVencedorPerdedor(cfg.idFinal, 'vencedor', placares),
+                    prata: resolverVencedorPerdedor(cfg.idFinal, 'perdedor', placares),
+                    bronze: resolverVencedorPerdedor(cfg.idTerceiro, 'vencedor', placares)
+                };
+            }
+            // Modalidades em chaveamento (mata-mata): Basquete de Trilha e Damas
+            var participantes, prefixo;
+            if (modLabel === 'Basquete de Trilha (M)') {
+                var idsR1 = ['r03', 'r04', 'r07', 'r08', 'r10', 'r11'];
+                participantes = idsR1.map(function (id) {
+                    var salvo = placares[id];
+                    return salvo && typeof salvo === 'object' ? salvo.nome : null;
+                });
+                if (participantes.indexOf(null) !== -1) return { ouro: null, prata: null, bronze: null };
+                prefixo = 'bq';
+            } else if (modLabel === 'Damas') {
+                participantes = carregarParticipantesDamas();
+                prefixo = 'dm';
+            } else {
+                return null;
+            }
+            if (!participantes || participantes.length < 2) return { ouro: null, prata: null, bronze: null };
+            var ch = construirChaveamento(prefixo, participantes, placares);
+            var prata = null;
+            if (ch.rodadas.length) {
+                var ultimaRodada = ch.rodadas[ch.rodadas.length - 1];
+                if (ultimaRodada.nome === 'Final' && ultimaRodada.jogos.length === 1 && ultimaRodada.jogos[0].vencedor) {
+                    var jf = ultimaRodada.jogos[0];
+                    prata = (jf.vencedor === jf.nomeA) ? jf.nomeB : jf.nomeA;
+                }
+            }
+            return {
+                ouro: ch.campeao || null,
+                prata: prata,
+                bronze: (ch.terceiroLugar && ch.terceiroLugar.vencedor) ? ch.terceiroLugar.vencedor : null
+            };
+        }
+
+        function htmlPodioModalidade(modLabel, placares) {
+            var r = calcularPodioModalidade(modLabel, placares);
+            if (!r) return '';
+            var icone = ICONE_PODIO_MOD[modLabel] || '🏆';
+            var corpo;
+            if (!r.ouro && !r.prata && !r.bronze) {
+                corpo = '<p class="podio-sem-resultado">⏳ Ainda sem resultado suficiente (Final / Disputa de 3º Lugar) para gerar o pódio desta modalidade.</p>';
+            } else {
+                var lugar = function (classe, medalha, nome, rotulo) {
+                    return '<div class="podio-lugar ' + classe + '">' +
+                        (nome ? ('<div class="podio-medalha">' + medalha + '</div><div class="podio-nome">' + nome + '</div>') : '<div class="podio-pendente">Aguardando</div>') +
+                        '<div class="podio-posicao">' + rotulo + '</div></div>';
+                };
+                corpo = '<div class="podio-modalidade-grid">' +
+                    lugar('podio-2', '🥈', r.prata, '2º lugar') +
+                    lugar('podio-1', '🥇', r.ouro, 'Campeã(o)') +
+                    lugar('podio-3', '🥉', r.bronze, '3º lugar') +
+                    '</div>';
+            }
+            return '<div class="podio-card"><div class="podio-titulo">' + icone + ' ' + modLabel + '</div>' + corpo + '</div>';
+        }
+
+        function renderPodioGeral() {
+            var el = document.getElementById('podioResultadoContainer');
+            if (!el) return;
+            var placares = carregarPlacaresSalvos();
+            var modalidades = _filtroGradeMod ? [_filtroGradeMod] : Object.keys(CONFIG_PODIO);
+            var validas = modalidades.filter(function (m) { return CONFIG_PODIO[m]; });
+            if (!validas.length) {
+                el.innerHTML = '<p class="podio-sem-resultado">Nenhum pódio disponível para esta modalidade.</p>';
+                return;
+            }
+            el.innerHTML = validas.map(function (m) { return htmlPodioModalidade(m, placares); }).join('');
+        }
+
+        // ---------------------------------------------------------------
+        // IMPRESSÃO — Grade de Horários & Placares + Pódio, filtrada pela
+        // modalidade selecionada nos botões acima, em folha única A4.
+        // ---------------------------------------------------------------
+        function htmlPodioModalidadeImpressao(modLabel, placares) {
+            var r = calcularPodioModalidade(modLabel, placares);
+            if (!r) return '';
+            var icone = ICONE_PODIO_MOD[modLabel] || '🏆';
+            var celula = function (classe, medalha, nome, rotulo) {
+                return '<div class="' + classe + '"><b>' + medalha + ' ' + rotulo + '</b>' + (nome || '—') + '</div>';
+            };
+            return '<div class="podio-card-print"><h4>' + icone + ' ' + modLabel + '</h4>' +
+                '<div class="podio-print-row">' +
+                celula('pp-ouro', '🥇', r.ouro, 'Campeã(o)') +
+                celula('pp-prata', '🥈', r.prata, '2º lugar') +
+                celula('pp-bronze', '🥉', r.bronze, '3º lugar') +
+                '</div></div>';
+        }
+
+        // Ordem de exibição das modalidades quando a impressão é "Todas"
+        // (mesma ordem dos botões/pílulas de filtro da Grade).
+        var ORDEM_MODALIDADES_GRADE = ['Futsal Masculino', 'Futsal Feminino', 'Basquete de Trilha (M)', 'Damas', 'Queimada Mista'];
+
+        // Monta a célula "Confronto / Placar" da impressão no mesmo formato
+        // exibido ao vivo na aba Grade de Horários & Placares (montarLinhaJogo),
+        // só que em texto estático (sem inputs/botões).
+        function celulaConfrontoPlacarImpressao(g, placares) {
+            var salvo = placares[g.id];
+            var infoDin = g.dinamico ? resolverConfronto(g, placares) : null;
+            var textoConfronto = infoDin ? infoDin.texto : g.confronto;
+
+            if (g.dinamico && infoDin && !infoDin.pronto) {
+                return '<b>' + textoConfronto + '</b><br><span class="gp-pendente">⏳ Aguardando definição dos times classificados</span>';
+            }
+
+            if (g.tipo === 'placar') {
+                var timeA = (infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || 'Time A';
+                var timeB = (infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || 'Time B';
+                var golsA = salvo && typeof salvo === 'object' ? salvo.a : '';
+                var golsB = salvo && typeof salvo === 'object' ? salvo.b : '';
+                var temPlacar = golsA !== '' && golsA !== undefined && golsB !== '' && golsB !== undefined;
+                var linha = '<b>' + timeA + '</b> ' + (temPlacar ? golsA : '—') + ' x ' + (temPlacar ? golsB : '—') + ' <b>' + timeB + '</b>';
+
+                var numA = parseInt(golsA, 10), numB = parseInt(golsB, 10);
+                var precisaPenaltis = FASES_MATA_MATA_0809.indexOf(g.fase) !== -1 && temPlacar && !isNaN(numA) && !isNaN(numB) && numA === numB;
+                if (precisaPenaltis) {
+                    var penA = salvo && typeof salvo === 'object' ? salvo.pa : '';
+                    var penB = salvo && typeof salvo === 'object' ? salvo.pb : '';
+                    if (penA !== '' && penA !== undefined && penB !== '' && penB !== undefined) {
+                        var numPA = parseInt(penA, 10), numPB = parseInt(penB, 10);
+                        linha += '<br><span class="gp-pen">⚽🥅 pên. ' + penA + ' x ' + penB +
+                            (!isNaN(numPA) && !isNaN(numPB) && numPA !== numPB ? ' — 🏆 vence ' + (numPA > numPB ? timeA : timeB) : '') + '</span>';
+                    } else {
+                        linha += '<br><span class="gp-pen">⚽🥅 Empate — decide nos pênaltis</span>';
+                    }
+                }
+                return linha;
+            }
+
+            if (g.tipo === 'vencedor') {
+                var nomeA = ((infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || '').trim();
+                var nomeB = ((infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || '').trim();
+                var escolhido = salvo && typeof salvo === 'object' ? salvo.nome : '';
+                var ladoA = (escolhido === nomeA ? '🏆 ' : '') + nomeA;
+                var ladoB = (escolhido === nomeB ? '🏆 ' : '') + nomeB;
+                return '<b>' + ladoA + '</b> x <b>' + ladoB + '</b>';
+            }
+
+            // tipo 'texto'
+            var texto = salvo && typeof salvo === 'object' ? salvo.texto : '';
+            return '<b>' + textoConfronto + '</b>' + (texto ? '<br>' + texto : '<br><span class="gp-pendente">Sem resultado lançado</span>');
+        }
+
+        function gerarTabelaJogosHtml(modLabel, placares) {
+            var lista = modLabel ? JOGOS_0809.filter(function (g) { return g.mod === modLabel; }) : JOGOS_0809;
+            if (!lista.length) return '<p style="font-size:11px;">Nenhum jogo cadastrado para esta modalidade.</p>';
+            var linhas = lista.map(function (g) {
+                var celula = celulaConfrontoPlacarImpressao(g, placares);
+                return '<tr><td>' + g.hora + '</td><td>' + g.jogo + '</td><td class="grade-print-confronto">' + celula + '</td><td>' + g.local + '</td><td>' + g.fase + '</td></tr>';
+            }).join('');
+            return '<table class="grade-print-table"><thead><tr><th>Horário</th><th>Jogo</th><th>Confronto / Placar</th><th>Local</th><th>Fase</th></tr></thead><tbody>' + linhas + '</tbody></table>';
+        }
+
+        function gerarBlocoModalidadeHtml(modLabel, placares) {
+            var icone = ICONE_PODIO_MOD[modLabel] || '🏆';
+            var tabelaHtml = gerarTabelaJogosHtml(modLabel, placares);
+            var podioHtml = CONFIG_PODIO[modLabel]
+                ? ('<h3 class="grade-print-podio-titulo">🏆 Pódio</h3>' + htmlPodioModalidadeImpressao(modLabel, placares))
+                : '';
+            return '<div class="bloco-modalidade">' +
+                '<h2 class="bloco-modalidade-titulo">' + icone + ' ' + modLabel + '</h2>' +
+                tabelaHtml + podioHtml +
+                '</div>';
+        }
+
+        function gerarHtmlGradeECampeoesImpressao(modLabel) {
+            var placares = carregarPlacaresSalvos();
+            var cabecalho = '<div class="roster-print-header">' +
+                '<strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>' +
+                '<span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Placares' + (modLabel ? ' — ' + modLabel : ' — Todas as modalidades') + '</span><br>' +
+                '<span style="font-size:9px;color:#666;">Impresso em ' + new Date().toLocaleDateString('pt-BR') + '</span></div>';
+
+            if (modLabel) {
+                // Uma única modalidade: cabeçalho + jogos + pódio, em folha única.
+                var tabelaHtml = gerarTabelaJogosHtml(modLabel, placares);
+                var podioHtml = CONFIG_PODIO[modLabel]
+                    ? ('<h3 class="grade-print-podio-titulo">🏆 Pódio</h3>' + htmlPodioModalidadeImpressao(modLabel, placares))
+                    : '';
+                return '<div class="grade-podio-print-page">' + cabecalho + tabelaHtml + podioHtml + '</div>';
+            }
+
+            // "Todas": um bloco por modalidade (jogos + pódio daquela modalidade),
+            // cada bloco começando em folha nova, na ordem dos filtros da Grade.
+            var blocos = ORDEM_MODALIDADES_GRADE.map(function (m) { return gerarBlocoModalidadeHtml(m, placares); }).join('');
+            return '<div class="grade-podio-print-page">' + cabecalho + blocos + '</div>';
+        }
+
+        var _orientacaoGradePodio = 'retrato';
+        window.definirOrientacaoGradePodio = function (orientacao, btnEl) {
+            _orientacaoGradePodio = (orientacao === 'paisagem') ? 'paisagem' : 'retrato';
+            document.querySelectorAll('.grade-orient-btn').forEach(function (b) { b.classList.remove('active'); });
+            if (btnEl) btnEl.classList.add('active');
+        };
+
+        function imprimirGradeModalidade() {
+            var container = document.getElementById('gradePodioPrintContainer');
+            if (!container) return;
+            container.innerHTML = gerarHtmlGradeECampeoesImpressao(_filtroGradeMod);
+            document.documentElement.classList.remove('grade-podio-orient-retrato', 'grade-podio-orient-paisagem');
+            document.documentElement.classList.add('grade-podio-print-mode', 'grade-podio-orient-' + _orientacaoGradePodio);
+            document.body.classList.add('printing-grade-podio');
+            setTimeout(function () { window.print(); }, 50);
+        }
+        window.imprimirGradeModalidade = imprimirGradeModalidade;
+
         // ===== Filtro por modalidade — aba Grade de Horários & Placares =====
         var _filtroGradeMod = null; // null = "Todas"
         window.filtrarGradeModalidade = function (mod) {
@@ -8334,6 +8663,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var btn = document.querySelector('#gradeModPillNav .' + pillClass);
             if (btn) btn.classList.add('active');
             renderTabelaPlacares0809();
+            renderPodioGeral();
         };
 
         // ===== Filtro por modalidade — aba Chaveamento (Basquete/Damas) =====
@@ -8478,22 +8808,25 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         function montarLinhaJogo(g, salvos) {
             var salvo = salvos[g.id];
-            var celulaPlacar, textoConfronto = g.confronto;
+            var celulaConfrontoPlacar, textoConfronto = g.confronto;
             var infoDin = g.dinamico ? resolverConfronto(g, salvos) : null;
             if (infoDin) textoConfronto = infoDin.texto;
             if (g.tipo === 'placar') {
                 if (g.dinamico && !infoDin.pronto) {
-                    celulaPlacar = '<span style="color:var(--text-muted); font-size:0.85rem;">⏳ Aguardando definição dos times classificados</span>';
+                    celulaConfrontoPlacar = '<div style="font-weight:600;">' + textoConfronto + '</div>' +
+                        '<div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.2rem;">⏳ Aguardando definição dos times classificados</div>';
                 } else {
                     var timeA = (infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || 'Time A';
                     var timeB = (infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || 'Time B';
                     var golsA = salvo && typeof salvo === 'object' ? salvo.a : '';
                     var golsB = salvo && typeof salvo === 'object' ? salvo.b : '';
-                    celulaPlacar =
-                        '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' +
-                        '<input type="number" min="0" id="placarA_' + g.id + '" value="' + (golsA === undefined ? '' : golsA) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeA + '">' +
+                    celulaConfrontoPlacar =
+                        '<div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">' +
+                        '<span style="font-weight:600;">' + timeA + '</span>' +
+                        '<input type="number" min="0" inputmode="numeric" class="placar-input" id="placarA_' + g.id + '" value="' + (golsA === undefined ? '' : golsA) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeA + '" onkeydown="if([\'e\',\'E\',\'+\',\'-\',\'.\'].indexOf(event.key)!==-1) event.preventDefault();">' +
                         '<strong>x</strong>' +
-                        '<input type="number" min="0" id="placarB_' + g.id + '" value="' + (golsB === undefined ? '' : golsB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeB + '">' +
+                        '<input type="number" min="0" inputmode="numeric" class="placar-input" id="placarB_' + g.id + '" value="' + (golsB === undefined ? '' : golsB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="' + timeB + '" onkeydown="if([\'e\',\'E\',\'+\',\'-\',\'.\'].indexOf(event.key)!==-1) event.preventDefault();">' +
+                        '<span style="font-weight:600;">' + timeB + '</span>' +
                         '</div>';
 
                     var numA = parseInt(golsA, 10), numB = parseInt(golsB, 10);
@@ -8507,22 +8840,23 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         var penValidos = penA !== '' && penA !== undefined && penB !== '' && penB !== undefined && !isNaN(numPA) && !isNaN(numPB);
                         var penDefinidos = penValidos && numPA !== numPB;
                         var penEmpatados = penValidos && numPA === numPB;
-                        celulaPlacar +=
-                            '<div style="margin-top:0.4rem; padding:0.4rem 0.5rem; background:#fff7ed; border:1px dashed var(--accent); border-radius:6px;">' +
-                            '<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.25rem;">⚽🥅 Empate no tempo normal — decide nos pênaltis:</div>' +
+                        celulaConfrontoPlacar +=
+                            '<div style="margin-top:0.4rem; padding:0.35rem 0.4rem; background:#fff7ed; border:1px dashed var(--accent); border-radius:6px; max-width:260px; box-sizing:border-box;">' +
+                            '<div style="font-size:0.68rem; line-height:1.25; color:var(--text-muted); margin-bottom:0.25rem;">⚽🥅 Empate — decide nos pênaltis:</div>' +
                             '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' +
-                            '<input type="number" min="0" id="placarPenA_' + g.id + '" value="' + (penA === undefined ? '' : penA) + '" style="width:52px; padding:0.3rem; text-align:center;" title="Pênaltis — ' + timeA + '">' +
+                            '<input type="number" min="0" inputmode="numeric" class="placar-input" id="placarPenA_' + g.id + '" value="' + (penA === undefined ? '' : penA) + '" style="width:48px; padding:0.25rem; text-align:center;" title="Pênaltis — ' + timeA + '" onkeydown="if([\'e\',\'E\',\'+\',\'-\',\'.\'].indexOf(event.key)!==-1) event.preventDefault();">' +
                             '<strong>x</strong>' +
-                            '<input type="number" min="0" id="placarPenB_' + g.id + '" value="' + (penB === undefined ? '' : penB) + '" style="width:52px; padding:0.3rem; text-align:center;" title="Pênaltis — ' + timeB + '">' +
+                            '<input type="number" min="0" inputmode="numeric" class="placar-input" id="placarPenB_' + g.id + '" value="' + (penB === undefined ? '' : penB) + '" style="width:48px; padding:0.25rem; text-align:center;" title="Pênaltis — ' + timeB + '" onkeydown="if([\'e\',\'E\',\'+\',\'-\',\'.\'].indexOf(event.key)!==-1) event.preventDefault();">' +
                             '</div>' +
-                            (penDefinidos ? '<div style="font-size:0.78rem; color:var(--success); font-weight:600; margin-top:0.3rem;">🏆 ' + (numPA > numPB ? timeA : timeB) + ' vence nos pênaltis</div>' : '') +
-                            (penEmpatados ? '<div style="font-size:0.78rem; color:var(--danger); margin-top:0.3rem;">⚠️ Pênaltis também empatados — siga com as cobranças alternadas e atualize o placar.</div>' : '') +
+                            (penDefinidos ? '<div style="font-size:0.68rem; line-height:1.25; color:var(--success); font-weight:600; margin-top:0.3rem;">🏆 ' + (numPA > numPB ? timeA : timeB) + ' vence nos pênaltis</div>' : '') +
+                            (penEmpatados ? '<div style="font-size:0.68rem; line-height:1.25; color:var(--danger); margin-top:0.3rem;">⚠️ Pênaltis também empatados — siga com as cobranças alternadas.</div>' : '') +
                             '</div>';
                     }
                 }
             } else if (g.tipo === 'vencedor') {
                 if (g.dinamico && !infoDin.pronto) {
-                    celulaPlacar = '<span style="color:var(--text-muted); font-size:0.85rem;">⏳ Aguardando definição dos times classificados</span>';
+                    celulaConfrontoPlacar = '<div style="font-weight:600;">' + textoConfronto + '</div>' +
+                        '<div style="color:var(--text-muted); font-size:0.82rem; margin-top:0.2rem;">⏳ Aguardando definição dos times classificados</div>';
                 } else {
                     var nomeA = ((infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || '').trim();
                     var nomeB = ((infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || '').trim();
@@ -8530,31 +8864,31 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     var fazBtn = function (nome) {
                         var ativo = escolhido === nome;
                         return '<button type="button" onclick="window.__marcarVencedorLinha(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\')" ' +
-                            'style="display:block; width:100%; text-align:left; margin-bottom:0.25rem; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; ' +
+                            'style="display:inline-block; text-align:left; margin:0.15rem 0.3rem 0.15rem 0; padding:0.35rem 0.6rem; border-radius:6px; cursor:pointer; ' +
                             'border:1px solid ' + (ativo ? 'var(--success)' : 'var(--border)') + '; background:' + (ativo ? '#d1fae5' : '#fff') + '; font-weight:' + (ativo ? '700' : '400') + ';">' +
                             (ativo ? '✅ ' : '') + nome + '</button>';
                     };
-                    celulaPlacar = '<div style="min-width:200px;">' + fazBtn(nomeA) + fazBtn(nomeB) + '</div>';
+                    celulaConfrontoPlacar = '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' + fazBtn(nomeA) + '<strong>x</strong>' + fazBtn(nomeB) + '</div>';
                 }
             } else {
                 var texto = salvo && typeof salvo === 'object' ? salvo.texto : '';
-                celulaPlacar = '<input type="text" id="placarTexto_' + g.id + '" value="' + (texto === undefined ? '' : (texto || '').replace(/"/g, '&quot;')) + '" placeholder="Resultado / classificado" style="width:100%; padding:0.3rem;">';
+                celulaConfrontoPlacar = '<div style="font-weight:600; margin-bottom:0.3rem;">' + textoConfronto + '</div>' +
+                    '<input type="text" id="placarTexto_' + g.id + '" value="' + (texto === undefined ? '' : (texto || '').replace(/"/g, '&quot;')) + '" placeholder="Resultado / classificado" style="width:100%; max-width:320px; padding:0.3rem;">';
             }
             var btn;
             if (g.tipo === 'vencedor') {
                 var jaEscolhido = salvo && typeof salvo === 'object' && salvo.nome;
                 btn = jaEscolhido ? '<span style="color:var(--success); font-weight:600; font-size:0.85rem;">✅ Salvo</span>' : '<span style="color:var(--text-muted); font-size:0.8rem;">Clique no nome vencedor</span>';
             } else {
-                btn = '<button type="button" class="tab-btn" style="width:auto; padding:0.4rem 0.7rem; font-size:0.85rem; background: var(--secondary); color:#fff;" onclick="window.__salvarPlacarLinha(\'' + g.id + '\', \'' + g.tipo + '\')">💾 Salvar</button>';
+                btn = '<button type="button" class="tab-btn grade-btn-salvar" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPlacarLinha(\'' + g.id + '\', \'' + g.tipo + '\')">💾 Salvar</button>';
             }
             return '<tr id="linha_' + g.id + '">' +
                 '<td>' + g.hora + '</td>' +
                 '<td>' + g.mod + '</td>' +
                 '<td>' + g.jogo + '</td>' +
-                '<td>' + textoConfronto + '</td>' +
+                '<td class="grade-confronto-cell">' + celulaConfrontoPlacar + '</td>' +
                 '<td>' + g.local + '</td>' +
                 '<td>' + g.fase + '</td>' +
-                '<td>' + celulaPlacar + '</td>' +
                 '<td>' + btn + '</td>' +
                 '</tr>';
         }
@@ -8564,6 +8898,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             renderTabelaPlacares0809(dados);
             if (typeof renderClassificacoes === 'function') renderClassificacoes();
             if (typeof renderChaveamentoBasquete === 'function') renderChaveamentoBasquete();
+            renderPodioGeral();
             mostrarStatusPlacar('💾 Salvando...');
             var ok = await salvarPlacaresNoSupabase(dados);
             mostrarStatusPlacar(ok ? '✅ Vencedor salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
@@ -8575,7 +8910,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             salvos = salvos || carregarPlacaresSalvos();
             var lista = _filtroGradeMod ? JOGOS_0809.filter(function (g) { return g.mod === _filtroGradeMod; }) : JOGOS_0809;
             if (!lista.length) {
-                corpo.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum jogo desta modalidade na grade do dia 08/09.</td></tr>';
+                corpo.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum jogo desta modalidade na grade do dia 08/09.</td></tr>';
                 return;
             }
             corpo.innerHTML = lista.map(function (g) { return montarLinhaJogo(g, salvos); }).join('');
@@ -8609,6 +8944,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var dados = salvarPlacarNoStorage(id, valor);
             renderTabelaPlacares0809(dados); // reexibe a linha — revela os campos de pênaltis se o jogo empatou na fase de mata-mata
             if (typeof renderClassificacoes === 'function') renderClassificacoes();
+            renderPodioGeral();
             mostrarStatusPlacar('💾 Salvando...');
             var ok = await salvarPlacaresNoSupabase(dados);
             if (ok) {
@@ -8624,6 +8960,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             renderChaveamentoBasquete();
             renderListaParticipantesDamas();
             renderChaveamentoDamas();
+            renderPodioGeral();
             var doServidor = await carregarPlacaresDoSupabase();
             if (doServidor) {
                 renderTabelaPlacares0809(doServidor); // atualiza com o que está no banco
@@ -8631,6 +8968,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 renderChaveamentoBasquete();
                 renderListaParticipantesDamas();
                 renderChaveamentoDamas();
+                renderPodioGeral();
             }
         });
 
@@ -9001,9 +9339,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     }).join('');
                     container.innerHTML = '<div class="chave-wrap"><div class="chave-coluna"><h4>Rodada 1</h4>' + rows + '</div></div>';
                 }
+                if (typeof renderPodioGeral === 'function') renderPodioGeral();
                 return;
             }
             renderChaveamentoGenerico('chaveamentoBasquete', 'bq', vencedoresR1, '__marcarVencedorChaveBasquete');
+            if (typeof renderPodioGeral === 'function') renderPodioGeral();
         }
 
         // ----- Damas: lista de participantes é cadastrada manualmente na aba,
@@ -9066,6 +9406,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function renderChaveamentoDamas() {
             var lista = carregarParticipantesDamas();
             renderChaveamentoGenerico('chaveamentoDamas', 'dm', lista, '__marcarVencedorChaveDamas');
+            if (typeof renderPodioGeral === 'function') renderPodioGeral();
         }
     })();
     </script>
