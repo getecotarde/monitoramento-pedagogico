@@ -610,6 +610,7 @@
         .mod-pill-futsal-f.active { background:#ec4899; }
         .mod-pill-queimada.active { background:#f59e0b; }
         .mod-pill-basquete.active { background:#8b5cf6; }
+        .mod-pill-basquete-f.active { background:#a78bfa; }
         .mod-pill-damas.active { background:#22c55e; }
 
         /* Visão específica: um card por vez, ocupando toda a largura disponível */
@@ -2060,6 +2061,27 @@
                 </div>
             </div>
 
+            <!-- BASQUETE DE TRILHA (FEMININO) -->
+            <div class="card mod-card mod-basquete mod-card-full" id="mod-basquete-trilha-f">
+                <h2>🏀 Basquete de Trilha (Feminino) — Rodada Todos-contra-Todos</h2>
+                <p style="color: var(--text-muted);">Com apenas 3 duplas inscritas, a disputa acontece em <strong>turno único, todas contra todas</strong> (cada dupla enfrenta as outras duas uma vez). A classificação final (campeã, vice e 3º lugar) é definida pela <strong>ordem decrescente de vitórias</strong>. Duplas inscritas: veja a aba <strong>📋 Inscrições — Duplas</strong>.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Jogo</th><th>Confronto</th><th>Fase</th></tr></thead>
+                        <tbody>
+                            <tr><td>1</td><td>(6º D) Gabriela Ccorrea / Maria Eduarda <strong>x</strong> (6º C) Sofia Almeida / Gabrielle Rodrigues</td><td>Rodada Única</td></tr>
+                            <tr><td>2</td><td>(6º D) Gabriela Ccorrea / Maria Eduarda <strong>x</strong> (6º B) Barbara Vitória / Alice</td><td>Rodada Única</td></tr>
+                            <tr><td>3</td><td>(6º C) Sofia Almeida / Gabrielle Rodrigues <strong>x</strong> (6º B) Barbara Vitória / Alice</td><td>Rodada Única</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="grid-3" style="margin-top:0.8rem;">
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥇 1º Lugar:</strong> ______________________</div>
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥈 2º Lugar:</strong> ______________________</div>
+                    <div style="border:1px solid var(--border); border-radius:8px; padding:0.8rem; background:#fafafa;"><strong>🥉 3º Lugar:</strong> ______________________</div>
+                </div>
+            </div>
+
             <!-- DAMAS -->
             <div class="card mod-card mod-damas mod-card-full" id="mod-damas">
                 <h2>♟️ Jogo de Tabuleiro — Damas</h2>
@@ -2082,7 +2104,8 @@
                     <button type="button" class="mod-pill mod-pill-geral active" onclick="filtrarGradeModalidade('todas')">📋 Todas</button>
                     <button type="button" class="mod-pill mod-pill-futsal-m" onclick="filtrarGradeModalidade('Futsal Masculino')">⚽ Futsal Masc.</button>
                     <button type="button" class="mod-pill mod-pill-futsal-f" onclick="filtrarGradeModalidade('Futsal Feminino')">⚽ Futsal Fem.</button>
-                    <button type="button" class="mod-pill mod-pill-basquete" onclick="filtrarGradeModalidade('Basquete de Trilha (M)')">🏀 Basquete Trilha</button>
+                    <button type="button" class="mod-pill mod-pill-basquete" onclick="filtrarGradeModalidade('Basquete de Trilha (M)')">🏀 Basquete Trilha (M)</button>
+                    <button type="button" class="mod-pill mod-pill-basquete-f" onclick="filtrarGradeModalidade('Basquete de Trilha (F)')">🏀 Basquete Trilha (F)</button>
                     <button type="button" class="mod-pill mod-pill-damas" onclick="filtrarGradeModalidade('Damas')">♟️ Damas</button>
                     <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade('Queimada Mista')">🔥 Queimada</button>
                 </div>
@@ -2138,6 +2161,17 @@
                 <div id="chaveamentoBasquete"></div>
             </div>
 
+            <div class="card" id="chaveamentoCardBasqueteF">
+                <h2>🏀 Classificação — Basquete de Trilha (Feminino)</h2>
+                <p style="color: var(--text-muted);">Turno único, todas contra todas entre as 3 duplas inscritas. Marque o vencedor de cada confronto na aba 🗓️ Grade de Horários &amp; Placares — a classificação abaixo (e o pódio) é recalculada automaticamente pela ordem decrescente de vitórias.</p>
+                <div class="table-responsive" style="margin-top:0.6rem;">
+                    <table>
+                        <thead><tr><th>Pos.</th><th>Dupla</th><th>PJ</th><th>V</th><th>E</th><th>D</th></tr></thead>
+                        <tbody id="classBasqueteFGrupo1"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card" id="chaveamentoCardDamas">
                 <h2>♟️ Chaveamento — Damas</h2>
                 <p style="color: var(--text-muted);">As duplas/atletas de Damas são definidas por sorteio no momento da partida. Cadastre abaixo os participantes conforme forem sorteados (na ordem dos confrontos da Rodada 1) e depois marque os vencedores do mesmo jeito do Basquete de Trilha.</p>
@@ -2176,6 +2210,22 @@
                     </table>
                 </div>
                 <p style="font-size:0.85rem; color: var(--text-muted); margin-top:0.6rem;">12 duplas inscritas · disputa em rodada eliminatória única (sorteio dos confrontos 5 minutos antes de cada partida).</p>
+            </div>
+
+            <div class="card">
+                <h2>📋 Inscrições — Duplas do Basquete de Trilha Feminino (6º Anos)</h2>
+                <p style="color: var(--text-muted);">Relação oficial das duplas inscritas na modalidade Basquete de Trilha Feminino, conforme a Súmula dos Jogos Estudantis GETECO 2026.</p>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th style="width:8%;">Turma</th><th>Dupla</th></tr></thead>
+                        <tbody>
+                            <tr><td>6º D</td><td>Gabriela Ccorrea &amp; Maria Eduarda</td></tr>
+                            <tr><td>6º C</td><td>Sofia Almeida &amp; Gabrielle Rodrigues</td></tr>
+                            <tr><td>6º B</td><td>Barbara Vitória &amp; Alice</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.85rem; color: var(--text-muted); margin-top:0.6rem;">3 duplas inscritas · disputa em turno único, todas contra todas (as 3 duplas se enfrentam entre si) — campeã, vice e 3º lugar definidos pela ordem decrescente de vitórias.</p>
             </div>
         </div>
 
@@ -8380,6 +8430,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             { id: 'r16', hora: '16h15 às 16h45', mod: 'Futsal Feminino', jogo: '2', confronto: 'Espanha (6º B) x Alemanha (6º E)', local: 'Quadra 1', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
             { id: 'r17', hora: '16h15 às 16h50', mod: 'Futsal Masculino', jogo: '2', confronto: 'Noruega (6º F) x México (6º C)', local: 'Quadra 2', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
             { id: 'r18', hora: '16h40 às 17h', mod: 'Basquete de Trilha (M)', jogo: '8', confronto: 'FINAL — ver aba 🏆 Chaveamento (Basquete/Damas)', local: 'Quadra 3', fase: 'Eliminatória', tipo: 'texto' },
+            { id: 'bqf1', hora: 'a confirmar', mod: 'Basquete de Trilha (F)', jogo: '1', confronto: '(6º D) Gabriela Ccorrea / Maria Eduarda x (6º C) Sofia Almeida / Gabrielle Rodrigues', local: 'a confirmar', fase: 'Rodada Única', tipo: 'vencedor' },
+            { id: 'bqf2', hora: 'a confirmar', mod: 'Basquete de Trilha (F)', jogo: '2', confronto: '(6º D) Gabriela Ccorrea / Maria Eduarda x (6º B) Barbara Vitória / Alice', local: 'a confirmar', fase: 'Rodada Única', tipo: 'vencedor' },
+            { id: 'bqf3', hora: 'a confirmar', mod: 'Basquete de Trilha (F)', jogo: '3', confronto: '(6º C) Sofia Almeida / Gabrielle Rodrigues x (6º B) Barbara Vitória / Alice', local: 'a confirmar', fase: 'Rodada Única', tipo: 'vencedor' },
             { id: 'r19', hora: '16h50 às 17h25', mod: 'Futsal Masculino', jogo: '3', confronto: 'Espanha (6º B) x Croácia (6º D)', local: 'Quadra 1', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
             { id: 'r20', hora: '17h às 17h25', mod: 'Futsal Feminino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'Quadra 2', fase: 'Grupos (Grupo 1)', tipo: 'placar' },
             { id: 'r29', hora: '09/09', mod: 'Futsal Masculino', jogo: '3', confronto: 'México (6º C) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 2)', tipo: 'placar' },
@@ -8388,18 +8441,18 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'classificacao', grupo: 1, pos: 1, rotulo: '1º Grupo 1' }, b: { tipo: 'classificacao', grupo: 2, pos: 2, rotulo: '2º Grupo 2' } } },
             { id: 'r22', hora: '09/09', mod: 'Futsal Masculino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
-            { id: 'r23', hora: '09/09', mod: 'Futsal Masculino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
-                dinamico: { mod: 'Futsal Masculino', a: { tipo: 'vencedor', ref: 'r21', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r22', rotulo: 'Vencedor SF2' } } },
             { id: 'r24', hora: '09/09', mod: 'Futsal Masculino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
                 dinamico: { mod: 'Futsal Masculino', a: { tipo: 'perdedor', ref: 'r21', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r22', rotulo: 'Perdedor SF2' } } },
+            { id: 'r23', hora: '09/09', mod: 'Futsal Masculino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
+                dinamico: { mod: 'Futsal Masculino', a: { tipo: 'vencedor', ref: 'r21', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r22', rotulo: 'Vencedor SF2' } } },
             { id: 'r25', hora: '09/09', mod: 'Futsal Feminino', jogo: 'SF1', confronto: '1º Grupo 1 x 2º Grupo 2', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'classificacao', grupo: 1, pos: 1, rotulo: '1º Grupo 1' }, b: { tipo: 'classificacao', grupo: 2, pos: 2, rotulo: '2º Grupo 2' } } },
             { id: 'r26', hora: '09/09', mod: 'Futsal Feminino', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
-            { id: 'r27', hora: '09/09', mod: 'Futsal Feminino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
-                dinamico: { mod: 'Futsal Feminino', a: { tipo: 'vencedor', ref: 'r25', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r26', rotulo: 'Vencedor SF2' } } },
             { id: 'r28', hora: '09/09', mod: 'Futsal Feminino', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'placar',
                 dinamico: { mod: 'Futsal Feminino', a: { tipo: 'perdedor', ref: 'r25', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'r26', rotulo: 'Perdedor SF2' } } },
+            { id: 'r27', hora: '09/09', mod: 'Futsal Feminino', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'placar',
+                dinamico: { mod: 'Futsal Feminino', a: { tipo: 'vencedor', ref: 'r25', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'r26', rotulo: 'Vencedor SF2' } } },
             { id: 'qm01', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '1', confronto: 'Noruega (6º F) x Argentina (6º A)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
             { id: 'qm02', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '2', confronto: 'Argentina (6º A) x Alemanha (6º E)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
             { id: 'qm03', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '3', confronto: 'Alemanha (6º E) x Noruega (6º F)', local: 'a confirmar', fase: 'Grupos (Grupo 1)', tipo: 'vencedor' },
@@ -8427,16 +8480,35 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             'Futsal Feminino': { idFinal: 'r27', idTerceiro: 'r28' },
             'Queimada Mista': { idFinal: 'qm09', terceiroCompartilhado: true, refSF1: 'qm07', refSF2: 'qm08' },
             'Basquete de Trilha (M)': { chave: true },
+            'Basquete de Trilha (F)': { rodaTodos: true, participantes: ['(6º D) Gabriela Ccorrea / Maria Eduarda', '(6º C) Sofia Almeida / Gabrielle Rodrigues', '(6º B) Barbara Vitória / Alice'] },
             'Damas': { chave: true }
         };
         var ICONE_PODIO_MOD = {
             'Futsal Masculino': '⚽', 'Futsal Feminino': '⚽',
-            'Queimada Mista': '🔥', 'Basquete de Trilha (M)': '🏀', 'Damas': '♟️'
+            'Queimada Mista': '🔥', 'Basquete de Trilha (M)': '🏀', 'Basquete de Trilha (F)': '🏀', 'Damas': '♟️'
         };
 
         function calcularPodioModalidade(modLabel, placares) {
             var cfg = CONFIG_PODIO[modLabel];
             if (!cfg) return null;
+            if (cfg.rodaTodos) {
+                // Rodada única todas-contra-todas (ex.: Basquete de Trilha Feminino):
+                // pódio = classificação (nº de vitórias), sem jogo de Final/3º Lugar.
+                var classificacao = calcularClassificacaoGrupo(modLabel, cfg.participantes, placares);
+                var n = classificacao.length;
+                var jogosEsperados = n * (n - 1) / 2;
+                var jogosValidos = classificacao.reduce(function (soma, s) { return soma + s.pg; }, 0) / 2;
+                if (jogosValidos < jogosEsperados) {
+                    // Ainda faltam confrontos para fechar a rodada com segurança —
+                    // só exibe o pódio quando todos os jogos já tiverem vencedor.
+                    return { ouro: null, prata: null, bronze: null };
+                }
+                return {
+                    ouro: classificacao[0] ? classificacao[0].time : null,
+                    prata: classificacao[1] ? classificacao[1].time : null,
+                    bronze: classificacao[2] ? classificacao[2].time : null
+                };
+            }
             if (!cfg.chave) {
                 var bronze;
                 if (cfg.terceiroCompartilhado) {
@@ -8543,7 +8615,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         // Ordem de exibição das modalidades quando a impressão é "Todas"
         // (mesma ordem dos botões/pílulas de filtro da Grade).
-        var ORDEM_MODALIDADES_GRADE = ['Futsal Masculino', 'Futsal Feminino', 'Basquete de Trilha (M)', 'Damas', 'Queimada Mista'];
+        var ORDEM_MODALIDADES_GRADE = ['Futsal Masculino', 'Futsal Feminino', 'Basquete de Trilha (M)', 'Basquete de Trilha (F)', 'Damas', 'Queimada Mista'];
 
         // Monta a célula "Confronto / Placar" da impressão no mesmo formato
         // exibido ao vivo na aba Grade de Horários & Placares (montarLinhaJogo),
@@ -8667,6 +8739,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 'Futsal Masculino': 'mod-pill-futsal-m',
                 'Futsal Feminino': 'mod-pill-futsal-f',
                 'Basquete de Trilha (M)': 'mod-pill-basquete',
+                'Basquete de Trilha (F)': 'mod-pill-basquete-f',
                 'Damas': 'mod-pill-damas',
                 'Queimada Mista': 'mod-pill-queimada'
             }[mod] || 'mod-pill-geral';
@@ -8679,8 +8752,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ===== Filtro por modalidade — aba Chaveamento (Basquete/Damas) =====
         window.filtrarChaveamentoModalidade = function (mod) {
             var cardBasquete = document.getElementById('chaveamentoCardBasquete');
+            var cardBasqueteF = document.getElementById('chaveamentoCardBasqueteF');
             var cardDamas = document.getElementById('chaveamentoCardDamas');
             if (cardBasquete) cardBasquete.style.display = (mod === 'todas' || mod === 'basquete') ? '' : 'none';
+            if (cardBasqueteF) cardBasqueteF.style.display = (mod === 'todas' || mod === 'basquete') ? '' : 'none';
             if (cardDamas) cardDamas.style.display = (mod === 'todas' || mod === 'damas') ? '' : 'none';
             document.querySelectorAll('#chaveamentoModPillNav .mod-pill').forEach(function (p) { p.classList.remove('active'); });
             var pillClass = { 'todas': 'mod-pill-geral', 'basquete': 'mod-pill-basquete', 'damas': 'mod-pill-damas' }[mod] || 'mod-pill-geral';
@@ -9051,6 +9126,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 alvo: 'Queimada',
                 grupo1: ['Noruega (6º F)', 'Alemanha (6º E)', 'Argentina (6º A)'],
                 grupo2: ['México (6º C)', 'Espanha (6º B)', 'Croácia (6º D)']
+            },
+            'Basquete de Trilha (F)': {
+                alvo: 'BasqueteF',
+                grupo1: ['(6º D) Gabriela Ccorrea / Maria Eduarda', '(6º C) Sofia Almeida / Gabrielle Rodrigues', '(6º B) Barbara Vitória / Alice']
             }
         };
 
@@ -9103,20 +9182,38 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '</tr>';
         }
 
+        // Linha de classificação simplificada (sem gols) — usada por modalidades
+        // de rodada única todos-contra-todos sem placar numérico (ex.: Basquete
+        // de Trilha Feminino, onde só se marca o vencedor de cada confronto).
+        function linhaClassificacaoSimples(pos, s) {
+            return '<tr>' +
+                '<td>' + pos + 'º</td>' +
+                '<td>' + s.time + '</td>' +
+                '<td>' + s.pg + '</td>' +
+                '<td>' + s.v + '</td>' +
+                '<td>' + s.e + '</td>' +
+                '<td>' + s.d + '</td>' +
+                '</tr>';
+        }
+
         function renderClassificacoes() {
             var placares = carregarPlacaresSalvos();
             var alvos = {
                 FutsalM: ['classFutsalMGrupo1', 'classFutsalMGrupo2'],
                 FutsalF: ['classFutsalFGrupo1', 'classFutsalFGrupo2'],
-                Queimada: ['classQueimadaGrupo1', 'classQueimadaGrupo2']
+                Queimada: ['classQueimadaGrupo1', 'classQueimadaGrupo2'],
+                BasqueteF: ['classBasqueteFGrupo1']
             };
             Object.keys(GRUPOS_ESPORTES_COLETIVOS).forEach(function (modLabel) {
                 var cfg = GRUPOS_ESPORTES_COLETIVOS[modLabel];
                 var idsTbody = alvos[cfg.alvo];
                 var tbody1 = document.getElementById(idsTbody[0]);
-                var tbody2 = document.getElementById(idsTbody[1]);
-                if (tbody1) tbody1.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo1, placares).map(function (s, i) { return linhaClassificacao(i + 1, s); }).join('');
-                if (tbody2) tbody2.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo2, placares).map(function (s, i) { return linhaClassificacao(i + 1, s); }).join('');
+                var renderLinha = cfg.grupo2 ? linhaClassificacao : linhaClassificacaoSimples;
+                if (tbody1) tbody1.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo1, placares).map(function (s, i) { return renderLinha(i + 1, s); }).join('');
+                if (cfg.grupo2) {
+                    var tbody2 = document.getElementById(idsTbody[1]);
+                    if (tbody2) tbody2.innerHTML = calcularClassificacaoGrupo(modLabel, cfg.grupo2, placares).map(function (s, i) { return linhaClassificacao(i + 1, s); }).join('');
+                }
             });
             atualizarSemifinaisDinamicas(placares);
         }
