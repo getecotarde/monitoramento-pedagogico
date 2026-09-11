@@ -1651,7 +1651,7 @@
                 <div class="alert alert-info" style="margin-top: 1rem;">
                     <strong>📌 ESTRUTURA DOS GRUPOS POR ANO:</strong><br>
                     • <strong>6ºs Anos (6 Turmas: A, B, C, D, E, F):</strong> 2 Grupos de 3 equipes cada — Classificam-se 2 de cada grupo para as Semifinais.<br>
-                    • <strong>7ºs Anos (5 Turmas: A, B, C, D, E):</strong> 1 Grupo de 3 equipes (classificam 2) + 1 Grupo de 2 equipes (classifica 1 equipe para as Semifinais/Final).<br>
+                    • <strong>7ºs Anos (5 Turmas: A, B, C, D, E):</strong> <strong>Chave única, todos contra todos</strong> (turno único) — todas as 5 turmas se enfrentam entre si; classificam-se as <strong>4 melhores colocadas</strong> para as Semifinais.<br>
                     • Os grupos ainda não foram formados — a definição de qual turma entra em cada grupo é feita na aba <strong>🗂️ Organização dos Grupos</strong>.
                 </div>
 
@@ -1681,7 +1681,7 @@
                         </tr>
                     </table>
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-                        * Exceção: No grupo de 2 equipes dos 7ºs anos, em caso de empate haverá decisão obrigatória por pênaltis para apontar o vencedor.
+                        * Nos 7ºs anos (chave única, todos contra todos), a classificação para as Semifinais segue a ordem de pontos ao final do turno único.
                     </p>
                 </div>
 
@@ -8946,14 +8946,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     var nomeA = ((infoDin ? infoDin.timeA : g.confronto.split(' x ')[0]) || '').trim();
                     var nomeB = ((infoDin ? infoDin.timeB : g.confronto.split(' x ')[1]) || '').trim();
                     var escolhido = salvo && typeof salvo === 'object' ? salvo.nome : '';
-                    var fazBtn = function (nome) {
-                        var ativo = escolhido === nome;
-                        return '<button type="button" onclick="window.__marcarVencedorLinha(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\')" ' +
+                    var escolhidoLado = salvo && typeof salvo === 'object' ? salvo.lado : undefined;
+                    var fazBtn = function (nome, lado) {
+                        var ativo = escolhidoLado ? (escolhidoLado === lado) :
+                            (!!escolhido && _normalizarNomeTime(escolhido) === _normalizarNomeTime(nome));
+                        return '<button type="button" onclick="window.__marcarVencedorLinha(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\', \'' + lado + '\')" ' +
                             'style="display:inline-block; text-align:left; margin:0.15rem 0.3rem 0.15rem 0; padding:0.35rem 0.6rem; border-radius:6px; cursor:pointer; ' +
                             'border:1px solid ' + (ativo ? 'var(--success)' : 'var(--border)') + '; background:' + (ativo ? '#d1fae5' : '#fff') + '; font-weight:' + (ativo ? '700' : '400') + ';">' +
                             (ativo ? '✅ ' : '') + nome + '</button>';
                     };
-                    celulaConfrontoPlacar = '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' + fazBtn(nomeA) + '<strong>x</strong>' + fazBtn(nomeB) + '</div>';
+                    celulaConfrontoPlacar = '<div style="display:flex; align-items:center; gap:0.3rem; flex-wrap:wrap;">' + fazBtn(nomeA, 'A') + '<strong>x</strong>' + fazBtn(nomeB, 'B') + '</div>';
                 }
             } else {
                 var texto = salvo && typeof salvo === 'object' ? salvo.texto : '';
@@ -8978,8 +8980,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '</tr>';
         }
 
-        window.__marcarVencedorLinha = async function (id, nome) {
-            var dados = salvarPlacarNoStorage(id, { nome: nome });
+        window.__marcarVencedorLinha = async function (id, nome, lado) {
+            var dados = salvarPlacarNoStorage(id, { nome: nome, lado: lado });
             renderTabelaPlacares0809(dados);
             if (typeof renderClassificacoes === 'function') renderClassificacoes();
             if (typeof renderChaveamentoBasquete === 'function') renderChaveamentoBasquete();
@@ -9133,6 +9135,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
         };
 
+        // Normaliza nomes de dupla/turma para comparação tolerante a acentos,
+        // maiúsculas/minúsculas e espaços extras — evita que um confronto
+        // "vencedor" fique com 0 vitórias/pódio vazio só porque o nome salvo
+        // no banco não bate 100% caractere-a-caractere com o texto atual.
+        function _normalizarNomeTime(s) {
+            return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+        }
+
         function calcularClassificacaoGrupo(modLabel, times, placares) {
             var stats = {};
             times.forEach(function (t) { stats[t] = { time: t, pg: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 }; });
@@ -9153,8 +9163,20 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
                     else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
                     else { stats[timeA].e++; stats[timeB].e++; }
-                } else { // 'vencedor' — sem placar (ex.: Queimada): só conta vitória/derrota
-                    var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : '';
+                } else { // 'vencedor' — sem placar (ex.: Queimada, Basquete de Trilha F): só conta vitória/derrota
+                    var vencObj = salvo && typeof salvo === 'object' ? salvo : null;
+                    var nomeVenc = null;
+                    if (vencObj) {
+                        if (vencObj.lado === 'A') nomeVenc = timeA;
+                        else if (vencObj.lado === 'B') nomeVenc = timeB;
+                        else if (vencObj.nome) {
+                            // Registro antigo (sem "lado") — compara por nome normalizado,
+                            // tolerante a acento/caixa/espaço, em vez de string exata.
+                            var nn = _normalizarNomeTime(vencObj.nome);
+                            if (nn === _normalizarNomeTime(timeA)) nomeVenc = timeA;
+                            else if (nn === _normalizarNomeTime(timeB)) nomeVenc = timeB;
+                        }
+                    }
                     if (nomeVenc !== timeA && nomeVenc !== timeB) return;
                     stats[timeA].pg++; stats[timeB].pg++;
                     if (nomeVenc === timeA) { stats[timeA].v++; stats[timeB].d++; }
