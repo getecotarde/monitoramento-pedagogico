@@ -2026,12 +2026,12 @@
                             <tr><td>Semifinal 1</td><td><span id="sf_Queimada_SF1_A">1º Grupo 1</span> <strong>x</strong> <span id="sf_Queimada_SF1_B">2º Grupo 2</span></td></tr>
                             <tr><td>Semifinal 2</td><td><span id="sf_Queimada_SF2_A">1º Grupo 2</span> <strong>x</strong> <span id="sf_Queimada_SF2_B">2º Grupo 1</span></td></tr>
                             <tr><td>Final</td><td><span id="sf_Queimada_F_A">Vencedor SF1</span> <strong>x</strong> <span id="sf_Queimada_F_B">Vencedor SF2</span></td></tr>
-                            <tr><td>3º Lugar</td><td><span id="sf_Queimada_3_A">Perdedor SF1</span> <strong>x</strong> <span id="sf_Queimada_3_B">Perdedor SF2</span></td></tr>
+                            <tr><td>3º Lugar (compartilhado)</td><td><span id="sf_Queimada_3_A">Perdedor SF1</span> <strong>e</strong> <span id="sf_Queimada_3_B">Perdedor SF2</span></td></tr>
                         </tbody>
                     </table>
                 </div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">🔄 Os nomes acima aparecem automaticamente assim que cada turma do grupo já tiver disputado pelo menos 2 rodadas na fase de grupos.</p>
-                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista segue os mesmos moldes de disputa do Futsal (grupos + semifinais, final e disputa de 3º lugar), mas sem placar: em cada jogo marca-se apenas o time vencedor. Os jogos são lançados na aba 🗓️ Grade de Horários & Placares — datas/horários ainda a confirmar pela Coordenação/Educação Física. A classificação e os nomes dos times classificados acima são calculados automaticamente assim que os vencedores forem marcados.</div>
+                <div class="alert alert-warning" style="margin-top:0.8rem;">⚠️ A Queimada Mista segue os mesmos moldes de disputa do Futsal (grupos + semifinais e final), mas sem placar: em cada jogo marca-se apenas o time vencedor. Diferente do Futsal, <strong>não há jogo de disputa de 3º lugar</strong> — as duas turmas eliminadas na semifinal ficam automaticamente empatadas em 3º lugar. Os jogos são lançados na aba 🗓️ Grade de Horários & Placares — datas/horários ainda a confirmar pela Coordenação/Educação Física. A classificação e os nomes dos times classificados acima são calculados automaticamente assim que os vencedores forem marcados.</div>
             </div>
 
             <!-- BASQUETE DE TRILHA -->
@@ -8411,9 +8411,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             { id: 'qm08', hora: 'a confirmar', mod: 'Queimada Mista', jogo: 'SF2', confronto: '1º Grupo 2 x 2º Grupo 1', local: 'a confirmar', fase: 'Semi-final', tipo: 'vencedor',
                 dinamico: { mod: 'Queimada Mista', a: { tipo: 'classificacao', grupo: 2, pos: 1, rotulo: '1º Grupo 2' }, b: { tipo: 'classificacao', grupo: 1, pos: 2, rotulo: '2º Grupo 1' } } },
             { id: 'qm09', hora: 'a confirmar', mod: 'Queimada Mista', jogo: 'Final', confronto: 'Vencedor SF1 x Vencedor SF2', local: 'a confirmar', fase: 'Final', tipo: 'vencedor',
-                dinamico: { mod: 'Queimada Mista', a: { tipo: 'vencedor', ref: 'qm07', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'qm08', rotulo: 'Vencedor SF2' } } },
-            { id: 'qm10', hora: 'a confirmar', mod: 'Queimada Mista', jogo: '3º Lugar', confronto: 'Perdedor SF1 x Perdedor SF2', local: 'a confirmar', fase: 'Disputa de 3º Lugar', tipo: 'vencedor',
-                dinamico: { mod: 'Queimada Mista', a: { tipo: 'perdedor', ref: 'qm07', rotulo: 'Perdedor SF1' }, b: { tipo: 'perdedor', ref: 'qm08', rotulo: 'Perdedor SF2' } } }
+                dinamico: { mod: 'Queimada Mista', a: { tipo: 'vencedor', ref: 'qm07', rotulo: 'Vencedor SF1' }, b: { tipo: 'vencedor', ref: 'qm08', rotulo: 'Vencedor SF2' } } }
+            // Não há jogo de disputa de 3º lugar na Queimada: os dois perdedores das
+            // semifinais (qm07/qm08) ficam automaticamente empatados em 3º lugar.
         ];
 
         // ================================================================
@@ -8425,7 +8425,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         var CONFIG_PODIO = {
             'Futsal Masculino': { idFinal: 'r23', idTerceiro: 'r24' },
             'Futsal Feminino': { idFinal: 'r27', idTerceiro: 'r28' },
-            'Queimada Mista': { idFinal: 'qm09', idTerceiro: 'qm10' },
+            'Queimada Mista': { idFinal: 'qm09', terceiroCompartilhado: true, refSF1: 'qm07', refSF2: 'qm08' },
             'Basquete de Trilha (M)': { chave: true },
             'Damas': { chave: true }
         };
@@ -8438,10 +8438,20 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var cfg = CONFIG_PODIO[modLabel];
             if (!cfg) return null;
             if (!cfg.chave) {
+                var bronze;
+                if (cfg.terceiroCompartilhado) {
+                    // 3º lugar compartilhado: os dois perdedores das semifinais, sem
+                    // precisar de um jogo de desempate entre eles.
+                    var perdSF1 = resolverVencedorPerdedor(cfg.refSF1, 'perdedor', placares);
+                    var perdSF2 = resolverVencedorPerdedor(cfg.refSF2, 'perdedor', placares);
+                    bronze = (perdSF1 && perdSF2) ? (perdSF1 + ' e ' + perdSF2) : null;
+                } else {
+                    bronze = resolverVencedorPerdedor(cfg.idTerceiro, 'vencedor', placares);
+                }
                 return {
                     ouro: resolverVencedorPerdedor(cfg.idFinal, 'vencedor', placares),
                     prata: resolverVencedorPerdedor(cfg.idFinal, 'perdedor', placares),
-                    bronze: resolverVencedorPerdedor(cfg.idTerceiro, 'vencedor', placares)
+                    bronze: bronze
                 };
             }
             // Modalidades em chaveamento (mata-mata): Basquete de Trilha e Damas
@@ -9215,6 +9225,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     var vencedorT = salvoT && typeof salvoT === 'object' ? salvoT.nome : null;
                     if (vencedorT !== perdA && vencedorT !== perdB) vencedorT = null;
                     terceiroLugar = { id: idTerceiro, nomeA: perdA, nomeB: perdB, vencedor: vencedorT };
+                } else if (jogosRodada.length === 2 && ((jogosRodada[0].bye && !jogosRodada[1].bye) || (!jogosRodada[0].bye && jogosRodada[1].bye))) {
+                    // Semifinal com número ímpar de participantes: um dos lados avançou de
+                    // bye (não jogou) e só há um jogo real. Como não existem dois perdedores
+                    // de semifinal para se enfrentar, quem perder esse único jogo já fica
+                    // automaticamente com o 3º lugar, sem precisar de uma partida extra.
+                    var jogoRealSemi = jogosRodada[0].bye ? jogosRodada[1] : jogosRodada[0];
+                    if (jogoRealSemi.vencedor) {
+                        var perdedorUnico = jogoRealSemi.vencedor === jogoRealSemi.nomeA ? jogoRealSemi.nomeB : jogoRealSemi.nomeA;
+                        terceiroLugar = { id: null, nomeA: perdedorUnico, nomeB: null, vencedor: perdedorUnico, automatico: true };
+                    }
                 }
 
                 // Se algum jogo desta rodada ainda não tem vencedor definido, paramos aqui:
@@ -9255,6 +9275,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<div class="chave-lado chave-vencedor">🎟️ ' + jogo.nomeA + ' <span style="font-size:0.72rem; color:var(--text-muted); font-weight:400;">(bye — avança direto)</span></div>' +
                     '</div>';
             }
+            if (jogo.automatico) {
+                return '<div class="chave-jogo chave-bye">' +
+                    '<div class="chave-lado chave-vencedor">🥉 ' + jogo.vencedor + ' <span style="font-size:0.72rem; color:var(--text-muted); font-weight:400;">(3º lugar automático — sem adversário na semifinal por causa do bye)</span></div>' +
+                    '</div>';
+            }
             var pronto = !!(jogo.nomeA && jogo.nomeB);
             if (!pronto) {
                 return '<div class="chave-jogo chave-aguardando">' +
@@ -9288,7 +9313,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + ch.campeao + '</div></div>' : '';
             var terceiroHtml = '';
             if (ch.terceiroLugar) {
-                terceiroHtml = '<div class="chave-coluna"><h4>🥉 Disputa de 3º Lugar</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, funcMarcar) + '</div>';
+                var tituloTerceiro = ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar';
+                terceiroHtml = '<div class="chave-coluna"><h4>' + tituloTerceiro + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, funcMarcar) + '</div>';
             }
             container.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
         }
