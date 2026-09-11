@@ -2136,6 +2136,7 @@
                         </thead>
                         <tbody id="corpoTabelaPlacares"></tbody>
                     </table>
+                    <datalist id="listaEspacosJogo"></datalist>
                 </div>
             </div>
 
@@ -8817,8 +8818,12 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
         function salvarPlacarNoStorage(id, valor) {
+            // Mescla com o que já existir (placar/vencedor/hora/local) em vez de
+            // substituir o objeto inteiro, para que editar um campo não apague
+            // os outros já salvos para o mesmo jogo.
             var dados = carregarPlacaresSalvos();
-            dados[id] = valor;
+            var atual = (dados[id] && typeof dados[id] === 'object') ? dados[id] : {};
+            dados[id] = Object.assign({}, atual, valor);
             try { localStorage.setItem(LS_KEY_PLACARES, JSON.stringify(dados)); } catch (e) { }
             return dados;
         }
@@ -8969,16 +8974,35 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             } else {
                 btn = '<button type="button" class="tab-btn grade-btn-salvar" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPlacarLinha(\'' + g.id + '\', \'' + g.tipo + '\')">💾 Salvar</button>';
             }
+            var horaAtual = (salvo && typeof salvo === 'object' && salvo.hora !== undefined && salvo.hora !== '') ? salvo.hora : g.hora;
+            var localAtual = (salvo && typeof salvo === 'object' && salvo.local !== undefined && salvo.local !== '') ? salvo.local : g.local;
+            var celulaHora = '<input type="text" class="placar-input" id="horaJogo_' + g.id + '" value="' +
+                String(horaAtual).replace(/"/g, '&quot;') + '" placeholder="ex.: 09/09" style="width:92px; padding:0.3rem;" ' +
+                'onchange="window.__salvarCampoJogo(\'' + g.id + '\', \'hora\', this.value)">';
+            var celulaLocal = '<input type="text" class="placar-input" id="localJogo_' + g.id + '" list="listaEspacosJogo" value="' +
+                String(localAtual).replace(/"/g, '&quot;') + '" placeholder="ex.: Quadra 1" style="width:140px; padding:0.3rem;" ' +
+                'onchange="window.__salvarCampoJogo(\'' + g.id + '\', \'local\', this.value)">';
             return '<tr id="linha_' + g.id + '">' +
-                '<td>' + g.hora + '</td>' +
+                '<td>' + celulaHora + '</td>' +
                 '<td>' + g.mod + '</td>' +
                 '<td>' + g.jogo + '</td>' +
                 '<td class="grade-confronto-cell">' + celulaConfrontoPlacar + '</td>' +
-                '<td>' + g.local + '</td>' +
+                '<td>' + celulaLocal + '</td>' +
                 '<td>' + g.fase + '</td>' +
                 '<td>' + btn + '</td>' +
                 '</tr>';
         }
+
+        // Salva edição de data/local para um jogo desta tabela (mescla com o
+        // que já existir — placar/vencedor — sem apagar nada) e sincroniza.
+        window.__salvarCampoJogo = async function (id, campo, valor) {
+            var campos = {};
+            campos[campo] = valor;
+            var dados = salvarPlacarNoStorage(id, campos);
+            mostrarStatusPlacar('💾 Salvando...');
+            var ok = await salvarPlacaresNoSupabase(dados);
+            mostrarStatusPlacar(ok ? '✅ Alteração salva e sincronizada (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
+        };
 
         window.__marcarVencedorLinha = async function (id, nome, lado) {
             var dados = salvarPlacarNoStorage(id, { nome: nome, lado: lado });
@@ -9001,6 +9025,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 return;
             }
             corpo.innerHTML = lista.map(function (g) { return montarLinhaJogo(g, salvos); }).join('');
+            var dl = document.getElementById('listaEspacosJogo');
+            if (dl && typeof getEspacos === 'function') {
+                try { dl.innerHTML = getEspacos().map(function (e) { return '<option value="' + e.nome.replace(/"/g, '&quot;') + '">'; }).join(''); } catch (e) { }
+            }
         }
 
         function mostrarStatusPlacar(msg) {
