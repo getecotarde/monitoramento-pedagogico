@@ -788,6 +788,27 @@
         .resumo-print-stats { display: flex; gap: 6px; margin-bottom: 8px; }
         .resumo-print-stats > div { flex: 1; border: 1px solid #333; text-align: center; padding: 4px 2px; }
         .resumo-print-stats .num { font-weight: 700; font-size: 13px; }
+
+        /* Impressão do Quadro Geral (medalhas/pontuação) — A4, com opção de
+           orientação retrato/paisagem (mesmo padrão da Grade + Pódio). */
+        @page quadroGeralRetrato { size: A4 portrait; margin: 14mm 12mm; }
+        @page quadroGeralPaisagem { size: A4 landscape; margin: 12mm; }
+        html.quadrogeral-print-mode.quadrogeral-orient-paisagem { page: quadroGeralPaisagem; }
+        html.quadrogeral-print-mode.quadrogeral-orient-retrato { page: quadroGeralRetrato; }
+        #quadroGeralPrintContainer.roster-print-only { display: none; }
+        @media print {
+            body.printing-quadrogeral header,
+            body.printing-quadrogeral > .container { display: none !important; }
+            body.printing-quadrogeral #quadroGeralPrintContainer.roster-print-only { display: block !important; }
+        }
+        .qg-print-page { width: 100%; box-sizing: border-box; }
+        .qg-print-page h1 { font-size: 26px; margin: 0 0 4px; color: #111; }
+        .qg-print-page .qg-print-sub { font-size: 15px; color: #555; margin: 0 0 18px; }
+        .qg-print-page table { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 4px; }
+        .qg-print-page th, .qg-print-page td { border: 1.5px solid #333; padding: 12px 14px; text-align: left; }
+        .qg-print-page thead th { background: #eee; font-size: 15px; }
+        .qg-print-page .qg-sigla { font-size: 12px; color: #555; display: block; margin-top: 2px; }
+        .qg-print-page .nota-rodape { font-size: 12px; color: #555; margin-top: 14px; }
         .resumo-print-stats .label { font-size: 9px; color: #444; }
         .resumo-print-uniforme { border: 1.5px solid #b45309; background: #fffbeb; padding: 7px 9px; margin: 8px 0; border-radius: 3px; }
         .resumo-print-uniforme strong.titulo { font-size: 11px; color: #92400e; display: block; margin-bottom: 3px; }
@@ -1163,6 +1184,7 @@
             <button class="tab-btn" onclick="switchTab('registro')">🗂️ Registro de Grupos & Chaveamento</button>
             <button class="tab-btn" onclick="switchTab('grade')">🗓️ Grade de Horários & Placares</button>
             <button class="tab-btn" onclick="switchTab('chaveamento')">🏆 Chaveamento (Basquete/Damas)</button>
+            <button class="tab-btn" onclick="switchTab('quadrogeral')">🥇 Quadro Geral</button>
             <button class="tab-btn" onclick="switchTab('inscricoes')">📋 Inscrições — Duplas</button>
         </nav>
 
@@ -2112,7 +2134,7 @@
                 <div style="margin-top:0.6rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
                     <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirGradeModalidade()">🖨️ Imprimir Grade + Pódio (modalidade selecionada)</button>
                     <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
-                    <div class="grade-orient-toggle">
+                    <div class="grade-orient-toggle" id="gradePodioOrientToggle">
                         <button type="button" id="btnGradePodioOrientRetrato" class="grade-orient-btn active" onclick="definirOrientacaoGradePodio('retrato', this)">▯ Retrato</button>
                         <button type="button" id="btnGradePodioOrientPaisagem" class="grade-orient-btn" onclick="definirOrientacaoGradePodio('paisagem', this)">▭ Paisagem</button>
                     </div>
@@ -2174,15 +2196,47 @@
             </div>
 
             <div class="card" id="chaveamentoCardDamas">
-                <h2>♟️ Chaveamento — Damas</h2>
-                <p style="color: var(--text-muted);">As duplas/atletas de Damas são definidas por sorteio no momento da partida. Cadastre abaixo os participantes conforme forem sorteados (na ordem dos confrontos da Rodada 1) e depois marque os vencedores do mesmo jeito do Basquete de Trilha.</p>
-                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem; max-width:520px;">
-                    <input type="text" id="novoParticipanteDamas" placeholder="Nome do participante / dupla" style="flex:1; min-width:220px; padding:0.5rem;" onkeydown="if(event.key==='Enter'){window.__adicionarParticipanteDamas();}">
-                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__adicionarParticipanteDamas()">➕ Adicionar</button>
+                <h2>♟️ Damas — Pódio</h2>
+                <p style="color: var(--text-muted);">Para Damas, registre apenas a colocação final: nome do aluno(a), turma e a seleção correspondente de cada posição do pódio.</p>
+                <div id="podioDamasForm" style="margin-top:0.8rem; display:flex; flex-direction:column; gap:0.6rem; max-width:680px;"></div>
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-top:0.8rem;">
+                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPodioDamas()">💾 Salvar pódio</button>
+                    <span id="statusPodioDamas" style="display:none; font-size:0.85rem; color:var(--text-muted);"></span>
                 </div>
-                <div id="listaParticipantesDamas" style="margin-top:0.7rem; max-width:520px;"></div>
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">⚠️ Evite alterar a lista depois que o chaveamento já começar a ser jogado — isso pode reorganizar os confrontos já em andamento.</p>
-                <div id="chaveamentoDamas" style="margin-top:1rem;"></div>
+            </div>
+        </div>
+
+
+        <!-- TAB 6d: QUADRO GERAL — PONTUAÇÃO E CLASSIFICAÇÃO POR TURMA/SELEÇÃO -->
+        <div id="quadrogeral" class="tab-content">
+            <div class="card">
+                <h2>🥇 Quadro Geral — Pontuação por Colocação</h2>
+                <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
+                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral()">🖨️ Imprimir Quadro Geral (PDF A4)</button>
+                    <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
+                    <div class="grade-orient-toggle" id="quadroGeralOrientToggle">
+                        <button type="button" id="btnQuadroGeralOrientRetrato" class="grade-orient-btn qg-orient-btn active" onclick="definirOrientacaoQuadroGeral('retrato', this)">▯ Retrato</button>
+                        <button type="button" id="btnQuadroGeralOrientPaisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
+                    </div>
+                </div>
+                <p style="color: var(--text-muted);">Classificação geral da competição, somando os pontos de cada turma em todas as modalidades: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
+                <div class="table-responsive" style="margin-top:0.8rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Seleção / Turma</th>
+                                <th>🥇</th>
+                                <th>🥈</th>
+                                <th>🥉</th>
+                                <th>Pontos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoQuadroGeral"></tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>
             </div>
         </div>
 
@@ -2247,6 +2301,7 @@
     <div id="quadroResumoPrintContainer" class="roster-print-only"></div>
     <div id="gradePrintContainer" class="roster-print-only"></div>
     <div id="gradePodioPrintContainer" class="roster-print-only"></div>
+    <div id="quadroGeralPrintContainer" class="roster-print-only"></div>
 
     <!-- Conteúdo completo do quadro de marcação de jogos (documento independente), embutido em
          formato bruto para ser carregado dentro do iframe #quadroFrame via JS (srcdoc). -->
@@ -7116,6 +7171,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             });
 
             html += `<p class="nota-rodape" style="margin-top:6px;">Consulta pública dos horários e resultados. O lançamento dos placares é feito pela coordenação/professor de Educação Física.</p>`;
+            html += `<p style="font-size:8px;color:#777;margin-top:8px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>`;
             html += `</div>`;
             return html;
         }
@@ -7189,6 +7245,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                             </tbody>
                         </table>
                         <p class="grade-mural-footer">Atualizado em ${new Date().toLocaleDateString('pt-BR')} • Dúvidas: fale com a coordenação/Educação Física.</p>
+                        <p style="font-size:8px;color:#999;margin-top:2px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>
                     </div>
                 `;
             });
@@ -7762,6 +7819,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     <p style="font-size:10px;color:#555;margin-top:8px;">
                         Marcar com X o quadrado da(s) modalidade(s) em que o aluno vai participar. Sexo (M/F) pré-preenchido automaticamente a partir do nome — confira e corrija à mão se necessário.
                     </p>
+                    <p style="font-size:8px;color:#777;margin-top:6px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>
                 </div>`;
         }
 
@@ -7786,6 +7844,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             document.body.classList.remove('printing-grade-normal');
             document.body.classList.remove('printing-grade-mural');
             document.body.classList.remove('printing-grade-podio');
+            document.body.classList.remove('printing-quadrogeral');
             document.documentElement.classList.remove('resumo-print-mode');
             document.documentElement.classList.remove('quadro-print-mode');
             document.documentElement.classList.remove('grade-print-mode');
@@ -7793,6 +7852,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             document.documentElement.classList.remove('grade-podio-print-mode');
             document.documentElement.classList.remove('grade-podio-orient-retrato');
             document.documentElement.classList.remove('grade-podio-orient-paisagem');
+            document.documentElement.classList.remove('quadrogeral-print-mode');
+            document.documentElement.classList.remove('quadrogeral-orient-retrato');
+            document.documentElement.classList.remove('quadrogeral-orient-paisagem');
         });
 
         // ---------------------------------------------------------------
@@ -7910,6 +7972,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     <p class="nota-rodape" style="margin-top:6px;">
                         Consulte a aba 🏆 Modalidades &amp; Regras no sistema para o regulamento completo de cada modalidade (rodízio obrigatório, sistema de pontuação, critérios de desempate etc.).
                     </p>
+                    <p style="font-size:8px;color:#777;margin-top:6px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>
                 </div>`;
         }
 
@@ -8006,6 +8069,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     <p class="qrp-note"><strong>Casos Omissos:</strong> situações não previstas serão deliberadas pelo Conselho Técnico — formado pelos capitães das equipes e presidido pelos professores de Educação Física — em conjunto com as equipes de Coordenação/Direção.</p>
 
                     <div class="qrp-footer">Consulte as abas completas do sistema (Modalidades &amp; Regras, Fases do Campeonato) para o regulamento detalhado de cada modalidade.</div>
+                    <div class="qrp-footer" style="border-top:none; padding-top:0;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</div>
                 </div>`;
         }
 
@@ -8473,16 +8537,35 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ================================================================
         // ===== PÓDIO POR MODALIDADE (1º, 2º e 3º colocados) =====
         // Futsal M/F e Queimada Mista: resolvidos a partir dos jogos fixos
-        // de Final e Disputa de 3º Lugar (JOGOS_0809). Basquete de Trilha e
-        // Damas: resolvidos a partir do chaveamento dinâmico (mata-mata).
+        // de Final e Disputa de 3º Lugar (JOGOS_0809). Basquete de Trilha (M):
+        // resolvido a partir do chaveamento dinâmico (mata-mata). Damas:
+        // registrado diretamente (nome do aluno + turma) — ver mais abaixo.
         // ================================================================
+
+        // Mapeamento turma -> seleção/país representada (mesmo usado no
+        // Futsal/Queimada), para exibir a seleção correspondente no pódio de Damas.
+        var SELECOES_TURMA = {
+            '6º A': { pais: 'Argentina', bandeira: '🇦🇷' },
+            '6º B': { pais: 'Espanha', bandeira: '🇪🇸' },
+            '6º C': { pais: 'México', bandeira: '🇲🇽' },
+            '6º D': { pais: 'Croácia', bandeira: '🇭🇷' },
+            '6º E': { pais: 'Alemanha', bandeira: '🇩🇪' },
+            '6º F': { pais: 'Noruega', bandeira: '🇳🇴' }
+        };
+        var ID_DAMAS_PODIO = 'damas_podio';
+        var POSICOES_PODIO_DAMAS = [
+            { key: 'ouro', medalha: '🥇', rotulo: '1º lugar' },
+            { key: 'prata', medalha: '🥈', rotulo: '2º lugar' },
+            { key: 'bronze', medalha: '🥉', rotulo: '3º lugar' }
+        ];
+
         var CONFIG_PODIO = {
             'Futsal Masculino': { idFinal: 'r23', idTerceiro: 'r24' },
             'Futsal Feminino': { idFinal: 'r27', idTerceiro: 'r28' },
             'Queimada Mista': { idFinal: 'qm09', terceiroCompartilhado: true, refSF1: 'qm07', refSF2: 'qm08' },
             'Basquete de Trilha (M)': { chave: true },
             'Basquete de Trilha (F)': { rodaTodos: true, participantes: ['(6º D) Gabriela Ccorrea / Maria Eduarda', '(6º C) Sofia Almeida / Gabrielle Rodrigues', '(6º B) Barbara Vitória / Alice'] },
-            'Damas': { chave: true }
+            'Damas': { direto: true, idRegistro: ID_DAMAS_PODIO }
         };
         var ICONE_PODIO_MOD = {
             'Futsal Masculino': '⚽', 'Futsal Feminino': '⚽',
@@ -8492,6 +8575,17 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function calcularPodioModalidade(modLabel, placares) {
             var cfg = CONFIG_PODIO[modLabel];
             if (!cfg) return null;
+            if (cfg.direto) {
+                // Damas: pódio registrado diretamente (nome + turma), sem chaveamento.
+                var reg = (placares[cfg.idRegistro] && typeof placares[cfg.idRegistro] === 'object') ? placares[cfg.idRegistro] : {};
+                var formataPosicao = function (pos) {
+                    var r = reg[pos];
+                    if (!r || !r.nome || !r.turma) return null;
+                    var sel = SELECOES_TURMA[r.turma];
+                    return r.nome + ' (' + r.turma + ')' + (sel ? ' — ' + sel.bandeira + ' ' + sel.pais : '');
+                };
+                return { ouro: formataPosicao('ouro'), prata: formataPosicao('prata'), bronze: formataPosicao('bronze') };
+            }
             if (cfg.rodaTodos) {
                 // Rodada única todas-contra-todas (ex.: Basquete de Trilha Feminino):
                 // pódio = classificação (nº de vitórias), sem jogo de Final/3º Lugar.
@@ -8583,6 +8677,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
         function renderPodioGeral() {
+            if (typeof renderQuadroGeral === 'function') renderQuadroGeral();
             var el = document.getElementById('podioResultadoContainer');
             if (!el) return;
             var placares = carregarPlacaresSalvos();
@@ -8594,6 +8689,133 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
             el.innerHTML = validas.map(function (m) { return htmlPodioModalidade(m, placares); }).join('');
         }
+
+        // ===== QUADRO GERAL — pontuação por colocação (1º=5, 2º=3, 3º=1),
+        // somada em todas as modalidades e agrupada por turma/seleção. =====
+        var PONTOS_QUADRO_GERAL = { ouro: 5, prata: 3, bronze: 1 };
+
+        // Siglas curtas de cada modalidade, exibidas ao lado do nº de
+        // conquistas no Quadro Geral (ex.: 🥇 2 — FUT-M, QUE).
+        var SIGLA_MODALIDADE = {
+            'Futsal Masculino': 'FUT-M',
+            'Futsal Feminino': 'FUT-F',
+            'Queimada Mista': 'QUE',
+            'Basquete de Trilha (M)': 'BQ-M',
+            'Basquete de Trilha (F)': 'BQ-F',
+            'Damas': 'DAMAS'
+        };
+
+        // Extrai a turma (ex.: "6º A") de um texto de pódio, seja qual for o
+        // formato da modalidade ("Argentina (6º A)", "(6º D) Fulano...",
+        // "Fulano (6º A) — 🇦🇷 Argentina" etc.) — todos trazem "6º <letra>".
+        function extrairTurmaDoNomePodio(texto) {
+            if (!texto) return null;
+            var m = String(texto).match(/6º\s*([A-Fa-f])\b/);
+            return m ? ('6º ' + m[1].toUpperCase()) : null;
+        }
+
+        function calcularQuadroGeral() {
+            var placares = carregarPlacaresSalvos();
+            var turmasOrdem = Object.keys(SELECOES_TURMA);
+            var tabela = {};
+            turmasOrdem.forEach(function (t) {
+                tabela[t] = { turma: t, selecao: SELECOES_TURMA[t], ouro: [], prata: [], bronze: [], pontos: 0 };
+            });
+            Object.keys(CONFIG_PODIO).forEach(function (mod) {
+                var r = calcularPodioModalidade(mod, placares);
+                if (!r) return;
+                var sigla = SIGLA_MODALIDADE[mod] || mod;
+                ['ouro', 'prata', 'bronze'].forEach(function (pos) {
+                    var turma = extrairTurmaDoNomePodio(r[pos]);
+                    if (turma && tabela[turma]) {
+                        tabela[turma][pos].push(sigla);
+                        tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos];
+                    }
+                });
+            });
+            var lista = turmasOrdem.map(function (t) { return tabela[t]; });
+            lista.sort(function (a, b) {
+                if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+                if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
+                if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
+                return b.bronze.length - a.bronze.length;
+            });
+            return lista;
+        }
+
+        function renderQuadroGeral() {
+            var corpo = document.getElementById('corpoQuadroGeral');
+            if (!corpo) return;
+            var lista = calcularQuadroGeral();
+            var medalhaPos = ['🥇', '🥈', '🥉'];
+            var celulaMedalha = function (arr) {
+                if (!arr.length) return '<span style="color:var(--text-muted);">—</span>';
+                return '<div style="font-weight:700;">' + arr.length + '</div>' +
+                    '<div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap;">' + arr.join(', ') + '</div>';
+            };
+            corpo.innerHTML = lista.map(function (linha, i) {
+                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                return '<tr>' +
+                    '<td style="font-weight:700;">' + posicao + '</td>' +
+                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
+                    '<td>' + celulaMedalha(linha.ouro) + '</td>' +
+                    '<td>' + celulaMedalha(linha.prata) + '</td>' +
+                    '<td>' + celulaMedalha(linha.bronze) + '</td>' +
+                    '<td style="font-weight:700;">' + linha.pontos + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        // ---------------------------------------------------------------
+        // IMPRESSÃO — Quadro Geral (PDF A4, uma página, retrato)
+        // ---------------------------------------------------------------
+        function gerarHtmlQuadroGeralImpressao() {
+            var lista = calcularQuadroGeral();
+            var medalhaPos = ['🥇', '🥈', '🥉'];
+            var celula = function (arr) {
+                if (!arr.length) return '—';
+                return arr.length + '<span class="qg-sigla">' + arr.join(', ') + '</span>';
+            };
+            var linhas = lista.map(function (linha, i) {
+                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                return '<tr>' +
+                    '<td><b>' + posicao + '</b></td>' +
+                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' (' + linha.turma + ')</td>' +
+                    '<td>' + celula(linha.ouro) + '</td>' +
+                    '<td>' + celula(linha.prata) + '</td>' +
+                    '<td>' + celula(linha.bronze) + '</td>' +
+                    '<td><b>' + linha.pontos + '</b></td>' +
+                    '</tr>';
+            }).join('');
+            return '<div class="qg-print-page">' +
+                '<h1>🥇 Quadro Geral — Interclasse GETECO 2026</h1>' +
+                '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Pontuação: 1º lugar = 5 pts · 2º lugar = 3 pts · 3º lugar = 1 pt</p>' +
+                '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Pontos</th></tr></thead>' +
+                '<tbody>' + linhas + '</tbody></table>' +
+                '<p class="nota-rodape"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>' +
+                '<p class="nota-rodape">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado. Gerado em ' + new Date().toLocaleDateString('pt-BR') + '.</p>' +
+                '<p style="font-size:9px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
+                '</div>';
+        }
+
+        var _orientacaoQuadroGeral = 'retrato';
+        window.definirOrientacaoQuadroGeral = function (orientacao, btnEl) {
+            _orientacaoQuadroGeral = (orientacao === 'paisagem') ? 'paisagem' : 'retrato';
+            var toggle = document.getElementById('quadroGeralOrientToggle');
+            if (toggle) toggle.querySelectorAll('.grade-orient-btn').forEach(function (b) { b.classList.remove('active'); });
+            if (btnEl) btnEl.classList.add('active');
+        };
+
+        function imprimirQuadroGeral() {
+            var container = document.getElementById('quadroGeralPrintContainer');
+            if (!container) return;
+            container.innerHTML = gerarHtmlQuadroGeralImpressao();
+            document.documentElement.classList.remove('quadrogeral-orient-retrato', 'quadrogeral-orient-paisagem');
+            document.documentElement.classList.add('quadrogeral-print-mode', 'quadrogeral-orient-' + _orientacaoQuadroGeral);
+            document.body.classList.add('printing-quadrogeral');
+            setTimeout(function () { window.print(); }, 50);
+        }
+        window.imprimirQuadroGeral = imprimirQuadroGeral;
 
         // ---------------------------------------------------------------
         // IMPRESSÃO — Grade de Horários & Placares + Pódio, filtrada pela
@@ -8697,25 +8919,28 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '<span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Placares' + (modLabel ? ' — ' + modLabel : ' — Todas as modalidades') + '</span><br>' +
                 '<span style="font-size:9px;color:#666;">Impresso em ' + new Date().toLocaleDateString('pt-BR') + '</span></div>';
 
+            var creditoHtml = '<p style="font-size:8px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>';
+
             if (modLabel) {
                 // Uma única modalidade: cabeçalho + jogos + pódio, em folha única.
                 var tabelaHtml = gerarTabelaJogosHtml(modLabel, placares);
                 var podioHtml = CONFIG_PODIO[modLabel]
                     ? ('<h3 class="grade-print-podio-titulo">🏆 Pódio</h3>' + htmlPodioModalidadeImpressao(modLabel, placares))
                     : '';
-                return '<div class="grade-podio-print-page">' + cabecalho + tabelaHtml + podioHtml + '</div>';
+                return '<div class="grade-podio-print-page">' + cabecalho + tabelaHtml + podioHtml + creditoHtml + '</div>';
             }
 
             // "Todas": um bloco por modalidade (jogos + pódio daquela modalidade),
             // cada bloco começando em folha nova, na ordem dos filtros da Grade.
             var blocos = ORDEM_MODALIDADES_GRADE.map(function (m) { return gerarBlocoModalidadeHtml(m, placares); }).join('');
-            return '<div class="grade-podio-print-page">' + cabecalho + blocos + '</div>';
+            return '<div class="grade-podio-print-page">' + cabecalho + blocos + creditoHtml + '</div>';
         }
 
         var _orientacaoGradePodio = 'retrato';
         window.definirOrientacaoGradePodio = function (orientacao, btnEl) {
             _orientacaoGradePodio = (orientacao === 'paisagem') ? 'paisagem' : 'retrato';
-            document.querySelectorAll('.grade-orient-btn').forEach(function (b) { b.classList.remove('active'); });
+            var toggle = document.getElementById('gradePodioOrientToggle');
+            if (toggle) toggle.querySelectorAll('.grade-orient-btn').forEach(function (b) { b.classList.remove('active'); });
             if (btnEl) btnEl.classList.add('active');
         };
 
@@ -9073,16 +9298,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             renderTabelaPlacares0809(); // mostra cache local (ou vazio) imediatamente
             renderClassificacoes();
             renderChaveamentoBasquete();
-            renderListaParticipantesDamas();
-            renderChaveamentoDamas();
+            renderPodioDamasForm();
             renderPodioGeral();
             var doServidor = await carregarPlacaresDoSupabase();
             if (doServidor) {
                 renderTabelaPlacares0809(doServidor); // atualiza com o que está no banco
                 renderClassificacoes();
                 renderChaveamentoBasquete();
-                renderListaParticipantesDamas();
-                renderChaveamentoDamas();
+                renderPodioDamasForm();
                 renderPodioGeral();
             }
         });
@@ -9581,6 +9804,55 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             renderChaveamentoGenerico('chaveamentoDamas', 'dm', lista, '__marcarVencedorChaveDamas');
             if (typeof renderPodioGeral === 'function') renderPodioGeral();
         }
+
+        // ===== Damas: registro direto do pódio (nome + turma + seleção) =====
+        function carregarPodioDamas() {
+            var placares = carregarPlacaresSalvos();
+            var salvo = placares[ID_DAMAS_PODIO];
+            return (salvo && typeof salvo === 'object') ? salvo : {};
+        }
+
+        function renderPodioDamasForm() {
+            var box = document.getElementById('podioDamasForm');
+            if (!box) return;
+            var dados = carregarPodioDamas();
+            box.innerHTML = POSICOES_PODIO_DAMAS.map(function (p) {
+                var reg = dados[p.key] || {};
+                var opcoesTurma = '<option value="">Turma...</option>' + Object.keys(SELECOES_TURMA).map(function (t) {
+                    return '<option value="' + t + '"' + (reg.turma === t ? ' selected' : '') + '>' + t + '</option>';
+                }).join('');
+                var selecaoTxt = (reg.turma && SELECOES_TURMA[reg.turma]) ? (SELECOES_TURMA[reg.turma].bandeira + ' ' + SELECOES_TURMA[reg.turma].pais) : '—';
+                return '<div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; padding:0.6rem; border:1px solid var(--border); border-radius:8px;">' +
+                    '<div style="font-weight:700; min-width:90px;">' + p.medalha + ' ' + p.rotulo + '</div>' +
+                    '<input type="text" id="podioDamasNome_' + p.key + '" placeholder="Nome do aluno(a)" value="' + (reg.nome ? String(reg.nome).replace(/"/g, '&quot;') : '') + '" style="flex:1; min-width:180px; padding:0.4rem;">' +
+                    '<select id="podioDamasTurma_' + p.key + '" onchange="window.__atualizarSelecaoDamas(\'' + p.key + '\')" style="padding:0.4rem;">' + opcoesTurma + '</select>' +
+                    '<span id="podioDamasSelecao_' + p.key + '" style="font-weight:600; min-width:150px;">' + selecaoTxt + '</span>' +
+                    '</div>';
+            }).join('');
+        }
+
+        window.__atualizarSelecaoDamas = function (key) {
+            var sel = document.getElementById('podioDamasTurma_' + key);
+            var span = document.getElementById('podioDamasSelecao_' + key);
+            if (!sel || !span) return;
+            var turma = sel.value;
+            span.textContent = (turma && SELECOES_TURMA[turma]) ? (SELECOES_TURMA[turma].bandeira + ' ' + SELECOES_TURMA[turma].pais) : '—';
+        };
+
+        window.__salvarPodioDamas = async function () {
+            var dados = {};
+            POSICOES_PODIO_DAMAS.forEach(function (p) {
+                var nomeEl = document.getElementById('podioDamasNome_' + p.key);
+                var turmaEl = document.getElementById('podioDamasTurma_' + p.key);
+                dados[p.key] = { nome: nomeEl ? nomeEl.value.trim() : '', turma: turmaEl ? turmaEl.value : '' };
+            });
+            var status = document.getElementById('statusPodioDamas');
+            var todosOsDados = salvarPlacarNoStorage(ID_DAMAS_PODIO, dados);
+            renderPodioGeral();
+            if (status) { status.style.display = 'inline'; status.textContent = '💾 Salvando...'; }
+            var ok = await salvarPlacaresNoSupabase(todosOsDados);
+            if (status) status.textContent = ok ? '✅ Pódio de Damas salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.';
+        };
     })();
     </script>
 </body>
