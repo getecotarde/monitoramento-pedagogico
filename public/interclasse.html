@@ -9076,12 +9076,23 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return '<b>' + textoConfronto + '</b>' + (texto ? '<br>' + texto : '<br><span class="gp-pendente">Sem resultado lançado</span>');
         }
 
+        // Resolve horário/local exibidos: usa o valor editado e salvo pelo
+        // usuário (campos "hora"/"local" do próprio jogo), com fallback para
+        // o valor padrão cadastrado em JOGOS_0809 quando não há edição.
+        function resolverHoraLocalJogo(g, placares) {
+            var salvo = placares[g.id];
+            var hora = (salvo && typeof salvo === 'object' && salvo.hora !== undefined && salvo.hora !== '') ? salvo.hora : g.hora;
+            var local = (salvo && typeof salvo === 'object' && salvo.local !== undefined && salvo.local !== '') ? salvo.local : g.local;
+            return { hora: hora, local: local };
+        }
+
         function gerarTabelaJogosHtml(modLabel, placares) {
             var lista = modLabel ? JOGOS_0809.filter(function (g) { return g.mod === modLabel; }) : JOGOS_0809;
             if (!lista.length) return '<p style="font-size:11px;">Nenhum jogo cadastrado para esta modalidade.</p>';
             var linhas = lista.map(function (g) {
                 var celula = celulaConfrontoPlacarImpressao(g, placares);
-                return '<tr><td>' + g.hora + '</td><td>' + g.jogo + '</td><td class="grade-print-confronto">' + celula + '</td><td>' + g.local + '</td><td>' + g.fase + '</td></tr>';
+                var hl = resolverHoraLocalJogo(g, placares);
+                return '<tr><td>' + hl.hora + '</td><td>' + g.jogo + '</td><td class="grade-print-confronto">' + celula + '</td><td>' + hl.local + '</td><td>' + g.fase + '</td></tr>';
             }).join('');
             return '<table class="grade-print-table"><thead><tr><th>Horário</th><th>Jogo</th><th>Confronto / Placar</th><th>Local</th><th>Fase</th></tr></thead><tbody>' + linhas + '</tbody></table>';
         }
