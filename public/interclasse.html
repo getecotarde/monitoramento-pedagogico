@@ -1170,6 +1170,7 @@
     <header>
         <h1>ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA - GETECO</h1>
         <p>Projeto Multidisciplinar • Jogos Estudantis do GETECO 2026</p>
+        <p style="font-size:0.82rem; opacity:0.85;">🎓 6º Anos: 08 e 09/09 · 🎓 7º Anos: 10 e 11/09 — use o seletor "6º Anos / 7º Anos" dentro de cada aba.</p>
     </header>
 
     <div class="container">
@@ -1726,9 +1727,18 @@
         <div id="registro" class="tab-content">
 
             <div class="card">
-                <h2>🗂️ Registro de Grupos & Chaveamento — 6º Anos</h2>
-                <p style="color: var(--text-muted);">Organização das turmas nos grupos e estrutura de chaveamento (fase de grupos, semifinais, final e disputa de 3º lugar) de cada modalidade dos <strong>Jogos Estudantis GETECO 2026</strong>, conforme a Súmula Oficial. Os placares dos jogos do dia 08/09 são lançados na aba <strong>🗓️ Grade de Horários & Placares</strong>.</p>
-                <div class="alert alert-info">📅 6º Anos: fase de grupos em <strong>08/09</strong> · semifinais e finais em <strong>09/09</strong>.</div>
+                <h2>🗂️ Registro de Grupos & Chaveamento</h2>
+                <p style="color: var(--text-muted);">Organização das turmas nos grupos e estrutura de chaveamento (fase de grupos, semifinais, final e disputa de 3º lugar) de cada modalidade dos <strong>Jogos Estudantis GETECO 2026</strong>, conforme as Súmulas Oficiais.</p>
+                <div class="view-toggle-bar" id="registroAnoToggle">
+                    <button type="button" class="view-toggle-btn active" id="registroBtn6" onclick="switchAno('registro','6')">🎓 6º Anos</button>
+                    <button type="button" class="view-toggle-btn" id="registroBtn7" onclick="switchAno('registro','7')">🎓 7º Anos</button>
+                </div>
+            </div>
+
+            <div id="registroAno6">
+
+            <div class="card">
+                <div class="alert alert-info">📅 6º Anos: fase de grupos em <strong>08/09</strong> · semifinais e finais em <strong>09/09</strong>. Placares lançados na aba <strong>🗓️ Grade de Horários & Placares</strong>.</div>
                 <div class="view-toggle-bar">
                     <button type="button" class="view-toggle-btn active" id="btnVisaoGeral" onclick="switchRegistroView('geral')">📋 Visão Geral</button>
                     <button type="button" class="view-toggle-btn" id="btnVisaoEspecifica" onclick="switchRegistroView('especifica')">🔍 Visão Específica</button>
@@ -2112,13 +2122,73 @@
 
             </div><!-- fim #registroVisaoDetalhada -->
 
+            </div><!-- fim #registroAno6 -->
+
+            <div id="registroAno7" style="display:none;">
+                <div class="card">
+                    <div class="alert alert-info">📅 7º Anos: como são apenas <strong>5 turmas</strong>, o Futsal Masculino, o Futsal Feminino e a Queimada Mista são disputados em <strong>chave única</strong> (todos contra todos), com jogos nos dias <strong>10 e 11/09</strong>. As 4 melhores colocadas avançam às semifinais (1º x 3º e 2º x 4º), com final e disputa de 3º lugar. Placares lançados na aba <strong>🗓️ Grade de Horários & Placares</strong>.</div>
+                </div>
+                <div class="mod-summary-grid">
+                    <div class="mod-summary-card mod-futsal-m">
+                        <h3>⚽ Futsal Masculino</h3>
+                        <p><strong>Chave única:</strong> Senegal, Marrocos, Colômbia, Uruguai, Estados Unidos</p>
+                        <p>10 jogos (todos x todos) · classificam 4</p>
+                        <p>Semifinais, final e 3º lugar <span class="badge badge-orange">10 e 11/09</span></p>
+                    </div>
+                    <div class="mod-summary-card mod-futsal-f">
+                        <h3>⚽ Futsal Feminino</h3>
+                        <p><strong>Chave única:</strong> Senegal, Marrocos, Colômbia, Uruguai, Estados Unidos</p>
+                        <p>10 jogos (todos x todos) · classificam 4</p>
+                        <p>Semifinais, final e 3º lugar <span class="badge badge-orange">10 e 11/09</span></p>
+                    </div>
+                    <div class="mod-summary-card mod-queimada">
+                        <h3>🔥 Queimada Mista</h3>
+                        <p><strong>Chave única:</strong> Senegal, Marrocos, Colômbia, Uruguai, Estados Unidos</p>
+                        <p>10 jogos (todos x todos) · classificam 4</p>
+                        <p>Semifinais, final e 3º lugar <span class="badge badge-orange">10 e 11/09</span></p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🇸🇳🇲🇦🇨🇴🇺🇾🇺🇸 Turmas & Seleções — 7º Anos</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Turma</th><th>Seleção</th></tr></thead>
+                            <tbody id="tabelaSelecoes7"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Jogos da chave única (mesma ordem para as 3 modalidades)</h2>
+                    <p style="color: var(--text-muted);">A ordem dos confrontos é a mesma para Futsal Masculino e Queimada Mista; o Futsal Feminino segue a súmula na ordem inversa. Os resultados são lançados na aba 🗓️ Grade de Horários & Placares.</p>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th>Jogo</th><th>Confronto</th></tr></thead>
+                            <tbody id="tabelaJogosChaveUnica7"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div><!-- fim #registroAno7 -->
+
         </div>
 
         <!-- TAB 6b: GRADE DE HORÁRIOS & PLACARES (08 DE SETEMBRO) -->
         <div id="grade" class="tab-content">
             <div class="card">
-                <h2>🗓️ Grade de Horários & Placares — 08 de Setembro</h2>
-                <p style="color: var(--text-muted);">Programação oficial de jogos, locais (quadras) e horários previstos para o dia <strong>08/09</strong>, conforme a Súmula dos Jogos Estudantis GETECO 2026. Informe o placar de cada partida e clique em 💾 <strong>Salvar</strong> — o resultado é sincronizado com o banco de dados (visível em qualquer dispositivo) e também guardado neste navegador como cópia local.</p>
+                <h2>🗓️ Grade de Horários & Placares</h2>
+                <p style="color: var(--text-muted);">Informe o placar (ou vencedor) de cada partida e clique em 💾 <strong>Salvar</strong> — o resultado é sincronizado com o banco de dados (visível em qualquer dispositivo) e também guardado neste navegador como cópia local.</p>
+                <div class="view-toggle-bar" id="gradeAnoToggle">
+                    <button type="button" class="view-toggle-btn active" id="gradeBtn6" onclick="switchAno('grade','6')">🎓 6º Anos (08–09/09)</button>
+                    <button type="button" class="view-toggle-btn" id="gradeBtn7" onclick="switchAno('grade','7')">🎓 7º Anos (10–11/09)</button>
+                </div>
+            </div>
+
+            <div id="gradeAno6">
+
+            <div class="card">
+                <h2>🗓️ 6º Anos — 08 de Setembro</h2>
+                <p style="color: var(--text-muted);">Programação oficial de jogos, locais (quadras) e horários previstos para o dia <strong>08/09</strong>, conforme a Súmula dos Jogos Estudantis GETECO 2026.</p>
                 <div class="alert alert-warning">
                     ⚠️ <strong>Atenção:</strong> os Jogos 03 da fase de grupos (Grupo 2) do Futsal Masculino e Feminino acontecerão no dia <strong>09 de setembro</strong>, seguidos das semifinais, finais e disputa de 3º lugar das duas modalidades.
                 </div>
@@ -2167,10 +2237,93 @@
                 <p style="color: var(--text-muted);">Campeã, vice e 3ª colocada de cada modalidade, calculadas automaticamente a partir dos placares/vencedores lançados acima (Final e Disputa de 3º Lugar). Use os filtros de modalidade no topo para ver o pódio de uma modalidade só.</p>
                 <div id="podioResultadoContainer"></div>
             </div>
+
+            </div><!-- fim #gradeAno6 -->
+
+            <div id="gradeAno7" style="display:none;">
+
+                <div class="card">
+                    <h2>🗓️ 7º Anos — 10 e 11 de Setembro</h2>
+                    <p style="color: var(--text-muted);">Chave única (todos contra todos) entre as 5 turmas, para Futsal Masculino, Futsal Feminino e Queimada Mista. Informe o placar (Futsal) ou clique no nome da turma vencedora (Queimada) e depois em 💾 <strong>Salvar</strong>.</p>
+                    <div class="mod-pill-nav" id="gradeModPillNav7">
+                        <button type="button" class="mod-pill mod-pill-geral active" onclick="filtrarGradeModalidade7('todas')">📋 Todas</button>
+                        <button type="button" class="mod-pill mod-pill-futsal-m" onclick="filtrarGradeModalidade7('Futsal Masculino 7')">⚽ Futsal Masc.</button>
+                        <button type="button" class="mod-pill mod-pill-futsal-f" onclick="filtrarGradeModalidade7('Futsal Feminino 7')">⚽ Futsal Fem.</button>
+                        <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade7('Queimada Mista 7')">🔥 Queimada</button>
+                    </div>
+                    <div id="placarSaveStatus7" class="alert alert-info" style="display:none; margin-top:0.6rem;"></div>
+                </div>
+
+                <div class="card" style="padding: 0.5rem 0.5rem 1rem;">
+                    <div class="table-responsive">
+                        <table id="tabelaPlacares7">
+                            <thead>
+                                <tr>
+                                    <th>Modalidade</th>
+                                    <th>Jogo</th>
+                                    <th style="min-width:280px;">Confronto / Placar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpoTabelaPlacares7"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Classificação — Fase de Grupos (chave única)</h2>
+                    <p style="color: var(--text-muted);">Atualizada automaticamente a partir dos resultados lançados acima. Critérios de desempate: pontos → saldo (Futsal) / vitórias → gols pró.</p>
+                    <div class="grid-3">
+                        <div>
+                            <h3><span class="badge badge-blue">⚽ Futsal Masculino</span></h3>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead><tr><th>Pos.</th><th>Turma</th><th>PJ</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                    <tbody id="classFutsalM7"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h3><span class="badge badge-green">⚽ Futsal Feminino</span></h3>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead><tr><th>Pos.</th><th>Turma</th><th>PJ</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead>
+                                    <tbody id="classFutsalF7"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <h3><span class="badge badge-orange">🔥 Queimada Mista</span></h3>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead><tr><th>Pos.</th><th>Turma</th><th>PJ</th><th>V</th><th>D</th></tr></thead>
+                                    <tbody id="classQueimada7"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🏆 Semifinais, Final e 3º Lugar</h2>
+                    <p style="color: var(--text-muted);">Liberadas automaticamente quando as 4 rodadas da chave única de cada modalidade estiverem completas (1º x 3º e 2º x 4º colocado). Clique no nome da turma para marcar quem venceu.</p>
+                    <h3 style="margin-top:0.8rem;">⚽ Futsal Masculino</h3>
+                    <p id="statusChaveamentoFutsalM7" class="alert alert-info"></p>
+                    <div id="chaveamentoFutsalM7"></div>
+                    <h3 style="margin-top:1.2rem;">⚽ Futsal Feminino</h3>
+                    <p id="statusChaveamentoFutsalF7" class="alert alert-info"></p>
+                    <div id="chaveamentoFutsalF7"></div>
+                    <h3 style="margin-top:1.2rem;">🔥 Queimada Mista</h3>
+                    <p id="statusChaveamentoQueimada7" class="alert alert-info"></p>
+                    <div id="chaveamentoQueimada7"></div>
+                </div>
+
+            </div><!-- fim #gradeAno7 -->
+
         </div>
 
         <!-- TAB 6c: CHAVEAMENTO DINÂMICO — BASQUETE DE TRILHA E DAMAS -->
         <div id="chaveamento" class="tab-content">
+            <div class="alert alert-info">🎓 Esta aba é exclusiva do <strong>6º Ano</strong> (Basquete de Trilha e Damas não existem entre as modalidades do 7º Ano). As semifinais/final/3º lugar de Futsal M/F e Queimada do <strong>7º Ano</strong> ficam na aba 🗓️ Grade de Horários &amp; Placares.</div>
             <div class="mod-pill-nav" id="chaveamentoModPillNav">
                 <button type="button" class="mod-pill mod-pill-geral active" onclick="filtrarChaveamentoModalidade('todas')">📋 Todos</button>
                 <button type="button" class="mod-pill mod-pill-basquete" onclick="filtrarChaveamentoModalidade('basquete')">🏀 Basquete Trilha</button>
@@ -2211,6 +2364,15 @@
         <div id="quadrogeral" class="tab-content">
             <div class="card">
                 <h2>🥇 Quadro Geral — Pontuação por Colocação</h2>
+                <p style="color: var(--text-muted);">Classificação geral, somando os pontos de cada turma em todas as modalidades do seu ano: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. 6º e 7º Anos disputam quadros separados, já que competem em campeonatos distintos.</p>
+                <div class="view-toggle-bar" id="quadrogeralAnoToggle">
+                    <button type="button" class="view-toggle-btn active" id="quadrogeralBtn6" onclick="switchAno('quadrogeral','6')">🎓 6º Anos</button>
+                    <button type="button" class="view-toggle-btn" id="quadrogeralBtn7" onclick="switchAno('quadrogeral','7')">🎓 7º Anos</button>
+                </div>
+            </div>
+
+            <div id="quadrogeralAno6">
+            <div class="card">
                 <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
                     <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral()">🖨️ Imprimir Quadro Geral (PDF A4)</button>
                     <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
@@ -2219,7 +2381,7 @@
                         <button type="button" id="btnQuadroGeralOrientPaisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
                     </div>
                 </div>
-                <p style="color: var(--text-muted);">Classificação geral da competição, somando os pontos de cada turma em todas as modalidades: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
+                <p style="color: var(--text-muted);">Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
                 <div class="table-responsive" style="margin-top:0.8rem;">
                     <table>
                         <thead>
@@ -2238,6 +2400,30 @@
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>
             </div>
+            </div><!-- fim #quadrogeralAno6 -->
+
+            <div id="quadrogeralAno7" style="display:none;">
+            <div class="card">
+                <p style="color: var(--text-muted);">Calculado automaticamente a partir das semifinais/final/3º lugar de Futsal M/F e Queimada Mista lançadas na aba 🗓️ Grade de Horários &amp; Placares (7º Anos).</p>
+                <div class="table-responsive" style="margin-top:0.8rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Seleção / Turma</th>
+                                <th>🥇</th>
+                                <th>🥈</th>
+                                <th>🥉</th>
+                                <th>Pontos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoQuadroGeral7"></tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/3º lugar definido não contam pontos até o resultado ser lançado.</p>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista.</p>
+            </div>
+            </div><!-- fim #quadrogeralAno7 -->
         </div>
 
         <!-- TAB 7: INSCRIÇÕES — DUPLAS DO BASQUETE DE TRILHA -->
@@ -9852,6 +10038,407 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (status) { status.style.display = 'inline'; status.textContent = '💾 Salvando...'; }
             var ok = await salvarPlacaresNoSupabase(todosOsDados);
             if (status) status.textContent = ok ? '✅ Pódio de Damas salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.';
+        };
+
+        // ================================================================
+        // ===== 7º ANO — CHAVE ÚNICA (Futsal M/F e Queimada Mista) =====
+        // Como o 7º Ano tem só 5 turmas, essas 3 modalidades coletivas são
+        // disputadas em turno único todos-contra-todos (10 jogos cada),
+        // conforme a Súmula Oficial (dias 10 e 11/09). As 4 melhores
+        // colocadas avançam para semifinais cruzadas (1º x 3º / 2º x 4º),
+        // reaproveitando o mesmo motor de chaveamento eliminatório já usado
+        // no Basquete de Trilha (construirChaveamento / htmlCartaoJogoChave).
+        // Todo o progresso do 7º Ano fica em armazenamento próprio (chave
+        // 'geteco2026_placares_1011' local + ano '7' no Supabase), para não
+        // se misturar com os dados do 6º Ano.
+        // ================================================================
+
+        var SELECOES_TURMA_7 = {
+            '7º A': { pais: 'Senegal', bandeira: '🇸🇳' },
+            '7º B': { pais: 'Marrocos', bandeira: '🇲🇦' },
+            '7º C': { pais: 'Colômbia', bandeira: '🇨🇴' },
+            '7º D': { pais: 'Uruguai', bandeira: '🇺🇾' },
+            '7º E': { pais: 'Estados Unidos', bandeira: '🇺🇸' }
+        };
+
+        function nomeTime7(turma) {
+            var s = SELECOES_TURMA_7[turma];
+            return s ? (s.pais + ' (' + turma + ')') : turma;
+        }
+
+        var TIMES_7 = ['7º A', '7º B', '7º C', '7º D', '7º E'].map(nomeTime7);
+
+        // Confrontos da chave única — mesma ordem/pareamento para Futsal
+        // Masculino e Queimada Mista; Futsal Feminino segue a súmula na
+        // ordem inversa (mesmos 10 jogos, sequência diferente).
+        var CONFRONTOS_CHAVE_UNICA_7 = [
+            ['7º A', '7º B'], ['7º C', '7º D'], ['7º D', '7º E'], ['7º B', '7º C'], ['7º D', '7º A'],
+            ['7º E', '7º B'], ['7º A', '7º C'], ['7º B', '7º D'], ['7º E', '7º A'], ['7º C', '7º E']
+        ];
+        var CONFRONTOS_CHAVE_UNICA_7_INVERTIDA = CONFRONTOS_CHAVE_UNICA_7.slice().reverse();
+
+        function gerarJogosChaveUnica7(prefixo, modLabel, ordem, tipo) {
+            return ordem.map(function (par, i) {
+                return {
+                    id: prefixo + '_' + (i + 1),
+                    mod: modLabel,
+                    jogo: String(i + 1),
+                    confronto: nomeTime7(par[0]) + ' x ' + nomeTime7(par[1]),
+                    fase: 'Chave Única',
+                    tipo: tipo
+                };
+            });
+        }
+
+        var JOGOS_7 = []
+            .concat(gerarJogosChaveUnica7('fm7', 'Futsal Masculino 7', CONFRONTOS_CHAVE_UNICA_7, 'placar'))
+            .concat(gerarJogosChaveUnica7('ff7', 'Futsal Feminino 7', CONFRONTOS_CHAVE_UNICA_7_INVERTIDA, 'placar'))
+            .concat(gerarJogosChaveUnica7('qm7', 'Queimada Mista 7', CONFRONTOS_CHAVE_UNICA_7, 'vencedor'));
+
+        var MODALIDADES_7 = [
+            { mod: 'Futsal Masculino 7', prefixo: 'fm7', icone: '⚽', tipo: 'placar', classTbody: 'classFutsalM7', chaveContainer: 'chaveamentoFutsalM7', statusEl: 'statusChaveamentoFutsalM7' },
+            { mod: 'Futsal Feminino 7', prefixo: 'ff7', icone: '⚽', tipo: 'placar', classTbody: 'classFutsalF7', chaveContainer: 'chaveamentoFutsalF7', statusEl: 'statusChaveamentoFutsalF7' },
+            { mod: 'Queimada Mista 7', prefixo: 'qm7', icone: '🔥', tipo: 'vencedor', classTbody: 'classQueimada7', chaveContainer: 'chaveamentoQueimada7', statusEl: 'statusChaveamentoQueimada7' }
+        ];
+
+        // ----- Armazenamento próprio do 7º Ano (local + Supabase ano='7') -----
+        var LS_KEY_PLACARES_7 = 'geteco2026_placares_1011';
+        var SB_ANO_7 = '7';
+
+        function carregarPlacaresSalvos7() {
+            try {
+                var s = localStorage.getItem(LS_KEY_PLACARES_7);
+                return s ? JSON.parse(s) : {};
+            } catch (e) { return {}; }
+        }
+
+        async function carregarPlacaresDoSupabase7() {
+            try {
+                var r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?ano=eq.' + SB_ANO_7 + '&select=jogos', { headers: sbHeaders() });
+                var rows = await r.json();
+                if (!r.ok) throw new Error((rows && rows.message) || 'Erro ao carregar placares do 7º Ano');
+                if (Array.isArray(rows) && rows.length && rows[0].jogos) {
+                    try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(rows[0].jogos)); } catch (e) { }
+                    return rows[0].jogos;
+                }
+            } catch (err) { console.error(err); }
+            return null;
+        }
+
+        async function salvarPlacaresNoSupabase7(dados) {
+            try {
+                var r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE + '?on_conflict=ano', {
+                    method: 'POST',
+                    headers: Object.assign(sbHeaders(), { 'Prefer': 'resolution=merge-duplicates,return=representation' }),
+                    body: JSON.stringify([{ ano: SB_ANO_7, jogos: dados, updated_at: new Date().toISOString() }])
+                });
+                if (!r.ok) { var err = await r.json().catch(function () { return {}; }); throw new Error(err.message || 'Falha ao sincronizar'); }
+                return true;
+            } catch (err) { console.error(err); return false; }
+        }
+
+        function salvarPlacarNoStorage7(id, valor) {
+            var dados = carregarPlacaresSalvos7();
+            var atual = (dados[id] && typeof dados[id] === 'object') ? dados[id] : {};
+            dados[id] = Object.assign({}, atual, valor);
+            try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+            return dados;
+        }
+
+        function mostrarStatusPlacar7(msg) {
+            var el = document.getElementById('placarSaveStatus7');
+            if (!el) return;
+            el.style.display = 'block';
+            el.textContent = msg;
+        }
+
+        // ----- Classificação da chave única (5 turmas, todos contra todos) -----
+        function calcularClassificacaoChaveUnica7(modLabel, placares) {
+            var stats = {};
+            TIMES_7.forEach(function (t) { stats[t] = { time: t, pg: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 }; });
+            JOGOS_7.forEach(function (g) {
+                if (g.mod !== modLabel) return;
+                var partes = g.confronto.split(' x ');
+                if (partes.length !== 2) return;
+                var timeA = partes[0].trim(), timeB = partes[1].trim();
+                if (!(timeA in stats) || !(timeB in stats)) return;
+                var salvo = placares[g.id];
+                if (g.tipo === 'placar') {
+                    if (!salvo || salvo.a === '' || salvo.a === undefined || salvo.b === '' || salvo.b === undefined) return;
+                    var golsA = parseInt(salvo.a, 10), golsB = parseInt(salvo.b, 10);
+                    if (isNaN(golsA) || isNaN(golsB)) return;
+                    stats[timeA].pg++; stats[timeB].pg++;
+                    stats[timeA].gp += golsA; stats[timeA].gc += golsB;
+                    stats[timeB].gp += golsB; stats[timeB].gc += golsA;
+                    if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
+                    else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
+                    else { stats[timeA].e++; stats[timeB].e++; }
+                } else {
+                    var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : null;
+                    if (nomeVenc) {
+                        var nn = _normalizarNomeTime(nomeVenc);
+                        if (nn === _normalizarNomeTime(timeA)) nomeVenc = timeA;
+                        else if (nn === _normalizarNomeTime(timeB)) nomeVenc = timeB;
+                        else nomeVenc = null;
+                    }
+                    if (nomeVenc !== timeA && nomeVenc !== timeB) return;
+                    stats[timeA].pg++; stats[timeB].pg++;
+                    if (nomeVenc === timeA) { stats[timeA].v++; stats[timeB].d++; }
+                    else { stats[timeB].v++; stats[timeA].d++; }
+                }
+            });
+            var arr = TIMES_7.map(function (t) { return stats[t]; });
+            arr.forEach(function (s) { s.sg = s.gp - s.gc; s.pts = s.v * 3 + s.e; });
+            arr.sort(function (a, b) { return b.pts - a.pts || b.sg - a.sg || b.gp - a.gp || b.v - a.v; });
+            return arr;
+        }
+
+        function linhaClassificacao7(pos, s, comGols) {
+            var extra = comGols ? ('<td>' + s.gp + '</td><td>' + s.gc + '</td><td>' + s.sg + '</td><td><strong>' + s.pts + '</strong></td>') : '';
+            return '<tr><td>' + pos + 'º</td><td>' + s.time + '</td><td>' + s.pg + '</td><td>' + s.v + '</td>' +
+                (comGols ? ('<td>' + s.e + '</td>') : '') + '<td>' + s.d + '</td>' + extra + '</tr>';
+        }
+
+        function renderClassificacoes7(placares) {
+            placares = placares || carregarPlacaresSalvos7();
+            MODALIDADES_7.forEach(function (cfg) {
+                var tbody = document.getElementById(cfg.classTbody);
+                if (!tbody) return;
+                var arr = calcularClassificacaoChaveUnica7(cfg.mod, placares);
+                tbody.innerHTML = arr.map(function (s, i) { return linhaClassificacao7(i + 1, s, cfg.tipo === 'placar'); }).join('');
+            });
+        }
+
+        // ----- Confronto (célula) da tabela de placares do 7º Ano -----
+        function celulaConfronto7(g, placares) {
+            var partes = g.confronto.split(' x ');
+            var timeA = partes[0].trim(), timeB = partes[1].trim();
+            var salvo = placares[g.id];
+            if (g.tipo === 'placar') {
+                var valA = salvo && salvo.a !== undefined ? salvo.a : '';
+                var valB = salvo && salvo.b !== undefined ? salvo.b : '';
+                return '<div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">' +
+                    '<span>' + timeA + '</span>' +
+                    '<input type="number" min="0" style="width:48px;" value="' + valA + '" id="in_' + g.id + '_a">' +
+                    '<span>x</span>' +
+                    '<input type="number" min="0" style="width:48px;" value="' + valB + '" id="in_' + g.id + '_b">' +
+                    '<span>' + timeB + '</span>' +
+                    '<button type="button" class="tab-btn" style="width:auto; padding:0.35rem 0.6rem; background:var(--secondary); color:#fff;" onclick="window.__salvarPlacar7(\'' + g.id + '\')">💾</button>' +
+                    '</div>';
+            }
+            var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : '';
+            function ladoBtn(nome) {
+                var venceu = nomeVenc && _normalizarNomeTime(nomeVenc) === _normalizarNomeTime(nome);
+                return '<span onclick="window.__marcarVencedor7(\'' + g.id + '\', \'' + nome.replace(/'/g, "\\'") + '\')" style="cursor:pointer; padding:0.2rem 0.5rem; border-radius:6px; ' +
+                    (venceu ? 'background:var(--success); color:#fff; font-weight:700;' : 'border:1px solid var(--border);') + '">' + (venceu ? '🏆 ' : '') + nome + '</span>';
+            }
+            return '<div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">' + ladoBtn(timeA) + '<span>x</span>' + ladoBtn(timeB) + '</div>';
+        }
+
+        var _filtroGradeMod7 = null;
+        window.filtrarGradeModalidade7 = function (mod) {
+            _filtroGradeMod7 = (mod === 'todas') ? null : mod;
+            document.querySelectorAll('#gradeModPillNav7 .mod-pill').forEach(function (p) { p.classList.remove('active'); });
+            var pillClass = { 'todas': 'mod-pill-geral', 'Futsal Masculino 7': 'mod-pill-futsal-m', 'Futsal Feminino 7': 'mod-pill-futsal-f', 'Queimada Mista 7': 'mod-pill-queimada' }[mod] || 'mod-pill-geral';
+            var btn = document.querySelector('#gradeModPillNav7 .' + pillClass);
+            if (btn) btn.classList.add('active');
+            renderTabelaPlacares7();
+        };
+
+        function renderTabelaPlacares7(placaresParam) {
+            var corpo = document.getElementById('corpoTabelaPlacares7');
+            if (!corpo) return;
+            var placares = placaresParam || carregarPlacaresSalvos7();
+            var lista = _filtroGradeMod7 ? JOGOS_7.filter(function (g) { return g.mod === _filtroGradeMod7; }) : JOGOS_7;
+            corpo.innerHTML = lista.map(function (g) {
+                var cfg = MODALIDADES_7.filter(function (m) { return m.mod === g.mod; })[0];
+                return '<tr><td>' + (cfg ? cfg.icone + ' ' + g.mod.replace(' 7', '') : g.mod) + '</td><td>' + g.jogo + '</td><td>' + celulaConfronto7(g, placares) + '</td></tr>';
+            }).join('');
+            atualizarTabelaSelecoes7();
+        }
+
+        window.__salvarPlacar7 = function (idJogo) {
+            var inA = document.getElementById('in_' + idJogo + '_a');
+            var inB = document.getElementById('in_' + idJogo + '_b');
+            if (!inA || !inB) return;
+            (async function () {
+                var dados = salvarPlacarNoStorage7(idJogo, { a: inA.value, b: inB.value });
+                renderTabelaPlacares7(dados);
+                renderClassificacoes7(dados);
+                renderChaveamento7(dados);
+                if (typeof renderQuadroGeral7 === 'function') renderQuadroGeral7();
+                mostrarStatusPlacar7('💾 Salvando...');
+                var ok = await salvarPlacaresNoSupabase7(dados);
+                mostrarStatusPlacar7(ok ? '✅ Placar salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
+            })();
+        };
+
+        window.__marcarVencedor7 = function (idJogo, nome) {
+            (async function () {
+                var dados = salvarPlacarNoStorage7(idJogo, { nome: nome });
+                renderTabelaPlacares7(dados);
+                renderClassificacoes7(dados);
+                renderChaveamento7(dados);
+                if (typeof renderQuadroGeral7 === 'function') renderQuadroGeral7();
+                mostrarStatusPlacar7('💾 Salvando...');
+                var ok = await salvarPlacaresNoSupabase7(dados);
+                mostrarStatusPlacar7(ok ? '✅ Resultado salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
+            })();
+        };
+
+        // ----- Semifinais / Final / 3º Lugar (top 4 da chave única: 1ºx3º e 2ºx4º) -----
+        window.__marcarVencedorChave7 = function (idJogo, nome) {
+            (async function () {
+                var dados = salvarPlacarNoStorage7(idJogo, { nome: nome });
+                renderChaveamento7(dados);
+                if (typeof renderQuadroGeral7 === 'function') renderQuadroGeral7();
+                mostrarStatusPlacar7('💾 Salvando...');
+                var ok = await salvarPlacaresNoSupabase7(dados);
+                mostrarStatusPlacar7(ok ? '✅ Salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador.');
+            })();
+        };
+        window.__marcarVencedorChave7_desfazer = function (idJogo) {
+            (async function () {
+                var dados = carregarPlacaresSalvos7();
+                delete dados[idJogo];
+                try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+                renderChaveamento7(dados);
+                if (typeof renderQuadroGeral7 === 'function') renderQuadroGeral7();
+                await salvarPlacaresNoSupabase7(dados);
+            })();
+        };
+
+        // Guarda o último resultado (campeão / vice / 3º) de cada modalidade do 7º
+        // Ano, usado pelo Quadro Geral — recalculado a cada renderChaveamento7().
+        var _resultadosBracket7 = {};
+
+        function renderChaveamento7(placaresParam) {
+            var placares = placaresParam || carregarPlacaresSalvos7();
+            MODALIDADES_7.forEach(function (cfg) {
+                var statusEl = document.getElementById(cfg.statusEl);
+                var container = document.getElementById(cfg.chaveContainer);
+                if (!container) return;
+                var classificacao = calcularClassificacaoChaveUnica7(cfg.mod, placares);
+                var completo = classificacao.every(function (s) { return s.pg >= 4; }); // 5 turmas, todos-contra-todos = 4 jogos cada
+                if (!completo) {
+                    if (statusEl) statusEl.textContent = '⏳ Aguardando o fim da chave única (todos os 10 jogos) para liberar as semifinais.';
+                    container.innerHTML = '';
+                    delete _resultadosBracket7[cfg.mod];
+                    return;
+                }
+                if (statusEl) statusEl.textContent = '✅ Fase de grupos completa — 1º x 3º e 2º x 4º colocado nas semifinais.';
+                var top4 = classificacao.slice(0, 4).map(function (s) { return s.time; });
+                var participantesR1 = [top4[0], top4[2], top4[1], top4[3]]; // 1ºx3º, 2ºx4º
+                var ch = construirChaveamento(cfg.prefixo, participantesR1, placares);
+                var colunas = ch.rodadas.map(function (r) {
+                    var jogosHtml = r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorChave7'); }).join('');
+                    return '<div class="chave-coluna"><h4>' + r.nome + '</h4>' + jogosHtml + '</div>';
+                }).join('');
+                var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + ch.campeao + '</div></div>' : '';
+                var terceiroHtml = '';
+                if (ch.terceiroLugar) {
+                    terceiroHtml = '<div class="chave-coluna"><h4>🥉 Disputa de 3º Lugar</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorChave7') + '</div>';
+                }
+                container.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
+
+                // Guarda campeão / vice / 3º para o Quadro Geral do 7º Ano
+                var vice = null;
+                if (ch.rodadas.length) {
+                    var ultima = ch.rodadas[ch.rodadas.length - 1];
+                    var jogoFinal = ultima.jogos[0];
+                    if (jogoFinal && jogoFinal.vencedor) vice = (jogoFinal.vencedor === jogoFinal.nomeA) ? jogoFinal.nomeB : jogoFinal.nomeA;
+                }
+                _resultadosBracket7[cfg.mod] = { ouro: ch.campeao || null, prata: vice, bronze: (ch.terceiroLugar && ch.terceiroLugar.vencedor) || null };
+            });
+        }
+
+        // ----- Tabela de turmas/seleções e jogos (aba Registro) -----
+        function atualizarTabelaSelecoes7() {
+            var tbody = document.getElementById('tabelaSelecoes7');
+            if (tbody && !tbody.innerHTML) {
+                tbody.innerHTML = Object.keys(SELECOES_TURMA_7).map(function (t) {
+                    var s = SELECOES_TURMA_7[t];
+                    return '<tr><td>' + t + '</td><td>' + s.bandeira + ' ' + s.pais + '</td></tr>';
+                }).join('');
+            }
+            var tbodyJogos = document.getElementById('tabelaJogosChaveUnica7');
+            if (tbodyJogos && !tbodyJogos.innerHTML) {
+                tbodyJogos.innerHTML = CONFRONTOS_CHAVE_UNICA_7.map(function (par, i) {
+                    return '<tr><td>' + (i + 1) + '</td><td>' + nomeTime7(par[0]) + ' x ' + nomeTime7(par[1]) + '</td></tr>';
+                }).join('');
+            }
+        }
+
+        // ----- Quadro Geral — 7º Ano -----
+        var SIGLA_MODALIDADE_7 = { 'Futsal Masculino 7': 'FUT-M', 'Futsal Feminino 7': 'FUT-F', 'Queimada Mista 7': 'QUE' };
+
+        function calcularQuadroGeral7() {
+            var turmasOrdem = Object.keys(SELECOES_TURMA_7);
+            var tabela = {};
+            turmasOrdem.forEach(function (t) { tabela[t] = { turma: t, selecao: SELECOES_TURMA_7[t], ouro: [], prata: [], bronze: [], pontos: 0 }; });
+            MODALIDADES_7.forEach(function (cfg) {
+                var r = _resultadosBracket7[cfg.mod];
+                if (!r) return;
+                var sigla = SIGLA_MODALIDADE_7[cfg.mod] || cfg.mod;
+                ['ouro', 'prata', 'bronze'].forEach(function (pos) {
+                    var turma = extrairTurmaDoNomePodio(r[pos]);
+                    if (turma && tabela[turma]) { tabela[turma][pos].push(sigla); tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos]; }
+                });
+            });
+            var lista = turmasOrdem.map(function (t) { return tabela[t]; });
+            lista.sort(function (a, b) {
+                if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+                if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
+                if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
+                return b.bronze.length - a.bronze.length;
+            });
+            return lista;
+        }
+
+        function renderQuadroGeral7() {
+            var corpo = document.getElementById('corpoQuadroGeral7');
+            if (!corpo) return;
+            var lista = calcularQuadroGeral7();
+            var medalhaPos = ['🥇', '🥈', '🥉'];
+            var celulaMedalha = function (arr) {
+                if (!arr.length) return '<span style="color:var(--text-muted);">—</span>';
+                return '<div style="font-weight:700;">' + arr.length + '</div><div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap;">' + arr.join(', ') + '</div>';
+            };
+            corpo.innerHTML = lista.map(function (linha, i) {
+                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                return '<tr><td style="font-weight:700;">' + posicao + '</td>' +
+                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
+                    '<td>' + celulaMedalha(linha.ouro) + '</td><td>' + celulaMedalha(linha.prata) + '</td><td>' + celulaMedalha(linha.bronze) + '</td>' +
+                    '<td style="font-weight:700;">' + linha.pontos + '</td></tr>';
+            }).join('');
+        }
+
+        // ----- Alterna a visualização 6º / 7º Ano dentro de uma mesma aba,
+        // sem criar novas abas no menu principal. -----
+        var _ano7Iniciado = false;
+        window.switchAno = function (secao, ano) {
+            var el6 = document.getElementById(secao + 'Ano6');
+            var el7 = document.getElementById(secao + 'Ano7');
+            if (el6) el6.style.display = (ano === '6') ? '' : 'none';
+            if (el7) el7.style.display = (ano === '7') ? '' : 'none';
+            var btn6 = document.getElementById(secao + 'Btn6');
+            var btn7 = document.getElementById(secao + 'Btn7');
+            if (btn6) btn6.classList.toggle('active', ano === '6');
+            if (btn7) btn7.classList.toggle('active', ano === '7');
+            if (ano === '7') {
+                atualizarTabelaSelecoes7();
+                (async function () {
+                    if (!_ano7Iniciado) {
+                        _ano7Iniciado = true;
+                        var doServidor = await carregarPlacaresDoSupabase7();
+                        if (doServidor) { /* cache local já atualizado dentro da própria função */ }
+                    }
+                    renderTabelaPlacares7();
+                    renderClassificacoes7();
+                    renderChaveamento7();
+                    renderQuadroGeral7();
+                })();
+            }
         };
     })();
     </script>
