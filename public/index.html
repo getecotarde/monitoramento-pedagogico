@@ -1341,7 +1341,7 @@
   .modal-key { font-size: 12px; color: #888; }
   .modal-val { font-size: 12px; color: #1F2937; font-weight: 500; text-align: right; max-width: 60%; }
   .modal-text {
-    font-size: 13px; color: #555; line-height: 1.7;
+    font-size: 13px; color: #1F2937; line-height: 1.7;
     background: #FAFAF8; border-radius: var(--radius-sm);
     padding: 10px 12px; border-left: 3px solid var(--verde);
   }
@@ -2452,6 +2452,9 @@
       <p>Busque um ou mais estudantes por nome ou turma para visualizar o perfil completo em tela ou gerar uma ficha pronta para impressão, organizada por área: Perfil de Atipicidade, Fluência de Leitura, Síntese de Advertências, Ata de Conselho e Materiais. Recolha as guias de busca abaixo para dar mais espaço à área de visualização.</p>
     </div>
 
+    <div class="perfil-individual-layout" style="display:flex;gap:1.5rem;align-items:flex-start">
+    <div class="perfil-individual-sidebar" style="width:340px;flex-shrink:0;position:sticky;top:calc(var(--header-h) + 16px);max-height:calc(100vh - var(--header-h) - 32px);overflow-y:auto;padding-right:2px">
+
     <details id="ltBuscaDetails" open ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
       <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
         <span style="font-size:13px;font-weight:700">Buscar e selecionar estudantes</span>
@@ -2485,13 +2488,13 @@
     </details>
 
     <!-- Dados do relatório (recolhível — condensado por padrão para dar mais espaço à prévia) -->
-    <details id="ltDadosRelatorioDetails" ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:1.5rem;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
+    <details id="ltDadosRelatorioDetails" ontoggle="if(typeof ajustarAlturaPreviewLt==='function')ajustarAlturaPreviewLt()" style="margin-bottom:0;background:#fff;border-radius:12px;border:var(--border);box-shadow:var(--shadow);overflow:hidden">
       <summary style="cursor:pointer;display:block;padding:1.1rem 1.25rem;list-style:none">
         <span style="font-size:13px;font-weight:700">Dados para o relatório impresso</span>
         <span id="ltDadosRelatorioResumo" style="font-size:12px;color:#999;margin-left:8px"></span>
       </summary>
       <div class="detail-card-inner" style="padding-top:0">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:6px">
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:6px">
           <label style="font-size:12px;color:#888">
             Pedagogo(a) / Coord. Pedagógico
             <input type="text" id="ltPedagogo" value="Prof. Everton Corrêa Alves" oninput="atualizarResumoDadosRelatorio()"
@@ -2506,8 +2509,10 @@
       </div>
     </details>
 
+    </div>
+
     <!-- Prévia + ação -->
-    <div class="detail-card">
+    <div class="detail-card" style="flex:1;min-width:0">
       <div class="detail-card-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
           <h2 style="font-size:15px;font-weight:700">Perfil individual — visualização e impressão</h2>
@@ -2521,6 +2526,14 @@
         </div>
       </div>
     </div>
+    </div>
+
+    <style>
+      @media (max-width: 900px) {
+        .perfil-individual-layout { flex-direction: column; }
+        .perfil-individual-sidebar { width: 100% !important; position: static !important; max-height: none !important; }
+      }
+    </style>
   </div>
 
   <!-- ─── VIEW: GERADOR CSV DE ADVERTÊNCIAS (sub-aba de Todos os estudantes) ─────────────────────────────────── -->
@@ -4172,7 +4185,7 @@ function renderModalContent(idx){
           Observações ${fieldEditBtn(idx,'obs')}
         </div>
         ${x.o
-          ?`<div class="modal-obs" style="font-style:normal;color:#555;background:#FAFAF8;padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.6">${x.o}</div>`
+          ?`<div class="modal-obs" style="font-style:normal;color:#1F2937;background:#FAFAF8;padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.6">${x.o}</div>`
           :`<div class="modal-obs" style="color:#CCC;font-style:italic">Sem observações.</div>`
         }
       </div>
@@ -9194,6 +9207,16 @@ function initLinhaDoTempo(){
 function ajustarAlturaPreviewLt(){
   const preview = document.getElementById('ltPreview');
   if(!preview) return;
+
+  // A partir de 901px a busca fica numa coluna lateral fixa ao lado da
+  // prévia (não empilhada acima dela), então o estado aberto/fechado dos
+  // acordeões deixa de reduzir o espaço vertical disponível para a prévia.
+  if(window.innerWidth > 900){
+    preview.style.maxHeight = 'calc(100vh - 150px)';
+    preview.style.minHeight = '74vh';
+    return;
+  }
+
   const buscaAberta = document.getElementById('ltBuscaDetails')?.open;
   const dadosAberta = document.getElementById('ltDadosRelatorioDetails')?.open;
 
@@ -9204,6 +9227,7 @@ function ajustarAlturaPreviewLt(){
   preview.style.maxHeight = `calc(100vh - ${reserva}px)`;
   preview.style.minHeight = buscaAberta ? '58vh' : '74vh';
 }
+window.addEventListener('resize', () => { if(typeof ajustarAlturaPreviewLt==='function') ajustarAlturaPreviewLt(); });
 
 function onLtTurmaFiltroChange(){
   ltTurmasAtivas = new Set([...document.querySelectorAll('.lt-turma-chk:checked')].map(c=>c.value));
