@@ -19,18 +19,21 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --verde:       #1D9E75;
-    --verde-bg:    #E1F5EE;
-    --verde-dark:  #0F6E56;
+    --verde:       #0D9488;
+    --verde-bg:    #E6FFFA;
+    --verde-dark:  #0F766E;
     --coral:       #D85A30;
     --coral-bg:    #FAECE7;
     --coral-dark:  #7A2E10;
     --amber:       #BA7517;
     --amber-bg:    #FEF3DC;
     --amber-dark:  #7A4A08;
-    --azul:        #2B7FD4;
-    --azul-bg:     #E6F1FB;
-    --azul-dark:   #154F8A;
+    --azul:        #2563EB;
+    --azul-bg:     #EFF6FF;
+    --azul-dark:   #1E3A8A;
+    --laranja:      #F97316;
+    --laranja-bg:   #FFF1E6;
+    --laranja-dark: #C2410C;
     --roxo:        #6B65CC;
     --roxo-bg:     #EEEDFE;
     --roxo-dark:   #3C3489;
@@ -58,14 +61,16 @@
     --border:     1px solid #2E2E2B;
     --shadow:     0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
 
-    --verde-bg:   rgba(29,158,117,.15);
-    --verde-dark: #4DC9A0;
+    --verde-bg:   rgba(13,148,136,.15);
+    --verde-dark: #2DD4BF;
     --coral-bg:   rgba(216,90,48,.15);
     --coral-dark: #F0845A;
     --amber-bg:   rgba(186,117,23,.15);
     --amber-dark: #D9A03A;
-    --azul-bg:    rgba(43,127,212,.15);
-    --azul-dark:  #5BA8E8;
+    --azul-bg:    rgba(37,99,235,.15);
+    --azul-dark:  #5B8DEF;
+    --laranja-bg:   rgba(249,115,22,.15);
+    --laranja-dark: #FB923C;
     --roxo-bg:    rgba(107,101,204,.15);
     --roxo-dark:  #9490DC;
     --cinza-bg:   rgba(136,135,128,.15);
@@ -75,7 +80,7 @@
   body { transition: background .25s, color .25s; }
 
   [data-theme="dark"] body          { background: var(--bg-page, #111110) !important; color: var(--text-main, #F0EFE9) !important; }
-  [data-theme="dark"] .topbar       { background: #085041 !important; border-color: #04342C !important; }
+  [data-theme="dark"] .topbar       { background: #0F1D4A !important; border-color: #0A1636 !important; }
   [data-theme="dark"] .sidebar      { background: var(--bg-card, #1C1C1A) !important; border-color: #2E2E2B !important; }
   [data-theme="dark"] .nav-item     { color: #888 !important; }
   [data-theme="dark"] .nav-item:hover { background: #252523 !important; color: #F0EFE9 !important; }
@@ -102,15 +107,15 @@
   #printModalOverlay .modal-box,
   #printModalOverlay .modal-header,
   #ltImpressaoModalOverlay .modal-box,
-  #ltImpressaoModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
+  #ltImpressaoModalOverlay .modal-header { background: #fff !important; color: #1F2937 !important; border-color: #E8E7E3 !important; }
   #printModalOverlay .modal-nome,
-  #ltImpressaoModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #ltImpressaoModalOverlay .modal-nome   { color: #1F2937 !important; }
   #printModalOverlay .modal-sub,
   #ltImpressaoModalOverlay .modal-sub    { color: #999 !important; }
   #printModalOverlay .modal-close,
   #ltImpressaoModalOverlay .modal-close  { background: #F3F2EF !important; }
   #printModalOverlay .modal-body,
-  #ltImpressaoModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #ltImpressaoModalOverlay .modal-body   { background: #fff !important; color: #1F2937 !important; }
   #printModalOverlay label,
   #ltImpressaoModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
   #printModalOverlay button[style*="background:#FAFAF8"],
@@ -185,7 +190,7 @@
     border: none; background: transparent; cursor: pointer;
     color: #888; transition: all .12s; flex-shrink: 0;
   }
-  .ur-btn:hover:not(:disabled) { background: #E8E7E3; color: #1A1916; }
+  .ur-btn:hover:not(:disabled) { background: #E8E7E3; color: #1F2937; }
   [data-theme="dark"] .ur-btn:hover:not(:disabled) { background: #333 !important; color: #F0EFE9 !important; }
   .ur-btn:disabled { opacity: .3; cursor: default; }
   .ur-btn svg { width: 15px; height: 15px; }
@@ -217,7 +222,7 @@
     font-family: 'DM Sans', sans-serif; cursor: pointer;
     transition: all .15s; white-space: nowrap;
   }
-  .action-btn:hover { background: #F3F2EF; border-color: #CCC; color: #1A1916; }
+  .action-btn:hover { background: #F3F2EF; border-color: #CCC; color: #1F2937; }
   .action-btn svg { flex-shrink: 0; }
 
   /* ── PRINT STYLES ───────────────────────────────── */
@@ -426,11 +431,11 @@
 
   /* ── CARD PRINT MODAL: sempre claro ── */
   #cardPrintModalOverlay .modal-box,
-  #cardPrintModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
-  #cardPrintModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #cardPrintModalOverlay .modal-header { background: #fff !important; color: #1F2937 !important; border-color: #E8E7E3 !important; }
+  #cardPrintModalOverlay .modal-nome   { color: #1F2937 !important; }
   #cardPrintModalOverlay .modal-sub    { color: #999 !important; }
   #cardPrintModalOverlay .modal-close  { background: #F3F2EF !important; }
-  #cardPrintModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #cardPrintModalOverlay .modal-body   { background: #fff !important; color: #1F2937 !important; }
   #cardPrintModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; }
   #cardPrintModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
   #cardPrintModalOverlay button[style*="background:#FAFAF8"],
@@ -438,11 +443,11 @@
   #cardPrintModalOverlay button[style*="color:#555"]          { color: #555 !important; }
 
   #fichaProfDiscModalOverlay .modal-box,
-  #fichaProfDiscModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
-  #fichaProfDiscModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #fichaProfDiscModalOverlay .modal-header { background: #fff !important; color: #1F2937 !important; border-color: #E8E7E3 !important; }
+  #fichaProfDiscModalOverlay .modal-nome   { color: #1F2937 !important; }
   #fichaProfDiscModalOverlay .modal-sub    { color: #999 !important; }
   #fichaProfDiscModalOverlay .modal-close  { background: #F3F2EF !important; }
-  #fichaProfDiscModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #fichaProfDiscModalOverlay .modal-body   { background: #fff !important; color: #1F2937 !important; }
   #fichaProfDiscModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
   #fichaProfDiscModalOverlay button[style*="background:#FAFAF8"],
   #fichaProfDiscModalOverlay div[style*="background:#FAFAF8"]     { background: #FAFAF8 !important; border-color: #E8E7E3 !important; }
@@ -474,7 +479,7 @@
 
     body.printing-cards {
       background: #fff !important;
-      color: #1A1916 !important;
+      color: #1F2937 !important;
       margin: 0; padding: 0;
     }
   }
@@ -488,11 +493,11 @@
   /* Cabeçalho da folha */
   .cards-print-header {
     margin-bottom: 8px; padding-bottom: 6px;
-    border-bottom: 2px solid #1D9E75;
+    border-bottom: 2px solid #0D9488;
     font-family: Arial, sans-serif;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  .cards-print-header h2 { font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #1A1916; font-family: Arial, sans-serif; }
+  .cards-print-header h2 { font-size: 14px; font-weight: 700; margin: 0 0 2px; color: #1F2937; font-family: Arial, sans-serif; }
   .cards-print-header p  { font-size: 10px; color: #888; margin: 0; font-family: Arial, sans-serif; }
 
   /* Página de cards — ocupa toda a área disponível */
@@ -535,7 +540,7 @@
 
   .print-card-strip-at { height: 2px; flex-shrink:0; background: #D85A30 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-card-strip-an { height: 2px; flex-shrink:0; background: #BA7517 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .print-card-strip-ti { height: 2px; flex-shrink:0; background: #1D9E75 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-card-strip-ti { height: 2px; flex-shrink:0; background: #0D9488 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
   .print-card-inner {
     padding: calc(9px * var(--cp-f)) calc(11px * var(--cp-f));
@@ -557,9 +562,9 @@
   }
   .print-avatar-at { color: #B5491F !important; }
   .print-avatar-an { color: #8C5B0E !important; }
-  .print-avatar-ti { color: #0F6E56 !important; }
+  .print-avatar-ti { color: #0F766E !important; }
 
-  .print-card-nome  { font-size: clamp(10px, calc(13px * var(--cp-f)), 14px); font-weight: 600; color: #1A1916; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
+  .print-card-nome  { font-size: clamp(10px, calc(13px * var(--cp-f)), 14px); font-weight: 600; color: #1F2937; line-height: 1.2; margin-bottom: 2px; text-transform: uppercase; word-break: break-word; font-family: Arial, sans-serif; }
   .print-card-turma { font-size: clamp(10px, calc(11px * var(--cp-f)), 12px); color: #999; font-family: Arial, sans-serif; }
 
   .print-card-chips {
@@ -585,7 +590,7 @@
   .print-card-rotina {
     font-size: clamp(10px, calc(11px * var(--cp-fb)), 14px); color: #444; line-height: 1.5;
     background: #FAFAF8 !important; border-radius: 3px;
-    padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #1D9E75;
+    padding: calc(6px * var(--cp-f)) calc(8px * var(--cp-f)); border-left: 2px solid #0D9488;
     white-space: normal; word-break: break-word;
     font-family: Arial, sans-serif;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
@@ -612,8 +617,8 @@
   html { font-size: 14px; }
   body {
     font-family: 'DM Sans', sans-serif;
-    background: #F7F6F2;
-    color: #1A1916;
+    background: #F8F9FA;
+    color: #1F2937;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -623,8 +628,8 @@
   .topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 50;
     height: var(--header-h);
-    background: #0F6E56;
-    border-bottom: 1px solid #085041;
+    background: #1E3A8A;
+    border-bottom: 1px solid #16296B;
     box-shadow: 0 1px 8px rgba(0,0,0,.15);
     display: flex; align-items: center; padding: 0 1.5rem;
     gap: 1rem;
@@ -674,14 +679,14 @@
     width: 100%; text-align: left; font-weight: 450;
   }
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .nav-item:hover { background: #EEEDEA; color: #1A1916; }
+  .nav-item:hover { background: #EEEDEA; color: #1F2937; }
   .nav-item.active { background: var(--verde-bg); color: var(--verde-dark); font-weight: 600; }
   .nav-badge {
     margin-left: auto; background: rgba(0,0,0,.06);
     font-size: 10px; color: #999;
     padding: 1px 7px; border-radius: 10px; font-family: 'DM Mono', monospace;
   }
-  .nav-item.active .nav-badge { background: rgba(29,158,117,.15); color: var(--verde-dark); }
+  .nav-item.active .nav-badge { background: rgba(13,148,136,.15); color: var(--verde-dark); }
   .nav-turma-group { margin-top: 2px; }
   .turma-nav {
     display: flex; align-items: center; gap: 8px;
@@ -690,13 +695,13 @@
     transition: all .15s; width: 100%; text-align: left;
     border: none; background: none;
   }
-  .turma-nav:hover { background: #EEEDEA; color: #1A1916; }
+  .turma-nav:hover { background: #EEEDEA; color: #1F2937; }
   .turma-nav.active { background: var(--verde-bg); color: var(--verde-dark); font-weight: 600; }
   .turma-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--verde); flex-shrink: 0;
   }
-  .turma-dot.ano-6 { background: #2B7FD4; }
+  .turma-dot.ano-6 { background: #2563EB; }
   .turma-dot.ano-7 { background: #BA7517; }
   .turma-dot.ano-8 { background: #6B65CC; }
 
@@ -752,10 +757,10 @@
     cursor: pointer; font-family: inherit; color: #777;
     transition: all .12s; line-height: 1;
   }
-  .fs-btn:hover { background: #EEEDEA; color: #1A1916; border-color: #CCC; }
+  .fs-btn:hover { background: #EEEDEA; color: #1F2937; border-color: #CCC; }
   .fs-btn.active { background: var(--verde-bg); border-color: var(--verde); color: var(--verde-dark); font-weight: 600; }
   [data-theme="dark"] .fs-btn { background: #252523 !important; border-color: #333 !important; color: #777 !important; }
-  [data-theme="dark"] .fs-btn.active { background: rgba(29,158,117,.15) !important; border-color: var(--verde) !important; color: var(--verde-dark) !important; }
+  [data-theme="dark"] .fs-btn.active { background: rgba(13,148,136,.15) !important; border-color: var(--verde) !important; color: var(--verde-dark) !important; }
   /* ── Subabas de Eventos ─────────────────── */
   .eventos-subtab-btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -763,11 +768,11 @@
     background: #fff; color: #666; font-size: 12.5px; font-weight: 500;
     cursor: pointer; font-family: inherit; transition: .15s;
   }
-  .eventos-subtab-btn:hover { background: #EEEDEA; color: #1A1916; }
+  .eventos-subtab-btn:hover { background: #EEEDEA; color: #1F2937; }
   .eventos-subtab-btn.active { background: var(--verde-bg); border-color: var(--verde); color: var(--verde-dark); font-weight: 600; }
   [data-theme="dark"] .eventos-subtab-btn { background: #1C1C1A !important; border-color: #2E2E2B !important; color: #AAA !important; }
   [data-theme="dark"] .eventos-subtab-btn:hover { background: #252523 !important; color: #F0EFE9 !important; }
-  [data-theme="dark"] .eventos-subtab-btn.active { background: rgba(29,158,117,.15) !important; border-color: var(--verde) !important; color: var(--verde-dark) !important; }
+  [data-theme="dark"] .eventos-subtab-btn.active { background: rgba(13,148,136,.15) !important; border-color: var(--verde) !important; color: var(--verde-dark) !important; }
 
   /* ── MAIN ─────────────────────────────────── */
   .main {
@@ -986,7 +991,7 @@
 
   /* ── PAGE HEADER ─────────────────────────────── */
   .page-header { margin-bottom: 1.5rem; }
-  .page-header h1 { font-size: 22px; font-weight: 700; color: #1A1916; margin-bottom: 4px; letter-spacing: -.02em; }
+  .page-header h1 { font-size: 22px; font-weight: 700; color: #1F2937; margin-bottom: 4px; letter-spacing: -.02em; }
   .page-header p  { font-size: 13px; color: #AAA; }
 
   /* ── STATS GRID ─────────────────────────────── */
@@ -1013,7 +1018,7 @@
   .stat-icon.azul    { background: var(--azul-bg);   } .stat-icon.azul svg   { stroke: var(--azul-dark);  }
   .stat-icon.roxo    { background: var(--roxo-bg);   } .stat-icon.roxo svg   { stroke: var(--roxo-dark);  }
   .stat-icon.cinza   { background: var(--cinza-bg);  } .stat-icon.cinza svg  { stroke: var(--cinza-dark); }
-  .stat-num  { font-size: 28px; font-weight: 700; color: #1A1916; font-family: 'DM Mono', monospace; line-height: 1; letter-spacing: -.02em; }
+  .stat-num  { font-size: 28px; font-weight: 700; color: #1F2937; font-family: 'DM Mono', monospace; line-height: 1; letter-spacing: -.02em; }
   .stat-label{ font-size: 11.5px; color: #999; margin-top: 4px; }
   .stat-sub  {
     display: inline-flex; align-items: center; margin-top: 8px;
@@ -1032,7 +1037,7 @@
   .horiz-bar { margin-bottom: 10px; }
   .horiz-bar-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .horiz-bar-name  { font-size: 12px; color: #555; }
-  .horiz-bar-val   { font-size: 12px; font-family: 'DM Mono', monospace; color: #1A1916; font-weight: 500; }
+  .horiz-bar-val   { font-size: 12px; font-family: 'DM Mono', monospace; color: #1F2937; font-weight: 500; }
   .horiz-bar-track { height: 8px; background: #F3F2EF; border-radius: 4px; overflow: hidden; }
   .horiz-bar-fill  { height: 100%; border-radius: 4px; transition: width .5s ease; }
 
@@ -1044,8 +1049,8 @@
     transition: box-shadow .2s, transform .2s, border-color .2s;
     box-shadow: 0 1px 4px rgba(0,0,0,.04);
   }
-  .turma-card:hover { border-color: var(--verde); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(29,158,117,.12); }
-  .turma-card-name { font-size: 14px; font-weight: 600; color: #1A1916; margin-bottom: 8px; }
+  .turma-card:hover { border-color: var(--verde); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(13,148,136,.12); }
+  .turma-card-name { font-size: 14px; font-weight: 600; color: #1F2937; margin-bottom: 8px; }
   .turma-card-total{ font-size: 11px; color: #999; margin-bottom: 8px; }
   .turma-mini-stack { display: flex; height: 5px; border-radius: 3px; overflow: hidden; gap: 1px; margin-bottom: 8px; }
   .turma-mini-seg  { border-radius: 2px; }
@@ -1064,14 +1069,14 @@
   .search-wrap input {
     width: 100%; padding: 8px 12px 8px 32px;
     border: var(--border); border-radius: var(--radius-sm);
-    background: #fff; font-size: 13px; color: #1A1916;
+    background: #fff; font-size: 13px; color: #1F2937;
     font-family: 'DM Sans', sans-serif;
     outline: none; transition: border .15s;
   }
   .search-wrap input:focus { border-color: var(--verde); }
   select {
     padding: 8px 12px; border: var(--border); border-radius: var(--radius-sm);
-    background: #fff; font-size: 13px; color: #1A1916;
+    background: #fff; font-size: 13px; color: #1F2937;
     font-family: 'DM Sans', sans-serif; cursor: pointer; outline: none;
     transition: border .15s;
   }
@@ -1162,7 +1167,7 @@
     text-align: center;
   }
   .td-nome {
-    font-weight: 700; color: #1A1916;
+    font-weight: 700; color: #1F2937;
     text-transform: uppercase;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
@@ -1204,8 +1209,8 @@
   .mov-edit-select { cursor: pointer; }
   .mov-edit-input:hover, .mov-edit-select:hover { background: #F1F0EA; }
   .mov-edit-input:focus, .mov-edit-select:focus {
-    outline: none; background: #fff; border-color: var(--azul-dark, #2B7FD4);
-    box-shadow: 0 0 0 2px rgba(43,127,212,.15);
+    outline: none; background: #fff; border-color: var(--azul-dark, #2563EB);
+    box-shadow: 0 0 0 2px rgba(37,99,235,.15);
   }
   .mov-cell-saved { background: var(--verde-bg) !important; transition: background .8s ease; }
   .mov-cell-saved.mov-cell-fade { background: transparent !important; }
@@ -1220,16 +1225,16 @@
   }
   .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
   .b-tipico    { background: var(--verde-bg);  color: var(--verde-dark); }
-  .b-atipico   { background: #FFD600; color: #1A1916; font-weight: 700; }
+  .b-atipico   { background: #FFD600; color: #1F2937; font-weight: 700; }
   .b-analise   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-pip       { background: var(--azul-bg);   color: var(--azul-dark);  }
-  .b-adaptacao { background: #FFD600; color: #1A1916; font-weight: 700; }
+  .b-adaptacao { background: #FFD600; color: #1F2937; font-weight: 700; }
   /* movimentações */
   .b-transferencia { background:#FAECE7; color:#7A2E10; }
-  .b-remanejamento { background:#E6F1FB; color:#154F8A; }
-  .b-matricula     { background:#E1F5EE; color:#0F6E56; }
+  .b-remanejamento { background:#EFF6FF; color:#1E3A8A; }
+  .b-matricula     { background:#E6FFFA; color:#0F766E; }
   .b-atualizacao   { background:var(--roxo-bg); color:var(--roxo-dark); }
-  .b-pipadapt  { background: #FFD600; color: #1A1916; font-weight: 700; }
+  .b-pipadapt  { background: #FFD600; color: #1F2937; font-weight: 700; }
   .b-reforco   { background: var(--verde-bg);  color: var(--verde-dark); }
   .b-avaliar   { background: var(--amber-bg);  color: var(--amber-dark); }
   .b-regular   { background: var(--verde-bg);  color: var(--verde-dark); }
@@ -1270,7 +1275,7 @@
   .avatar-at  { background: var(--coral); color: #fff; }
   .avatar-an  { background: var(--amber); color: #fff; }
   .avatar-ti  { background: var(--verde); color: #fff; }
-  .detail-nome { font-size: 15px; font-weight: 700; color: #1A1916; line-height: 1.25; margin-bottom: 3px; }
+  .detail-nome { font-size: 15px; font-weight: 700; color: #1F2937; line-height: 1.25; margin-bottom: 3px; }
   .detail-turma{ font-size: 12px; color: #999; font-weight: 400; }
 
   .detail-chips {
@@ -1334,7 +1339,7 @@
   }
   .modal-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
   .modal-key { font-size: 12px; color: #888; }
-  .modal-val { font-size: 12px; color: #1A1916; font-weight: 500; text-align: right; max-width: 60%; }
+  .modal-val { font-size: 12px; color: #1F2937; font-weight: 500; text-align: right; max-width: 60%; }
   .modal-text {
     font-size: 13px; color: #555; line-height: 1.7;
     background: #FAFAF8; border-radius: var(--radius-sm);
@@ -1411,7 +1416,7 @@
   .ms-trigger {
     display: flex; align-items: center; gap: 6px;
     padding: 8px 12px; border: var(--border); border-radius: var(--radius-sm);
-    background: #fff; font-size: 13px; color: #1A1916;
+    background: #fff; font-size: 13px; color: #1F2937;
     font-family: 'DM Sans', sans-serif; cursor: pointer; outline: none;
     transition: border .15s; white-space: nowrap; min-width: 160px;
     user-select: none;
@@ -1479,7 +1484,7 @@
     box-shadow: 0 2px 12px rgba(0,0,0,.08);
   }
   .login-logo svg { width: 24px; height: 24px; fill: white; }
-  .login-title { font-size: 19px; font-weight: 700; margin-bottom: 4px; letter-spacing: -.02em; color: #1A1916; }
+  .login-title { font-size: 19px; font-weight: 700; margin-bottom: 4px; letter-spacing: -.02em; color: #1F2937; }
   .login-sub   { font-size: 12px; color: #AAA; margin-bottom: 1.75rem; letter-spacing: .01em; }
   .login-label { font-size: 12px; color: #555; text-align: left; display: block; margin-bottom: 4px; font-weight: 500; }
   .login-input {
@@ -1498,13 +1503,13 @@
   }
   .login-select:focus { border-color: var(--verde); }
   .login-btn {
-    width: 100%; padding: 11px; background: var(--verde); color: #fff;
+    width: 100%; padding: 11px; background: var(--laranja); color: #fff;
     border: none; border-radius: var(--radius-sm); font-size: 14px;
     font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
     transition: background .15s, box-shadow .15s; letter-spacing: .01em;
-    box-shadow: 0 2px 8px rgba(29,158,117,.30);
+    box-shadow: 0 2px 8px rgba(249,115,22,.30);
   }
-  .login-btn:hover { background: var(--verde-dark); box-shadow: 0 4px 14px rgba(29,158,117,.40); }
+  .login-btn:hover { background: var(--laranja-dark); box-shadow: 0 4px 14px rgba(249,115,22,.40); }
   .login-info {
     margin-top: 1rem; font-size: 11px; color: #BBB; line-height: 1.6;
   }
@@ -1521,7 +1526,7 @@
   .role-coord-ped  { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.25); }
   .role-coord-turno{ background: rgba(186,117,23,.35); color: #FFD97A; border: 1px solid rgba(255,200,80,.25); }
   .role-professor  { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.18); }
-  .role-pip        { background: rgba(43,127,212,.35); color: #A8D4FF; border: 1px solid rgba(80,160,255,.25); }
+  .role-pip        { background: rgba(37,99,235,.35); color: #A8D4FF; border: 1px solid rgba(80,160,255,.25); }
   .role-aee        { background: rgba(107,101,204,.35); color: #C8C4FF; border: 1px solid rgba(150,145,220,.25); }
 
   /* ── PENDING NOTIFICATION ─────────────────────── */
@@ -1619,11 +1624,11 @@
   .btn-cancel:hover { background: #F3F2EF; }
   .btn-save {
     padding: 8px 16px; border: none; border-radius: var(--radius-sm);
-    background: var(--verde); color: #fff; font-size: 13px;
+    background: var(--laranja); color: #fff; font-size: 13px;
     font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
     transition: background .15s;
   }
-  .btn-save:hover { background: var(--verde-dark); }
+  .btn-save:hover { background: var(--laranja-dark); }
 
   /* ── PENDING PANEL ────────────────────────────── */
   .pending-panel-overlay {
@@ -1698,7 +1703,7 @@
     background: var(--azul-bg);
   }
   .pending-item.notif-only .pending-item-new {
-    background: rgba(43,127,212,.12); color: var(--azul-dark);
+    background: rgba(37,99,235,.12); color: var(--azul-dark);
   }
   .pending-item.notif-aee {
     border-left: 3px solid var(--roxo);
@@ -1712,7 +1717,7 @@
     background: var(--verde-bg);
   }
   .pending-item.notif-aprovado .pending-item-new {
-    background: rgba(29,158,117,.12); color: var(--verde-dark);
+    background: rgba(13,148,136,.12); color: var(--verde-dark);
   }
   .notif-tag {
     display: inline-flex; align-items: center; gap: 4px;
@@ -1728,9 +1733,9 @@
   }
   .notif-leitura.ok   { color: var(--verde-dark); }
   .notif-leitura.pend { color: var(--amber-dark); }
-  [data-theme="dark"] .pending-item.notif-only { background: rgba(43,127,212,.08) !important; }
+  [data-theme="dark"] .pending-item.notif-only { background: rgba(37,99,235,.08) !important; }
   [data-theme="dark"] .pending-item.notif-aee  { background: rgba(107,101,204,.08) !important; }
-  [data-theme="dark"] .pending-item.notif-aprovado { background: rgba(29,158,117,.08) !important; }
+  [data-theme="dark"] .pending-item.notif-aprovado { background: rgba(13,148,136,.08) !important; }
 
 .rel-acoes-btn{
   background:none;border:1px solid #E8E7E3;border-radius:6px;
@@ -1963,7 +1968,7 @@
 
   <!-- ─── VIEW: DASHBOARD ─────────────────────────────────── -->
   <div id="view-dashboard" class="view active" style="position:relative">
-    <div id="dashboard-loading" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;color:#999;position:absolute;top:0;left:0;right:0;bottom:0;background:#F7F6F2;z-index:10">
+    <div id="dashboard-loading" style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px;color:#999;position:absolute;top:0;left:0;right:0;bottom:0;background:#F8F9FA;z-index:10">
       <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="32" height="32" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
       <span style="font-size:14px">Carregando dados…</span>
     </div>
@@ -2172,7 +2177,7 @@
   <div class="modal-overlay" id="cardPrintModalOverlay" onclick="closeCardPrintModal(event)" style="z-index:310">
     <div class="modal-box" style="max-width:500px">
       <div class="modal-header">
-        <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+        <div class="modal-avatar" style="background:#EFF6FF;color:#1E3A8A">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         </div>
         <div style="flex:1">
@@ -2264,12 +2269,12 @@
       <div class="card-title">Fluxo de informações pedagógicas</div>
       <div class="fluxo-row">
         <div class="fluxo-node">
-          <svg fill="none" stroke="#1D9E75" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg fill="none" stroke="#0D9488" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           <span>Professor<br>regente</span>
         </div>
         <div class="fluxo-arrow">→</div>
         <div class="fluxo-node">
-          <svg fill="none" stroke="#2B7FD4" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <svg fill="none" stroke="#2563EB" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           <span>PIP<br>Prof. João</span>
         </div>
         <div class="fluxo-arrow">→</div>
@@ -2291,7 +2296,7 @@
       <div style="text-align:center; margin: .5rem 0; color: #CCC; font-size: 20px;">↓</div>
       <div class="fluxo-row">
         <div class="fluxo-node fluxo-center" style="min-width:200px">
-          <svg fill="none" stroke="#0F6E56" stroke-width="1.8" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <svg fill="none" stroke="#0F766E" stroke-width="1.8" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
           <span style="font-weight:600">Coordenação Pedagógica</span>
           <span style="font-size:10px">centraliza, analisa e redistribui</span>
         </div>
@@ -2531,7 +2536,7 @@
       </div>
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="geradorCSVIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Gerador CSV de Advertências"></iframe>
+      <iframe id="geradorCSVIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Gerador CSV de Advertências"></iframe>
     </div>
   </div>
 
@@ -2632,7 +2637,7 @@
       </div>
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="analiseTrimestralIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Análise Trimestral"></iframe>
+      <iframe id="analiseTrimestralIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Análise Trimestral"></iframe>
     </div>
   </div>
 
@@ -2649,7 +2654,7 @@
       </div>
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="ataIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Ata do Conselho de Classe"></iframe>
+      <iframe id="ataIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Ata do Conselho de Classe"></iframe>
     </div>
   </div>
 
@@ -2666,7 +2671,7 @@
       </div>
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="pipleituraIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Fluência de Leitura"></iframe>
+      <iframe id="pipleituraIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Fluência de Leitura"></iframe>
     </div>
   </div>
 
@@ -2798,8 +2803,8 @@
     </div>
 
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
-      <iframe id="eventosGeteculturaIframe" class="eventos-subview active" src="" style="width:100%;height:calc(100vh - 240px);min-height:520px;border:none;display:block;background:#F7F6F2" title="Getecultura"></iframe>
-      <iframe id="eventosInterclasseIframe" class="eventos-subview" src="" style="width:100%;height:calc(100vh - 240px);min-height:520px;border:none;display:none;background:#F7F6F2" title="Interclasse"></iframe>
+      <iframe id="eventosGeteculturaIframe" class="eventos-subview active" src="" style="width:100%;height:calc(100vh - 240px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Getecultura"></iframe>
+      <iframe id="eventosInterclasseIframe" class="eventos-subview" src="" style="width:100%;height:calc(100vh - 240px);min-height:520px;border:none;display:none;background:#F8F9FA" title="Interclasse"></iframe>
     </div>
   </div>
 
@@ -2816,7 +2821,7 @@
       </button>
     </div>
 
-    <div id="usuariosAlerta" style="display:none;background:#E1F5EE;color:#0F6E56;border:1px solid #A8DFC9;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem"></div>
+    <div id="usuariosAlerta" style="display:none;background:#E6FFFA;color:#0F766E;border:1px solid #A8DFC9;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem"></div>
 
     <div class="table-wrap" style="margin-top:1rem">
       <div class="table-scroll">
@@ -2930,7 +2935,7 @@
 
       <div style="margin-bottom:1rem">
         <div style="font-size:11px;font-weight:600;color:#AAA;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Texto anterior</div>
-        <div id="approveEditOld" style="font-size:13px;color:#BBB;background:#F7F6F2;border-radius:6px;padding:8px 12px;text-decoration:line-through;min-height:32px"></div>
+        <div id="approveEditOld" style="font-size:13px;color:#BBB;background:#F8F9FA;border-radius:6px;padding:8px 12px;text-decoration:line-through;min-height:32px"></div>
       </div>
 
       <div style="margin-bottom:1rem">
@@ -2941,7 +2946,7 @@
       <div style="margin-bottom:1.5rem">
         <div style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Texto final <span style="color:#D85A30">*</span></div>
         <textarea id="approveEditFinal" rows="4"
-          style="width:100%;border:1px solid #E8E7E3;border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;outline:none;transition:border .15s;color:#1A1916;background:#fff"
+          style="width:100%;border:1px solid #E8E7E3;border-radius:8px;padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;outline:none;transition:border .15s;color:#1F2937;background:#fff"
           onfocus="this.style.borderColor='var(--verde)'" onblur="this.style.borderColor='#E8E7E3'"></textarea>
         <div style="font-size:11px;color:#AAA;margin-top:4px">Você pode usar a proposta acima, modificá-la ou reescrever.</div>
       </div>
@@ -3521,10 +3526,10 @@ function renderCorrecoesNomeBanner(){
   if(!pendentes.length){ banner.innerHTML=''; return; }
   banner.innerHTML = `
     <div style="background:#EAF2FB;border:1px solid #A9C9EA;border-radius:6px;padding:14px 16px;margin:0 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div style="font-size:13px;color:#154F8A">
+      <div style="font-size:13px;color:#1E3A8A">
         <strong>✎ ${pendentes.length} nome${pendentes.length>1?'s':''} com possível diferença de grafia</strong> em relação à listagem oficial da matrícula (PDF de 20/08/2026).
       </div>
-      <button class="action-btn" style="background:#fff;border:1px solid #A9C9EA;color:#154F8A" onclick="openCorrecoesNomeModal()">Revisar e corrigir</button>
+      <button class="action-btn" style="background:#fff;border:1px solid #A9C9EA;color:#1E3A8A" onclick="openCorrecoesNomeModal()">Revisar e corrigir</button>
     </div>
   `;
 }
@@ -3556,9 +3561,9 @@ function renderCorrecoesNomeModalBody(){
           <div style="flex:1;min-width:220px;font-size:13px">
             <span style="color:#C0392B;text-decoration:line-through">${c.nomeAtual}</span>
             <span style="color:#999"> → </span>
-            <span style="color:#0F6E56;font-weight:600">${c.nomeCorrigido}</span>
+            <span style="color:#0F766E;font-weight:600">${c.nomeCorrigido}</span>
           </div>
-          <button class="action-btn" style="font-size:11.5px;background:#E1F5EE;border-color:#9AD9C4;color:#0F6E56" onclick="applyCorrecaoNome(${c.i})">Aplicar</button>
+          <button class="action-btn" style="font-size:11.5px;background:#E6FFFA;border-color:#9AD9C4;color:#0F766E" onclick="applyCorrecaoNome(${c.i})">Aplicar</button>
           <button class="action-btn" style="font-size:11.5px" onclick="ignoreCorrecaoNome(${c.i})">Ignorar</button>
         </div>
       `).join('')}
@@ -3683,7 +3688,7 @@ function renderDashboard(){
 
   // Perfil chart
   const perfilData=[
-    {label:"Típico", val:tipico,   color:"#1D9E75"},
+    {label:"Típico", val:tipico,   color:"#0D9488"},
     {label:"Atípico",val:atipico,  color:"#BA7517"},
     {label:"Em análise",val:analise,color:"#BA7517"},
   ];
@@ -3697,7 +3702,7 @@ function renderDashboard(){
 
   // Encaminhamento chart
   const encKeys=["PIP","ADAPTAÇÃO","PIP/ADAPTAÇÃO","REFORÇO","AVALIAR","REGULAR"];
-  const encColors={"PIP":"#2B7FD4","ADAPTAÇÃO":"#6B65CC","PIP/ADAPTAÇÃO":"#9C8FE0","REFORÇO":"#1D9E75","AVALIAR":"#BA7517","REGULAR":"#888780"};
+  const encColors={"PIP":"#2563EB","ADAPTAÇÃO":"#6B65CC","PIP/ADAPTAÇÃO":"#9C8FE0","REFORÇO":"#0D9488","AVALIAR":"#BA7517","REGULAR":"#888780"};
   const encData = encKeys.map(k=>({label:k, val:ativos.filter(x=>encamKey(x.e)===k).length, color:encColors[k]})).filter(x=>x.val>0);
   const maxE = Math.max(1, ...encData.map(x=>x.val));
   document.getElementById('chartEncam').innerHTML = encData.map(d=>`
@@ -3719,14 +3724,14 @@ function renderDashboard(){
       <div class="turma-card-name">${t}</div>
       <div class="turma-card-total">${tot} estudantes</div>
       <div class="turma-mini-stack">
-        <div class="turma-mini-seg" style="flex:${nTip};background:#1D9E75"></div>
+        <div class="turma-mini-seg" style="flex:${nTip};background:#0D9488"></div>
         <div class="turma-mini-seg" style="flex:${nAt};background:#D85A30"></div>
         <div class="turma-mini-seg" style="flex:${nAn};background:#BA7517"></div>
       </div>
       <div class="turma-pills">
         ${nAt?`<span class="mini-pill" style="background:#FAECE7;color:#7A2E10">${nAt} atíp.</span>`:''}
         ${nAn?`<span class="mini-pill" style="background:#FEF3DC;color:#7A4A08">${nAn} análise</span>`:''}
-        ${nTip?`<span class="mini-pill" style="background:#E1F5EE;color:#0F6E56">${nTip} típ.</span>`:''}
+        ${nTip?`<span class="mini-pill" style="background:#E6FFFA;color:#0F766E">${nTip} típ.</span>`:''}
       </div>
     </div>`;
   }).join('');
@@ -3958,7 +3963,7 @@ function renderTable(){
         <td class="td-encam">${encamBadge(x.e)}</td>
         <td class="td-rotina col-rotina" title="${x.r||''}">${x.r||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-aee" title="${x.a&&x.a!=='N/A'?x.a:''}">${x.a&&x.a!=="N/A"?(x.a==='Avaliar AEE'?'<span style="background:#FEF3DC;color:#BA7517;font-weight:600;font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap">⚑ Avaliar AEE</span>':x.a):'<span style="color:#D0CFC9">—</span>'}</td>
-        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#1D9E75;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2B7FD4;font-size:11px;font-weight:600">✓ ${pipLabel(v)}</span>`; })()}</td>
+        <td class="td-pip">${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#D0CFC9">—</span>'; if(v==='Avaliar PIP') return `<span style="color:#BA7517;font-size:11px;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span style="color:#0D9488;font-size:11px;font-weight:600">Dispensado</span>`; return `<span style="color:#2563EB;font-size:11px;font-weight:600">✓ ${pipLabel(v)}</span>`; })()}</td>
         <td class="td-ocn ${x.ocn?'has-oc':''}">${x.ocn?x.ocn:'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-ocs col-ocs" title="${x.ocs||''}">${x.ocs||'<span style="color:#D0CFC9">—</span>'}</td>
         <td class="td-obs col-obs" title="${x.o||''}">${x.o||'<span style="color:#D0CFC9">—</span>'}</td>
@@ -4027,7 +4032,7 @@ function renderAtipicos(){
           ${perfilBadge(x.p)}
           ${encamBadge(x.e)}
           ${hasAEE?(x.a==='Avaliar AEE'?`<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar AEE</span>`:`<span class="badge" style="background:#F3F2EF;color:#555">${x.a}</span>`):''}
-          ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E1F5EE;color:#0F6E56;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#E6F1FB;color:#154F8A;font-weight:600">✓ ${pipLabel(v)}</span>`; })():''}
+          ${hasPIP?(()=>{ const v=x.pip; if(v==='Avaliar PIP') return `<span class="badge" style="background:#FEF3DC;color:#BA7517;font-weight:600">⚑ Avaliar PIP</span>`; if(v==='Dispensado') return `<span class="badge" style="background:#E6FFFA;color:#0F766E;font-weight:600">Dispensado</span>`; return `<span class="badge" style="background:#EFF6FF;color:#1E3A8A;font-weight:600">✓ ${pipLabel(v)}</span>`; })():''}
           ${leituraBadge(x)}
           ${x.ocn?`<span class="badge" style="background:#D8392E;color:#fff;font-weight:600">⚠ ${x.ocn} advertência${x.ocn>1?'s':''}</span>`:''}
         </div>
@@ -4077,7 +4082,7 @@ function openModal(idx){
 function renderModalContent(idx){
   const x=S[idx];
   const isAt=x.p==="ATÍPICO", isAn=x.p==="EM ANÁLISE";
-  const bgColor = isAt?"#D85A30":isAn?"#BA7517":"#1D9E75";
+  const bgColor = isAt?"#D85A30":isAn?"#BA7517":"#0D9488";
   const fgColor = "#fff";
 
   const roleInfo = currentRole ? ROLES[currentRole] : null;
@@ -4121,7 +4126,7 @@ function renderModalContent(idx){
         <div class="modal-row">
           <span class="modal-key">PIP/Pedagógico</span>
           <span class="modal-val" style="display:flex;align-items:center;gap:6px">
-            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#1D9E75">Dispensado</span>'; if(v==='Avaliar PIP') return '<span style="color:#BA7517">⚑ Avaliar PIP</span>'; return `<span style="color:#2B7FD4">✓ ${pipLabel(v)}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
+            <span>${(()=>{ const v=x.pip||''; if(!v||v==='N/A') return '<span style="color:#CCC">Não indicado</span>'; if(v==='Dispensado') return '<span style="color:#0D9488">Dispensado</span>'; if(v==='Avaliar PIP') return '<span style="color:#BA7517">⚑ Avaliar PIP</span>'; return `<span style="color:#2563EB">✓ ${pipLabel(v)}</span>`; })()}</span>${fieldEditBtn(idx,'pip')}
           </span>
         </div>
       </div>
@@ -4191,7 +4196,7 @@ function pipLeituraClassColor(rec){
   const p = (rec.prioridade||'').toLowerCase();
   if(p.includes('alta') || p.includes('vermelh')) return {bg:'#FAECE7', fg:'#D85A30'};
   if(p.includes('média') || p.includes('media') || p.includes('amarel')) return {bg:'#FEF3DC', fg:'#BA7517'};
-  if(p.includes('baixa') || p.includes('verde')) return {bg:'#E1F5EE', fg:'#0F6E56'};
+  if(p.includes('baixa') || p.includes('verde')) return {bg:'#E6FFFA', fg:'#0F766E'};
   return {bg:'#F3F2EF', fg:'#888780'};
 }
 
@@ -4258,17 +4263,17 @@ function renderPipLeituraBox(rows, idx, matricula){
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px;background:#FAFAF8">
         <div style="min-width:0;cursor:pointer" onclick='abrirPipLeituraDetalhe(${recJson})'>
-          <div style="font-size:12px;font-weight:600;color:#1A1916">${escapeHtmlPip(rec.classificacao||'—')}</div>
+          <div style="font-size:12px;font-weight:600;color:#1F2937">${escapeHtmlPip(rec.classificacao||'—')}</div>
           <div style="font-size:11px;color:#999">Avaliado em ${escapeHtmlPip(rec.data_avaliacao||'—')}${rec.professor?' · '+escapeHtmlPip(rec.professor):''}</div>
           ${naoVinculado ? `<div style="font-size:10.5px;color:#BA7517;margin-top:2px">⚠ correspondência por nome — não vinculado</div>` : ''}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          ${naoVinculado && matricula!=null ? `<button onclick='event.stopPropagation();vincularPipLeituraModal("${rec.id}", "${matricula}", ${idx}, "${nomeAttr}")' style="font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid #2B7FD4;background:#E6F1FB;color:#154F8A;cursor:pointer;white-space:nowrap;font-family:inherit">vincular</button>` : ''}
+          ${naoVinculado && matricula!=null ? `<button onclick='event.stopPropagation();vincularPipLeituraModal("${rec.id}", "${matricula}", ${idx}, "${nomeAttr}")' style="font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid #2563EB;background:#EFF6FF;color:#1E3A8A;cursor:pointer;white-space:nowrap;font-family:inherit">vincular</button>` : ''}
           <span onclick='abrirPipLeituraDetalhe(${recJson})' style="cursor:pointer;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:${c.bg};color:${c.fg};white-space:nowrap">${escapeHtmlPip(rec.ppm||'—')} PPM</span>
         </div>
       </div>
     `;
-  }).join('') + `<div style="margin-top:4px"><a href="pipleitura.html" target="_blank" rel="noopener" style="font-size:11.5px;color:#2B7FD4;text-decoration:none">↗ Ver livro completo de fluência de leitura</a></div>`;
+  }).join('') + `<div style="margin-top:4px"><a href="pipleitura.html" target="_blank" rel="noopener" style="font-size:11.5px;color:#2563EB;text-decoration:none">↗ Ver livro completo de fluência de leitura</a></div>`;
 }
 
 function escapeHtmlPip(s){
@@ -4385,7 +4390,7 @@ function openEditFromModal(idx, field){
     allOpts.forEach((opt, i) => {
       const row = document.createElement('label');
       row.style.cssText = `display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;border-bottom:${i<allOpts.length-1?'1px solid #F0EFEB':'none'};transition:background .1s;`;
-      row.onmouseenter = ()=>row.style.background='#F7F6F2';
+      row.onmouseenter = ()=>row.style.background='#F8F9FA';
       row.onmouseleave = ()=>row.style.background='';
       const chk = document.createElement('input');
       chk.type = 'checkbox';
@@ -4430,7 +4435,7 @@ function openEditFromModal(idx, field){
       // Add new checkbox row
       const newRow = document.createElement('label');
       newRow.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;font-size:13px;transition:background .1s;border-top:1px solid #F0EFEB;';
-      newRow.onmouseenter = ()=>newRow.style.background='#F7F6F2';
+      newRow.onmouseenter = ()=>newRow.style.background='#F8F9FA';
       newRow.onmouseleave = ()=>newRow.style.background='';
       const newChk = document.createElement('input');
       newChk.type = 'checkbox';
@@ -4708,7 +4713,7 @@ function showToast(msg, type='verde'){
       transition:transform .25s ease,opacity .25s ease;opacity:0;white-space:nowrap`;
     document.body.appendChild(t);
   }
-  const colors={'verde':{bg:['#E1F5EE','#0F6E56']},'amber':{bg:['#FEF3DC','#7A4A08']},'coral':{bg:['#FAECE7','#7A2E10']}};
+  const colors={'verde':{bg:['#E6FFFA','#0F766E']},'amber':{bg:['#FEF3DC','#7A4A08']},'coral':{bg:['#FAECE7','#7A2E10']}};
   const c = colors[type]||colors.verde;
   t.style.background=c.bg[0]; t.style.color=c.bg[1];
   t.textContent=msg;
@@ -4852,7 +4857,7 @@ function executePrint(){
   const colWidths = {turma:'5%',matricula:'8%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%'};
 
   function buildRow(x, idx){
-    const bg = idx%2===0 ? '#fff' : '#F7F6F2';
+    const bg = idx%2===0 ? '#fff' : '#F8F9FA';
     return `<tr style="background:${bg}">` + activeCols.map(c=>{
       let val = '';
       if(c.key==='turma')  val = `<b>${x.t}</b>`;
@@ -4873,7 +4878,7 @@ function executePrint(){
 
   function buildTable(students, titulo, subtitulo){
     const colgroup = activeCols.map(c=>`<col style="width:${colWidths[c.key]||'auto'}">`).join('');
-    const thead = activeCols.map(c=>`<th style="background:#F2F2EF;color:#1A1916;padding:6px 8px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;border:none;border-bottom:1.5px solid #1A1916">${c.label}</th>`).join('');
+    const thead = activeCols.map(c=>`<th style="background:#F2F2EF;color:#1F2937;padding:6px 8px;font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;text-align:left;white-space:nowrap;border:none;border-bottom:1.5px solid #1F2937">${c.label}</th>`).join('');
     const rows  = students.map((x,i)=>buildRow(x,i)).join('');
     return `
       <div class="turma-block">
@@ -4906,18 +4911,18 @@ function executePrint(){
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   @page{size:landscape A4;margin:1.2cm 1.2cm 1.5cm 1.2cm}
-  body{font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#1A1916;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:10px;color:#1F2937;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
   /* ── Cabeçalho do documento ── */
-  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1A1916;padding-bottom:10px;margin-bottom:18px}
-  .doc-title{font-size:15px;font-weight:700;color:#1A1916;margin-bottom:3px}
+  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1F2937;padding-bottom:10px;margin-bottom:18px}
+  .doc-title{font-size:15px;font-weight:700;color:#1F2937;margin-bottom:3px}
   .doc-sub{font-size:9px;color:#666;line-height:1.6}
   .doc-badge{background:#fff;border:1px solid #999;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#333;line-height:1.7;white-space:nowrap}
-  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1A1916}
+  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1F2937}
 
   /* ── Bloco de turma ── */
   .turma-block{margin-bottom:20px}
-  .turma-header{display:flex;align-items:baseline;gap:10px;background:#fff;color:#1A1916;padding:6px 10px;border:1px solid #1A1916;border-bottom-width:2px}
+  .turma-header{display:flex;align-items:baseline;gap:10px;background:#fff;color:#1F2937;padding:6px 10px;border:1px solid #1F2937;border-bottom-width:2px}
   .turma-title{font-size:11px;font-weight:700;letter-spacing:.02em}
   .turma-sub{font-size:9px;color:#666;opacity:1}
 
@@ -4927,7 +4932,7 @@ function executePrint(){
   thead tr th:last-child{border-right:none}
   tbody tr td{border-right:1px solid #ECEAE4}
   tbody tr td:last-child{border-right:none}
-  tbody tr:last-child td{border-bottom:2px solid #1A1916}
+  tbody tr:last-child td{border-bottom:2px solid #1F2937}
 
   /* ── Rodapé ── */
   .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
@@ -5219,21 +5224,21 @@ function gerarRelatorio(){
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:'Georgia',serif; font-size:11pt; color:#1a1a1a; background:#fff; line-height:1.5; }
-  .rel-header { border-bottom:2px solid #1D9E75; padding-bottom:12px; margin-bottom:20px; }
-  .rel-title { font-size:16pt; font-weight:700; color:#0F6E56; margin-bottom:4px; }
+  .rel-header { border-bottom:2px solid #0D9488; padding-bottom:12px; margin-bottom:20px; }
+  .rel-title { font-size:16pt; font-weight:700; color:#0F766E; margin-bottom:4px; }
   .rel-sub { font-size:10pt; color:#666; }
   .rel-meta { font-size:9pt; color:#999; margin-top:3px; }
   .grupo { margin-bottom:24px; page-break-inside:avoid; }
-  .grupo-title { font-size:13pt; font-weight:700; color:#1D9E75; border-left:4px solid #1D9E75; padding:6px 10px; border-radius:0 4px 4px 0; margin-bottom:12px; background:#F7FDFB; }
+  .grupo-title { font-size:13pt; font-weight:700; color:#0D9488; border-left:4px solid #0D9488; padding:6px 10px; border-radius:0 4px 4px 0; margin-bottom:12px; background:#F7FDFB; }
   .aluno-card { border:1px solid #E8E7E3; border-radius:6px; padding:12px 14px; margin-bottom:10px; page-break-inside:avoid; }
   .aluno-nome { font-size:12pt; font-weight:700; margin-bottom:2px; }
   .aluno-meta { font-size:9pt; color:#888; margin-bottom:8px; display:flex; gap:12px; flex-wrap:wrap; }
   .aluno-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:9pt; font-weight:600; }
-  .badge-atipico { background:#FFD600; color:#1A1916; font-weight:700; }
+  .badge-atipico { background:#FFD600; color:#1F2937; font-weight:700; }
   .badge-analise { background:#FEF3DC; color:#7A4A08; }
-  .badge-tipico  { background:#E1F5EE; color:#0F6E56; }
+  .badge-tipico  { background:#E6FFFA; color:#0F766E; }
   .campo-label { font-size:9pt; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.04em; margin-top:8px; margin-bottom:2px; }
-  .campo-val { font-size:10pt; color:#333; background:#FAFAF8; border-left:3px solid #1D9E75; padding:6px 10px; border-radius:0 4px 4px 0; white-space:pre-wrap; word-break:break-word; }
+  .campo-val { font-size:10pt; color:#333; background:#FAFAF8; border-left:3px solid #0D9488; padding:6px 10px; border-radius:0 4px 4px 0; white-space:pre-wrap; word-break:break-word; }
   .campo-val.obs { border-left-color:#D85A30; }
   .rodape { margin-top:24px; border-top:1px solid #E8E7E3; padding-top:8px; font-size:8pt; color:#AAA; text-align:center; }
   @media print {
@@ -5266,7 +5271,7 @@ function gerarRelatorio(){
           <span>${x.t}</span>
           <span>${x.s==='M'?'Masculino':'Feminino'}</span>
           <span class="aluno-badge ${badgeCls}">${x.p}</span>
-          <span style="color:#2B7FD4">${encamKey(x.e)}</span>
+          <span style="color:#2563EB">${encamKey(x.e)}</span>
         </div>`;
       if(incAEE&&x.a&&x.a!=='N/A'){
         html+=`<div class="campo-label">AEE / Diagnóstico</div><div class="campo-val">${x.a}</div>`;
@@ -5372,7 +5377,7 @@ function gerarRelatorio(){
         </div>
       </div>
 
-      <div style="font-size:12px;color:#888;background:#F7F6F2;padding:10px 12px;border-radius:6px;margin-bottom:1rem">
+      <div style="font-size:12px;color:#888;background:#F8F9FA;padding:10px 12px;border-radius:6px;margin-bottom:1rem">
         O relatório abre em nova aba formatado para impressão, organizado por tipo de atipicidade — ideal para entrega ao professor responsável.
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px">
@@ -5977,9 +5982,9 @@ async function submitMovimento(){
 }
 
 function showMovNotification(msg,color){
-  const colors={coral:'#D85A30',azul:'#2B7FD4',verde:'#1D9E75'};
+  const colors={coral:'#D85A30',azul:'#2563EB',verde:'#0D9488'};
   const n=document.createElement('div');
-  n.style.cssText=`position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:${colors[color]||'#1D9E75'};color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.15);max-width:320px;line-height:1.4`;
+  n.style.cssText=`position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;background:${colors[color]||'#0D9488'};color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.15);max-width:320px;line-height:1.4`;
   n.textContent='✓ '+msg;
   document.body.appendChild(n);
   setTimeout(()=>n.remove(),3500);
@@ -6308,7 +6313,7 @@ function leituraBadge(x){
   let bg = '#F3F2EF', color = '#555', border = '#CFCEC8';
   if(prio === 'Alta'){ bg = '#FDEDEB'; color = '#B23A2E'; border = '#E8A79E'; }
   else if(prio === 'Média' || prio === 'Media'){ bg = '#FEF3DC'; color = '#946012'; border = '#E4C179'; }
-  else if(prio === 'Baixa'){ bg = '#E1F5EE'; color = '#0F6E56'; border = '#9AD9C4'; }
+  else if(prio === 'Baixa'){ bg = '#E6FFFA'; color = '#0F766E'; border = '#9AD9C4'; }
   const curto = x._leituraClass
     .replace(/necessidade de /i, '')
     .replace(/\s*\(Protocolo[^)]*\)/i, '')
@@ -6729,7 +6734,7 @@ function renderRelEscolaresLog(){
       </td>
       <td style="white-space:nowrap">
         ${m.link_relatorio
-          ? `<button onclick="abrirRelatorioLink(${idx})" title="Ver relatório" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:4px 8px;cursor:pointer;color:#0F6E56;font-size:11px;display:inline-flex;align-items:center;gap:4px">
+          ? `<button onclick="abrirRelatorioLink(${idx})" title="Ver relatório" style="background:none;border:1px solid #E8E7E3;border-radius:6px;padding:4px 8px;cursor:pointer;color:#0F766E;font-size:11px;display:inline-flex;align-items:center;gap:4px">
                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Ver
              </button>
              <button onclick="definirLinkRelEscolar(${idx})" title="Editar link" style="background:none;border:none;cursor:pointer;color:#AAA;padding:4px;font-size:11px">✎</button>`
@@ -6763,7 +6768,7 @@ function gerarResumoRelEscolares(){
   const grupos = [
     { key:'pendente',  label:'Pendente',      cor:'#7A2E10', bg:'#FAECE7', borda:'#D85A30' },
     { key:'andamento', label:'Em andamento',  cor:'#7A4A08', bg:'#FEF3DC', borda:'#BA7517' },
-    { key:'concluido', label:'Concluído',     cor:'#0F6E56', bg:'#E1F5EE', borda:'#1D9E75' },
+    { key:'concluido', label:'Concluído',     cor:'#0F766E', bg:'#E6FFFA', borda:'#0D9488' },
   ];
 
   let filtrosTxt = [];
@@ -6842,7 +6847,7 @@ function gerarResumoRelEscolares(){
     <div class="stat-box"><b>${total}</b><span>Total</span></div>
     <div class="stat-box"><b style="color:#D85A30">${pendente}</b><span>Pendente</span></div>
     <div class="stat-box"><b style="color:#BA7517">${andamento}</b><span>Em andamento</span></div>
-    <div class="stat-box"><b style="color:#1D9E75">${concluido}</b><span>Concluído</span></div>
+    <div class="stat-box"><b style="color:#0D9488">${concluido}</b><span>Concluído</span></div>
   </div>
   ${secoesHtml}
   <div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Coord. Geral: Leila Maria G. B. Cardoso</div>
@@ -7691,7 +7696,7 @@ function printMateriaisGrid(){
 <title>Controle de Materiais — ${subtitulo}</title>
 <style>
   * { box-sizing:border-box; }
-  body { font-family:'DM Sans','Arial',sans-serif; margin:0; padding:24px; color:#1A1916; }
+  body { font-family:'DM Sans','Arial',sans-serif; margin:0; padding:24px; color:#1F2937; }
   .doc-title { font-size:16px; font-weight:700; margin-bottom:2px; }
   .doc-sub   { font-size:12px; color:#777; margin-bottom:14px; }
   table { border-collapse:collapse; width:100%; font-size:10px; table-layout:auto; }
@@ -8395,8 +8400,8 @@ const ROLE_LABELS = {
   'aee':         'AEE'
 };
 const ROLE_COLORS = {
-  'coord-ped':   { bg:'#E1F5EE', color:'#0F6E56' },
-  'coord-turno': { bg:'#E6F1FB', color:'#154F8A' },
+  'coord-ped':   { bg:'#E6FFFA', color:'#0F766E' },
+  'coord-turno': { bg:'#EFF6FF', color:'#1E3A8A' },
   'pip':         { bg:'#EEEDFE', color:'#3C3489' },
   'aee':         { bg:'#FEF3DC', color:'#7A4A08' }
 };
@@ -8422,7 +8427,7 @@ async function carregarUsuarios(){
       return `
         <tr style="border-bottom:1px solid #ECEAE4">
           <td style="padding:10px 14px;font-size:12px;color:#BBB;font-family:'DM Mono',monospace">${u.id}</td>
-          <td style="padding:10px 14px;font-size:13px;font-weight:500;color:#1A1916">${escHtml(u.usuario)}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:500;color:#1F2937">${escHtml(u.usuario)}</td>
           <td style="padding:10px 14px;font-size:12px">
             ${senhaClara
               ? `<div style="display:flex;align-items:center;gap:6px">
@@ -8444,7 +8449,7 @@ async function carregarUsuarios(){
             <button onclick="toggleAtivo(${u.id},${!ativo})" title="${ativo?'Desativar':'Ativar'} usuário"
               style="border:none;background:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">
               ${ativo
-                ? `<svg fill="none" stroke="#1D9E75" stroke-width="2.5" viewBox="0 0 24 24" width="20" height="20"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+                ? `<svg fill="none" stroke="#0D9488" stroke-width="2.5" viewBox="0 0 24 24" width="20" height="20"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
                 : `<svg fill="none" stroke="#CCC" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
               }
             </button>
@@ -8489,7 +8494,7 @@ function copiarSenha(s){
 function mostrarAvisoUsuarios(msg, tipo='verde'){
   const el = document.getElementById('usuariosAlerta');
   const cores = {
-    verde: { bg:'#E1F5EE', color:'#0F6E56', border:'#A8DFC9' },
+    verde: { bg:'#E6FFFA', color:'#0F766E', border:'#A8DFC9' },
     coral: { bg:'#FAECE7', color:'#7A2E10', border:'#F0B09A' }
   };
   const c = cores[tipo] || cores.verde;
@@ -8935,14 +8940,14 @@ function buildCpStudentList(){
   list.innerHTML = cardPrintData.map((x, i) => {
     const isAt = x.p === 'ATÍPICO';
     const isAn = x.p === 'EM ANÁLISE';
-    const cor = isAt ? '#D85A30' : isAn ? '#BA7517' : '#0F6E56';
+    const cor = isAt ? '#D85A30' : isAn ? '#BA7517' : '#0F766E';
     const label = isAt ? 'Atípico' : isAn ? 'Em análise' : 'Típico';
     return `<label style="display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;font-size:12px;border-radius:5px;transition:background .1s"
       onmouseenter="this.style.background='#F0EFEB'" onmouseleave="this.style.background=''">
       <input type="checkbox" data-ci="${i}" checked
         style="width:14px;height:14px;accent-color:var(--verde);flex-shrink:0;cursor:pointer"
         onchange="updateCardPrintCount()">
-      <span style="flex:1;font-weight:600;color:#1A1916">${x.n}</span>
+      <span style="flex:1;font-weight:600;color:#1F2937">${x.n}</span>
       <span style="font-size:10px;color:#999">${x.t}</span>
       <span style="font-size:10px;font-weight:600;color:${cor}">${label}</span>
     </label>`;
@@ -9029,8 +9034,8 @@ function executeCardPrint(){
     const pipChip = hasPIP ? (()=>{
       const v = x.pip;
       if(v==='Avaliar PIP') return `<span class="badge" style="background:#fff;border:1px solid #BA7517;color:#BA7517;font-weight:600">&#x2691; Avaliar PIP</span>`;
-      if(v==='Dispensado') return `<span class="badge" style="background:#fff;border:1px solid #0F6E56;color:#0F6E56;font-weight:600">Dispensado</span>`;
-      return `<span class="badge" style="background:#fff;border:1px solid #154F8A;color:#154F8A;font-weight:600">&#x2713; ${pipLabel(v)}</span>`;
+      if(v==='Dispensado') return `<span class="badge" style="background:#fff;border:1px solid #0F766E;color:#0F766E;font-weight:600">Dispensado</span>`;
+      return `<span class="badge" style="background:#fff;border:1px solid #1E3A8A;color:#1E3A8A;font-weight:600">&#x2713; ${pipLabel(v)}</span>`;
     })() : '';
     const rotina = x.r
       ? `<div class="print-card-rotina">${x.r}</div>`
@@ -9855,16 +9860,16 @@ function ltRenderAtaBloco(itens, paraImpressao){
       return `
         <div style="margin-bottom:9px;padding:7px 9px;border:1px solid #E2E1DC;border-radius:4px;page-break-inside:avoid">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px;border-bottom:1px solid #ECEAE4;padding-bottom:4px">
-            <span style="font-size:10.5px;font-weight:700;color:#1A1916">${ltEsc(g.trimestre)}º Trimestre</span>
+            <span style="font-size:10.5px;font-weight:700;color:#1F2937">${ltEsc(g.trimestre)}º Trimestre</span>
             <span style="font-size:9px;color:#888">${ltEsc(g.professor)} · ${dataFmt}</span>
           </div>
-          <ul style="margin:0;padding-left:15px;font-size:10.5px;color:#1A1916;line-height:1.55">${itensHtml}</ul>
+          <ul style="margin:0;padding-left:15px;font-size:10.5px;color:#1F2937;line-height:1.55">${itensHtml}</ul>
         </div>`;
     }
     return `
       <div style="margin-bottom:10px;padding:9px 11px;background:#F8F7F4;border:1px solid #E8E7E3;border-radius:6px">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-          <span style="font-size:11.5px;font-weight:700;color:#1A1916">${ltEsc(g.trimestre)}º Trimestre</span>
+          <span style="font-size:11.5px;font-weight:700;color:#1F2937">${ltEsc(g.trimestre)}º Trimestre</span>
           <span style="font-size:10.5px;color:#999">${ltEsc(g.professor)} · ${dataFmt}</span>
         </div>
         <ul style="margin:0;padding-left:16px;font-size:11.5px;color:#333;line-height:1.6">${itensHtml}</ul>
@@ -9879,7 +9884,7 @@ function ltRenderMateriaisBloco(itens, paraImpressao){
   const fonte = paraImpressao ? '10.5px' : '12.5px';
   const texto = itens.map(ev=>ltEsc(ev.desc)).join(', ');
   return `<div style="padding:${paraImpressao?'6px 2px':'8px 2px'}">
-    <span style="font-size:${fonte};color:#1A1916;line-height:1.6">${texto}</span>
+    <span style="font-size:${fonte};color:#1F2937;line-height:1.6">${texto}</span>
   </div>`;
 }
 
@@ -9932,7 +9937,7 @@ function ltRenderEventos(eventos, carregando){
     let linhas;
     if(sec.categoria==='rotina' && sec.itens.length){
       linhas = sec.itens.map(ev=>`
-        <div style="padding:9px 12px;background:#E6F1FB;border-left:3px solid #2B7FD4;border-radius:4px;font-size:12.5px;color:#154F8A;line-height:1.55">${ltEsc(ev.desc)}</div>`).join('');
+        <div style="padding:9px 12px;background:#EFF6FF;border-left:3px solid #2563EB;border-radius:4px;font-size:12.5px;color:#1E3A8A;line-height:1.55">${ltEsc(ev.desc)}</div>`).join('');
     } else if(sec.categoria==='advertencias' && sec.itens.length){
       linhas = sec.itens.map(ev=>`
         <div style="padding:7px 0 2px">
@@ -9985,7 +9990,7 @@ function ltRenderCabecalho(x){
       <div style="width:50px;height:50px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;letter-spacing:-.5px;color:#fff;background:${accent};box-shadow:0 3px 10px rgba(0,0,0,.15)">${initials(x.n)}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:3px">
-          <span style="font-size:19px;font-weight:800;letter-spacing:-.2px;color:var(--text-main,#1A1916)">${ltEsc(x.n)}</span>
+          <span style="font-size:19px;font-weight:800;letter-spacing:-.2px;color:var(--text-main,#1F2937)">${ltEsc(x.n)}</span>
           ${ltBadgePerfil(x)}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-sub,#999)">
@@ -10083,8 +10088,8 @@ function ltMontarPaginaHtml(x, eventos, notasRows, opts){
     let itensHtml;
     if(sec.categoria==='rotina' && sec.itens.length){
       itensHtml = sec.itens.map(ev=>`
-        <div class="lt-secao-item" style="border-bottom:none;background:#fff;border:1px solid #E2E1DC;border-left:3px solid #2B7FD4;border-radius:4px">
-          <div class="lt-secao-item-desc" style="color:#154F8A">${ltEsc(ev.desc)}</div>
+        <div class="lt-secao-item" style="border-bottom:none;background:#fff;border:1px solid #E2E1DC;border-left:3px solid #2563EB;border-radius:4px">
+          <div class="lt-secao-item-desc" style="color:#1E3A8A">${ltEsc(ev.desc)}</div>
         </div>`).join('');
     } else if(sec.categoria==='advertencias' && sec.itens.length){
       itensHtml = sec.itens.map(ev=>`
@@ -10163,26 +10168,26 @@ function ltMontarDocumentoHtml(paginasHtml){
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   @page{size:portrait A4;margin:1.4cm 1.4cm 1.6cm 1.4cm}
-  body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1A1916;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1F2937;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
-  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1A1916;padding-bottom:10px;margin-bottom:18px}
-  .doc-title{font-size:16px;font-weight:700;color:#1A1916;margin-bottom:3px}
-  .doc-aluno-nome{font-size:20px;font-weight:700;color:#1A1916;margin-bottom:5px;letter-spacing:.01em}
+  .doc-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #1F2937;padding-bottom:10px;margin-bottom:18px}
+  .doc-title{font-size:16px;font-weight:700;color:#1F2937;margin-bottom:3px}
+  .doc-aluno-nome{font-size:20px;font-weight:700;color:#1F2937;margin-bottom:5px;letter-spacing:.01em}
   .doc-sub{font-size:10px;color:#666;line-height:1.7}
   .doc-badge{background:#fff;border:1px solid #999;border-radius:6px;padding:6px 12px;text-align:right;font-size:9px;color:#333;line-height:1.7;white-space:nowrap}
-  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1A1916}
+  .doc-badge strong{display:block;font-size:13px;font-weight:700;color:#1F2937}
 
   .lt-secao{margin-bottom:16px;page-break-inside:avoid}
-  .lt-secao-titulo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1A1916;background:#F2F2EF;padding:6px 9px;border-bottom:1.5px solid #1A1916}
+  .lt-secao-titulo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#1F2937;background:#F2F2EF;padding:6px 9px;border-bottom:1.5px solid #1F2937}
   .lt-secao-item{padding:6px 9px;border-bottom:1px solid #ECEAE4}
   .lt-secao-item:nth-child(even){background:#F9F8F5}
-  .lt-secao-item-desc{font-size:10.5px;color:#1A1916}
+  .lt-secao-item-desc{font-size:10.5px;color:#1F2937}
   .lt-secao-item-meta{font-size:9px;color:#999;margin-top:2px}
   .lt-secao-vazia{font-size:10px;color:#999;padding:7px 9px;font-style:italic}
 
   .lt-assinaturas{display:flex;gap:40px;margin-top:34px;margin-bottom:8px}
   .lt-assin-col{flex:1;text-align:center}
-  .lt-assin-linha{border-top:1px solid #1A1916;margin-bottom:6px;margin-top:26px}
+  .lt-assin-linha{border-top:1px solid #1F2937;margin-bottom:6px;margin-top:26px}
   .lt-assin-label{font-size:9.5px;color:#555}
 
   .doc-footer{margin-top:16px;border-top:1px solid #ddd;padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:#999}
@@ -10281,7 +10286,7 @@ async function imprimirLinhaDoTempo(){
 <div class="modal-overlay" id="printModalOverlay" onclick="closePrintModal(event)" style="z-index:300">
   <div class="modal-box" style="max-width:460px">
     <div class="modal-header">
-      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+      <div class="modal-avatar" style="background:#EFF6FF;color:#1E3A8A">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
       </div>
       <div style="flex:1">
@@ -10333,7 +10338,7 @@ async function imprimirLinhaDoTempo(){
 <div class="modal-overlay" id="ltImpressaoModalOverlay" onclick="fecharModalImpressaoLT(event)" style="z-index:300">
   <div class="modal-box" style="max-width:420px">
     <div class="modal-header">
-      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+      <div class="modal-avatar" style="background:#EFF6FF;color:#1E3A8A">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       </div>
       <div style="flex:1">
@@ -10474,7 +10479,7 @@ async function imprimirLinhaDoTempo(){
       <div id="relIAStep2" style="display:none">
         <div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px">Relatório gerado — revise, edite e salve</div>
         <textarea id="relIATextoGerado" rows="20" style="width:100%;padding:10px;border:1px solid #E8E7E3;border-radius:6px;font-size:12.5px;font-family:'Georgia',serif;line-height:1.5;resize:vertical"></textarea>
-        <div id="relIASalvoMsg" style="display:none;font-size:11px;color:#0F6E56;margin-top:6px">✓ Relatório salvo.</div>
+        <div id="relIASalvoMsg" style="display:none;font-size:11px;color:#0F766E;margin-top:6px">✓ Relatório salvo.</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
           <button class="btn-cancel" onclick="voltarRelIAStep1()">← Ajustar informações e gerar de novo</button>
           <div style="display:flex;gap:8px">
