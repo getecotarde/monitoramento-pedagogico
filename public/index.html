@@ -100,19 +100,28 @@
 
   /* ── PRINT MODAL: sempre claro, independente do tema ── */
   #printModalOverlay .modal-box,
-  #printModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
-  #printModalOverlay .modal-nome   { color: #1A1916 !important; }
-  #printModalOverlay .modal-sub    { color: #999 !important; }
-  #printModalOverlay .modal-close  { background: #F3F2EF !important; }
-  #printModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
-  #printModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
+  #printModalOverlay .modal-header,
+  #ltImpressaoModalOverlay .modal-box,
+  #ltImpressaoModalOverlay .modal-header { background: #fff !important; color: #1A1916 !important; border-color: #E8E7E3 !important; }
+  #printModalOverlay .modal-nome,
+  #ltImpressaoModalOverlay .modal-nome   { color: #1A1916 !important; }
+  #printModalOverlay .modal-sub,
+  #ltImpressaoModalOverlay .modal-sub    { color: #999 !important; }
+  #printModalOverlay .modal-close,
+  #ltImpressaoModalOverlay .modal-close  { background: #F3F2EF !important; }
+  #printModalOverlay .modal-body,
+  #ltImpressaoModalOverlay .modal-body   { background: #fff !important; color: #1A1916 !important; }
+  #printModalOverlay label,
+  #ltImpressaoModalOverlay label         { background: #FAFAF8 !important; border-color: #E8E7E3 !important; color: #333 !important; }
   #printModalOverlay button[style*="background:#FAFAF8"],
   #printModalOverlay div[style*="background:#FAFAF8"]     { background: #FAFAF8 !important; border-color: #E8E7E3 !important; }
   #printModalOverlay button[style*="color:#555"]          { color: #555 !important; }
-  #printModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; border-color: #E8E7E3 !important; }
+  #printModalOverlay .btn-cancel,
+  #ltImpressaoModalOverlay .btn-cancel   { background: #F3F2EF !important; color: #555 !important; border-color: #E8E7E3 !important; }
   #printModalOverlay div[style*="background:#F3F2EF"] { background: #F3F2EF !important; color: #888 !important; }
   #printModalOverlay strong        { color: #555 !important; }
   #printModalOverlay div[style*="color:#BBB"] { color: #BBB !important; }
+  #ltImpressaoModalOverlay .modal-section-title { color: #BBB !important; }
 
   /* ── Rede de segurança: elementos com fundo/texto claro fixo via style
      inline, usados em chips, botões de alternância e campos auxiliares em
@@ -1258,9 +1267,9 @@
     font-size: 14px; font-weight: 700; flex-shrink: 0;
     letter-spacing: -.5px;
   }
-  .avatar-at  { background: var(--coral-bg); color: var(--coral-dark); }
-  .avatar-an  { background: var(--amber-bg); color: var(--amber-dark); }
-  .avatar-ti  { background: var(--verde-bg); color: var(--verde-dark); }
+  .avatar-at  { background: var(--coral); color: #fff; }
+  .avatar-an  { background: var(--amber); color: #fff; }
+  .avatar-ti  { background: var(--verde); color: #fff; }
   .detail-nome { font-size: 15px; font-weight: 700; color: #1A1916; line-height: 1.25; margin-bottom: 3px; }
   .detail-turma{ font-size: 12px; color: #999; font-weight: 400; }
 
@@ -2497,31 +2506,10 @@
       <div class="detail-card-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
           <h2 style="font-size:15px;font-weight:700">Perfil individual — visualização e impressão</h2>
-          <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="imprimirLinhaDoTempo()" style="display:inline-flex;align-items:center;gap:6px" disabled>
+          <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="abrirModalImpressaoLT()" style="display:inline-flex;align-items:center;gap:6px" disabled>
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Gerar relatório para impressão
           </button>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#FAFAF8;border:1px solid #E8E7E3;border-radius:7px">
-          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#BBB">Impressão</span>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
-            <input type="radio" name="ltModoImpressao" value="pagina" checked style="accent-color:var(--verde)"> Um perfil por página
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
-            <input type="radio" name="ltModoImpressao" value="lista" style="accent-color:var(--verde)"> Listagem da turma (vários alunos por página)
-          </label>
-        </div>
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#FAFAF8;border:1px solid #E8E7E3;border-radius:7px">
-          <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#BBB">Abertura</span>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
-            <input type="radio" name="ltModoAbertura" value="unica" checked style="accent-color:var(--verde)"> Uma janela (todos juntos)
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
-            <input type="radio" name="ltModoAbertura" value="abas" style="accent-color:var(--verde)"> Uma aba por estudante
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#555;cursor:pointer">
-            <input type="radio" name="ltModoAbertura" value="janelas" style="accent-color:var(--verde)"> Uma janela individual por estudante
-          </label>
         </div>
         <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px;transition:max-height .15s ease">
           <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para visualizar o perfil individual em tela ou gerar a prévia de impressão.</div>
@@ -4089,8 +4077,8 @@ function openModal(idx){
 function renderModalContent(idx){
   const x=S[idx];
   const isAt=x.p==="ATÍPICO", isAn=x.p==="EM ANÁLISE";
-  const bgColor = isAt?"#FAECE7":isAn?"#FEF3DC":"#E1F5EE";
-  const fgColor = isAt?"#7A2E10":isAn?"#7A4A08":"#0F6E56";
+  const bgColor = isAt?"#D85A30":isAn?"#BA7517":"#1D9E75";
+  const fgColor = "#fff";
 
   const roleInfo = currentRole ? ROLES[currentRole] : null;
   const canEdit  = roleInfo ? roleInfo.canEdit : [];
@@ -10216,6 +10204,16 @@ ${paginasHtml}
 </html>`;
 }
 
+function abrirModalImpressaoLT(){
+  document.getElementById('ltImpressaoModalOverlay').classList.add('open');
+}
+function fecharModalImpressaoLT(e){ if(e.target===e.currentTarget) fecharModalImpressaoLTBtn(); }
+function fecharModalImpressaoLTBtn(){ document.getElementById('ltImpressaoModalOverlay').classList.remove('open'); }
+function confirmarImpressaoLT(){
+  fecharModalImpressaoLTBtn();
+  imprimirLinhaDoTempo();
+}
+
 async function imprimirLinhaDoTempo(){
   const selecionados = getLtAlunosSelecionados();
   if(!selecionados.length){ alert('Selecione ao menos um estudante.'); return; }
@@ -10325,6 +10323,54 @@ async function imprimirLinhaDoTempo(){
         <button class="btn-save" onclick="executePrint()" style="display:inline-flex;align-items:center;gap:6px">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></rect></svg>
           Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PERFIL INDIVIDUAL — OPÇÕES DE IMPRESSÃO ═══════════════════════════════ -->
+<div class="modal-overlay" id="ltImpressaoModalOverlay" onclick="fecharModalImpressaoLT(event)" style="z-index:300">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-avatar" style="background:#E6F1FB;color:#154F8A">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="modal-nome">Opções de impressão</div>
+        <div class="modal-sub">Perfil individual</div>
+      </div>
+      <button class="modal-close" onclick="fecharModalImpressaoLTBtn()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-title">Impressão</div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;padding:9px 11px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px">
+          <input type="radio" name="ltModoImpressao" value="pagina" checked style="accent-color:var(--verde)"> Um perfil por página
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;padding:9px 11px;border:1px solid #E8E7E3;border-radius:8px">
+          <input type="radio" name="ltModoImpressao" value="lista" style="accent-color:var(--verde)"> Listagem da turma (vários alunos por página)
+        </label>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Abertura</div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;padding:9px 11px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px">
+          <input type="radio" name="ltModoAbertura" value="unica" checked style="accent-color:var(--verde)"> Uma janela (todos juntos)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;padding:9px 11px;border:1px solid #E8E7E3;border-radius:8px;margin-bottom:6px">
+          <input type="radio" name="ltModoAbertura" value="abas" style="accent-color:var(--verde)"> Uma aba por estudante
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;padding:9px 11px;border:1px solid #E8E7E3;border-radius:8px">
+          <input type="radio" name="ltModoAbertura" value="janelas" style="accent-color:var(--verde)"> Uma janela individual por estudante
+        </label>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:.25rem">
+        <button class="btn-cancel" onclick="fecharModalImpressaoLTBtn()">Cancelar</button>
+        <button class="btn-save" onclick="confirmarImpressaoLT()" style="display:inline-flex;align-items:center;gap:6px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Gerar relatório
         </button>
       </div>
     </div>
