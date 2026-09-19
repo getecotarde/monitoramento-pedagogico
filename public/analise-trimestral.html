@@ -171,6 +171,17 @@ body{
 .val.ok{color:var(--accent);}
 .val.mid{color:var(--warn);}
 .val.bad{color:var(--danger);}
+.risk-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px;}
+.risk-card{
+  background:#fff; border:1px solid var(--danger); border-radius:12px; padding:14px 16px;
+}
+.risk-card h4{margin:0 0 4px; font-family:'Fraunces',serif; font-size:15px;}
+.risk-card .risk-count{font-size:11px; color:var(--danger); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
+.risk-subj-row{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:5px 0; border-top:1px dashed var(--line);}
+.risk-subj-row:first-of-type{border-top:none;}
+.risk-subj-row .risk-subj-name{color:var(--ink);}
+.risk-subj-row .risk-subj-val{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--danger); white-space:nowrap; margin-left:8px;}
+.risk-empty{color:var(--ink-soft); font-size:12.5px; padding:6px 0;}
 .detail-panel{
   margin-top:20px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px;
 }
@@ -214,6 +225,7 @@ body{
 .hdr-info label{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
 .meta-input{font-family:'Inter',sans-serif; font-size:12px; padding:4px 7px; border:1px solid var(--line); border-radius:6px; width:150px; background:#fff; color:var(--ink);}
 .print-footer{display:none;}
+.print-subject-doc, .print-cards-doc{ display:none; }
 
 /* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
 @media print{
@@ -222,7 +234,7 @@ body{
   html, body{ background:#fff !important; color:#000 !important; font-size:11px; height:auto !important; }
   .app{ display:block; }
   .sidebar, .print-btn, .status-line, #uploadBox, .upload-box, .overview-btn,
-  .class-item .del, .review-box, .detail-panel{ display:none !important; }
+  .class-item .del, .review-box, .detail-panel, .risk-section{ display:none !important; }
   .main{ padding:0; max-width:100%; }
 
   .hdr{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1.3px solid #000; padding-bottom:3px; margin-bottom:5px; }
@@ -285,6 +297,28 @@ body{
     margin-top:4px; padding-top:3px; border-top:1px solid #000; font-size:9.5px; color:#000;
   }
   .print-footer strong{ font-weight:800; }
+
+  /* Impressões dedicadas: listagem por disciplina (para professores) e cards de
+     risco de todas as turmas. Cada uma some por padrão e só aparece quando o
+     JS marca o <body> com a classe correspondente antes de chamar print(). */
+  body.print-mode-subjects .app{ display:none !important; }
+  body.print-mode-subjects .print-subject-doc{ display:block !important; }
+  body.print-mode-cards .app{ display:none !important; }
+  body.print-mode-cards .print-cards-doc{ display:block !important; }
+
+  .print-page{ page-break-after:always; }
+  .print-page:last-child{ page-break-after:auto; }
+  .print-page-hdr{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1.3px solid #000; padding-bottom:4px; margin-bottom:12px; }
+  .print-page-hdr h1{ font-family:'Fraunces',serif; font-size:16px; margin:0; color:#000; }
+  .print-page-sub{ font-size:10.5px; color:#333; margin-top:2px; }
+  .print-page-teacher{ font-size:10.5px; color:#000; white-space:nowrap; }
+  .print-subj-table{ width:100%; border-collapse:collapse; font-size:11px; }
+  .print-subj-table th, .print-subj-table td{ border:1px solid #000; padding:4px 7px; text-align:left; color:#000; }
+  .print-subj-table th{ background:#fff; text-transform:uppercase; font-size:9.5px; }
+  .print-risk-grid{ margin-top:6px; }
+  .print-cards-doc .risk-card{ border:1px solid #000; break-inside:avoid; page-break-inside:avoid; }
+  .print-cards-doc .risk-card .risk-count{ color:#000; }
+  .print-cards-doc .risk-subj-row .risk-subj-val{ color:#000; }
 }
 
 /* Notas metodológicas dos gráficos do Dashboard */
@@ -353,6 +387,8 @@ body{
     </div>
   </div>
 </div>
+<div id="printSubjectDoc" class="print-subject-doc"></div>
+<div id="printCardsDoc" class="print-cards-doc"></div>
 
 <script>
 // Worker do pdf.js embutido localmente (base64) para nao depender de nenhum CDN externo.
@@ -655,6 +691,136 @@ function computeStats(classData){
   return {stats, destaques70, destaquesPort, destaquesMat, atencao};
 }
 
+// Alunos com risco de retenção: para CADA disciplina cuja nota do Total Anual
+// ficou abaixo de 60% (taStatus==='bad'), monta um card individual do aluno
+// listando a(s) disciplina(s) em risco, a nota total e o percentual atingido.
+// Diferente de "atencao" (que só sinaliza quem está mal em 2+ disciplinas),
+// aqui entra qualquer aluno com pelo menos 1 disciplina abaixo de 60%.
+function computeRetentionRisk(classData){
+  const {subjects, students} = classData;
+  const risk = students.map(st=>{
+    const lowSubjects = [];
+    subjects.forEach((subjName,idx)=>{
+      if(isLiteratura(subjName)) return;
+      const calc = subjectCalc(st.subjects[idx]);
+      if(calc.filledCount>0 && calc.taStatus==='bad'){
+        lowSubjects.push({
+          name: subjName,
+          ta: calc.ta,
+          taMax: calc.taMax,
+          taPass: calc.taPass,
+          falta: calc.taPass - calc.ta,
+          pct: pct(calc.ta, calc.taMax)
+        });
+      }
+    });
+    return {name: st.name, subjects: lowSubjects};
+  }).filter(st=> st.subjects.length>0)
+    .sort((a,b)=> b.subjects.length - a.subjects.length || a.name.localeCompare(b.name));
+  return risk;
+}
+
+function riskCards(list){
+  if(!list.length){
+    return `<div class="risk-empty">Nenhum aluno com nota do Total Anual abaixo de 60% em alguma disciplina.</div>`;
+  }
+  return list.map(st=>{
+    const rows = st.subjects.map(s=>
+      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">${s.ta}/${s.taMax} · faltam ${s.falta} pt${s.falta===1?'':'s'} (${s.pct}%)</span></div>`
+    ).join('');
+    return `<div class="risk-card">
+      <h4>${st.name}</h4>
+      <div class="risk-count">${st.subjects.length} disciplina${st.subjects.length>1?'s':''} em risco</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+// Mesma base de "risco de retenção", mas organizada por DISCIPLINA em vez de por
+// aluno — pensada para impressão e entrega individual a cada professor(a), já
+// que cada um só precisa ver os alunos da sua própria disciplina.
+function computeRetentionRiskBySubject(classData){
+  const {subjects, students} = classData;
+  const bySubject = [];
+  subjects.forEach((subjName, idx)=>{
+    if(isLiteratura(subjName)) return;
+    const atRisk = students.map(st=>{
+      const calc = subjectCalc(st.subjects[idx]);
+      if(calc.filledCount>0 && calc.taStatus==='bad'){
+        return {
+          name: st.name,
+          ta: calc.ta,
+          taMax: calc.taMax,
+          taPass: calc.taPass,
+          falta: calc.taPass - calc.ta,
+          pct: pct(calc.ta, calc.taMax)
+        };
+      }
+      return null;
+    }).filter(Boolean).sort((a,b)=> b.falta - a.falta || a.name.localeCompare(b.name));
+    if(atRisk.length) bySubject.push({subject: subjName, students: atRisk});
+  });
+  return bySubject;
+}
+
+// Monta e imprime, uma folha por disciplina, a lista de alunos em risco daquela
+// disciplina — pronta para ser destacada e entregue ao professor(a) responsável.
+function printRiskBySubject(className){
+  const cd = currentClasses[className];
+  if(!cd) return;
+  const bySubject = computeRetentionRiskBySubject(cd);
+  const cfg = loadGlobalConfig();
+  cd.meta = cd.meta || {};
+  let html;
+  if(bySubject.length===0){
+    html = `<div class="print-page">
+      <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div></div></div>
+      <p>Nenhum aluno com nota do Total Anual abaixo de 60% em nenhuma disciplina.</p>
+    </div>`;
+  } else {
+    html = bySubject.map(sec => `
+      <div class="print-page">
+        <div class="print-page-hdr">
+          <div>
+            <h1>${className} — ${sec.subject}</h1>
+            <div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div>
+          </div>
+          <div class="print-page-teacher">Professor(a): ______________________________</div>
+        </div>
+        <table class="print-subj-table">
+          <thead><tr><th>Aluno</th><th>Nota Total</th><th>Faltam (pontos)</th><th>%</th></tr></thead>
+          <tbody>
+            ${sec.students.map(s=>`<tr><td>${s.name}</td><td>${s.ta}/${s.taMax}</td><td>${s.falta}</td><td>${s.pct}%</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('');
+  }
+  document.getElementById('printSubjectDoc').innerHTML = html;
+  document.body.classList.add('print-mode-subjects');
+  window.print();
+  setTimeout(()=>{ document.body.classList.remove('print-mode-subjects'); }, 300);
+}
+
+// Imprime, em folhas separadas (uma por turma), o conjunto de cards de risco de
+// retenção já usados na tela — útil para levar o conjunto completo de turmas
+// numa única impressão em papel, sem precisar abrir turma por turma.
+function printRiskCardsAllClasses(){
+  const names = Object.keys(currentClasses).sort();
+  if(names.length===0) return;
+  const html = names.map(name=>{
+    const cd = currentClasses[name];
+    const risk = computeRetentionRisk(cd);
+    return `<div class="print-page">
+      <div class="print-page-hdr"><div><h1>${name}</h1><div class="print-page-sub">${cd.students.length} alunos</div></div></div>
+      <div class="risk-grid print-risk-grid">${riskCards(risk)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('printCardsDoc').innerHTML = html;
+  document.body.classList.add('print-mode-cards');
+  window.print();
+  setTimeout(()=>{ document.body.classList.remove('print-mode-cards'); }, 300);
+}
+
 // ---------- STORAGE ----------
 function slugKey(name){
   return 'turma:' + name
@@ -875,6 +1041,7 @@ function renderMain(){
   }
   const cd = currentClasses[activeClass];
   const {stats, destaques70, destaquesPort, destaquesMat, atencao} = computeStats(cd);
+  const retentionRisk = computeRetentionRisk(cd);
   const cfg = loadGlobalConfig();
   if(!cfg.escola){ cfg.escola = 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(cfg); }
   cd.meta = cd.meta || {};
@@ -900,6 +1067,8 @@ function renderMain(){
     </div>
     <div class="hdr-actions">
       <button class="print-btn" onclick="window.print()">🖶 Imprimir quadro resumo</button>
+      <button class="print-btn" onclick="printRiskBySubject('${activeClass.replace(/'/g,"\\'")}')">🖶 Imprimir por disciplina (professores)</button>
+      <button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button>
       <div class="stamp">${activeClass.slice(0,6)}</div>
     </div>
   </div>`;
@@ -934,6 +1103,12 @@ function renderMain(){
     </div>`;
   });
   html += `</div>`;
+
+  html += `<div class="risk-section">
+    <div class="section-title">Alunos com risco de retenção (Total Anual &lt; 60% por disciplina)</div>
+    <div class="risk-grid">${riskCards(retentionRisk)}</div>
+  </div>`;
+
   html += `<div class="print-footer">
     <div>Coordenador(a) Pedagógico(a): <strong>Prof. Everton Correa</strong></div>
     <div>Coordenadora Geral: <strong>Leila Cardoso</strong></div>
@@ -1007,7 +1182,7 @@ function renderOverview(){
   }
   const allSubjects = new Set();
   names.forEach(n=> currentClasses[n].subjects.forEach(s=>{ if(!isLiteratura(s)) allSubjects.add(s); }));
-  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button></div>`;
+  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><div class="hdr-actions"><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button><button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button></div></div>`;
   html += `<div class="section-title">Aprovação final (%) por turma e disciplina</div>`;
   html += `<table class="overview-table"><thead><tr><th>Turma</th>${[...allSubjects].map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
   for(const n of names){
