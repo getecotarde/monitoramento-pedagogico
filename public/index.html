@@ -9562,20 +9562,29 @@ const LT_TRI_COLORS = ['#2F6F63','#B4802A','#6E4A7E'];
 // Rendimento Trimestral sem precisar girar o texto (o que prejudicava a
 // legibilidade). O nome completo continua aparecendo no tooltip.
 const LT_ABREVIACOES_DISCIPLINA = {
-  'EDUCAÇÃO FÍSICA': 'ED. FÍSICA',
-  'LÍNGUA ESTRANGEIRA': 'LÍNG. ESTRANG.',
-  'LÍNGUA PORTUGUESA': 'LÍNG. PORTUGUESA',
-  'ENSINO RELIGIOSO': 'ENS. RELIGIOSO',
-  'CIÊNCIAS DA NATUREZA': 'CIÊNC. NATUREZA',
-  'CIÊNCIAS HUMANAS': 'CIÊNC. HUMANAS'
+  'ARTE': 'ARTE',
+  'CIÊNCIAS': 'CIÊN',
+  'EDUCAÇÃO FÍSICA': 'ED. FÍS',
+  'GEOGRAFIA': 'GEO',
+  'HISTÓRIA': 'HIST',
+  'LÍNGUA ESTRANGEIRA': 'LÍNG. EST',
+  'LÍNGUA PORTUGUESA': 'LÍNG. PORT',
+  'MATEMÁTICA': 'MAT',
+  'ENSINO RELIGIOSO': 'ENS. REL',
+  'CIÊNCIAS DA NATUREZA': 'CIÊN. NAT',
+  'CIÊNCIAS HUMANAS': 'CIÊN. HUM',
+  'FILOSOFIA': 'FIL',
+  'SOCIOLOGIA': 'SOC',
+  'REDAÇÃO': 'RED',
+  'INFORMÁTICA': 'INFO'
 };
 function ltAbreviarDisciplina(nome){
   if(!nome) return nome;
   const chave = nome.trim().toUpperCase();
   if(LT_ABREVIACOES_DISCIPLINA[chave]) return LT_ABREVIACOES_DISCIPLINA[chave];
-  // Fallback genérico: se o nome for muito comprido e ainda não estiver
-  // mapeado acima, trunca com reticências para não quebrar o layout.
-  return nome.length > 16 ? nome.slice(0,15).trim()+'…' : nome;
+  // Fallback genérico: se o nome não estiver mapeado acima, trunca de forma
+  // curta (estilo código de disciplina) para nunca sobrepor rótulos vizinhos.
+  return nome.length > 6 ? nome.slice(0,5).trim()+'.' : nome;
 }
 
 // Plugin Chart.js: desenha uma linha horizontal tracejada e mais grossa em y=60,
