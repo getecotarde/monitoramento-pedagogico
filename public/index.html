@@ -2520,14 +2520,21 @@
     </div>
 
     <!-- Prévia + ação -->
-    <div class="detail-card" style="flex:1;min-width:0">
+    <div id="piBackdrop" onclick="toggleExpandirPerfilIndividual()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199"></div>
+    <div class="detail-card" id="ltPreviewCard" style="flex:1;min-width:0;cursor:default">
       <div class="detail-card-inner">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.75rem">
           <h2 style="font-size:15px;font-weight:700">Perfil individual — visualização e impressão</h2>
-          <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="abrirModalImpressaoLT()" style="display:inline-flex;align-items:center;gap:6px" disabled>
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Gerar relatório para impressão
-          </button>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="action-btn" id="btnExpandirPerfil" onclick="toggleExpandirPerfilIndividual()" title="Expandir para uma janela maior">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              <span id="btnExpandirPerfilLabel">Expandir</span>
+            </button>
+            <button class="btn-save" id="btnImprimirLinhaDoTempo" onclick="abrirModalImpressaoLT()" style="display:inline-flex;align-items:center;gap:6px" disabled>
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Gerar relatório para impressão
+            </button>
+          </div>
         </div>
         <div id="ltPreview" style="min-height:58vh;max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px;transition:max-height .15s ease">
           <div style="text-align:center;padding:2.5rem 1rem;color:#BBB;font-size:13px">Selecione um ou mais estudantes acima para visualizar o perfil individual em tela ou gerar a prévia de impressão.</div>
@@ -2541,6 +2548,16 @@
         .perfil-individual-layout { flex-direction: column; }
         .perfil-individual-sidebar { width: 100% !important; position: static !important; max-height: none !important; }
       }
+      #ltPreviewCard.pi-expandido {
+        position: fixed !important;
+        top: calc(var(--header-h) + 16px);
+        left: 16px; right: 16px; bottom: 16px;
+        z-index: 200; margin: 0 !important;
+        box-shadow: 0 24px 70px rgba(0,0,0,.35) !important;
+        transform: none !important; border-color: var(--border-col, #E8E7E3) !important;
+      }
+      #ltPreviewCard.pi-expandido .detail-card-inner { height: 100%; display: flex; flex-direction: column; }
+      #ltPreviewCard.pi-expandido #ltPreview { flex: 1; max-height: none !important; }
     </style>
   </div>
 
@@ -9212,6 +9229,39 @@ function initLinhaDoTempo(){
 // então ela deve ocupar o máximo de espaço possível. Sempre que uma das guias
 // recolhíveis acima (Buscar/selecionar estudantes e Dados para o relatório)
 // é aberta ou fechada, recalculamos quanto espaço vertical sobrou para ela.
+// Expande a prévia do Perfil Individual para uma "janela" maior (ocupando
+// quase toda a viewport, sobre um fundo escurecido) e permite reverter ao
+// tamanho normal a qualquer momento — pelo mesmo botão, pela tecla Esc ou
+// clicando fora, no fundo escurecido.
+let _piExpandido = false;
+function toggleExpandirPerfilIndividual(forcarFechado){
+  const card = document.getElementById('ltPreviewCard');
+  const backdrop = document.getElementById('piBackdrop');
+  const btn = document.getElementById('btnExpandirPerfil');
+  const label = document.getElementById('btnExpandirPerfilLabel');
+  if(!card || !backdrop || !btn || !label) return;
+
+  _piExpandido = forcarFechado===true ? false : !_piExpandido;
+
+  card.classList.toggle('pi-expandido', _piExpandido);
+  backdrop.style.display = _piExpandido ? 'block' : 'none';
+  document.body.style.overflow = _piExpandido ? 'hidden' : '';
+
+  if(_piExpandido){
+    btn.title = 'Restaurar tamanho normal';
+    label.textContent = 'Restaurar';
+    btn.querySelector('svg').innerHTML = '<path d="M9 3H5a2 2 0 0 0-2 2v4m18-4v4a2 2 0 0 1-2 2h-4M3 15v4a2 2 0 0 0 2 2h4m10-6v4a2 2 0 0 1-2 2h-4"/>';
+  } else {
+    btn.title = 'Expandir para uma janela maior';
+    label.textContent = 'Expandir';
+    btn.querySelector('svg').innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
+  }
+  if(typeof ajustarAlturaPreviewLt==='function') ajustarAlturaPreviewLt();
+}
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape' && _piExpandido) toggleExpandirPerfilIndividual(true);
+});
+
 function ajustarAlturaPreviewLt(){
   const preview = document.getElementById('ltPreview');
   if(!preview) return;
