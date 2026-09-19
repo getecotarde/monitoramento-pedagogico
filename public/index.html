@@ -147,6 +147,14 @@
   [data-theme="dark"] [style*="color: #555"] { color: #B8B7B0 !important; }
   [data-theme="dark"] [style*="color: #333"] { color: #D8D7CE !important; }
 
+  /* Campos de texto (input/textarea) sem classe própria de tema escuro:
+     o navegador aplica cor de texto preta por padrão, que não é herdada
+     automaticamente do body, ficando invisível sobre o fundo escuro. */
+  [data-theme="dark"] input,
+  [data-theme="dark"] textarea { color: #F0EFE9 !important; }
+  [data-theme="dark"] input::placeholder,
+  [data-theme="dark"] textarea::placeholder { color: #7A7A76 !important; }
+
   [data-theme="dark"] .modal-box,
   [data-theme="dark"] .edit-modal-box { background: #1C1C1A !important; color: #F0EFE9 !important; }
   [data-theme="dark"] .modal-header { background: #1C1C1A !important; border-color: #2E2E2B !important; }
