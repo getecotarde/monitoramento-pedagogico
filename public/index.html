@@ -9558,6 +9558,26 @@ async function buscarNotasTrimestraisLT(x){
 
 const LT_TRI_COLORS = ['#2F6F63','#B4802A','#6E4A7E'];
 
+// Abrevia nomes de disciplinas longos para caber no eixo X do gráfico de
+// Rendimento Trimestral sem precisar girar o texto (o que prejudicava a
+// legibilidade). O nome completo continua aparecendo no tooltip.
+const LT_ABREVIACOES_DISCIPLINA = {
+  'EDUCAÇÃO FÍSICA': 'ED. FÍSICA',
+  'LÍNGUA ESTRANGEIRA': 'LÍNG. ESTRANG.',
+  'LÍNGUA PORTUGUESA': 'LÍNG. PORTUGUESA',
+  'ENSINO RELIGIOSO': 'ENS. RELIGIOSO',
+  'CIÊNCIAS DA NATUREZA': 'CIÊNC. NATUREZA',
+  'CIÊNCIAS HUMANAS': 'CIÊNC. HUMANAS'
+};
+function ltAbreviarDisciplina(nome){
+  if(!nome) return nome;
+  const chave = nome.trim().toUpperCase();
+  if(LT_ABREVIACOES_DISCIPLINA[chave]) return LT_ABREVIACOES_DISCIPLINA[chave];
+  // Fallback genérico: se o nome for muito comprido e ainda não estiver
+  // mapeado acima, trunca com reticências para não quebrar o layout.
+  return nome.length > 16 ? nome.slice(0,15).trim()+'…' : nome;
+}
+
 // Plugin Chart.js: desenha uma linha horizontal tracejada e mais grossa em y=60,
 // marcando o critério de aprovação (60% do acumulado). Mesmo visual usado no
 // Dashboard do analise-trimestral.html, agora também no Perfil Individual.
@@ -9642,13 +9662,14 @@ const ltRecuperacaoAttentionPlugin = {
 // no canvas informado, a partir das linhas vindas de buscarNotasTrimestraisLT.
 function ltDesenharGraficoNotas(canvasEl, rows){
   if(!canvasEl || typeof Chart==='undefined') return false;
-  const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
-  if(!disciplinas.length) return false;
+  const disciplinasCompletas = [...new Set(rows.map(r=>r.disciplina))].sort();
+  if(!disciplinasCompletas.length) return false;
+  const disciplinas = disciplinasCompletas.map(ltAbreviarDisciplina);
   const datasets = [1,2,3].map(tri=>{
-    const rowsPorDisciplina = disciplinas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
+    const rowsPorDisciplina = disciplinasCompletas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
     const data = rowsPorDisciplina.map(row=> row && row.percentual!=null ? row.percentual : null);
     const recoveredAttention = rowsPorDisciplina.map(row=> !!(row && row.status==='recuperada'));
-    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4, maxBarThickness:34, categoryPercentage:0.72, barPercentage:0.92 };
   });
   if(canvasEl._chartInstance) canvasEl._chartInstance.destroy();
   canvasEl._chartInstance = new Chart(canvasEl.getContext('2d'), {
@@ -9656,12 +9677,15 @@ function ltDesenharGraficoNotas(canvasEl, rows){
     data:{ labels: disciplinas, datasets },
     options:{
       responsive:true,
+      maintainAspectRatio:false,
+      layout:{ padding:{ top:6 } },
       plugins:{
-        legend:{position:'bottom'},
+        legend:{position:'bottom', labels:{boxWidth:13, font:{size:12}, padding:14}},
         tooltip:{
           position:'ltAvoid60Line',
           caretPadding:10,
           callbacks:{
+            title:(items)=> items.length ? disciplinasCompletas[items[0].dataIndex] : '',
             label:(c)=>{
               if(c.raw==null) return c.dataset.label+': —';
               const recuperada = c.dataset.recoveredAttention && c.dataset.recoveredAttention[c.dataIndex];
@@ -9671,7 +9695,10 @@ function ltDesenharGraficoNotas(canvasEl, rows){
           }
         }
       },
-      scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} } }
+      scales:{
+        y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%', font:{size:11.5}} },
+        x:{ ticks:{ font:{size:11.5, weight:'600'}, maxRotation:0, minRotation:0, autoSkip:false } }
+      }
     },
     plugins:[ltLinhaCorte60Plugin,ltRecuperacaoAttentionPlugin]
   });
@@ -9689,13 +9716,14 @@ function ltDesenharGraficoNotas(canvasEl, rows){
 // pronto pra ser capturado com toDataURL.
 function ltGerarImagemGraficoNotas(rows){
   if(typeof Chart==='undefined') return null;
-  const disciplinas = [...new Set(rows.map(r=>r.disciplina))].sort();
-  if(!disciplinas.length) return null;
+  const disciplinasCompletas = [...new Set(rows.map(r=>r.disciplina))].sort();
+  if(!disciplinasCompletas.length) return null;
+  const disciplinas = disciplinasCompletas.map(ltAbreviarDisciplina);
   const datasets = [1,2,3].map(tri=>{
-    const rowsPorDisciplina = disciplinas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
+    const rowsPorDisciplina = disciplinasCompletas.map(d=> rows.find(r=>r.disciplina===d && r.trimestre===tri));
     const data = rowsPorDisciplina.map(row=> row && row.percentual!=null ? row.percentual : null);
     const recoveredAttention = rowsPorDisciplina.map(row=> !!(row && row.status==='recuperada'));
-    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4 };
+    return { label: tri+'º Trimestre', data, recoveredAttention, backgroundColor: LT_TRI_COLORS[tri-1], borderRadius:4, maxBarThickness:40, categoryPercentage:0.72, barPercentage:0.92 };
   });
   const canvas = document.createElement('canvas');
   // Tamanho fixo e maior que a exibição final (o CSS do <img> reduz depois),
@@ -9709,13 +9737,14 @@ function ltGerarImagemGraficoNotas(rows){
       options:{
         responsive:false,
         animation:false,
+        layout:{ padding:{ top:10 } },
         plugins:{
           legend:{position:'bottom', labels:{font:{size:15}, boxWidth:16}},
           tooltip:{enabled:false}
         },
         scales:{
           y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%', font:{size:13}} },
-          x:{ ticks:{font:{size:13}} }
+          x:{ ticks:{font:{size:13, weight:'600'}, maxRotation:0, minRotation:0, autoSkip:false} }
         }
       },
       plugins:[ltLinhaCorte60Plugin,ltRecuperacaoAttentionPlugin]
@@ -10141,7 +10170,7 @@ function renderLinhaDoTempoPreview(){
         corpo.innerHTML = `<div style="font-size:11.5px;color:#BBB;padding:4px 0">Nenhuma nota trimestral encontrada para este estudante.</div>`;
         return;
       }
-      corpo.innerHTML = `<div style="position:relative;height:220px;max-width:640px"><canvas></canvas></div>`;
+      corpo.innerHTML = `<div style="position:relative;height:280px;max-width:680px"><canvas></canvas></div>`;
       const canvasEl = corpo.querySelector('canvas');
       const desenhou = ltDesenharGraficoNotas(canvasEl, rows);
       if(!desenhou) corpo.innerHTML = ltRenderTabelaNotas(rows); // fallback se o Chart.js não carregar
