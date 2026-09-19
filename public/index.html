@@ -10091,7 +10091,7 @@ function renderLinhaDoTempoPreview(){
         corpo.innerHTML = `<div style="font-size:11.5px;color:#BBB;padding:4px 0">Nenhuma nota trimestral encontrada para este estudante.</div>`;
         return;
       }
-      corpo.innerHTML = `<canvas></canvas>`;
+      corpo.innerHTML = `<div style="position:relative;height:220px;max-width:640px"><canvas></canvas></div>`;
       const canvasEl = corpo.querySelector('canvas');
       const desenhou = ltDesenharGraficoNotas(canvasEl, rows);
       if(!desenhou) corpo.innerHTML = ltRenderTabelaNotas(rows); // fallback se o Chart.js não carregar
