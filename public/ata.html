@@ -523,6 +523,9 @@ select {
 }
 
 .ms-item .ms-nome { flex: 1; }
+.ms-group + .ms-group { border-top: 1px solid var(--border); }
+.ms-item-ano { background: var(--surface); }
+.ms-item-ano:hover { background: var(--blue-lt); }
 .ms-mat, .tag-mat {
   font-size: 10.5px;
   color: var(--ink-3);
@@ -621,6 +624,51 @@ select {
   border: 1px solid var(--border);
 }
 .btn-ghost:hover { background: var(--border); }
+
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+
+/* ──────────── NÃO SE APLICA ──────────── */
+.na-check-item { margin-bottom: 10px; }
+
+.campo-desabilitado {
+  opacity: .5;
+  pointer-events: none;
+  filter: grayscale(.3);
+}
+
+/* ──────────── OBSERVAÇÕES VINCULADAS A ALUNOS ──────────── */
+.obs-vinc-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+.obs-vinc-item {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  background: var(--surface);
+}
+
+.obs-vinc-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.obs-vinc-row select { flex: 1; }
+
+.obs-vinc-remove {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  background: var(--white);
+  color: var(--red);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+}
+.obs-vinc-remove:hover { background: var(--red-lt); }
+
+.obs-vinc-item textarea { min-height: 60px; background: var(--white); }
 
 /* ──────────── BADGES ──────────── */
 .badge {
@@ -1084,21 +1132,28 @@ html.embedded body { background: var(--surface); }
           <div class="card-subtitle">Se houver</div>
         </div>
       </div>
-      <div class="field">
-        <label>Aluno(s) indicado(s)</label>
-        <div class="multiselect-wrap" id="ms-remanejamento-wrap">
-          <div class="multiselect-input" id="ms-remanejamento" onclick="toggleDropdown('remanejamento')">
-            <span class="ms-placeholder">Clique para selecionar alunos...</span>
-          </div>
-          <div class="ms-dropdown" id="dd-remanejamento">
-            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('remanejamento',this.value)"></div>
-            <div class="ms-list" id="list-remanejamento"></div>
+      <div class="field na-check-item">
+        <label class="check-item">
+          <input type="checkbox" id="f-remanejamento-na" onchange="toggleRemanejamentoNA()"> <span>Não se aplica (nenhum aluno indicado nesta condição)</span>
+        </label>
+      </div>
+      <div id="remanejamento-campos">
+        <div class="field">
+          <label>Aluno(s) indicado(s)</label>
+          <div class="multiselect-wrap" id="ms-remanejamento-wrap">
+            <div class="multiselect-input" id="ms-remanejamento" onclick="toggleDropdown('remanejamento')">
+              <span class="ms-placeholder">Clique para selecionar alunos...</span>
+            </div>
+            <div class="ms-dropdown" id="dd-remanejamento">
+              <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('remanejamento',this.value)"></div>
+              <div class="ms-list" id="list-remanejamento"></div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="field">
-        <label>Origem e destino / justificativa</label>
-        <textarea id="f-remanejamento-obs" placeholder="Ex.: Ana Souza — de 7ºA para 7ºB (mudança de horário familiar)"></textarea>
+        <div class="field">
+          <label>Origem e destino / justificativa</label>
+          <textarea id="f-remanejamento-obs" placeholder="Ex.: Ana Souza — de 7ºA para 7ºB (mudança de horário familiar)"></textarea>
+        </div>
       </div>
     </div>
 
@@ -1124,7 +1179,8 @@ html.embedded body { background: var(--surface); }
       </div>
       <div class="field">
         <label>Observações complementares</label>
-        <textarea id="f-baixo-obs" placeholder="Descreva dificuldades observadas..."></textarea>
+        <div class="obs-vinc-list" id="obs-list-baixo"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addObsVinculada('baixo')">+ Adicionar observação</button>
       </div>
     </div>
 
@@ -1149,7 +1205,8 @@ html.embedded body { background: var(--surface); }
       </div>
       <div class="field">
         <label>Observações complementares</label>
-        <textarea id="f-disciplina-obs" placeholder="Descreva os problemas disciplinares..."></textarea>
+        <div class="obs-vinc-list" id="obs-list-disciplina"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addObsVinculada('disciplina')">+ Adicionar observação</button>
       </div>
     </div>
 
@@ -1319,13 +1376,41 @@ html.embedded body { background: var(--surface); }
     <div class="page-intro-row">
       <div class="page-intro">
         <h2>Painel Geral</h2>
-        <p id="geral-subtitle">Visão consolidada de todas as turmas com fichas salvas.</p>
+        <p id="geral-subtitle">Selecione ao menos um trimestre acima para visualizar o painel.</p>
       </div>
-      <div class="geral-filter-box no-print">
-        <label for="geral-turma-filter">Filtrar por turma</label>
-        <select id="geral-turma-filter" onchange="updateGeralStats()">
-          <option value="todas">Todas as turmas</option>
-        </select>
+    </div>
+
+    <div class="card no-print">
+      <div class="card-header blue">
+        <div class="card-icon blue">🔎</div>
+        <div>
+          <div class="card-title">Filtros e Comparação</div>
+          <div class="card-subtitle">Marque um ou mais trimestres e, se quiser, uma turma, um conjunto de turmas ou um ano inteiro</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Trimestre(s)</label>
+          <div class="check-group" id="geral-trimestre-group">
+            <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="1" onchange="updateGeralStats()"> <span>1º Trimestre</span></label>
+            <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="2" onchange="updateGeralStats()"> <span>2º Trimestre</span></label>
+            <label class="check-item" id="geral-trimestre-3-wrap" style="display:none"><input type="checkbox" class="chk-geral-trimestre" value="3" onchange="updateGeralStats()"> <span>3º Trimestre</span></label>
+          </div>
+          <p class="hint">Marque 2 ou 3 trimestres para comparar os dados entre eles.</p>
+        </div>
+        <div class="field">
+          <label>Turma(s) / Ano(s)</label>
+          <div class="multiselect-wrap" id="ms-geral-turmas-wrap">
+            <div class="multiselect-input" id="ms-geral-turmas" onclick="toggleDropdown('geral-turmas')">
+              <span class="ms-placeholder">Todas as turmas (clique para filtrar)...</span>
+            </div>
+            <div class="ms-dropdown" id="dd-geral-turmas">
+              <div class="ms-search"><input type="text" placeholder="🔍 Buscar turma ou ano..." oninput="filterDropdown('geral-turmas', this.value)"></div>
+              <div class="ms-list" id="list-geral-turmas"></div>
+            </div>
+          </div>
+          <p class="hint">Marcar um "Ano" seleciona todas as turmas dele de uma vez.</p>
+        </div>
       </div>
     </div>
 
@@ -1341,6 +1426,8 @@ html.embedded body { background: var(--surface); }
       </div>
       <div id="geral-chart-wrap"></div>
     </div>
+
+    <div id="geral-comparativo-wrap"></div>
 
     <div class="card">
       <div class="card-header blue">
@@ -1421,9 +1508,138 @@ function normalizarAluno(a){
   return { nome: a || '', matricula: null };
 }
 
+// ========================== ANO (agrupamento de turmas) ==========================
+// Deriva o "ano" (6º, 7º, 8º, 9º...) a partir do nome da turma (ex.: "7ºA" → "7").
+// Se a turma não seguir esse padrão, ela vira seu próprio grupo (fallback seguro).
+function anoDaTurma(turma){
+  const m = String(turma || '').match(/^\s*(\d+)/);
+  return m ? m[1] : String(turma || '');
+}
+
+function getAnosMap(){
+  const map = {};
+  Object.keys(TURMAS).sort().forEach(t => {
+    const ano = anoDaTurma(t);
+    (map[ano] = map[ano] || []).push(t);
+  });
+  return map;
+}
+
+function safeIdFor(str){ return String(str).replace(/[^a-zA-Z0-9_:-]/g, '_'); }
+function escJsAttr(str){ return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// Monta o dropdown de "Turma(s) / Ano(s)" do Painel Geral: cada ano vem com
+// um checkbox que seleciona/desmarca de uma vez todas as turmas daquele ano.
+function buildGeralTurmaList(){
+  const list = document.getElementById('list-geral-turmas');
+  if(!list) return;
+  const anos = getAnosMap();
+  const anosOrdenados = Object.keys(anos).sort((a,b) => (Number(a)||0)-(Number(b)||0) || a.localeCompare(b));
+  list.innerHTML = anosOrdenados.map(ano => `
+    <div class="ms-group">
+      <div class="ms-item ms-item-ano" data-nome="${escHtml(ano)}º ano">
+        <input type="checkbox" class="chk-geral-ano" data-ano="${escHtml(ano)}">
+        <span class="ms-nome"><strong>${escHtml(ano)}º Ano</strong></span>
+        <span class="ms-mat">todas</span>
+      </div>
+      ${anos[ano].map(t => `
+        <div class="ms-item ms-item-turma" data-nome="${escHtml(t)}" style="padding-left:28px">
+          <input type="checkbox" class="chk-geral-turma" data-turma="${escHtml(t)}">
+          <span class="ms-nome">${escHtml(t)}</span>
+        </div>`).join('')}
+    </div>`).join('');
+  list.querySelectorAll('.chk-geral-turma').forEach(chk => {
+    chk.addEventListener('change', function(){
+      this.closest('.ms-item').classList.toggle('selected', this.checked);
+      toggleGeralTurma(this.dataset.turma, this.checked);
+    });
+  });
+  list.querySelectorAll('.chk-geral-ano').forEach(chk => {
+    chk.addEventListener('change', function(){ toggleGeralAno(this.dataset.ano, this.checked); });
+  });
+}
+
+function toggleGeralTurma(t, checked){
+  const idx = geralSelecao.turmas.indexOf(t);
+  if(checked && idx === -1) geralSelecao.turmas.push(t);
+  if(!checked && idx !== -1) geralSelecao.turmas.splice(idx,1);
+  syncGeralAnoCheckboxes();
+  renderGeralTurmaTags();
+  updateGeralStats();
+}
+
+function toggleGeralAno(ano, checked){
+  const turmasDoAno = getAnosMap()[ano] || [];
+  document.querySelectorAll('#list-geral-turmas .chk-geral-turma').forEach(chk => {
+    if(turmasDoAno.includes(chk.dataset.turma)) {
+      chk.checked = checked;
+      chk.closest('.ms-item').classList.toggle('selected', checked);
+    }
+  });
+  turmasDoAno.forEach(t => {
+    const idx = geralSelecao.turmas.indexOf(t);
+    if(checked && idx === -1) geralSelecao.turmas.push(t);
+    if(!checked && idx !== -1) geralSelecao.turmas.splice(idx,1);
+  });
+  renderGeralTurmaTags();
+  updateGeralStats();
+}
+
+function syncGeralAnoCheckboxes(){
+  const anos = getAnosMap();
+  document.querySelectorAll('#list-geral-turmas .chk-geral-ano').forEach(chk => {
+    const turmasDoAno = anos[chk.dataset.ano] || [];
+    const todas = turmasDoAno.length > 0 && turmasDoAno.every(t => geralSelecao.turmas.includes(t));
+    const alguma = turmasDoAno.some(t => geralSelecao.turmas.includes(t));
+    chk.checked = todas;
+    chk.indeterminate = !todas && alguma;
+  });
+}
+
+function renderGeralTurmaTags(){
+  const box = document.getElementById('ms-geral-turmas');
+  if(!box) return;
+  if(geralSelecao.turmas.length === 0){
+    box.innerHTML = '<span class="ms-placeholder">Todas as turmas (clique para filtrar)...</span>';
+    return;
+  }
+  box.innerHTML = '';
+  geralSelecao.turmas.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.innerHTML = `${escHtml(t)} <span class="rm">✕</span>`;
+    tag.querySelector('.rm').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('#list-geral-turmas .chk-geral-turma').forEach(chk => {
+        if(chk.dataset.turma === t) { chk.checked = false; chk.closest('.ms-item').classList.remove('selected'); }
+      });
+      toggleGeralTurma(t, false);
+    });
+    box.appendChild(tag);
+  });
+}
+
+function trimestresSelecionados(){
+  return [...document.querySelectorAll('.chk-geral-trimestre:checked')].map(c => c.value);
+}
+
+function turmasFiltradas(){
+  return geralSelecao.turmas.length ? geralSelecao.turmas : Object.keys(TURMAS);
+}
+
 let fichas = {};           // fichas[trimestre][turma] = ficha
 let selectedAlunos = {};
 const MS_KEYS = ['remanejamento','baixo','disciplina','destaque','ped','familia','medico'];
+
+// Observações complementares vinculadas a um aluno específico (ou "geral",
+// quando aluno é null) — usadas em Baixo Aproveitamento e Disciplina, para
+// que a Ficha Individual do aluno só exiba as observações a ele vinculadas.
+let obsVinculada = { baixo: [], disciplina: [] };
+const OBS_VINC_KEYS = ['baixo','disciplina'];
+
+// Seleção de turmas usada nos filtros do Painel Geral (trimestre é lido
+// direto dos checkboxes .chk-geral-trimestre na hora de montar o painel).
+let geralSelecao = { turmas: [] };
 
 // Trimestre atualmente selecionado no cabeçalho ('1', '2' ou '3')
 let TRIMESTRE_ATUAL = '1';
@@ -1445,6 +1661,13 @@ function fichaTrimestreAnterior(t){
    ficam em registros separados, um por combinação (turma, trimestre)
    — é preciso rodar o SQL de criação/atualização dessa tabela no
    Supabase antes (ver instruções fornecidas separadamente).
+
+   Para a versão atual (checkbox "Não se aplica" no Remanejamento e
+   observações vinculadas a aluno em Baixo Aproveitamento/Disciplina),
+   rode também no Supabase antes de usar:
+     ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS remanejamento_na boolean DEFAULT false;
+     ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS baixo_obs_por_aluno jsonb DEFAULT '[]'::jsonb;
+     ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS disciplina_obs_por_aluno jsonb DEFAULT '[]'::jsonb;
    ════════════════════════════════════════════════════════════ */
 function fichaToRow(f){
   return {
@@ -1458,10 +1681,11 @@ function fichaToRow(f){
     perfil: f.perfil || null,
     remanejamento_alunos: f.remanejamento.alunos,
     remanejamento_obs: f.remanejamento.obs || null,
+    remanejamento_na: !!f.remanejamento.naoSeAplica,
     baixo_alunos: f.baixo.alunos,
-    baixo_obs: f.baixo.obs || null,
+    baixo_obs_por_aluno: f.baixo.obsPorAluno || [],
     disciplina_alunos: f.disciplina.alunos,
-    disciplina_obs: f.disciplina.obs || null,
+    disciplina_obs_por_aluno: f.disciplina.obsPorAluno || [],
     destaque_alunos: f.destaque.alunos,
     destaque_obs: f.destaque.obs || null,
     projetos: f.projetos || null,
@@ -1484,9 +1708,12 @@ function rowToFicha(row){
     meninas: row.meninas || 0,
     total: row.total || 0,
     perfil: row.perfil || '',
-    remanejamento: { alunos: row.remanejamento_alunos||[], obs: row.remanejamento_obs||'' },
-    baixo:         { alunos: row.baixo_alunos||[],         obs: row.baixo_obs||'' },
-    disciplina:    { alunos: row.disciplina_alunos||[],    obs: row.disciplina_obs||'' },
+    remanejamento: { alunos: row.remanejamento_alunos||[], obs: row.remanejamento_obs||'', naoSeAplica: !!row.remanejamento_na },
+    // Compatibilidade: fichas salvas antes desta versão só tinham um texto
+    // único em baixo_obs/disciplina_obs — isso vira uma observação "geral"
+    // (aluno: null) na nova estrutura, sem perder o que já foi escrito.
+    baixo:         { alunos: row.baixo_alunos||[],         obsPorAluno: row.baixo_obs_por_aluno || (row.baixo_obs ? [{aluno:null, texto:row.baixo_obs}] : []) },
+    disciplina:    { alunos: row.disciplina_alunos||[],    obsPorAluno: row.disciplina_obs_por_aluno || (row.disciplina_obs ? [{aluno:null, texto:row.disciplina_obs}] : []) },
     destaque:      { alunos: row.destaque_alunos||[],      obs: row.destaque_obs||'' },
     projetos: row.projetos || '',
     acoes: row.acoes || '',
@@ -1555,7 +1782,7 @@ async function excluirFichaSupabase(t){
 // 2º trimestre (ou seja, quando o 2º trimestre já começou de verdade).
 function atualizarDisponibilidadeTrimestre3(){
   const liberado = Object.keys(fichasDoTrimestre('2')).length > 0;
-  ['opt-trimestre-3','opt-header-trimestre-3'].forEach(id=>{
+  ['opt-trimestre-3','opt-header-trimestre-3','geral-trimestre-3-wrap'].forEach(id=>{
     const opt = document.getElementById(id);
     if(opt) opt.style.display = liberado ? '' : 'none';
   });
@@ -1583,7 +1810,6 @@ function onTrimestreFormChange(){
 async function init() {
   const sel = document.getElementById('f-turma');
   const prevSel = document.getElementById('prev-turma-sel');
-  const geralSel = document.getElementById('geral-turma-filter');
   document.getElementById('sel-trimestre').value = TRIMESTRE_ATUAL;
   document.getElementById('f-trimestre').value = TRIMESTRE_ATUAL;
   try {
@@ -1598,9 +1824,10 @@ async function init() {
   Object.keys(TURMAS).forEach(t => {
     sel.innerHTML += `<option value="${t}">${t} (${TURMAS[t].total} alunos)</option>`;
     prevSel.innerHTML += `<option value="${t}">${t}</option>`;
-    geralSel.innerHTML += `<option value="${t}">${t}</option>`;
   });
   MS_KEYS.forEach(k => { selectedAlunos[k] = []; });
+  OBS_VINC_KEYS.forEach(k => renderObsVinculada(k));
+  buildGeralTurmaList();
   updatePrevSel();
   updateGeralStats();
 }
@@ -1665,6 +1892,84 @@ function toggleAluno(key, aluno, add) {
   if (add && !jaSelecionado) selectedAlunos[key].push({ nome: aluno.nome, matricula: aluno.matricula ?? null });
   if (!add) selectedAlunos[key] = selectedAlunos[key].filter(a => alunoKey(a) !== k);
   renderTags(key);
+  // Mantém as opções de aluno vinculável nas observações sempre atualizadas
+  // conforme os alunos indicados nesta categoria mudam.
+  if (OBS_VINC_KEYS.includes(key)) renderObsVinculada(key);
+}
+
+// ========================== NÃO SE APLICA (REMANEJAMENTO) ==========================
+function toggleRemanejamentoNA() {
+  const marcado = document.getElementById('f-remanejamento-na').checked;
+  const campos = document.getElementById('remanejamento-campos');
+  campos.classList.toggle('campo-desabilitado', marcado);
+  if (marcado) {
+    // Limpa qualquer seleção/justificativa: "não se aplica" significa que
+    // não há nenhum aluno para essa condição.
+    selectedAlunos.remanejamento.forEach(a => uncheckItem('remanejamento', alunoKey(a)));
+    selectedAlunos.remanejamento = [];
+    renderTags('remanejamento');
+    document.getElementById('f-remanejamento-obs').value = '';
+  }
+}
+
+// ========================== OBSERVAÇÕES VINCULADAS A ALUNO ==========================
+// Cada entrada é { aluno: {nome,matricula} | null, texto }. aluno === null
+// significa observação geral (não vinculada a um aluno específico).
+function obsSelectOptionsHTML(key, current) {
+  let opts = `<option value="">— Geral (não vinculada a um aluno) —</option>`;
+  const jaListados = new Set();
+  selectedAlunos[key].forEach(a => {
+    const k = alunoKey(a);
+    jaListados.add(k);
+    const sel = current && alunoKey(current) === k ? ' selected' : '';
+    opts += `<option value="${escHtml(k)}"${sel}>${escHtml(a.nome)}</option>`;
+  });
+  if (current && !jaListados.has(alunoKey(current))) {
+    opts += `<option value="${escHtml(alunoKey(current))}" selected>${escHtml(current.nome)} (removido da lista)</option>`;
+  }
+  return opts;
+}
+
+function renderObsVinculada(key) {
+  const wrap = document.getElementById(`obs-list-${key}`);
+  if (!wrap) return;
+  if (obsVinculada[key].length === 0) {
+    wrap.innerHTML = '<p class="hint">Nenhuma observação adicionada ainda.</p>';
+    return;
+  }
+  wrap.innerHTML = obsVinculada[key].map((entry, idx) => `
+    <div class="obs-vinc-item">
+      <div class="obs-vinc-row">
+        <select onchange="setObsVinculadaAluno('${key}', ${idx}, this.value)">
+          ${obsSelectOptionsHTML(key, entry.aluno)}
+        </select>
+        <button type="button" class="obs-vinc-remove" onclick="removeObsVinculada('${key}', ${idx})" title="Remover observação">✕</button>
+      </div>
+      <textarea placeholder="Descreva a observação..." oninput="setObsVinculadaTexto('${key}', ${idx}, this.value)">${escHtml(entry.texto || '')}</textarea>
+    </div>
+  `).join('');
+}
+
+function addObsVinculada(key) {
+  obsVinculada[key].push({ aluno: null, texto: '' });
+  renderObsVinculada(key);
+}
+
+function removeObsVinculada(key, idx) {
+  obsVinculada[key].splice(idx, 1);
+  renderObsVinculada(key);
+}
+
+function setObsVinculadaAluno(key, idx, value) {
+  if (!value) { obsVinculada[key][idx].aluno = null; return; }
+  let aluno = selectedAlunos[key].find(a => alunoKey(a) === value);
+  const atual = obsVinculada[key][idx].aluno;
+  if (!aluno && atual && alunoKey(atual) === value) aluno = atual;
+  obsVinculada[key][idx].aluno = aluno || null;
+}
+
+function setObsVinculadaTexto(key, idx, value) {
+  obsVinculada[key][idx].texto = value;
 }
 
 function renderTags(key) {
@@ -1731,9 +2036,9 @@ async function salvarFicha() {
     meninas: TURMAS[t].meninas,
     total:   TURMAS[t].total,
     perfil:  document.getElementById('f-perfil').value,
-    remanejamento: { alunos: [...selectedAlunos.remanejamento], obs: document.getElementById('f-remanejamento-obs').value },
-    baixo:         { alunos: [...selectedAlunos.baixo],         obs: document.getElementById('f-baixo-obs').value },
-    disciplina:    { alunos: [...selectedAlunos.disciplina],    obs: document.getElementById('f-disciplina-obs').value },
+    remanejamento: { alunos: [...selectedAlunos.remanejamento], obs: document.getElementById('f-remanejamento-obs').value, naoSeAplica: document.getElementById('f-remanejamento-na').checked },
+    baixo:         { alunos: [...selectedAlunos.baixo],         obsPorAluno: obsVinculada.baixo.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
+    disciplina:    { alunos: [...selectedAlunos.disciplina],    obsPorAluno: obsVinculada.disciplina.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
     destaque:      { alunos: [...selectedAlunos.destaque],      obs: document.getElementById('f-destaque-obs').value },
     projetos:    document.getElementById('f-projetos').value,
     acoes:       document.getElementById('f-acoes').value,
@@ -1770,8 +2075,8 @@ function loadFicha(f) {
   document.getElementById('f-professor').value = f.professor || '';
   document.getElementById('f-perfil').value    = f.perfil || '';
   document.getElementById('f-remanejamento-obs').value = f.remanejamento.obs || '';
-  document.getElementById('f-baixo-obs').value         = f.baixo.obs || '';
-  document.getElementById('f-disciplina-obs').value    = f.disciplina.obs || '';
+  document.getElementById('f-remanejamento-na').checked = !!f.remanejamento.naoSeAplica;
+  toggleRemanejamentoNA();
   document.getElementById('f-destaque-obs').value      = f.destaque.obs || '';
   document.getElementById('f-projetos').value = f.projetos || '';
   document.getElementById('f-acoes').value    = f.acoes || '';
@@ -1792,16 +2097,26 @@ function loadFicha(f) {
   document.querySelectorAll('#encaminhamentos-group input').forEach(c => {
     c.checked = f.enc.checks.includes(c.value);
   });
+  OBS_VINC_KEYS.forEach(k => {
+    obsVinculada[k] = (f[k].obsPorAluno || []).map(o => ({
+      aluno: o.aluno ? normalizarAluno(o.aluno) : null,
+      texto: o.texto || ''
+    }));
+    renderObsVinculada(k);
+  });
 }
 
 function limparCampos() {
-  ['f-data','f-professor','f-perfil','f-remanejamento-obs','f-baixo-obs','f-disciplina-obs',
+  ['f-data','f-professor','f-perfil','f-remanejamento-obs',
    'f-destaque-obs','f-projetos','f-acoes','f-outros-enc'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
   MS_KEYS.forEach(k => { selectedAlunos[k] = []; renderTags(k); });
   document.querySelectorAll('#encaminhamentos-group input').forEach(c => c.checked = false);
+  document.getElementById('f-remanejamento-na').checked = false;
+  toggleRemanejamentoNA();
+  OBS_VINC_KEYS.forEach(k => { obsVinculada[k] = []; renderObsVinculada(k); });
 }
 
 function limparFormulario() {
@@ -1832,6 +2147,9 @@ function renderFichaHTML(f) {
     return `${i+1}. ${a.nome}${a.matricula!=null && a.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${a.matricula})</span>` : ''}`;
   }).join('<br>') : '<em>Nenhum indicado</em>';
   const fmtDate = d => d ? new Date(d+'T00:00').toLocaleDateString('pt-BR') : '___/___/___';
+  const formatObsPorAluno = list => (list && list.length)
+    ? `<div style="margin-top:6px">${list.map(o => `<div><em><strong>${o.aluno && o.aluno.nome ? escHtml(o.aluno.nome) : 'Observação geral'}:</strong> ${escHtml(o.texto)}</em></div>`).join('')}</div>`
+    : '';
   const encLabels = {ped_individual:'Acompanhamento pedagógico individual',familia:'Acompanhamento familiar mais frequente',medico:'Avaliação médica / psicológica',outros_enc:'Outros'};
   return `
   <div class="school-header">
@@ -1854,14 +2172,15 @@ function renderFichaHTML(f) {
   <h3>PERFIL DA TURMA</h3>
   <p>${f.perfil || '<em>Não preenchido</em>'}</p>
   <h3>INDICAÇÕES PARA REMANEJAMENTO</h3>
+  ${f.remanejamento.naoSeAplica ? '<em>Não se aplica.</em>' : `
   ${formatAlunos(f.remanejamento.alunos)}
-  ${f.remanejamento.obs ? `<br><em>Obs: ${f.remanejamento.obs}</em>` : ''}
+  ${f.remanejamento.obs ? `<br><em>Obs: ${f.remanejamento.obs}</em>` : ''}`}
   <h3>ALUNOS COM APROVEITAMENTO ABAIXO DO ESPERADO</h3>
   ${formatAlunos(f.baixo.alunos)}
-  ${f.baixo.obs ? `<br><em>Obs: ${f.baixo.obs}</em>` : ''}
+  ${formatObsPorAluno(f.baixo.obsPorAluno)}
   <h3>ALUNOS COM PROBLEMAS DISCIPLINARES</h3>
   ${formatAlunos(f.disciplina.alunos)}
-  ${f.disciplina.obs ? `<br><em>Obs: ${f.disciplina.obs}</em>` : ''}
+  ${formatObsPorAluno(f.disciplina.obsPorAluno)}
   <h3>ALUNOS DESTAQUE</h3>
   ${formatAlunos(f.destaque.alunos)}
   ${f.destaque.obs ? `<br><em>Obs: ${f.destaque.obs}</em>` : ''}
@@ -1995,36 +2314,51 @@ function renderGeralChart(itens, mostrarTurma) {
 
 // ========================== PAINEL GERAL ==========================
 function updateGeralStats() {
-  const geralSel = document.getElementById('geral-turma-filter');
-  const filtroTurma = geralSel ? geralSel.value : 'todas';
-  const modoTodas = !filtroTurma || filtroTurma === 'todas';
+  const trimestres = trimestresSelecionados();
+  const turmasAlvo = turmasFiltradas();
+  const modoTodasTurmas = geralSelecao.turmas.length === 0;
 
-  const todasFichas = Object.values(fichasDoTrimestre());
-  const saved = modoTodas ? todasFichas : todasFichas.filter(f => f.turma === filtroTurma);
+  const subtitle = document.getElementById('geral-subtitle');
+  const tableTitle = document.getElementById('fichas-salvas-title');
+  const chartSubtitle = document.getElementById('geral-chart-subtitle');
+  const comparativoWrap = document.getElementById('geral-comparativo-wrap');
 
-  const turmasCadastradas = modoTodas ? Object.keys(TURMAS).length : 1;
-  const totalAlunos = modoTodas
-    ? Object.values(TURMAS).reduce((s,t)=>s+t.total,0)
-    : (TURMAS[filtroTurma]?.total ?? 0);
+  if (trimestres.length === 0) {
+    if (subtitle) subtitle.textContent = 'Selecione ao menos um trimestre acima para visualizar o painel.';
+    if (chartSubtitle) chartSubtitle.textContent = 'Comparativo de alunos por categoria';
+    document.getElementById('stat-grid').innerHTML = '';
+    document.getElementById('geral-chart-wrap').innerHTML = '<p class="chart-empty">Selecione ao menos um trimestre para ver os dados.</p>';
+    document.getElementById('fichas-salvas-table').innerHTML = '<p class="hint">Selecione ao menos um trimestre acima.</p>';
+    document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Selecione ao menos um trimestre acima.</p>';
+    if (comparativoWrap) comparativoWrap.innerHTML = '';
+    return;
+  }
+
+  // Junta as fichas de todos os trimestres marcados (cada ficha já guarda o
+  // próprio trimestre em f.trimestre), filtrando pelas turmas selecionadas.
+  let saved = [];
+  trimestres.forEach(tri => {
+    Object.values(fichasDoTrimestre(tri)).forEach(f => {
+      if (modoTodasTurmas || turmasAlvo.includes(f.turma)) saved.push(f);
+    });
+  });
+
+  const turmasCadastradas = modoTodasTurmas ? Object.keys(TURMAS).length : turmasAlvo.length;
+  const totalAlunos = turmasAlvo.reduce((s,t) => s + (TURMAS[t]?.total ?? 0), 0);
   const totalFichas = saved.length;
   const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
   const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
   const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
   const totRemanj = saved.reduce((s,f)=>s+f.remanejamento.alunos.length,0);
 
-  const subtitle = document.getElementById('geral-subtitle');
-  const tableTitle = document.getElementById('fichas-salvas-title');
-  if (subtitle) {
-    subtitle.textContent = modoTodas
-      ? 'Visão consolidada de todas as turmas com fichas salvas.'
-      : `Visão consolidada da turma ${filtroTurma}.`;
-  }
-  if (tableTitle) {
-    tableTitle.textContent = modoTodas ? 'Fichas Salvas por Turma' : `Ficha Salva — Turma ${filtroTurma}`;
-  }
+  const rotuloTrimestres = trimestres.map(t=>`${t}º`).join(' + ') + (trimestres.length>1 ? ' trimestres' : ' trimestre');
+  const rotuloTurmas = modoTodasTurmas ? 'todas as turmas' : `${turmasAlvo.length===1 ? 'turma' : 'turmas'} ${turmasAlvo.join(', ')}`;
+
+  if (subtitle) subtitle.textContent = `Visão consolidada — ${rotuloTrimestres} — ${rotuloTurmas}.`;
+  if (tableTitle) tableTitle.textContent = `Fichas Salvas (${rotuloTrimestres})`;
 
   document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-card"><div class="sv">${turmasCadastradas}</div><div class="sl">${modoTodas ? 'Turmas Cadastradas' : 'Turma Selecionada'}</div></div>
+    <div class="stat-card"><div class="sv">${turmasCadastradas}</div><div class="sl">${modoTodasTurmas ? 'Turmas Cadastradas' : 'Turmas Selecionadas'}</div></div>
     <div class="stat-card"><div class="sv">${totalAlunos}</div><div class="sl">Total de Alunos</div></div>
     <div class="stat-card"><div class="sv">${totalFichas}</div><div class="sl">Fichas Salvas</div></div>
     <div class="stat-card"><div class="sv" style="color:#991b1b">${totBaixo}</div><div class="sl">Baixo Aproveitamento</div></div>
@@ -2033,12 +2367,7 @@ function updateGeralStats() {
     <div class="stat-card"><div class="sv" style="color:#5b21b6">${totRemanj}</div><div class="sl">Remanejamentos</div></div>
   `;
 
-  const chartSubtitle = document.getElementById('geral-chart-subtitle');
-  if (chartSubtitle) {
-    chartSubtitle.textContent = modoTodas
-      ? 'Comparativo de alunos por categoria — todas as turmas'
-      : `Comparativo de alunos por categoria — turma ${filtroTurma}`;
-  }
+  if (chartSubtitle) chartSubtitle.textContent = `Comparativo de alunos por categoria — ${rotuloTrimestres} — ${rotuloTurmas}`;
   const coletarAlunos = (categoria) => {
     const lista = [];
     saved.forEach(f => {
@@ -2055,48 +2384,54 @@ function updateGeralStats() {
     { label: 'Disciplinares',  valor: totDisc,   cor: '#b45309', alunos: coletarAlunos('disciplina') },
     { label: 'Destaque',       valor: totDest,   cor: '#0d7d6e', alunos: coletarAlunos('destaque') },
     { label: 'Remanejamento',  valor: totRemanj, cor: '#5b21b6', alunos: coletarAlunos('remanejamento') },
-  ], modoTodas);
+  ], true);
+
+  // Comparativo lado a lado entre os trimestres marcados (só faz sentido
+  // com 2 ou mais trimestres selecionados).
+  if (comparativoWrap) {
+    comparativoWrap.innerHTML = trimestres.length > 1 ? renderComparativoTrimestres(trimestres, turmasAlvo, modoTodasTurmas) : '';
+  }
 
   if (saved.length === 0) {
-    document.getElementById('fichas-salvas-table').innerHTML = modoTodas
-      ? '<p class="hint">Nenhuma ficha salva ainda.</p>'
-      : `<p class="hint">Nenhuma ficha salva para a turma ${filtroTurma} neste trimestre.</p>`;
+    document.getElementById('fichas-salvas-table').innerHTML = `<p class="hint">Nenhuma ficha salva para ${rotuloTurmas} no(s) ${rotuloTrimestres}.</p>`;
     document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Salve fichas para ver o consolidado.</p>';
     return;
   }
 
+  const mostrarColunaTrimestre = trimestres.length > 1;
   let rows = saved.map(f => `
     <tr>
       <td><strong>${f.turma}</strong></td>
+      ${mostrarColunaTrimestre ? `<td style="text-align:center"><span class="badge badge-blue">${f.trimestre}º</span></td>` : ''}
       <td>${f.professor||'—'}</td>
       <td>${f.data ? new Date(f.data+'T00:00').toLocaleDateString('pt-BR') : '—'}</td>
       <td style="text-align:center"><span class="badge badge-red">${f.baixo.alunos.length}</span></td>
       <td style="text-align:center"><span class="badge badge-org">${f.disciplina.alunos.length}</span></td>
       <td style="text-align:center"><span class="badge badge-green">${f.destaque.alunos.length}</span></td>
       <td>
-        <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px" onclick="editarFicha('${f.turma}')">✏️ Editar</button>
-        <button class="btn btn-primary" style="padding:5px 10px;font-size:12px" onclick="previewTurma('${f.turma}')">👁️ Ver</button>
+        <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px" onclick="editarFicha('${escJsAttr(f.turma)}','${f.trimestre}')">✏️ Editar</button>
+        <button class="btn btn-primary" style="padding:5px 10px;font-size:12px" onclick="previewTurma('${escJsAttr(f.turma)}','${f.trimestre}')">👁️ Ver</button>
       </td>
     </tr>`).join('');
 
   document.getElementById('fichas-salvas-table').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>Turma</th><th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Turma</th>${mostrarColunaTrimestre ? '<th>Trim.</th>' : ''}<th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Ações</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 
   const encMap = {'ped_individual':[],'familia':[],'medico':[]};
   saved.forEach(f => {
-    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:normalizarAluno(a), turma:f.turma}));
-    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:normalizarAluno(a), turma:f.turma}));
-    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:normalizarAluno(a), turma:f.turma}));
+    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
+    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
+    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
   });
 
   const encTitles = {ped_individual:'🎓 Acompanhamento Pedagógico Individual', familia:'👨‍👩‍👧 Conversa com Família', medico:'🏥 Avaliação Médica / Psicológica'};
   let encHTML = '';
   Object.entries(encMap).forEach(([key,list]) => {
     if (!list.length) return;
-    const rows = list.map(({aluno,turma}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}</span></td></tr>`).join('');
+    const rows = list.map(({aluno,turma,trimestre}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}${mostrarColunaTrimestre ? ` — ${trimestre}º` : ''}</span></td></tr>`).join('');
     encHTML += `
       <p style="font-size:13px;font-weight:600;color:var(--blue);margin:16px 0 8px">${encTitles[key]} <span class="badge badge-blue">${list.length}</span></p>
       <table class="data-table"><thead><tr><th>Aluno</th><th>Turma</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -2104,13 +2439,97 @@ function updateGeralStats() {
   document.getElementById('encaminhamentos-geral').innerHTML = encHTML || '<p class="hint">Nenhum encaminhamento registrado.</p>';
 }
 
-function editarFicha(t) {
+// Tabela comparativa lado a lado entre os trimestres marcados, para o
+// recorte de turma(s)/ano(s) selecionado.
+function renderComparativoTrimestres(trimestres, turmasAlvo, modoTodasTurmas){
+  const porTrimestre = trimestres.map(tri => {
+    const fichasDoRecorte = Object.values(fichasDoTrimestre(tri)).filter(f => modoTodasTurmas || turmasAlvo.includes(f.turma));
+    return {
+      trimestre: tri,
+      fichas: fichasDoRecorte.length,
+      baixo: fichasDoRecorte.reduce((s,f)=>s+f.baixo.alunos.length,0),
+      disciplina: fichasDoRecorte.reduce((s,f)=>s+f.disciplina.alunos.length,0),
+      destaque: fichasDoRecorte.reduce((s,f)=>s+f.destaque.alunos.length,0),
+      remanejamento: fichasDoRecorte.reduce((s,f)=>s+f.remanejamento.alunos.length,0),
+    };
+  });
+  const linhas = [
+    ['Fichas salvas', 'fichas'],
+    ['Baixo aproveitamento', 'baixo'],
+    ['Problemas disciplinares', 'disciplina'],
+    ['Alunos destaque', 'destaque'],
+    ['Remanejamentos', 'remanejamento'],
+  ];
+  const headerCols = porTrimestre.map(p => `<th style="text-align:center">${p.trimestre}º Trim.</th>`).join('');
+  const bodyRows = linhas.map(([label,key]) => `
+    <tr><td>${label}</td>${porTrimestre.map(p=>`<td style="text-align:center">${p[key]}</td>`).join('')}</tr>`).join('');
+  const tituloTurma = modoTodasTurmas ? 'Todas as turmas' : turmasAlvo.join(', ');
+
+  let html = `
+    <div class="card">
+      <div class="card-header violet">
+        <div class="card-icon violet">📈</div>
+        <div>
+          <div class="card-title">Comparativo entre Trimestres</div>
+          <div class="card-subtitle">${escHtml(tituloTurma)}</div>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Indicador</th>${headerCols}</tr></thead>
+        <tbody>${bodyRows}</tbody>
+      </table>`;
+
+  // O relatório completo (no mesmo formato de ficha já usado por turma) só
+  // faz sentido quando exatamente uma turma está selecionada.
+  if (!modoTodasTurmas && turmasAlvo.length === 1) {
+    html += `
+      <div class="btn-row no-print" style="margin-top:14px">
+        <button class="btn btn-primary" onclick="gerarRelatorioComparativoTurma('${escJsAttr(turmasAlvo[0])}')">📄 Gerar relatório comparativo desta turma</button>
+      </div>
+      <div id="relatorio-comparativo-turma"></div>`;
+  } else {
+    html += `<p class="hint" style="margin-top:12px">Selecione apenas uma turma no filtro acima para gerar o relatório completo comparando os trimestres.</p>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// Gera, empilhado, o relatório completo já usado para uma turma (mesmo
+// formato de sempre) para cada trimestre marcado — permite comparar lado a
+// lado exatamente o que já é impresso normalmente.
+function gerarRelatorioComparativoTurma(turma){
+  const box = document.getElementById('relatorio-comparativo-turma');
+  if (!box) return;
+  const trimestres = trimestresSelecionados();
+  const blocos = trimestres.map(tri => {
+    const f = (fichas[tri] || {})[turma];
+    const cabecalho = `<h3 style="margin-top:20px">${tri}º TRIMESTRE 2026</h3>`;
+    return cabecalho + (f ? renderFichaHTML(f) : `<p class="hint">Nenhuma ficha salva para a turma ${escHtml(turma)} no ${tri}º trimestre.</p>`);
+  }).join('<div class="divider" style="margin:24px 0"></div>');
+  box.innerHTML = `
+    <div class="card" style="margin-top:14px">${blocos}</div>
+    <div class="btn-row no-print" style="margin-top:14px">
+      <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir Relatório Comparativo</button>
+    </div>`;
+}
+
+function editarFicha(t, trimestre) {
+  if (trimestre && trimestre !== TRIMESTRE_ATUAL) {
+    TRIMESTRE_ATUAL = trimestre;
+    document.getElementById('sel-trimestre').value = trimestre;
+    document.getElementById('f-trimestre').value = trimestre;
+  }
   document.getElementById('f-turma').value = t;
   onTurmaChange();
   showView('preenchimento');
 }
 
-function previewTurma(t) {
+function previewTurma(t, trimestre) {
+  if (trimestre && trimestre !== TRIMESTRE_ATUAL) {
+    TRIMESTRE_ATUAL = trimestre;
+    document.getElementById('sel-trimestre').value = trimestre;
+    document.getElementById('f-trimestre').value = trimestre;
+  }
   document.getElementById('prev-turma-sel').value = t;
   renderPreview();
   showView('preview');
