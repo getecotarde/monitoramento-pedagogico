@@ -190,7 +190,13 @@ body {
   max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px 64px;
+  transition: max-width .15s;
 }
+
+/* O Painel Geral é a única tela com tabelas/gráficos comparativos lado a
+   lado, então ganha um contêiner mais largo — as demais telas (que são
+   formulários de leitura/preenchimento) continuam com a largura de sempre. */
+.container.container-wide { max-width: 1280px; }
 
 /* ──────────── VIEWS ──────────── */
 .view { display: none; }
@@ -245,6 +251,45 @@ body {
   font-weight: 600;
   color: var(--blue);
   border-color: var(--border-strong);
+}
+
+/* ──────────── PAINEL GERAL — LAYOUT COM BARRA LATERAL ──────────── */
+.geral-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.geral-sidebar {
+  position: sticky;
+  top: 16px;
+}
+
+.geral-sidebar .card {
+  margin-bottom: 0;
+  padding: 18px 16px;
+}
+
+.geral-sidebar .field + .field { margin-top: 18px; }
+
+.geral-sidebar .card-header {
+  margin: -18px -16px 16px -16px;
+  padding: 14px 16px 13px;
+}
+
+.check-group-vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .geral-layout { grid-template-columns: 1fr; }
+  .geral-sidebar { position: static; }
+}
+
+@media print {
+  .geral-layout { display: block; }
 }
 
 /* ──────────── CARDS ──────────── */
@@ -1438,82 +1483,86 @@ html.embedded body { background: var(--surface); }
       </div>
     </div>
 
-    <div class="card no-print card-overflow-visible">
-      <div class="card-header blue">
-        <div class="card-icon blue">🔎</div>
-        <div>
-          <div class="card-title">Filtros e Comparação</div>
-          <div class="card-subtitle">Marque um ou mais trimestres e, se quiser, uma turma, um conjunto de turmas ou um ano inteiro</div>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Trimestre(s)</label>
-          <div class="check-group" id="geral-trimestre-group">
-            <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="1" onchange="updateGeralStats()"> <span>1º Trimestre</span></label>
-            <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="2" onchange="updateGeralStats()"> <span>2º Trimestre</span></label>
-            <label class="check-item" id="geral-trimestre-3-wrap" style="display:none"><input type="checkbox" class="chk-geral-trimestre" value="3" onchange="updateGeralStats()"> <span>3º Trimestre</span></label>
-          </div>
-          <p class="hint">Marque 2 ou 3 trimestres para comparar os dados entre eles.</p>
-        </div>
-        <div class="field">
-          <label>Turma(s) / Ano(s)</label>
-          <div class="multiselect-wrap" id="ms-geral-turmas-wrap">
-            <div class="multiselect-input" id="ms-geral-turmas" onclick="toggleDropdown('geral-turmas')">
-              <span class="ms-placeholder">Todas as turmas (clique para filtrar)...</span>
-            </div>
-            <div class="ms-dropdown" id="dd-geral-turmas">
-              <div class="ms-search"><input type="text" placeholder="🔍 Buscar turma ou ano..." oninput="filterDropdown('geral-turmas', this.value)"></div>
-              <div class="ms-list" id="list-geral-turmas"></div>
+    <div class="geral-layout">
+      <aside class="geral-sidebar no-print">
+        <div class="card card-overflow-visible">
+          <div class="card-header blue">
+            <div class="card-icon blue">🔎</div>
+            <div>
+              <div class="card-title">Filtros</div>
+              <div class="card-subtitle">Trimestre(s), turma(s) ou ano(s)</div>
             </div>
           </div>
-          <p class="hint">Marcar um "Ano" seleciona todas as turmas dele de uma vez.</p>
+          <div class="field">
+            <label>Trimestre(s)</label>
+            <div class="check-group check-group-vertical" id="geral-trimestre-group">
+              <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="1" onchange="updateGeralStats()"> <span>1º Trimestre</span></label>
+              <label class="check-item"><input type="checkbox" class="chk-geral-trimestre" value="2" onchange="updateGeralStats()"> <span>2º Trimestre</span></label>
+              <label class="check-item" id="geral-trimestre-3-wrap" style="display:none"><input type="checkbox" class="chk-geral-trimestre" value="3" onchange="updateGeralStats()"> <span>3º Trimestre</span></label>
+            </div>
+            <p class="hint">Marque 2 ou 3 trimestres para comparar os dados entre eles.</p>
+          </div>
+          <div class="field">
+            <label>Turma(s) / Ano(s)</label>
+            <div class="multiselect-wrap" id="ms-geral-turmas-wrap">
+              <div class="multiselect-input" id="ms-geral-turmas" onclick="toggleDropdown('geral-turmas')">
+                <span class="ms-placeholder">Todas as turmas (clique para filtrar)...</span>
+              </div>
+              <div class="ms-dropdown" id="dd-geral-turmas">
+                <div class="ms-search"><input type="text" placeholder="🔍 Buscar turma ou ano..." oninput="filterDropdown('geral-turmas', this.value)"></div>
+                <div class="ms-list" id="list-geral-turmas"></div>
+              </div>
+            </div>
+            <p class="hint">Marcar um "Ano" seleciona todas as turmas dele de uma vez.</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="geral-content">
+        <div class="stat-grid" id="stat-grid"></div>
+
+        <div class="card card-chart">
+          <div class="card-header amber">
+            <div class="card-icon amber">📊</div>
+            <div>
+              <div class="card-title" id="geral-chart-title">Distribuição dos Indicadores</div>
+              <div class="card-subtitle" id="geral-chart-subtitle">Comparativo de alunos por categoria</div>
+            </div>
+          </div>
+          <div id="geral-chart-wrap"></div>
+        </div>
+
+        <div id="geral-comparativo-wrap"></div>
+
+        <div class="card">
+          <div class="card-header blue">
+            <div class="card-icon blue">📋</div>
+            <div>
+              <div class="card-title" id="fichas-salvas-title">Fichas Salvas por Turma</div>
+            </div>
+          </div>
+          <div id="fichas-salvas-table">
+            <p class="hint">Nenhuma ficha salva ainda. Preencha e salve fichas na aba Preenchimento.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header violet">
+            <div class="card-icon violet">📌</div>
+            <div>
+              <div class="card-title">Encaminhamentos Consolidados</div>
+            </div>
+          </div>
+          <div id="encaminhamentos-geral">
+            <p class="hint">Salve fichas para ver o consolidado.</p>
+          </div>
+        </div>
+
+        <div class="btn-row no-print">
+          <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir Painel</button>
+          <button class="btn btn-outline" onclick="exportarTudo()">⬇️ Exportar JSON</button>
         </div>
       </div>
-    </div>
-
-    <div class="stat-grid" id="stat-grid"></div>
-
-    <div class="card card-chart">
-      <div class="card-header amber">
-        <div class="card-icon amber">📊</div>
-        <div>
-          <div class="card-title" id="geral-chart-title">Distribuição dos Indicadores</div>
-          <div class="card-subtitle" id="geral-chart-subtitle">Comparativo de alunos por categoria</div>
-        </div>
-      </div>
-      <div id="geral-chart-wrap"></div>
-    </div>
-
-    <div id="geral-comparativo-wrap"></div>
-
-    <div class="card">
-      <div class="card-header blue">
-        <div class="card-icon blue">📋</div>
-        <div>
-          <div class="card-title" id="fichas-salvas-title">Fichas Salvas por Turma</div>
-        </div>
-      </div>
-      <div id="fichas-salvas-table">
-        <p class="hint">Nenhuma ficha salva ainda. Preencha e salve fichas na aba Preenchimento.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header violet">
-        <div class="card-icon violet">📌</div>
-        <div>
-          <div class="card-title">Encaminhamentos Consolidados</div>
-        </div>
-      </div>
-      <div id="encaminhamentos-geral">
-        <p class="hint">Salve fichas para ver o consolidado.</p>
-      </div>
-    </div>
-
-    <div class="btn-row no-print">
-      <button class="btn btn-accent" onclick="window.print()">🖨️ Imprimir Painel</button>
-      <button class="btn btn-outline" onclick="exportarTudo()">⬇️ Exportar JSON</button>
     </div>
   </div>
 
@@ -2733,6 +2782,11 @@ function showView(id) {
   // tela, então o seletor do topo some para não confundir.
   const headerTrimestre = document.querySelector('.header-badge');
   if (headerTrimestre) headerTrimestre.style.display = (id === 'geral') ? 'none' : '';
+  // O Painel Geral ganha um contêiner mais largo, já que os filtros vão
+  // para uma barra lateral estreita e o espaço liberado é usado pelos
+  // gráficos e tabelas comparativas.
+  const container = document.querySelector('.container');
+  if (container) container.classList.toggle('container-wide', id === 'geral');
   if (id === 'preview') renderPreview();
   if (id === 'geral') updateGeralStats();
 }
