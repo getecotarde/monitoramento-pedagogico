@@ -1154,17 +1154,18 @@ html.embedded body { background: var(--surface); }
         </div>
         <div class="field">
           <label>Meninos</label>
-          <input type="text" id="f-meninos" readonly placeholder="—" />
+          <input type="number" id="f-meninos" min="0" step="1" placeholder="0" />
         </div>
         <div class="field">
           <label>Meninas</label>
-          <input type="text" id="f-meninas" readonly placeholder="—" />
+          <input type="number" id="f-meninas" min="0" step="1" placeholder="0" />
         </div>
         <div class="field">
-          <label>Total</label>
-          <input type="text" id="f-total" readonly placeholder="—" />
+          <label>Total <button type="button" class="btn-ghost" style="padding:1px 7px;font-size:10px;margin-left:4px;vertical-align:1px" title="Recarregar o número atual da turma (cadastro)" onclick="restaurarTotalAtual()">↻ atual</button></label>
+          <input type="number" id="f-total" min="0" step="1" placeholder="0" />
         </div>
       </div>
+      <p class="hint">Meninos, meninas e total vêm do cadastro da turma, mas são editáveis: ajuste aqui se houve entrada ou saída de alunos que ainda não apareça lá. O valor fica registrado só neste trimestre — não altera o que já foi salvo em outros trimestres.</p>
     </div>
 
     <div class="card">
@@ -1894,17 +1895,29 @@ function onTurmaChange() {
   const t = document.getElementById('f-turma').value;
   if (!t) return;
   const d = TURMAS[t];
-  document.getElementById('f-meninos').value = d.meninos;
-  document.getElementById('f-meninas').value = d.meninas;
-  document.getElementById('f-total').value   = d.total;
   MS_KEYS.forEach(k => {
     selectedAlunos[k] = [];
     renderTags(k);
     buildList(k, d.alunos);
   });
-  if (fichasDoTrimestre()[t]) {
-    loadFicha(fichasDoTrimestre()[t]);
+  const fichaExistente = fichasDoTrimestre()[t];
+  if (fichaExistente) {
+    // Já existe ficha salva para esta turma neste trimestre: mantém o
+    // meninos/meninas/total que foi registrado (podendo já ter sido
+    // corrigido manualmente), em vez de sobrescrever com o número "ao vivo"
+    // de agora — o que apagaria uma correção já feita ou mudaria um
+    // registro histórico sem o usuário pedir.
+    document.getElementById('f-meninos').value = fichaExistente.meninos;
+    document.getElementById('f-meninas').value = fichaExistente.meninas;
+    document.getElementById('f-total').value   = fichaExistente.total;
+    loadFicha(fichaExistente);
   } else {
+    // Ficha nova neste trimestre: parte do número atual da turma (que já
+    // reflete entradas/saídas cadastradas na Plataforma) como sugestão —
+    // o usuário pode corrigir à mão antes de salvar, se precisar.
+    document.getElementById('f-meninos').value = d.meninos;
+    document.getElementById('f-meninas').value = d.meninas;
+    document.getElementById('f-total').value   = d.total;
     limparCampos();
     const anterior = fichaTrimestreAnterior(t);
     if (anterior) {
@@ -1916,6 +1929,19 @@ function onTurmaChange() {
       showToast(`📋 Dados do ${Number(TRIMESTRE_ATUAL)-1}º trimestre carregados como ponto de partida. Revise e salve.`);
     }
   }
+}
+
+// Recarrega meninos/meninas/total com o número atual do cadastro da turma
+// na Plataforma — útil para desfazer uma edição manual ou conferir o dado
+// mais recente sem perder o que já está preenchido no restante da ficha.
+function restaurarTotalAtual() {
+  const t = document.getElementById('f-turma').value;
+  if (!t || !TURMAS[t]) { showToast('⚠️ Selecione uma turma primeiro.'); return; }
+  const d = TURMAS[t];
+  document.getElementById('f-meninos').value = d.meninos;
+  document.getElementById('f-meninas').value = d.meninas;
+  document.getElementById('f-total').value   = d.total;
+  showToast('🔄 Números recarregados do cadastro atual da turma. Lembre-se de salvar a ficha.');
 }
 
 // ========================== MULTISELECT ==========================
@@ -2089,9 +2115,9 @@ async function salvarFicha() {
     trimestre: TRIMESTRE_ATUAL,
     data:  document.getElementById('f-data').value,
     professor: document.getElementById('f-professor').value,
-    meninos: TURMAS[t].meninos,
-    meninas: TURMAS[t].meninas,
-    total:   TURMAS[t].total,
+    meninos: Number(document.getElementById('f-meninos').value) || 0,
+    meninas: Number(document.getElementById('f-meninas').value) || 0,
+    total:   Number(document.getElementById('f-total').value) || 0,
     perfil:  document.getElementById('f-perfil').value,
     remanejamento: { alunos: [...selectedAlunos.remanejamento], obs: document.getElementById('f-remanejamento-obs').value, naoSeAplica: document.getElementById('f-remanejamento-na').checked },
     baixo:         { alunos: [...selectedAlunos.baixo],         obsPorAluno: obsVinculada.baixo.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
@@ -2261,24 +2287,22 @@ function renderFichaHTML(f) {
 function renderGeralHTML() {
   const saved = Object.values(fichasDoTrimestre());
   if (!saved.length) return `<p class="ph">Nenhuma ficha salva ainda no ${TRIMESTRE_ATUAL}º trimestre.</p>`;
-  // Total ATUAL da turma (ao vivo, vindo de TURMAS/estudantes no Supabase),
-  // em vez do total que ficou congelado em f.total no momento em que a
-  // ficha foi salva. Se a turma não existir mais em TURMAS (ex.: nome
-  // alterado), cai de volta para o valor salvo na ficha, para não quebrar.
+  // Usa o total que foi registrado (e pode ter sido corrigido à mão) NA
+  // FICHA deste trimestre — não o número "ao vivo" da turma agora, que pode
+  // já ter mudado por causa de entradas/saídas em outro trimestre.
   let rows = saved.map(f => {
-    const totalAtual = TURMAS[f.turma]?.total ?? f.total;
     return `
     <tr>
       <td><strong>${f.turma}</strong></td>
       <td>${f.professor || '—'}</td>
-      <td style="text-align:center">${totalAtual}</td>
+      <td style="text-align:center">${f.total}</td>
       <td style="text-align:center">${f.baixo.alunos.length}</td>
       <td style="text-align:center">${f.disciplina.alunos.length}</td>
       <td style="text-align:center">${f.destaque.alunos.length}</td>
       <td style="text-align:center">${f.remanejamento.alunos.length}</td>
     </tr>`;
   }).join('');
-  const totGeral = saved.reduce((s,f)=>s+(TURMAS[f.turma]?.total ?? f.total),0);
+  const totGeral = saved.reduce((s,f)=>s+f.total,0);
   const totBaixo  = saved.reduce((s,f)=>s+f.baixo.alunos.length,0);
   const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
   const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
@@ -2429,6 +2453,7 @@ function calcPorTrimestreDetalhado(trimestres, turmasAlvo, modoTodasTurmas) {
       trimestre: tri,
       fichas: fichasDoRecorte.length,
       valores: {
+        total:         fichasDoRecorte.reduce((s,f)=>s+(f.total||0),0),
         baixo:         fichasDoRecorte.reduce((s,f)=>s+f.baixo.alunos.length,0),
         disciplina:    fichasDoRecorte.reduce((s,f)=>s+f.disciplina.alunos.length,0),
         destaque:      fichasDoRecorte.reduce((s,f)=>s+f.destaque.alunos.length,0),
@@ -2495,7 +2520,6 @@ function updateGeralStats() {
   });
 
   const turmasCadastradas = modoTodasTurmas ? Object.keys(TURMAS).length : turmasAlvo.length;
-  const totalAlunos = turmasAlvo.reduce((s,t) => s + (TURMAS[t]?.total ?? 0), 0);
 
   const rotuloTrimestres = trimestres.map(t=>`${t}º`).join(' + ') + (trimestres.length>1 ? ' trimestres' : ' trimestre');
   const rotuloTurmas = modoTodasTurmas ? 'todas as turmas' : `${turmasAlvo.length===1 ? 'turma' : 'turmas'} ${turmasAlvo.join(', ')}`;
@@ -2506,7 +2530,10 @@ function updateGeralStats() {
   // Dados por trimestre (nunca somados entre si) — usados tanto nos cards
   // quanto no gráfico, para comparar um trimestre com o outro em vez de
   // acumular. porTri vem ordenado do trimestre mais antigo para o mais
-  // recente selecionado.
+  // recente selecionado. O total de alunos vem do que foi REGISTRADO em
+  // cada ficha (podendo ter sido corrigido à mão por causa de entrada/saída
+  // de alunos), não de um número "ao vivo" único que ignoraria essa
+  // variação entre trimestres.
   const porTri = calcPorTrimestreDetalhado(trimestres, turmasAlvo, modoTodasTurmas);
   const atual = porTri[porTri.length - 1];
   const anterior = porTri.length > 1 ? porTri[porTri.length - 2] : null;
@@ -2514,7 +2541,7 @@ function updateGeralStats() {
 
   document.getElementById('stat-grid').innerHTML = `
     <div class="stat-card"><div class="sv">${turmasCadastradas}</div><div class="sl">${modoTodasTurmas ? 'Turmas Cadastradas' : 'Turmas Selecionadas'}</div></div>
-    <div class="stat-card"><div class="sv">${totalAlunos}</div><div class="sl">Total de Alunos</div></div>
+    ${renderStatCard(atual.valores.total, anterior && anterior.valores.total, null, `Total de Alunos${rotuloAtualCurto}`)}
     ${renderStatCard(atual.fichas, anterior && anterior.fichas, null, `Fichas Salvas${rotuloAtualCurto}`)}
     ${renderStatCard(atual.valores.baixo, anterior && anterior.valores.baixo, '#991b1b', `Baixo Aproveitamento${rotuloAtualCurto}`)}
     ${renderStatCard(atual.valores.disciplina, anterior && anterior.valores.disciplina, '#b45309', `Prob. Disciplinares${rotuloAtualCurto}`)}
