@@ -1435,6 +1435,33 @@ html.embedded body { background: var(--surface); }
       </div>
     </div>
 
+    <div class="card">
+      <div class="card-header red">
+        <div class="card-icon red">🎯</div>
+        <div>
+          <div class="card-title">Alunos em Risco de Retenção</div>
+          <div class="card-subtitle">Indicação preventiva para monitoramento ao longo do ano, evitando a retenção</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aluno(s) em risco de retenção</label>
+        <div class="multiselect-wrap">
+          <div class="multiselect-input" id="ms-retencao" onclick="toggleDropdown('retencao')">
+            <span class="ms-placeholder">Clique para selecionar alunos...</span>
+          </div>
+          <div class="ms-dropdown" id="dd-retencao">
+            <div class="ms-search"><input type="text" placeholder="🔍 Buscar aluno..." oninput="filterDropdown('retencao',this.value)"></div>
+            <div class="ms-list" id="list-retencao"></div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Plano de monitoramento / observações por aluno</label>
+        <div class="obs-vinc-list" id="obs-list-retencao"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addObsVinculada('retencao')">+ Adicionar observação</button>
+      </div>
+    </div>
+
     <div class="btn-row">
       <button class="btn btn-primary" onclick="salvarFicha()">💾 Salvar Ficha</button>
       <button class="btn btn-success" onclick="showView('preview')">👁️ Pré-visualizar</button>
@@ -1615,6 +1642,15 @@ function normalizarAluno(a){
   return { nome: a || '', matricula: null };
 }
 
+// Ordena uma lista de alunos por nome (ordem alfabética, ignorando
+// maiúsculas/acentos), independentemente da ordem em que foram
+// registrados/selecionados. getNome permite usar em listas onde o nome não
+// está direto em a.nome (ex.: {aluno:{nome}, ...}).
+function ordenarAlunosPorNome(lista, getNome){
+  const nomeDe = getNome || (a => (a && a.nome) || '');
+  return lista.slice().sort((a,b) => nomeDe(a).localeCompare(nomeDe(b), 'pt-BR', {sensitivity:'base'}));
+}
+
 // ========================== ANO (agrupamento de turmas) ==========================
 // Deriva o "ano" (6º, 7º, 8º, 9º...) a partir do nome da turma (ex.: "7ºA" → "7").
 // Se a turma não seguir esse padrão, ela vira seu próprio grupo (fallback seguro).
@@ -1736,13 +1772,22 @@ function turmasFiltradas(){
 
 let fichas = {};           // fichas[trimestre][turma] = ficha
 let selectedAlunos = {};
-const MS_KEYS = ['remanejamento','baixo','disciplina','destaque','ped','familia','medico'];
+const MS_KEYS = ['remanejamento','baixo','disciplina','destaque','retencao','ped','familia','medico'];
 
 // Observações complementares vinculadas a um aluno específico (ou "geral",
-// quando aluno é null) — usadas em Baixo Aproveitamento e Disciplina, para
-// que a Ficha Individual do aluno só exiba as observações a ele vinculadas.
-let obsVinculada = { baixo: [], disciplina: [] };
-const OBS_VINC_KEYS = ['baixo','disciplina'];
+// quando aluno é null) — usadas em Baixo Aproveitamento, Disciplina e Risco
+// de Retenção, para que a Ficha Individual do aluno só exiba as observações
+// a ele vinculadas.
+let obsVinculada = { baixo: [], disciplina: [], retencao: [] };
+const OBS_VINC_KEYS = ['baixo','disciplina','retencao'];
+
+// Fichas salvas antes da criação do campo "Risco de Retenção" não têm essa
+// chave — isso garante que qualquer leitura de f.retencao (tela, impressão,
+// Painel Geral) funcione normalmente também para essas fichas antigas.
+function garantirCategoriaRetencao(f){
+  if (!f.retencao) f.retencao = { alunos: [], obsPorAluno: [] };
+  return f;
+}
 
 // Seleção de turmas usada nos filtros do Painel Geral (trimestre é lido
 // direto dos checkboxes .chk-geral-trimestre na hora de montar o painel).
@@ -1775,6 +1820,12 @@ function fichaTrimestreAnterior(t){
      ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS remanejamento_na boolean DEFAULT false;
      ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS baixo_obs_por_aluno jsonb DEFAULT '[]'::jsonb;
      ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS disciplina_obs_por_aluno jsonb DEFAULT '[]'::jsonb;
+
+   Para o novo campo "Alunos em Risco de Retenção" (para monitoramento ao
+   longo do ano), rode também no Supabase antes de usar — script completo
+   em atas_conselho_retencao.sql:
+     ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS retencao_alunos jsonb DEFAULT '[]'::jsonb;
+     ALTER TABLE atas_conselho ADD COLUMN IF NOT EXISTS retencao_obs_por_aluno jsonb DEFAULT '[]'::jsonb;
    ════════════════════════════════════════════════════════════ */
 function fichaToRow(f){
   return {
@@ -1795,6 +1846,8 @@ function fichaToRow(f){
     disciplina_obs_por_aluno: f.disciplina.obsPorAluno || [],
     destaque_alunos: f.destaque.alunos,
     destaque_obs: f.destaque.obs || null,
+    retencao_alunos: f.retencao.alunos,
+    retencao_obs_por_aluno: f.retencao.obsPorAluno || [],
     projetos: f.projetos || null,
     acoes: f.acoes || null,
     enc_checks: f.enc.checks,
@@ -1822,6 +1875,9 @@ function rowToFicha(row){
     baixo:         { alunos: row.baixo_alunos||[],         obsPorAluno: row.baixo_obs_por_aluno || (row.baixo_obs ? [{aluno:null, texto:row.baixo_obs}] : []) },
     disciplina:    { alunos: row.disciplina_alunos||[],    obsPorAluno: row.disciplina_obs_por_aluno || (row.disciplina_obs ? [{aluno:null, texto:row.disciplina_obs}] : []) },
     destaque:      { alunos: row.destaque_alunos||[],      obs: row.destaque_obs||'' },
+    // Fichas gravadas antes da criação deste campo não têm as colunas
+    // retencao_* no banco — cai no array vazio em vez de quebrar a tela.
+    retencao:      { alunos: row.retencao_alunos||[],      obsPorAluno: row.retencao_obs_por_aluno||[] },
     projetos: row.projetos || '',
     acoes: row.acoes || '',
     enc: {
@@ -2023,6 +2079,9 @@ function toggleAluno(key, aluno, add) {
   const jaSelecionado = selectedAlunos[key].some(a => alunoKey(a) === k);
   if (add && !jaSelecionado) selectedAlunos[key].push({ nome: aluno.nome, matricula: aluno.matricula ?? null });
   if (!add) selectedAlunos[key] = selectedAlunos[key].filter(a => alunoKey(a) !== k);
+  // Independentemente da ordem em que os alunos foram marcados, a lista de
+  // registrados sempre se reorganiza em ordem alfabética por nome.
+  selectedAlunos[key] = ordenarAlunosPorNome(selectedAlunos[key]);
   renderTags(key);
   // Mantém as opções de aluno vinculável nas observações sempre atualizadas
   // conforme os alunos indicados nesta categoria mudam.
@@ -2172,6 +2231,7 @@ async function salvarFicha() {
     baixo:         { alunos: [...selectedAlunos.baixo],         obsPorAluno: obsVinculada.baixo.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
     disciplina:    { alunos: [...selectedAlunos.disciplina],    obsPorAluno: obsVinculada.disciplina.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
     destaque:      { alunos: [...selectedAlunos.destaque],      obs: document.getElementById('f-destaque-obs').value },
+    retencao:      { alunos: [...selectedAlunos.retencao],      obsPorAluno: obsVinculada.retencao.filter(o => o.texto && o.texto.trim()).map(o => ({ aluno: o.aluno ? { nome: o.aluno.nome, matricula: o.aluno.matricula ?? null } : null, texto: o.texto })) },
     projetos:    document.getElementById('f-projetos').value,
     acoes:       document.getElementById('f-acoes').value,
     enc: {
@@ -2215,10 +2275,11 @@ function loadFicha(f) {
   document.getElementById('f-outros-enc').value = f.enc.outros || '';
   const msMap = {remanejamento: f.remanejamento.alunos, baixo: f.baixo.alunos,
     disciplina: f.disciplina.alunos, destaque: f.destaque.alunos,
+    retencao: (f.retencao || {alunos:[]}).alunos,
     ped: f.enc.ped.alunos, familia: f.enc.familia.alunos, medico: f.enc.medico.alunos};
   MS_KEYS.forEach(k => {
     // normalizarAluno cobre fichas antigas (salvas antes desta mudança, só com nomes em texto)
-    selectedAlunos[k] = (msMap[k]||[]).map(normalizarAluno);
+    selectedAlunos[k] = ordenarAlunosPorNome((msMap[k]||[]).map(normalizarAluno));
     renderTags(k);
     selectedAlunos[k].forEach(aluno => {
       const safeId = alunoKey(aluno).replace(/[^a-zA-Z0-9_:-]/g, '_');
@@ -2230,7 +2291,7 @@ function loadFicha(f) {
     c.checked = f.enc.checks.includes(c.value);
   });
   OBS_VINC_KEYS.forEach(k => {
-    obsVinculada[k] = (f[k].obsPorAluno || []).map(o => ({
+    obsVinculada[k] = ((f[k]||{}).obsPorAluno || []).map(o => ({
       aluno: o.aluno ? normalizarAluno(o.aluno) : null,
       texto: o.texto || ''
     }));
@@ -2274,8 +2335,7 @@ function renderPreview() {
 }
 
 function renderFichaHTML(f) {
-  const formatAlunos = arr => arr.length ? arr.map((raw,i)=>{
-    const a = normalizarAluno(raw);
+  const formatAlunos = arr => arr.length ? ordenarAlunosPorNome(arr.map(normalizarAluno)).map((a,i)=>{
     return `${i+1}. ${a.nome}${a.matricula!=null && a.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${a.matricula})</span>` : ''}`;
   }).join('<br>') : '<em>Nenhum indicado</em>';
   const fmtDate = d => d ? new Date(d+'T00:00').toLocaleDateString('pt-BR') : '___/___/___';
@@ -2326,6 +2386,9 @@ function renderFichaHTML(f) {
   ${f.enc.familia.alunos.length ? `<p><strong>Conversa com família:</strong><br>${formatAlunos(f.enc.familia.alunos)}</p>` : ''}
   ${f.enc.medico.alunos.length ? `<p><strong>Avaliação médica/psicológica:</strong><br>${formatAlunos(f.enc.medico.alunos)}</p>` : ''}
   ${f.enc.outros ? `<p><strong>Outros:</strong> ${f.enc.outros}</p>` : ''}
+  <h3>ALUNOS EM RISCO DE RETENÇÃO</h3>
+  ${formatAlunos((f.retencao || {alunos:[]}).alunos)}
+  ${formatObsPorAluno((f.retencao || {}).obsPorAluno)}
   <div class="sign-row">
     <div class="sign-line">Professor Referência<br><br>${f.professor || '______________________________'}</div>
     <div class="sign-line">Coordenação Pedagógica<br><br>Everton Correa Alves</div>
@@ -2349,6 +2412,7 @@ function renderGeralHTML() {
       <td style="text-align:center">${f.disciplina.alunos.length}</td>
       <td style="text-align:center">${f.destaque.alunos.length}</td>
       <td style="text-align:center">${f.remanejamento.alunos.length}</td>
+      <td style="text-align:center">${((f.retencao||{}).alunos||[]).length}</td>
     </tr>`;
   }).join('');
   const totGeral = saved.reduce((s,f)=>s+f.total,0);
@@ -2356,6 +2420,7 @@ function renderGeralHTML() {
   const totDisc   = saved.reduce((s,f)=>s+f.disciplina.alunos.length,0);
   const totDest   = saved.reduce((s,f)=>s+f.destaque.alunos.length,0);
   const totRemanj = saved.reduce((s,f)=>s+f.remanejamento.alunos.length,0);
+  const totRetenc = saved.reduce((s,f)=>s+((f.retencao||{}).alunos||[]).length,0);
   return `
   <div class="school-header">
     <h2>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA</h2>
@@ -2364,7 +2429,7 @@ function renderGeralHTML() {
   </div>
   <table>
     <thead>
-      <tr><th>Turma</th><th>Prof. Referência</th><th>Total</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Remanejamento</th></tr>
+      <tr><th>Turma</th><th>Prof. Referência</th><th>Total</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Remanejamento</th><th>Risco Retenção</th></tr>
     </thead>
     <tbody>
       ${rows}
@@ -2375,6 +2440,7 @@ function renderGeralHTML() {
         <td style="text-align:center">${totDisc}</td>
         <td style="text-align:center">${totDest}</td>
         <td style="text-align:center">${totRemanj}</td>
+        <td style="text-align:center">${totRetenc}</td>
       </tr>
     </tbody>
   </table>`;
@@ -2482,12 +2548,12 @@ function renderGeralChart(categorias, trimestresInfo) {
 function coletarAlunosCategoria(fichasList, categoria) {
   const lista = [];
   fichasList.forEach(f => {
-    (f[categoria].alunos || []).forEach(raw => {
+    ((f[categoria]||{}).alunos || []).forEach(raw => {
       const a = normalizarAluno(raw);
       lista.push({ nome: a.nome, matricula: a.matricula, turma: f.turma });
     });
   });
-  return lista;
+  return ordenarAlunosPorNome(lista);
 }
 
 // Calcula, para CADA trimestre selecionado (sem somar entre eles), os
@@ -2507,12 +2573,14 @@ function calcPorTrimestreDetalhado(trimestres, turmasAlvo, modoTodasTurmas) {
         disciplina:    fichasDoRecorte.reduce((s,f)=>s+f.disciplina.alunos.length,0),
         destaque:      fichasDoRecorte.reduce((s,f)=>s+f.destaque.alunos.length,0),
         remanejamento: fichasDoRecorte.reduce((s,f)=>s+f.remanejamento.alunos.length,0),
+        retencao:      fichasDoRecorte.reduce((s,f)=>s+((f.retencao||{}).alunos||[]).length,0),
       },
       alunos: {
         baixo:         coletarAlunosCategoria(fichasDoRecorte, 'baixo'),
         disciplina:    coletarAlunosCategoria(fichasDoRecorte, 'disciplina'),
         destaque:      coletarAlunosCategoria(fichasDoRecorte, 'destaque'),
         remanejamento: coletarAlunosCategoria(fichasDoRecorte, 'remanejamento'),
+        retencao:      coletarAlunosCategoria(fichasDoRecorte, 'retencao'),
       },
     };
   });
@@ -2596,6 +2664,7 @@ function updateGeralStats() {
     ${renderStatCard(atual.valores.disciplina, anterior && anterior.valores.disciplina, '#b45309', `Prob. Disciplinares${rotuloAtualCurto}`)}
     ${renderStatCard(atual.valores.destaque, anterior && anterior.valores.destaque, '#0d7d6e', `Alunos Destaque${rotuloAtualCurto}`)}
     ${renderStatCard(atual.valores.remanejamento, anterior && anterior.valores.remanejamento, '#5b21b6', `Remanejamentos${rotuloAtualCurto}`)}
+    ${renderStatCard(atual.valores.retencao, anterior && anterior.valores.retencao, '#991b1b', `Risco de Retenção${rotuloAtualCurto}`)}
   `;
 
   if (chartSubtitle) chartSubtitle.textContent = trimestres.length > 1
@@ -2607,6 +2676,7 @@ function updateGeralStats() {
     { key: 'disciplina',   label: 'Disciplinares',  cor: '#b45309' },
     { key: 'destaque',     label: 'Destaque',       cor: '#0d7d6e' },
     { key: 'remanejamento',label: 'Remanejamento',  cor: '#5b21b6' },
+    { key: 'retencao',     label: 'Risco Retenção', cor: '#7f1d1d' },
   ], porTri);
 
   // Comparativo lado a lado entre os trimestres marcados (só faz sentido
@@ -2631,6 +2701,7 @@ function updateGeralStats() {
       <td style="text-align:center"><span class="badge badge-red">${f.baixo.alunos.length}</span></td>
       <td style="text-align:center"><span class="badge badge-org">${f.disciplina.alunos.length}</span></td>
       <td style="text-align:center"><span class="badge badge-green">${f.destaque.alunos.length}</span></td>
+      <td style="text-align:center"><span class="badge badge-red">${((f.retencao||{}).alunos||[]).length}</span></td>
       <td>
         <button class="btn btn-ghost" style="padding:5px 10px;font-size:12px" onclick="editarFicha('${escJsAttr(f.turma)}','${f.trimestre}')">✏️ Editar</button>
         <button class="btn btn-primary" style="padding:5px 10px;font-size:12px" onclick="previewTurma('${escJsAttr(f.turma)}','${f.trimestre}')">👁️ Ver</button>
@@ -2639,7 +2710,7 @@ function updateGeralStats() {
 
   document.getElementById('fichas-salvas-table').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>Turma</th>${mostrarColunaTrimestre ? '<th>Trim.</th>' : ''}<th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Turma</th>${mostrarColunaTrimestre ? '<th>Trim.</th>' : ''}<th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Risco Retenção</th><th>Ações</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 
@@ -2654,7 +2725,8 @@ function updateGeralStats() {
   let encHTML = '';
   Object.entries(encMap).forEach(([key,list]) => {
     if (!list.length) return;
-    const rows = list.map(({aluno,turma,trimestre}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}${mostrarColunaTrimestre ? ` — ${trimestre}º` : ''}</span></td></tr>`).join('');
+    const listaOrdenada = ordenarAlunosPorNome(list, item => item.aluno.nome);
+    const rows = listaOrdenada.map(({aluno,turma,trimestre}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}${mostrarColunaTrimestre ? ` — ${trimestre}º` : ''}</span></td></tr>`).join('');
     encHTML += `
       <p style="font-size:13px;font-weight:600;color:var(--blue);margin:16px 0 8px">${encTitles[key]} <span class="badge badge-blue">${list.length}</span></p>
       <table class="data-table"><thead><tr><th>Aluno</th><th>Turma</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -2674,6 +2746,7 @@ function renderComparativoTrimestres(trimestres, turmasAlvo, modoTodasTurmas){
       disciplina: fichasDoRecorte.reduce((s,f)=>s+f.disciplina.alunos.length,0),
       destaque: fichasDoRecorte.reduce((s,f)=>s+f.destaque.alunos.length,0),
       remanejamento: fichasDoRecorte.reduce((s,f)=>s+f.remanejamento.alunos.length,0),
+      retencao: fichasDoRecorte.reduce((s,f)=>s+((f.retencao||{}).alunos||[]).length,0),
     };
   });
   const linhas = [
@@ -2682,6 +2755,7 @@ function renderComparativoTrimestres(trimestres, turmasAlvo, modoTodasTurmas){
     ['Problemas disciplinares', 'disciplina'],
     ['Alunos destaque', 'destaque'],
     ['Remanejamentos', 'remanejamento'],
+    ['Risco de retenção', 'retencao'],
   ];
   const headerCols = porTrimestre.map(p => `<th style="text-align:center">${p.trimestre}º Trim.</th>`).join('');
   const bodyRows = linhas.map(([label,key]) => `
