@@ -1134,8 +1134,54 @@ body.instr-print-mode #instr-print-stage { display: block !important; }
 .instr-doc .instr-msg { background: #e8f4f8; border-left: 4px solid var(--blue-mid); padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: .92em; }
 
 @media print {
-  .instr-doc { page-break-inside: avoid; page-break-after: always; border-style: solid; }
+  .instr-doc {
+    page-break-inside: avoid;
+    page-break-after: always;
+    background: #fff !important;
+    border: 2px solid #000 !important;
+  }
   .instr-doc:last-of-type { page-break-after: auto; }
+  .instr-doc h4 {
+    color: #000 !important;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+  }
+  .instr-doc h5 { color: #000 !important; text-decoration: underline; }
+  .instr-doc p strong, .instr-doc li strong { color: #000; }
+  .instr-doc-id {
+    background: #fff !important;
+    border: 1.5px solid #000 !important;
+  }
+  .instr-doc-id strong { color: #000 !important; }
+  .instr-doc-id .linha { border-bottom-color: #000; }
+  .instr-doc table, .instr-doc th, .instr-doc td {
+    border-color: #000 !important;
+  }
+  .instr-doc th {
+    background: #e0e0e0 !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .instr-doc tr:nth-child(even) td { background: #f2f2f2 !important; }
+  .instr-doc .instr-alerta {
+    background: #fff !important;
+    border: 2px solid #000 !important;
+  }
+  .instr-doc .instr-alerta strong { color: #000 !important; }
+  .instr-doc .instr-msg {
+    background: #fff !important;
+    border: 2px solid #000 !important;
+  }
+  /* Ajustes de espaçamento para caber com folga em 1 página por instrumento,
+     economizando papel/tinta sem prejudicar a leitura. */
+  .instr-doc { padding: 14px 20px; }
+  .instr-doc-id { margin: 8px 0 14px; padding: 6px 10px; font-size: .85em; }
+  .instr-doc h4 { font-size: 1.1em; margin-bottom: 2px; }
+  .instr-doc h5 { margin: 10px 0 6px; font-size: 1em; }
+  .instr-doc p { margin: 5px 0; font-size: .92em; }
+  .instr-doc th, .instr-doc td { padding: 6px 8px; font-size: .85em; }
+  .instr-doc table { margin: 10px 0; }
+  .instr-doc .instr-alerta, .instr-doc .instr-msg { padding: 10px 12px; margin: 10px 0; font-size: .88em; }
 }
 
 /* ──────────── MODO EMBUTIDO (aberto dentro de uma aba da Plataforma de Monitoramento) ──────────── */
@@ -1612,18 +1658,6 @@ html.embedded body { background: var(--surface); }
           </div>
           <div id="fichas-salvas-table">
             <p class="hint">Nenhuma ficha salva ainda. Preencha e salve fichas na aba Preenchimento.</p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header violet">
-            <div class="card-icon violet">📌</div>
-            <div>
-              <div class="card-title">Encaminhamentos Consolidados</div>
-            </div>
-          </div>
-          <div id="encaminhamentos-geral">
-            <p class="hint">Salve fichas para ver o consolidado.</p>
           </div>
         </div>
 
@@ -2585,6 +2619,24 @@ function lightenHex(hex, percent) {
   return `rgb(${r},${g},${b})`;
 }
 
+// Resume os nomes de uma lista de alunos (a exibida num mesmo tooltip do
+// gráfico) para os 2 primeiros nomes de cada um. Um 3º nome (sobrenome) só é
+// acrescentado ao(s) aluno(s) que tiverem homônimo — ou seja, quando mais de
+// um aluno da própria lista compartilha os mesmos 2 primeiros nomes.
+function nomesResumidosParaTooltip(alunos){
+  const doisPrimeiros = nome => nome.trim().split(/\s+/).slice(0, 2).join(' ');
+  const contagem = new Map();
+  alunos.forEach(a => {
+    const chave = doisPrimeiros(a.nome);
+    contagem.set(chave, (contagem.get(chave) || 0) + 1);
+  });
+  return alunos.map(a => {
+    const partes = a.nome.trim().split(/\s+/);
+    const base = partes.slice(0, 2).join(' ');
+    return (contagem.get(base) > 1 && partes.length > 2) ? `${base} ${partes[2]}` : base;
+  });
+}
+
 // Renderiza o gráfico do Painel Geral.
 // categorias: [{ key, label, cor }]
 // trimestresInfo: array (1 ou mais) de { trimestre, valores:{key:valor}, alunos:{key:[{nome,turma}]} }
@@ -2613,8 +2665,9 @@ function renderGeralChart(categorias, trimestresInfo) {
       const clarPct = multi ? (trimestresInfo.length - 1 - idx) * 16 : 0;
       const cor = multi ? lightenHex(cat.cor, clarPct) : cat.cor;
       const alunos = t.alunos[cat.key] || [];
+      const nomesResumidos = nomesResumidosParaTooltip(alunos);
       const tooltipBody = alunos.length
-        ? `<div class="chart-tooltip-list">${alunos.map(a => `<div>${escHtml(a.nome)} <span class="ctl-turma">— ${escHtml(a.turma)}</span></div>`).join('')}</div>`
+        ? `<div class="chart-tooltip-list">${alunos.map((a, idx) => `<div>${escHtml(nomesResumidos[idx])} <span class="ctl-turma">— ${escHtml(a.turma)}</span></div>`).join('')}</div>`
         : '<div class="chart-tooltip-empty">Nenhum aluno nesta categoria.</div>';
       const tituloTooltip = multi ? `${cat.label} — ${t.trimestre}º Trim. (${valor})` : `${cat.label} (${valor})`;
       const barWidth = multi ? subWidth : 44;
@@ -2729,7 +2782,6 @@ function updateGeralStats() {
     document.getElementById('stat-grid').innerHTML = '';
     document.getElementById('geral-chart-wrap').innerHTML = '<p class="chart-empty">Selecione ao menos um trimestre para ver os dados.</p>';
     document.getElementById('fichas-salvas-table').innerHTML = '<p class="hint">Selecione ao menos um trimestre acima.</p>';
-    document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Selecione ao menos um trimestre acima.</p>';
     if (comparativoWrap) comparativoWrap.innerHTML = '';
     return;
   }
@@ -2794,7 +2846,6 @@ function updateGeralStats() {
 
   if (saved.length === 0) {
     document.getElementById('fichas-salvas-table').innerHTML = `<p class="hint">Nenhuma ficha salva para ${rotuloTurmas} no(s) ${rotuloTrimestres}.</p>`;
-    document.getElementById('encaminhamentos-geral').innerHTML = '<p class="hint">Salve fichas para ver o consolidado.</p>';
     return;
   }
 
@@ -2820,25 +2871,6 @@ function updateGeralStats() {
       <thead><tr><th>Turma</th>${mostrarColunaTrimestre ? '<th>Trim.</th>' : ''}<th>Prof. Referência</th><th>Data</th><th>Baixo Aprov.</th><th>Disciplina</th><th>Destaque</th><th>Risco Retenção</th><th>Ações</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
-
-  const encMap = {'ped_individual':[],'familia':[],'medico':[]};
-  saved.forEach(f => {
-    f.enc.ped.alunos.forEach(a => encMap.ped_individual.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
-    f.enc.familia.alunos.forEach(a => encMap.familia.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
-    f.enc.medico.alunos.forEach(a => encMap.medico.push({aluno:normalizarAluno(a), turma:f.turma, trimestre:f.trimestre}));
-  });
-
-  const encTitles = {ped_individual:'🎓 Acompanhamento Pedagógico Individual', familia:'👨‍👩‍👧 Conversa com Família', medico:'🏥 Avaliação Médica / Psicológica'};
-  let encHTML = '';
-  Object.entries(encMap).forEach(([key,list]) => {
-    if (!list.length) return;
-    const listaOrdenada = ordenarAlunosPorNome(list, item => item.aluno.nome);
-    const rows = listaOrdenada.map(({aluno,turma,trimestre}) => `<tr><td>${aluno.nome}${aluno.matricula!=null && aluno.matricula!=='' ? ` <span style="color:var(--ink-3);font-size:11px">(mat. ${aluno.matricula})</span>` : ''}</td><td><span class="badge badge-blue">${turma}${mostrarColunaTrimestre ? ` — ${trimestre}º` : ''}</span></td></tr>`).join('');
-    encHTML += `
-      <p style="font-size:13px;font-weight:600;color:var(--blue);margin:16px 0 8px">${encTitles[key]} <span class="badge badge-blue">${list.length}</span></p>
-      <table class="data-table"><thead><tr><th>Aluno</th><th>Turma</th></tr></thead><tbody>${rows}</tbody></table>`;
-  });
-  document.getElementById('encaminhamentos-geral').innerHTML = encHTML || '<p class="hint">Nenhum encaminhamento registrado.</p>';
 }
 
 // Tabela comparativa lado a lado entre os trimestres marcados, para o
