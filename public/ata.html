@@ -1099,6 +1099,45 @@ select {
   .header-divider, .header-badge { display: none; }
 }
 
+/* ──────────── INSTRUMENTOS (Projeto de Insucesso Escolar) ──────────── */
+.instr-print-stage { display: none; }
+body.instr-print-mode > *:not(#instr-print-stage) { display: none !important; }
+body.instr-print-mode #instr-print-stage { display: block !important; }
+
+.instr-doc {
+  background: #f5e6ff;
+  border: 2px dashed #9b59b6;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 0 0 25px;
+  color: var(--ink);
+}
+.instr-doc h4 { color: #8e44ad; margin: 0 0 4px; font-size: 1.25em; }
+.instr-doc h5 { color: #8e44ad; margin: 18px 0 8px; }
+.instr-doc p { margin: 8px 0; }
+.instr-doc ul, .instr-doc ol { margin: 10px 0; padding-left: 26px; }
+.instr-doc li { margin: 6px 0; }
+.instr-doc-id {
+  display: flex; flex-wrap: wrap; gap: 8px 24px;
+  background: #fff; border: 1px solid #9b59b6; border-radius: 6px;
+  padding: 10px 14px; margin: 14px 0 20px; font-size: .92em;
+}
+.instr-doc-id span { white-space: nowrap; }
+.instr-doc-id strong { color: #8e44ad; }
+.instr-doc-id .linha { border-bottom: 1px solid var(--ink); display: inline-block; min-width: 160px; }
+.instr-doc table { width: 100%; border-collapse: collapse; margin: 16px 0; background: #fff; }
+.instr-doc th, .instr-doc td { border: 1px solid var(--border-strong); padding: 10px; text-align: left; vertical-align: top; font-size: .92em; }
+.instr-doc th { background: var(--violet); color: #fff; }
+.instr-doc tr:nth-child(even) td { background: var(--surface); }
+.instr-doc .instr-alerta { background: #fde8e8; border-left: 5px solid var(--red); padding: 14px 16px; border-radius: 8px; margin: 16px 0; font-size: .92em; }
+.instr-doc .instr-alerta strong { color: var(--red); }
+.instr-doc .instr-msg { background: #e8f4f8; border-left: 4px solid var(--blue-mid); padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: .92em; }
+
+@media print {
+  .instr-doc { page-break-inside: avoid; page-break-after: always; border-style: solid; }
+  .instr-doc:last-of-type { page-break-after: auto; }
+}
+
 /* ──────────── MODO EMBUTIDO (aberto dentro de uma aba da Plataforma de Monitoramento) ──────────── */
 /* Some o cabeçalho e o topo do nav-bar duplicam a marca/identidade já mostrada pelo app que
    está exibindo esta página dentro de um iframe — assim a Ata ocupa a tela inteira sem repetição. */
@@ -1148,6 +1187,9 @@ html.embedded body { background: var(--surface); }
   </button>
   <button class="nav-btn" onclick="showView('geral')">
     <span class="nav-icon">📊</span> Painel Geral
+  </button>
+  <button class="nav-btn" onclick="showView('instrumentos')">
+    <span class="nav-icon">🛠️</span> Impressão Instrumentos
   </button>
 </nav>
 
@@ -1593,7 +1635,68 @@ html.embedded body { background: var(--surface); }
     </div>
   </div>
 
+  <!-- ════════ VIEW: IMPRESSÃO DE INSTRUMENTOS ════════ -->
+  <div class="view" id="view-instrumentos">
+
+    <div class="page-intro">
+      <h2>Impressão de Instrumentos — Projeto de Insucesso Escolar</h2>
+      <p>Gere e imprima os 5 instrumentos de acompanhamento para os alunos indicados em risco de retenção.</p>
+    </div>
+
+    <div class="card no-print">
+      <div class="card-header violet">
+        <div class="card-icon violet">🛠️</div>
+        <div>
+          <div class="card-title">Selecionar Turma, Alunos e Instrumentos</div>
+          <div class="card-subtitle">Escolha o que deseja gerar em PDF</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Turma</label>
+        <select id="instr-turma" onchange="onInstrTurmaChange()">
+          <option value="">— Selecione a turma —</option>
+        </select>
+      </div>
+
+      <label class="check-item" style="margin-bottom:14px">
+        <input type="checkbox" id="instr-mostrar-todos" onchange="renderInstrListaAlunos()">
+        <span>Mostrar todos os alunos da turma (não só os já indicados em risco de retenção)</span>
+      </label>
+
+      <div class="field">
+        <label>Aluno(s)</label>
+        <div id="instr-lista-alunos" style="max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px"></div>
+        <p class="hint" id="instr-alunos-hint"></p>
+      </div>
+
+      <div class="field">
+        <label>Instrumento(s)</label>
+        <div class="check-group check-group-vertical" id="instr-lista-instrumentos"></div>
+      </div>
+
+      <div class="btn-row no-print" style="margin-top:8px">
+        <button class="btn btn-primary" onclick="imprimirInstrumentosSelecionados()">🖨️ Gerar / Imprimir Instrumentos Selecionados</button>
+      </div>
+      <p class="hint" id="instr-resumo">Selecione uma turma para começar.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header red">
+        <div class="card-icon red">📋</div>
+        <div>
+          <div class="card-title">Quadro Geral — Alunos em Risco de Retenção por Turma</div>
+          <div class="card-subtitle">Todas as indicações já registradas nas fichas do conselho</div>
+        </div>
+      </div>
+      <div id="instr-quadro-geral"></div>
+    </div>
+
+  </div>
+
 </div>
+
+<div id="instr-print-stage"></div>
 
 <div id="toast"></div>
 
@@ -1993,6 +2096,10 @@ async function init() {
   buildGeralTurmaList();
   updatePrevSel();
   updateGeralStats();
+  populateInstrTurmaSelect();
+  populateInstrCheckboxes();
+  renderQuadroGeralInstrumentos();
+  atualizarResumoInstrumentos();
 }
 
 // ========================== TURMA CHANGE ==========================
@@ -2842,12 +2949,354 @@ function exportarTudo() {
   showToast('📥 Dados de todos os trimestres exportados!');
 }
 
+// ========================== IMPRESSÃO DE INSTRUMENTOS (Projeto de Insucesso Escolar) ==========================
+// Monta a linha de identificação (Aluno/Turma/Data/Preenchido por) de cada
+// instrumento: campos já conhecidos (aluno, turma) vêm preenchidos; os demais
+// ficam como linha em branco para preenchimento manual na aplicação.
+function instrIdRow(fields){
+  return `<div class="instr-doc-id">${fields.map(([label,val]) =>
+    `<span><strong>${label}:</strong> ${val ? escHtml(val) : '<span class="linha">&nbsp;</span>'}</span>`
+  ).join('')}</div>`;
+}
+
+// Os 5 instrumentos do Projeto de Insucesso Escolar (Everton Correa Alves,
+// GETECO 2026, com base em Paro). escopo 'aluno' gera uma via por aluno
+// selecionado; escopo 'turma' gera uma única via para a turma inteira.
+const INSTRUMENTOS = [
+  { n:1, titulo:'Instrumento 1: Checklist de Diagnóstico Precoce (aplicar na 1ª semana de aula)', escopo:'aluno',
+    html: (ctx) => `
+      <div class="instr-doc" data-instrumento="1">
+        <h4>Instrumento 1: Checklist de Diagnóstico Precoce (aplicar na 1ª semana de aula)</h4>
+        ${instrIdRow([['Aluno', ctx.aluno], ['Turma', ctx.turma], ['Data', ''], ['Preenchido por', '']])}
+        <p><strong>Objetivo:</strong> Identificar rapidamente alunos em risco de insucesso escolar</p>
+        <table>
+          <thead><tr><th>Área</th><th>Indicador</th><th>Sim</th><th>Não</th><th>Observações</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="3"><strong>Leitura</strong></td><td>Lê com fluência palavras simples?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Compreende o que lê (faz inferências)?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Tem vocabulário adequado à idade?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td rowspan="3"><strong>Escrita</strong></td><td>Escreve frases completas com coerência?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Usa pontuação básica (ponto, vírgula)?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Ortografia adequada ao nível escolar?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td rowspan="3"><strong>Matemática</strong></td><td>Resolve operações básicas (+, −, ×, ÷)?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Interpreta problemas matemáticos simples?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Tem noção de grandezas e medidas?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td rowspan="4"><strong>Comportamento</strong></td><td>Concentra-se em tarefas por 15+ minutos?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Segue instruções em grupo?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Interage positivamente com colegas?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Demonstra interesse pelas atividades?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td rowspan="3"><strong>Fatores emocionais</strong></td><td>Apresenta ansiedade excessiva?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Demonstra autoconfiança nas tarefas?</td><td>☐</td><td>☐</td><td></td></tr>
+            <tr><td>Relata problemas em casa ou na escola?</td><td>☐</td><td>☐</td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="instr-alerta"><strong>Critério de risco:</strong> Alunos com 5 ou mais "Não" devem receber Plano de Intervenção Individualizado (PII) imediatamente.</div>
+      </div>` },
+
+  { n:2, titulo:'Instrumento 2: Modelo de Plano de Intervenção Individualizado (PII)', escopo:'aluno',
+    html: (ctx) => `
+      <div class="instr-doc" data-instrumento="2">
+        <h4>Instrumento 2: Modelo de Plano de Intervenção Individualizado (PII)</h4>
+        ${instrIdRow([['Aluno', ctx.aluno], ['Turma', ctx.turma], ['Data', ''], ['Preenchido por', '']])}
+        <p><strong>Objetivo:</strong> Estruturar ações específicas para alunos com dificuldades identificadas</p>
+        <h5>1. Áreas de dificuldade identificadas (marcar com X):</h5>
+        <ul>
+          <li>☐ Leitura</li>
+          <li>☐ Escrita</li>
+          <li>☐ Matemática</li>
+          <li>☐ Concentração/Atenção</li>
+          <li>☐ Comportamento</li>
+          <li>☐ Relações interpessoais</li>
+          <li>☐ Autoestima/Autoeficácia</li>
+          <li>☐ Outro: _______________</li>
+        </ul>
+        <h5>2. Metas específicas (SMART):</h5>
+        <table>
+          <tr><th>Meta</th><th>Prazo</th><th>Indicador de sucesso</th></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+        </table>
+        <h5>3. Estratégias de intervenção:</h5>
+        <ul>
+          <li>Em sala de aula: _________________________________________________</li>
+          <li>Em casa (orientações à família): _________________________________</li>
+          <li>Apoio especializado (se necessário): _________________________________</li>
+        </ul>
+        <h5>4. Acompanhamento (Avaliação Formativa - Paro):</h5>
+        <table>
+          <tr><th>Data</th><th>Progresso observado</th><th>Dificuldades identificadas</th><th>Medidas corretivas</th><th>Responsável</th></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td><td></td></tr>
+        </table>
+        <p><strong>Assinaturas:</strong></p>
+        <p>Professor(a): _________________________ Data: ___/___/_____</p>
+        <p>Coordenador(a): ______________________ Data: ___/___/_____</p>
+        <p>Responsável pelo aluno: _______________ Data: ___/___/_____</p>
+      </div>` },
+
+  { n:3, titulo:'Instrumento 3: Roteiro de Roda de Conversa Semanal (30–40 minutos)', escopo:'turma',
+    html: (ctx) => `
+      <div class="instr-doc" data-instrumento="3">
+        <h4>Instrumento 3: Roteiro de Roda de Conversa Semanal (30–40 minutos)</h4>
+        ${instrIdRow([['Turma', ctx.turma], ['Data', ''], ['Professor(a) condutor(a)', '']])}
+        <p><strong>Objetivo:</strong> Criar espaço de escuta ativa e fortalecimento de vínculos</p>
+        <h5>Estrutura da sessão:</h5>
+        <ol>
+          <li><strong>Acolhida (5 min)</strong>
+            <ul><li>Organizar círculo com cadeiras</li><li>Combinar regras: respeito, escuta, sem julgamentos</li><li>Frase do dia: "Aqui todas as opiniões são importantes"</li></ul>
+          </li>
+          <li><strong>Dinâmica de aquecimento (5 min)</strong>
+            <ul><li>Exemplo: "Como estou me sentindo hoje em uma palavra?"</li><li>Exemplo: "Uma coisa boa que aconteceu essa semana foi..."</li></ul>
+          </li>
+          <li><strong>Tema da semana (15–20 min)</strong>
+            <ul>
+              <li><strong>Semana 1:</strong> O que me ajuda a aprender melhor?</li>
+              <li><strong>Semana 2:</strong> Quais minhas dificuldades na escola?</li>
+              <li><strong>Semana 3:</strong> Como me sinto quando não consigo fazer uma tarefa?</li>
+              <li><strong>Semana 4:</strong> O que posso fazer quando estou desmotivado?</li>
+              <li><strong>Semana 5:</strong> Como meus colegas podem me ajudar?</li>
+              <li><strong>Semana 6:</strong> O que espero dos meus professores?</li>
+            </ul>
+          </li>
+          <li><strong>Encerramento (5 min)</strong>
+            <ul><li>Cada aluno compartilha uma aprendizagem do dia</li><li>Professor registra pontos importantes (sem expor nomes)</li><li>Agradecer a participação de todos</li></ul>
+          </li>
+        </ol>
+        <h5>Registro do professor:</h5>
+        <table>
+          <tr><th>Data</th><th>Tema</th><th>Principais insights</th><th>Ações decorrentes</th></tr>
+          <tr><td></td><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td><td></td></tr>
+        </table>
+      </div>` },
+
+  { n:4, titulo:'Instrumento 4: Protocolo de Comunicação Escola-Família', escopo:'aluno',
+    html: (ctx) => `
+      <div class="instr-doc" data-instrumento="4">
+        <h4>Instrumento 4: Protocolo de Comunicação Escola-Família</h4>
+        ${instrIdRow([['Aluno', ctx.aluno], ['Turma', ctx.turma], ['Data', ''], ['Preenchido por', '']])}
+        <p><strong>Objetivo:</strong> Estruturar comunicação efetiva com responsáveis</p>
+        <h5>Modelo de agenda digital/mensagem:</h5>
+        <div class="instr-msg">
+          <p><strong>Assunto:</strong> Acompanhamento pedagógico - ${ctx.aluno ? escHtml(ctx.aluno) : '[Nome do aluno]'}</p>
+          <p>Prezado(a) responsável,</p>
+          <p>Esperamos que esteja bem. Gostaríamos de compartilhar alguns avanços e pontos de atenção sobre o desempenho de <strong>${ctx.aluno ? escHtml(ctx.aluno) : '[Nome do aluno]'}</strong>:</p>
+          <ul>
+            <li>✅ <strong>Avanços:</strong> [descrever conquistas recentes]</li>
+            <li>⚠️ <strong>Pontos de atenção:</strong> [descrever dificuldades observadas]</li>
+            <li>📋 <strong>Ações da escola:</strong> [estratégias em andamento]</li>
+            <li>🏠 <strong>Orientações para casa:</strong> [sugestões de apoio familiar]</li>
+          </ul>
+          <p>Estamos à disposição para uma conversa presencial ou por telefone. Podemos agendar para [sugerir datas/horários].</p>
+          <p>Atenciosamente,<br><strong>[Nome do professor(a)]</strong><br>[Contato: email/telefone]</p>
+        </div>
+        <div class="instr-alerta">
+          <strong>Frequência recomendada:</strong>
+          <ul>
+            <li><strong>Alunos sem dificuldades:</strong> comunicados bimestrais</li>
+            <li><strong>Alunos com PII:</strong> comunicados quinzenais + reunião mensal</li>
+            <li><strong>Casos críticos:</strong> contato semanal + visita domiciliar (se necessário)</li>
+          </ul>
+        </div>
+      </div>` },
+
+  { n:5, titulo:'Instrumento 5: Rubrica de Autoavaliação do Aluno', escopo:'aluno',
+    html: (ctx) => `
+      <div class="instr-doc" data-instrumento="5">
+        <h4>Instrumento 5: Rubrica de Autoavaliação do Aluno</h4>
+        ${instrIdRow([['Aluno', ctx.aluno], ['Turma', ctx.turma], ['Data', '']])}
+        <p><strong>Objetivo:</strong> Desenvolver metacognição e autorregulação da aprendizagem</p>
+        <table>
+          <tr><th>Questão</th><th>Sempre</th><th>Às vezes</th><th>Nunca</th></tr>
+          <tr><td>Eu me organizo para fazer as tarefas de casa?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+          <tr><td>Eu peço ajuda quando não entendo algo?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+          <tr><td>Eu reviso minhas atividades antes de entregar?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+          <tr><td>Eu consigo me concentrar durante a aula?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+          <tr><td>Eu acredito que posso melhorar meu desempenho?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+          <tr><td>Eu me sinto à vontade para participar das aulas?</td><td>☺</td><td>😐</td><td>☹</td></tr>
+        </table>
+        <h5>Espaço para reflexão:</h5>
+        <p><strong>Uma coisa que estou fazendo bem:</strong> _______________________________________</p>
+        <p><strong>Uma coisa que quero melhorar:</strong> _________________________________________</p>
+        <p><strong>Como posso melhorar isso:</strong> ________________________________________________</p>
+        <div class="instr-alerta"><strong>Frequência:</strong> Aplicar mensalmente (15 min no final do mês)</div>
+      </div>` },
+];
+
+let instrTurmaAtual = '';
+let instrAlunosSelecionados = [];              // [{nome, matricula}]
+let instrInstrumentosSelecionados = [1,2,3,4,5];
+
+function populateInstrTurmaSelect(){
+  const sel = document.getElementById('instr-turma');
+  Object.keys(TURMAS).sort().forEach(t => { sel.innerHTML += `<option value="${escHtml(t)}">${t}</option>`; });
+}
+
+function populateInstrCheckboxes(){
+  document.getElementById('instr-lista-instrumentos').innerHTML = INSTRUMENTOS.map(i => `
+    <label class="check-item">
+      <input type="checkbox" checked onchange="toggleInstrSelecionado(${i.n}, this.checked)">
+      <span>${i.titulo}${i.escopo === 'turma' ? ' — uma via por turma' : ''}</span>
+    </label>`).join('');
+}
+
+function toggleInstrSelecionado(n, checked){
+  if (checked && !instrInstrumentosSelecionados.includes(n)) instrInstrumentosSelecionados.push(n);
+  if (!checked) instrInstrumentosSelecionados = instrInstrumentosSelecionados.filter(x => x !== n);
+  atualizarResumoInstrumentos();
+}
+
+// Une, para a turma, os alunos indicados em risco de retenção em qualquer
+// trimestre já salvo, junto com a lista de trimestres em que aparecem.
+function alunosRetencaoDaTurma(turma){
+  const mapa = new Map();
+  Object.keys(fichas).forEach(tri => {
+    const f = fichas[tri] && fichas[tri][turma];
+    if (!f || !f.retencao) return;
+    (f.retencao.alunos || []).forEach(a => {
+      const norm = normalizarAluno(a);
+      const k = alunoKey(norm);
+      if (!mapa.has(k)) mapa.set(k, { nome: norm.nome, matricula: norm.matricula, trimestres: [] });
+      mapa.get(k).trimestres.push(tri);
+    });
+  });
+  return ordenarAlunosPorNome(Array.from(mapa.values()));
+}
+
+function onInstrTurmaChange(){
+  instrTurmaAtual = document.getElementById('instr-turma').value;
+  instrAlunosSelecionados = [];
+  renderInstrListaAlunos();
+  atualizarResumoInstrumentos();
+}
+
+function renderInstrListaAlunos(){
+  const box = document.getElementById('instr-lista-alunos');
+  const hint = document.getElementById('instr-alunos-hint');
+  box.innerHTML = '';
+  instrAlunosSelecionados = [];
+  if (!instrTurmaAtual){ hint.textContent = ''; atualizarResumoInstrumentos(); return; }
+  const mostrarTodos = document.getElementById('instr-mostrar-todos').checked;
+  const indicados = alunosRetencaoDaTurma(instrTurmaAtual);
+  const fonte = mostrarTodos
+    ? (TURMAS[instrTurmaAtual]?.alunos || []).map(a => ({ nome: a.nome, matricula: a.matricula, trimestres: [] }))
+    : indicados;
+
+  if (fonte.length === 0){
+    hint.textContent = mostrarTodos
+      ? 'Nenhum aluno cadastrado para esta turma.'
+      : 'Nenhum aluno indicado em risco de retenção nesta turma ainda. Marque "mostrar todos" para escolher manualmente.';
+    atualizarResumoInstrumentos();
+    return;
+  }
+  hint.textContent = mostrarTodos ? '' : `${fonte.length} aluno(s) indicado(s) em risco de retenção nesta turma.`;
+
+  fonte.forEach(a => {
+    const k = alunoKey(a);
+    const marcarPorPadrao = !mostrarTodos; // já indicados vêm marcados; "mostrar todos" começa vazio
+    const safeId = k.replace(/[^a-zA-Z0-9_:-]/g, '_');
+    const div = document.createElement('div');
+    div.className = 'ms-item' + (marcarPorPadrao ? ' selected' : '');
+    div.innerHTML = `<input type="checkbox" id="instr-chk-${safeId}" ${marcarPorPadrao ? 'checked' : ''}> <span class="ms-nome">${escHtml(a.nome)}</span>${a.trimestres.length ? `<span class="ms-mat">${a.trimestres.map(t=>t+'º tri.').join(', ')}</span>` : ''}`;
+    div.onclick = (e) => { if (e.target.tagName !== 'INPUT') div.querySelector('input').click(); };
+    div.querySelector('input').addEventListener('change', function(){
+      div.classList.toggle('selected', this.checked);
+      if (this.checked) instrAlunosSelecionados.push({ nome: a.nome, matricula: a.matricula ?? null });
+      else instrAlunosSelecionados = instrAlunosSelecionados.filter(x => alunoKey(x) !== k);
+      atualizarResumoInstrumentos();
+    });
+    box.appendChild(div);
+    if (marcarPorPadrao) instrAlunosSelecionados.push({ nome: a.nome, matricula: a.matricula ?? null });
+  });
+  atualizarResumoInstrumentos();
+}
+
+function atualizarResumoInstrumentos(){
+  const el = document.getElementById('instr-resumo');
+  if (!el) return;
+  if (!instrTurmaAtual){ el.textContent = 'Selecione uma turma para começar.'; return; }
+  const selecionados = INSTRUMENTOS.filter(i => instrInstrumentosSelecionados.includes(i.n));
+  const porAluno = selecionados.filter(i => i.escopo === 'aluno').length;
+  const porTurma = selecionados.filter(i => i.escopo === 'turma').length;
+  const totalFolhas = (porAluno * instrAlunosSelecionados.length) + porTurma;
+  el.textContent = `${instrAlunosSelecionados.length} aluno(s) selecionado(s) · ${selecionados.length} instrumento(s) · ${totalFolhas} folha(s) a gerar.`;
+}
+
+// Monta, num contêiner escondido fora do fluxo normal da tela (#instr-print-stage),
+// só os instrumentos escolhidos — sem cabeçalho, navegação ou o resto do
+// sistema — e dispara a impressão/"Salvar como PDF", igual ao material original.
+function imprimirInstrumentosSelecionados(){
+  if (!instrTurmaAtual){ showToast('⚠️ Selecione uma turma.'); return; }
+  const selecionados = INSTRUMENTOS.filter(i => instrInstrumentosSelecionados.includes(i.n));
+  if (selecionados.length === 0){ showToast('⚠️ Selecione ao menos um instrumento.'); return; }
+  const porTurma = selecionados.filter(i => i.escopo === 'turma');
+  const porAluno = selecionados.filter(i => i.escopo === 'aluno');
+  if (porAluno.length > 0 && instrAlunosSelecionados.length === 0){
+    showToast('⚠️ Selecione ao menos um aluno para os instrumentos marcados.');
+    return;
+  }
+  let html = '';
+  porTurma.forEach(i => { html += i.html({ turma: instrTurmaAtual, aluno: '' }); });
+  ordenarAlunosPorNome(instrAlunosSelecionados).forEach(aluno => {
+    porAluno.forEach(i => { html += i.html({ turma: instrTurmaAtual, aluno: aluno.nome }); });
+  });
+  document.getElementById('instr-print-stage').innerHTML = html;
+  document.body.classList.add('instr-print-mode');
+  window.print();
+}
+
+// Restaura a tela ao estado normal depois da impressão/PDF.
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('instr-print-mode');
+  const stage = document.getElementById('instr-print-stage');
+  if (stage) stage.innerHTML = '';
+});
+
+// Quadro geral: todos os alunos já indicados em risco de retenção em
+// qualquer ficha salva, agrupados por turma.
+function renderQuadroGeralInstrumentos(){
+  const wrap = document.getElementById('instr-quadro-geral');
+  if (!wrap) return;
+  const porTurma = {};
+  Object.keys(TURMAS).forEach(t => {
+    const lista = alunosRetencaoDaTurma(t);
+    if (lista.length) porTurma[t] = lista;
+  });
+  const turmasComIndicacao = Object.keys(porTurma).sort();
+  if (turmasComIndicacao.length === 0){
+    wrap.innerHTML = '<p class="hint">Nenhum aluno indicado em risco de retenção registrado ainda nas fichas do conselho.</p>';
+    return;
+  }
+  wrap.innerHTML = turmasComIndicacao.map(t => {
+    const rows = porTurma[t].map(a => `
+      <tr>
+        <td>${escHtml(a.nome)}</td>
+        <td>${a.trimestres.map(tr => `<span class="badge badge-red">${tr}º tri.</span>`).join(' ')}</td>
+      </tr>`).join('');
+    return `
+      <p style="font-size:13px;font-weight:600;color:var(--red);margin:16px 0 8px">
+        Turma ${escHtml(t)} <span class="badge badge-red">${porTurma[t].length}</span>
+        <button class="btn btn-ghost btn-sm no-print" style="margin-left:8px" onclick="irParaInstrumentosDaTurma('${escJsAttr(t)}')">🛠️ Gerar instrumentos desta turma</button>
+      </p>
+      <table class="data-table"><thead><tr><th>Aluno</th><th>Indicado em</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }).join('');
+}
+
+function irParaInstrumentosDaTurma(turma){
+  document.getElementById('instr-turma').value = turma;
+  onInstrTurmaChange();
+  showView('instrumentos');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // ========================== NAVIGATION ==========================
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(`view-${id}`).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach((b,i) => {
-    const ids = ['preenchimento','preview','geral'];
+    const ids = ['preenchimento','preview','geral','instrumentos'];
     b.classList.toggle('active', ids[i] === id);
   });
   // O seletor de trimestre do cabeçalho só faz sentido nas telas de
@@ -2863,6 +3312,7 @@ function showView(id) {
   if (container) container.classList.toggle('container-wide', id === 'geral');
   if (id === 'preview') renderPreview();
   if (id === 'geral') updateGeralStats();
+  if (id === 'instrumentos') renderQuadroGeralInstrumentos();
 }
 
 // ========================== TOAST ==========================
