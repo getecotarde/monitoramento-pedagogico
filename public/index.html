@@ -1888,6 +1888,10 @@
       Rel. Escolares
       <span class="nav-badge" id="nb-rel" style="display:none">—</span>
     </button>
+    <button class="nav-item" onclick="showView('relencam', this)" id="navRelEncam">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Relatório de Encaminhamentos
+    </button>
     <button class="nav-item" onclick="showView('analisetrimestral', this)" id="navAnaliseTrimestral">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 4 5-8"/></svg>
       Análise Trimestral
@@ -2658,6 +2662,123 @@
             <tr><td colspan="10" style="text-align:center;padding:2rem;color:#BBB">Nenhuma solicitação registrada ainda.</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: RELATÓRIO DE ENCAMINHAMENTOS ─────────────────────────────────── -->
+  <div id="view-relencam" class="view">
+    <div class="page-header">
+      <h1>Relatório de Encaminhamentos</h1>
+      <p>Gere listagens de estudantes cruzando as indicações da Ata do Conselho, o Perfil/Encaminhamento cadastral e o desempenho nas Notas Trimestrais</p>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem">
+      <div class="card-title">Filtros</div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma</label>
+          <select id="relEncamTurma"><option value="">Todas as turmas</option></select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Trimestre (Ata e Notas)</label>
+          <select id="relEncamTrimestre">
+            <option value="">Todos os trimestres</option>
+            <option value="1">1º trimestre</option>
+            <option value="2">2º trimestre</option>
+            <option value="3">3º trimestre</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Perfil</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPerfil" value="TÍPICO"> Típico</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPerfil" value="ATÍPICO"> Atípico</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPerfil" value="EM ANÁLISE"> Em análise</label>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Encaminhamento cadastral</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamEncam" value="REFORÇO"> Reforço</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamEncam" value="PIP"> PIP</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamEncam" value="ADAPTAÇÃO"> Adaptação</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamEncam" value="PIP/ADAPTAÇÃO"> PIP/Adaptação</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamEncam" value="AVALIAR"> Avaliar</label>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Indicações da Ata do Conselho</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="remanejamento"> Remanejamento</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="baixo"> Baixo aproveitamento</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="disciplina"> Problema disciplinar</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="destaque"> Aluno destaque</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="retencao"> Risco de retenção</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="ped"> Enc. pedagógico individual</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="familia"> Enc. conversa com família</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamAta" value="medico"> Enc. avaliação médica/psicológica</label>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Notas trimestrais</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer">
+            <input type="checkbox" id="relEncamNotasChk"> Rendimento abaixo de
+            <input type="number" id="relEncamNotasLimite" value="50" min="0" max="100" style="width:52px;padding:2px 4px;border:1px solid #E8E7E3;border-radius:4px;font-size:12px;margin:0 3px">%
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" id="relEncamNotasRecChk"> Nota recuperada em algum trimestre</label>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">PIP — Intervenção Pedagógica (ficha do aluno)</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPip" value="ativo"> PIP ativo (LP/MAT/Reforço)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPip" value="avaliar"> Avaliar PIP</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamPip" value="dispensado"> Dispensado do PIP</label>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">PIP Leitura — Fluência de Leitura</div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamLeitura" value="Alta"> Prioridade alta</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamLeitura" value="Média"> Prioridade média</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;margin-bottom:6px;cursor:pointer"><input type="checkbox" class="relEncamLeitura" value="Baixa"> Prioridade baixa</label>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn-save" onclick="relEncamGerar()" style="display:inline-flex;align-items:center;gap:6px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Gerar listagem
+        </button>
+        <button class="action-btn" onclick="relEncamLimparFiltros()">Limpar filtros</button>
+      </div>
+    </div>
+
+    <div id="relEncamCarregando" style="display:none;padding:2rem;text-align:center;color:#999">Consultando Ata do Conselho e Notas Trimestrais…</div>
+
+    <div id="relEncamResultadoWrap" style="display:none">
+      <div class="filters-bar" style="margin-bottom:1rem">
+        <span class="results-count" id="relEncamCount"></span>
+        <button class="action-btn" onclick="relEncamExportarCSV()" title="Exportar listagem em CSV">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+        <button class="action-btn" onclick="relEncamImprimir()" title="Imprimir listagem">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Turma</th>
+                <th>Matrícula</th>
+                <th>Nome do estudante</th>
+                <th>Perfil</th>
+                <th>Encaminhamento</th>
+                <th>Motivo(s) encontrado(s)</th>
+              </tr>
+            </thead>
+            <tbody id="relEncamTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -8356,6 +8477,7 @@ function showView(id, btn){
     if(f && !f.src) f.src='getecultura.html';
   }
   if(id === 'timeline') initLinhaDoTempo();
+  if(id === 'relencam') relEncamPopularTurmas();
   if(id === 'students') initTodosEstudantesNav();
   if(id === 'geradorcsv'){
     initTodosEstudantesNav();
@@ -10393,6 +10515,234 @@ async function imprimirLinhaDoTempo(){
   const win = window.open('','_blank','width=1000,height=800');
   win.document.write(html);
   win.document.close();
+}
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   RELATÓRIO DE ENCAMINHAMENTOS
+   Cruza o Perfil/Encaminhamento cadastral (tabela "estudantes"),
+   as indicações da Ata do Conselho ("atas_conselho", por meio das
+   categorias já usadas no Perfil Individual — LT_ATA_CATEGORIAS /
+   ltAlunoBateAta) e o desempenho nas Notas Trimestrais
+   ("notas_trimestrais") para gerar listagens de estudantes sob
+   determinados encaminhamentos, com opção de exportar em CSV ou
+   imprimir.
+   ════════════════════════════════════════════════════════════ */
+let _relEncamUltimoResultado = [];
+
+function relEncamPopularTurmas(){
+  const sel = document.getElementById('relEncamTurma');
+  if(!sel || sel.dataset.pop) return;
+  TURMAS.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+  sel.dataset.pop = '1';
+}
+
+function relEncamLimparFiltros(){
+  document.getElementById('relEncamTurma').value = '';
+  document.getElementById('relEncamTrimestre').value = '';
+  document.querySelectorAll('.relEncamPerfil, .relEncamEncam, .relEncamAta, .relEncamPip, .relEncamLeitura').forEach(cb=>cb.checked=false);
+  document.getElementById('relEncamNotasChk').checked = false;
+  document.getElementById('relEncamNotasRecChk').checked = false;
+  document.getElementById('relEncamNotasLimite').value = 50;
+  document.getElementById('relEncamResultadoWrap').style.display = 'none';
+  _relEncamUltimoResultado = [];
+}
+
+async function relEncamGerar(){
+  relEncamPopularTurmas();
+  const turma      = document.getElementById('relEncamTurma').value;
+  const trimestre  = document.getElementById('relEncamTrimestre').value;
+  const perfis     = [...document.querySelectorAll('.relEncamPerfil:checked')].map(cb=>cb.value);
+  const encams     = [...document.querySelectorAll('.relEncamEncam:checked')].map(cb=>cb.value);
+  const ataCats    = [...document.querySelectorAll('.relEncamAta:checked')].map(cb=>cb.value);
+  const notasChk   = document.getElementById('relEncamNotasChk').checked;
+  const notasRecChk= document.getElementById('relEncamNotasRecChk').checked;
+  const notasLimite= parseFloat(document.getElementById('relEncamNotasLimite').value) || 0;
+  const pips       = [...document.querySelectorAll('.relEncamPip:checked')].map(cb=>cb.value);
+  const leituras   = [...document.querySelectorAll('.relEncamLeitura:checked')].map(cb=>cb.value);
+
+  if(!perfis.length && !encams.length && !ataCats.length && !notasChk && !notasRecChk && !pips.length && !leituras.length){
+    showToast('Selecione ao menos um critério de encaminhamento.', 'amber');
+    return;
+  }
+
+  document.getElementById('relEncamResultadoWrap').style.display = 'none';
+  document.getElementById('relEncamCarregando').style.display = 'block';
+
+  let atasRows = [];
+  let notasRows = [];
+  try{
+    if(ataCats.length){
+      let url = `${SUPABASE_URL}/rest/v1/atas_conselho?select=*`;
+      if(turma) url += `&turma=eq.${encodeURIComponent(turma)}`;
+      if(trimestre) url += `&trimestre=eq.${encodeURIComponent(trimestre)}`;
+      const r = await fetch(url, { headers: sbHeaders() });
+      if(r.ok) atasRows = await r.json();
+    }
+    if(notasChk || notasRecChk){
+      let url = `${SUPABASE_URL}/rest/v1/notas_trimestrais?select=matricula,aluno_nome,turma,disciplina,trimestre,percentual,status`;
+      if(turma) url += `&turma=eq.${encodeURIComponent(turma)}`;
+      if(trimestre) url += `&trimestre=eq.${encodeURIComponent(trimestre)}`;
+      const r = await fetch(url, { headers: sbHeaders() });
+      if(r.ok) notasRows = await r.json();
+    }
+  }catch(e){
+    console.error('Erro ao consultar Ata do Conselho / Notas Trimestrais para o Relatório de Encaminhamentos:', e);
+    showToast('Não foi possível consultar a Ata do Conselho e/ou as Notas Trimestrais agora. A listagem pode ficar incompleta.', 'coral');
+  }
+
+  const base = S.filter(x=>!x._transferido && (!turma || x.t===turma));
+  const resultado = [];
+
+  base.forEach(x=>{
+    const motivos = [];
+
+    if(perfis.includes(x.p)){
+      const label = x.p==='TÍPICO' ? 'Típico' : x.p==='ATÍPICO' ? 'Atípico' : 'Em análise';
+      motivos.push(`Perfil: ${label}`);
+    }
+
+    if(encams.length){
+      const k = encamKey(x.e);
+      if(encams.includes(k)) motivos.push(`Encaminhamento cadastral: ${k}`);
+    }
+
+    if(ataCats.length && atasRows.length){
+      atasRows.forEach(row=>{
+        if(row.turma !== x.t) return;
+        LT_ATA_CATEGORIAS.forEach(cat=>{
+          if(!ataCats.includes(cat.chave)) return;
+          const lista = row[cat.alunosCampo] || [];
+          if(lista.some(item=>ltAlunoBateAta(item, x))){
+            motivos.push(`Ata ${row.trimestre}ºT — ${cat.titulo}`);
+          }
+        });
+      });
+    }
+
+    if(pips.length){
+      const v = x.pip || 'N/A';
+      const chave = v==='Avaliar PIP' ? 'avaliar' : v==='Dispensado' ? 'dispensado' : (v && v!=='N/A') ? 'ativo' : null;
+      if(chave && pips.includes(chave)){
+        motivos.push(chave==='ativo' ? `PIP (ficha): ${pipLabel(v)}` : chave==='avaliar' ? 'PIP (ficha): Avaliar PIP' : 'PIP (ficha): Dispensado');
+      }
+    }
+
+    if(leituras.length && x._leituraPrio){
+      const prioNorm = x._leituraPrio === 'Media' ? 'Média' : x._leituraPrio;
+      if(leituras.includes(prioNorm)){
+        motivos.push(`PIP Leitura — prioridade ${prioNorm.toLowerCase()}${x._leituraClass ? ' ('+x._leituraClass+(x._leituraPpm?' · '+x._leituraPpm+' PPM':'')+')' : ''}`);
+      }
+    }
+
+    if((notasChk || notasRecChk) && notasRows.length){
+      const matDig = ltSoDigitos(x.matricula);
+      const notasDoAluno = notasRows.filter(n=>{
+        const nMatDig = ltSoDigitos(n.matricula);
+        if(matDig && nMatDig) return nMatDig === matDig;
+        return (n.aluno_nome||'').trim().toLowerCase() === (x.n||'').trim().toLowerCase() && (n.turma||'') === x.t;
+      });
+      notasDoAluno.forEach(n=>{
+        if(notasChk && n.percentual!=null && n.percentual < notasLimite){
+          motivos.push(`Notas ${n.trimestre}ºT — ${n.disciplina}: ${n.percentual}%`);
+        }
+        if(notasRecChk && n.status === 'recuperada'){
+          motivos.push(`Notas ${n.trimestre}ºT — ${n.disciplina}: recuperada`);
+        }
+      });
+    }
+
+    if(motivos.length) resultado.push({ x, motivos: [...new Set(motivos)] });
+  });
+
+  resultado.sort((a,b)=> a.x.t.localeCompare(b.x.t,'pt-BR') || a.x.n.localeCompare(b.x.n,'pt-BR'));
+  _relEncamUltimoResultado = resultado;
+
+  document.getElementById('relEncamCarregando').style.display = 'none';
+  relEncamRenderTabela(resultado);
+}
+
+function relEncamRenderTabela(resultado){
+  const tbody = document.getElementById('relEncamTableBody');
+  document.getElementById('relEncamCount').textContent =
+    `${resultado.length} estudante${resultado.length!==1?'s':''} encontrado${resultado.length!==1?'s':''}`;
+
+  if(!resultado.length){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado com os critérios selecionados.</td></tr>`;
+  } else {
+    tbody.innerHTML = resultado.map(({x,motivos})=>`
+      <tr>
+        <td>${ltEsc(x.t)}</td>
+        <td>${ltEsc(x.matricula||'—')}</td>
+        <td>${ltEsc(x.n)}</td>
+        <td>${perfilBadge(x.p)}</td>
+        <td>${encamBadge(x.e)}</td>
+        <td style="font-size:11.5px;color:#555">${motivos.map(m=>`<div>• ${ltEsc(m)}</div>`).join('')}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('relEncamResultadoWrap').style.display = 'block';
+}
+
+function relEncamExportarCSV(){
+  if(!_relEncamUltimoResultado.length){ showToast('Gere a listagem antes de exportar.', 'amber'); return; }
+  const linhas = [['Turma','Matrícula','Nome','Perfil','Encaminhamento','Motivos']];
+  _relEncamUltimoResultado.forEach(({x,motivos})=>{
+    linhas.push([x.t, x.matricula||'', x.n, x.p, encamKey(x.e), motivos.join(' | ')]);
+  });
+  const csv = linhas.map(l=>l.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `relatorio-encaminhamentos_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function relEncamImprimir(){
+  if(!_relEncamUltimoResultado.length){ showToast('Gere a listagem antes de imprimir.', 'amber'); return; }
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const turma = document.getElementById('relEncamTurma').value;
+  const trimestre = document.getElementById('relEncamTrimestre').value;
+  const filtroTexto = [turma||'Todas as turmas', trimestre?`${trimestre}º trimestre`:'Todos os trimestres'].join(' · ');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>Relatório de Encaminhamentos${turma?' — '+turma:''}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Georgia',serif; font-size:11pt; color:#1a1a1a; background:#fff; line-height:1.5; padding:1.5cm; }
+  .rel-header { border-bottom:2px solid #0D9488; padding-bottom:12px; margin-bottom:20px; }
+  .rel-title { font-size:16pt; font-weight:700; color:#0F766E; margin-bottom:4px; }
+  .rel-sub { font-size:10pt; color:#666; }
+  .rel-meta { font-size:9pt; color:#999; margin-top:3px; }
+  table { width:100%; border-collapse:collapse; font-size:9.5pt; }
+  th, td { border:1px solid #E2E1DC; padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#F7FDFB; color:#0F766E; }
+  .rodape { margin-top:24px; border-top:1px solid #E8E7E3; padding-top:8px; font-size:8pt; color:#AAA; text-align:center; }
+  @media print { body{padding:0} @page { margin:1.5cm; } tr { page-break-inside:avoid; } }
+</style></head><body>
+<div class="rel-header">
+  <div class="rel-title">Relatório de Encaminhamentos</div>
+  <div class="rel-sub">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div>
+  <div class="rel-meta">Gerado em ${now} · ${filtroTexto} · ${_relEncamUltimoResultado.length} estudante${_relEncamUltimoResultado.length!==1?'s':''}</div>
+</div>
+<table>
+  <thead><tr><th>Turma</th><th>Matrícula</th><th>Nome</th><th>Perfil</th><th>Encaminhamento</th><th>Motivo(s)</th></tr></thead>
+  <tbody>
+    ${_relEncamUltimoResultado.map(({x,motivos})=>`<tr>
+      <td>${ltEsc(x.t)}</td><td>${ltEsc(x.matricula||'—')}</td><td>${ltEsc(x.n)}</td>
+      <td>${ltEsc(x.p)}</td><td>${ltEsc(encamKey(x.e))}</td>
+      <td>${motivos.map(m=>ltEsc(m)).join('<br>')}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+<div class="rodape">Monitoramento Pedagógico · E. M. Geraldo Teixeira da Costa · Coord. Pedagógico: Everton Correa Alves · Uso exclusivo da equipe pedagógica.</div>
+</body></html>`;
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(), 600);
 }
 </script>
 
