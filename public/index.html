@@ -2802,6 +2802,10 @@
       <div id="relEncamCarregando" style="display:none;padding:2rem;text-align:center;color:#999">Consultando Ata do Conselho e Notas Trimestrais…</div>
 
       <div id="relEncamResultadoWrap" style="display:none">
+        <div class="card" id="relEncamResumoCriteriosCard" style="margin-bottom:1rem;display:none">
+          <div class="card-title">Estudantes por critério selecionado</div>
+          <div id="relEncamResumoCriterios"></div>
+        </div>
         <div class="filters-bar" style="margin-bottom:1rem">
           <span class="results-count" id="relEncamCount"></span>
           <button class="action-btn" onclick="relEncamExportarCSV()" title="Exportar listagem em CSV">
@@ -2836,26 +2840,23 @@
     <!-- ── Sub-aba: Análise Geral ─────────────────────────────────── -->
     <div id="relEncamSubAnaliseView" class="relencam-subview" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
-        <p style="font-size:12.5px;color:#888;margin:0">Panorama geral cruzando todos os critérios (Perfil, Encaminhamento cadastral, Ata do Conselho, Notas Trimestrais, PIP e PIP Leitura) para todas as turmas.</p>
-        <button class="action-btn" onclick="relEncamCarregarAnaliseGeral()" style="flex-shrink:0">
-          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Atualizar análise
-        </button>
+        <p style="font-size:12.5px;color:#888;margin:0" id="relEncamAnaliseFiltroAtivo">Nenhum critério selecionado — mostrando o panorama geral (todos os critérios, todas as turmas)</p>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="action-btn" onclick="relEncamIrParaFiltros()">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+            Editar filtros
+          </button>
+          <button class="action-btn" onclick="relEncamCarregarAnaliseGeral()">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Atualizar análise
+          </button>
+        </div>
       </div>
       <div id="relEncamAnaliseCarregando" style="display:none;padding:2rem;text-align:center;color:#999">Consolidando dados de Perfil, Ata do Conselho, Notas, PIP e Fluência de Leitura…</div>
       <div id="relEncamAnaliseVazio" style="display:none;padding:2rem;text-align:center;color:#BBB">Nenhum estudante com critério de encaminhamento identificado no momento.</div>
       <div id="relEncamAnaliseWrap" style="display:none">
         <div class="stats-grid stats-grid-narrow" id="relEncamAnaliseStats"></div>
-        <div class="charts-row">
-          <div class="card">
-            <div class="card-title">Estudantes com encaminhamento por turma</div>
-            <div id="relEncamChartTurma"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">Motivos encontrados por origem</div>
-            <div id="relEncamChartCategoria"></div>
-          </div>
-        </div>
+        <div class="charts-row" id="relEncamAnaliseCharts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
       </div>
     </div>
   </div>
@@ -10704,19 +10705,28 @@ function relEncamColetarCriterios(){
 }
 
 // Lógica central: motivos de encaminhamento de um estudante para um dado conjunto de critérios.
-// Compartilhada pela Listagem (sub-aba) e pela Análise Geral (dashboard consolidado).
+// Cada motivo é devolvido como {texto, tipo, chave} — texto é o que aparece na tabela/impressão/CSV;
+// tipo+chave identificam de forma estável o critério exato que gerou o motivo, para permitir contagens
+// por critério (Listagem) e gráficos por critério (Análise Geral) sem precisar interpretar texto livre.
 function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
   const { perfis, encams, ataCats, notasChk, notasRecChk, notasLimite, pips, leituras } = criterios;
   const motivos = [];
+  const vistos = new Set();
+  const add = (texto, tipo, chave) => {
+    const k = tipo+'|'+chave+'|'+texto;
+    if(vistos.has(k)) return;
+    vistos.add(k);
+    motivos.push({ texto, tipo, chave });
+  };
 
   if(perfis.includes(x.p)){
     const label = x.p==='TÍPICO' ? 'Típico' : x.p==='ATÍPICO' ? 'Atípico' : 'Em análise';
-    motivos.push(`Perfil: ${label}`);
+    add(`Perfil: ${label}`, 'perfil', x.p);
   }
 
   if(encams.length){
     const k = encamKey(x.e);
-    if(encams.includes(k)) motivos.push(`Encaminhamento cadastral: ${k}`);
+    if(encams.includes(k)) add(`Encaminhamento cadastral: ${k}`, 'encam', k);
   }
 
   if(ataCats.length && atasRows.length){
@@ -10726,7 +10736,7 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
         if(!ataCats.includes(cat.chave)) return;
         const lista = row[cat.alunosCampo] || [];
         if(lista.some(item=>ltAlunoBateAta(item, x))){
-          motivos.push(`Ata ${row.trimestre}ºT — ${cat.titulo}`);
+          add(`Ata ${row.trimestre}ºT — ${cat.titulo}`, 'ata', cat.chave);
         }
       });
     });
@@ -10736,14 +10746,14 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
     const v = x.pip || 'N/A';
     const chave = v==='Avaliar PIP' ? 'avaliar' : v==='Dispensado' ? 'dispensado' : (v && v!=='N/A') ? 'ativo' : null;
     if(chave && pips.includes(chave)){
-      motivos.push(chave==='ativo' ? `PIP (ficha): ${pipLabel(v)}` : chave==='avaliar' ? 'PIP (ficha): Avaliar PIP' : 'PIP (ficha): Dispensado');
+      add(chave==='ativo' ? `PIP (ficha): ${pipLabel(v)}` : chave==='avaliar' ? 'PIP (ficha): Avaliar PIP' : 'PIP (ficha): Dispensado', 'pip', chave);
     }
   }
 
   if(leituras.length && x._leituraPrio){
     const prioNorm = x._leituraPrio === 'Media' ? 'Média' : x._leituraPrio;
     if(leituras.includes(prioNorm)){
-      motivos.push(`PIP Leitura — prioridade ${prioNorm.toLowerCase()}${x._leituraClass ? ' ('+x._leituraClass+(x._leituraPpm?' · '+x._leituraPpm+' PPM':'')+')' : ''}`);
+      add(`PIP Leitura — prioridade ${prioNorm.toLowerCase()}${x._leituraClass ? ' ('+x._leituraClass+(x._leituraPpm?' · '+x._leituraPpm+' PPM':'')+')' : ''}`, 'leitura', prioNorm);
     }
   }
 
@@ -10756,30 +10766,22 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
     });
     notasDoAluno.forEach(n=>{
       if(notasChk && n.percentual!=null && n.percentual < notasLimite){
-        motivos.push(`Notas ${n.trimestre}ºT — ${n.disciplina}: ${n.percentual}%`);
+        add(`Notas ${n.trimestre}ºT — ${n.disciplina}: ${n.percentual}%`, 'notasBaixas', 'baixas');
       }
       if(notasRecChk && n.status === 'recuperada'){
-        motivos.push(`Notas ${n.trimestre}ºT — ${n.disciplina}: recuperada`);
+        add(`Notas ${n.trimestre}ºT — ${n.disciplina}: recuperada`, 'notasRecuperadas', 'recuperada');
       }
     });
   }
 
-  return [...new Set(motivos)];
+  return motivos;
 }
 
-async function relEncamGerar(){
-  relEncamPopularTurmas();
-  const criterios = relEncamColetarCriterios();
-  const { turma, trimestre, perfis, encams, ataCats, notasChk, notasRecChk, pips, leituras } = criterios;
-
-  if(!perfis.length && !encams.length && !ataCats.length && !notasChk && !notasRecChk && !pips.length && !leituras.length){
-    showToast('Selecione ao menos um critério de encaminhamento.', 'amber');
-    return;
-  }
-
-  document.getElementById('relEncamResultadoWrap').style.display = 'none';
-  document.getElementById('relEncamCarregando').style.display = 'block';
-
+// Busca Ata do Conselho / Notas Trimestrais conforme os critérios e cruza com os estudantes.
+// Devolve { resultado, base } — resultado é a lista de estudantes com motivo(s) encontrados,
+// base é o universo de estudantes considerado (após filtro de turma), usado como denominador de %.
+async function relEncamComputar(criterios){
+  const { turma, trimestre, ataCats, notasChk, notasRecChk } = criterios;
   let atasRows = [];
   let notasRows = [];
   try{
@@ -10799,22 +10801,90 @@ async function relEncamGerar(){
     }
   }catch(e){
     console.error('Erro ao consultar Ata do Conselho / Notas Trimestrais para o Relatório de Encaminhamentos:', e);
-    showToast('Não foi possível consultar a Ata do Conselho e/ou as Notas Trimestrais agora. A listagem pode ficar incompleta.', 'coral');
+    showToast('Não foi possível consultar a Ata do Conselho e/ou as Notas Trimestrais agora. Os dados podem ficar incompletos.', 'coral');
   }
 
   const base = S.filter(x=>!x._transferido && (!turma || x.t===turma));
   const resultado = [];
-
   base.forEach(x=>{
     const motivos = relEncamMotivosAluno(x, criterios, atasRows, notasRows);
     if(motivos.length) resultado.push({ x, motivos });
   });
-
   resultado.sort((a,b)=> a.x.t.localeCompare(b.x.t,'pt-BR') || a.x.n.localeCompare(b.x.n,'pt-BR'));
+  return { resultado, base };
+}
+
+// Rótulos legíveis para cada critério exato (tipo+chave), usados na contagem por critério
+const REL_ENC_PIP_LABELS = { ativo:'PIP ativo (ficha)', avaliar:'Avaliar PIP', dispensado:'Dispensado do PIP' };
+function relEncamLabelCriterio(tipo, chave){
+  if(tipo==='perfil') return chave==='TÍPICO' ? 'Perfil: Típico' : chave==='ATÍPICO' ? 'Perfil: Atípico' : 'Perfil: Em análise';
+  if(tipo==='encam') return `Encaminhamento cadastral: ${chave}`;
+  if(tipo==='ata'){ const cat = LT_ATA_CATEGORIAS.find(c=>c.chave===chave); return `Ata — ${cat?cat.titulo:chave}`; }
+  if(tipo==='pip') return REL_ENC_PIP_LABELS[chave] || chave;
+  if(tipo==='leitura') return `PIP Leitura — prioridade ${String(chave).toLowerCase()}`;
+  if(tipo==='notasBaixas') return 'Notas — rendimento abaixo do limite';
+  if(tipo==='notasRecuperadas') return 'Notas — recuperada em algum trimestre';
+  return chave;
+}
+
+// Para cada critério selecionado, conta quantos estudantes (distintos) do resultado foram indicados
+// por aquele critério específico, e a % em relação ao total do universo considerado (baseTotal).
+// Também devolve a distribuição por turma de cada critério (usada nos gráficos da Análise Geral).
+function relEncamCalcularResumoCriterios(resultado, criterios, baseTotal){
+  const linhas = [];
+  const addLinha = (tipo, chave) => {
+    const porTurma = {};
+    let total = 0;
+    resultado.forEach(r=>{
+      if(r.motivos.some(m=>m.tipo===tipo && m.chave===chave)){
+        total++;
+        porTurma[r.x.t] = (porTurma[r.x.t]||0) + 1;
+      }
+    });
+    if(total) linhas.push({ tipo, chave, label: relEncamLabelCriterio(tipo, chave), count: total, pct: baseTotal ? (total/baseTotal*100) : 0, porTurma });
+  };
+
+  criterios.perfis.forEach(v=>addLinha('perfil', v));
+  criterios.encams.forEach(v=>addLinha('encam', v));
+  criterios.ataCats.forEach(v=>addLinha('ata', v));
+  criterios.pips.forEach(v=>addLinha('pip', v));
+  criterios.leituras.forEach(v=>addLinha('leitura', v));
+  if(criterios.notasChk) addLinha('notasBaixas', 'baixas');
+  if(criterios.notasRecChk) addLinha('notasRecuperadas', 'recuperada');
+
+  return linhas;
+}
+
+// Pequeno bloco de barras (rótulo · contagem · %) usado no resumo por critério da Listagem
+function relEncamRenderResumoBarras(linhas){
+  if(!linhas.length) return '';
+  const max = Math.max(1, ...linhas.map(l=>l.count));
+  return linhas.map(l=>`
+    <div class="horiz-bar">
+      <div class="horiz-bar-label"><span class="horiz-bar-name">${ltEsc(l.label)}</span><span class="horiz-bar-val">${l.count} aluno${l.count!==1?'s':''} · ${l.pct.toFixed(1)}%</span></div>
+      <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(l.count/max*100)}%;background:#0D9488"></div></div>
+    </div>
+  `).join('');
+}
+
+async function relEncamGerar(){
+  relEncamPopularTurmas();
+  const criterios = relEncamColetarCriterios();
+  const { perfis, encams, ataCats, notasChk, notasRecChk, pips, leituras } = criterios;
+
+  if(!perfis.length && !encams.length && !ataCats.length && !notasChk && !notasRecChk && !pips.length && !leituras.length){
+    showToast('Selecione ao menos um critério de encaminhamento.', 'amber');
+    return;
+  }
+
+  document.getElementById('relEncamResultadoWrap').style.display = 'none';
+  document.getElementById('relEncamCarregando').style.display = 'block';
+
+  const { resultado, base } = await relEncamComputar(criterios);
   _relEncamUltimoResultado = resultado;
 
   document.getElementById('relEncamCarregando').style.display = 'none';
-  relEncamRenderTabela(resultado);
+  relEncamRenderTabela(resultado, criterios, base.length);
 }
 
 // ─── Subabas: Listagem / Análise Geral ─────────────────────────────
@@ -10829,133 +10899,182 @@ function showRelEncamSub(sub, btn){
   listagemView.style.display = isListagem ? 'block' : 'none';
   analiseView.style.display  = isListagem ? 'none' : 'block';
 
-  if(!isListagem && !analiseView.dataset.loaded){
-    analiseView.dataset.loaded = '1';
-    relEncamCarregarAnaliseGeral();
-  }
+  // Recarrega a análise sempre que a sub-aba é aberta, para refletir eventuais
+  // mudanças nos filtros feitas na Listagem.
+  if(!isListagem) relEncamCarregarAnaliseGeral();
 }
 
-// ─── Análise Geral: painel consolidado cruzando todos os critérios ────
+// Leva o usuário de volta à sub-aba Listagem com o card de filtros aberto,
+// para ajustar os critérios usados também pela Análise Geral.
+function relEncamIrParaFiltros(){
+  showRelEncamSub('listagem', document.getElementById('subRelEncamListagem'));
+  const det = document.getElementById('relEncamFiltrosDetails');
+  if(det) det.open = true;
+  det?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+const REL_ENC_CRITERIO_DEFAULT = {
+  turma:'', trimestre:'',
+  perfis:      ['TÍPICO','ATÍPICO','EM ANÁLISE'],
+  encams:      ['REFORÇO','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','AVALIAR'],
+  ataCats:     LT_ATA_CATEGORIAS.map(c=>c.chave),
+  notasChk:    true,
+  notasRecChk: true,
+  pips:        ['ativo','avaliar','dispensado'],
+  leituras:    ['Alta','Média','Baixa'],
+};
+
+// ─── Análise Geral: painel consolidado — usa os filtros ativos na Listagem;
+// se nenhum critério estiver selecionado, mostra o panorama geral (todos os critérios) ────
 async function relEncamCarregarAnaliseGeral(){
   const carregando = document.getElementById('relEncamAnaliseCarregando');
   const wrap       = document.getElementById('relEncamAnaliseWrap');
   const vazio      = document.getElementById('relEncamAnaliseVazio');
+  const badge      = document.getElementById('relEncamAnaliseFiltroAtivo');
   wrap.style.display = 'none';
   vazio.style.display = 'none';
   carregando.style.display = 'block';
 
-  let atasRows = [];
-  let notasRows = [];
-  try{
-    const rA = await fetch(`${SUPABASE_URL}/rest/v1/atas_conselho?select=*`, { headers: sbHeaders() });
-    if(rA.ok) atasRows = await rA.json();
-    const rN = await fetch(`${SUPABASE_URL}/rest/v1/notas_trimestrais?select=matricula,aluno_nome,turma,disciplina,trimestre,percentual,status`, { headers: sbHeaders() });
-    if(rN.ok) notasRows = await rN.json();
-  }catch(e){
-    console.error('Erro ao consultar dados para a Análise Geral do Relatório de Encaminhamentos:', e);
-    showToast('Não foi possível consultar todos os dados agora. A análise geral pode ficar incompleta.', 'coral');
-  }
+  const criteriosUsuario = relEncamColetarCriterios();
+  const temFiltro = criteriosUsuario.perfis.length || criteriosUsuario.encams.length || criteriosUsuario.ataCats.length ||
+                     criteriosUsuario.notasChk || criteriosUsuario.notasRecChk || criteriosUsuario.pips.length || criteriosUsuario.leituras.length;
 
-  const criterios = {
-    perfis:      ['TÍPICO','ATÍPICO','EM ANÁLISE'],
-    encams:      ['REFORÇO','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','AVALIAR'],
-    ataCats:     LT_ATA_CATEGORIAS.map(c=>c.chave),
-    notasChk:    true,
-    notasRecChk: true,
-    notasLimite: parseFloat(document.getElementById('relEncamNotasLimite')?.value) || 50,
-    pips:        ['ativo','avaliar','dispensado'],
-    leituras:    ['Alta','Média','Baixa'],
+  const criterios = temFiltro ? criteriosUsuario : {
+    ...REL_ENC_CRITERIO_DEFAULT,
+    turma: criteriosUsuario.turma, trimestre: criteriosUsuario.trimestre,
+    notasLimite: criteriosUsuario.notasLimite,
   };
 
-  const base = S.filter(x=>!x._transferido);
-  const porTurma = {};
-  TURMAS.forEach(t=>porTurma[t]=0);
-  const porCategoria = { Perfil:0, Encaminhamento:0, Ata:0, Notas:0, PIP:0, Leitura:0 };
-  let totalEstudantes = 0;
-
-  base.forEach(x=>{
-    const motivos = relEncamMotivosAluno(x, criterios, atasRows, notasRows);
-    if(!motivos.length) return;
-    totalEstudantes++;
-    porTurma[x.t] = (porTurma[x.t]||0) + 1;
-    motivos.forEach(m=>{
-      if(m.startsWith('Perfil')) porCategoria.Perfil++;
-      else if(m.startsWith('Encaminhamento cadastral')) porCategoria.Encaminhamento++;
-      else if(m.startsWith('Ata')) porCategoria.Ata++;
-      else if(m.startsWith('Notas')) porCategoria.Notas++;
-      else if(m.startsWith('PIP Leitura')) porCategoria.Leitura++;
-      else if(m.startsWith('PIP (ficha)')) porCategoria.PIP++;
-    });
-  });
-
+  const { resultado, base } = await relEncamComputar(criterios);
   carregando.style.display = 'none';
 
-  if(!totalEstudantes){
+  if(badge){
+    badge.textContent = temFiltro
+      ? 'Usando os critérios selecionados na aba Listagem'
+      : 'Nenhum critério selecionado — mostrando o panorama geral (todos os critérios, todas as turmas)';
+  }
+
+  if(!resultado.length){
     vazio.style.display = 'block';
     return;
   }
 
-  const turmaComMais = Object.entries(porTurma).sort((a,b)=>b[1]-a[1])[0];
+  const linhas = relEncamCalcularResumoCriterios(resultado, criterios, base.length);
+  const pctTotal = base.length ? (resultado.length/base.length*100) : 0;
 
+  // Cartões de indicadores
+  const topLinha = [...linhas].sort((a,b)=>b.count-a.count)[0];
   document.getElementById('relEncamAnaliseStats').innerHTML = `
     <div class="stat-card">
       <div class="stat-icon coral"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-      <div class="stat-num">${totalEstudantes}</div>
-      <div class="stat-label">Estudantes com algum encaminhamento</div>
+      <div class="stat-num">${resultado.length}</div>
+      <div class="stat-label">Estudantes indicados</div>
+      <div class="stat-sub">${pctTotal.toFixed(1)}% do total (${base.length})</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></div>
-      <div class="stat-num">${porCategoria.Ata}</div>
-      <div class="stat-label">Indicações vindas da Ata</div>
+      <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <div class="stat-num">${linhas.length}</div>
+      <div class="stat-label">Critérios com estudantes encontrados</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon azul"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-      <div class="stat-num">${porCategoria.PIP}</div>
-      <div class="stat-label">Motivos de PIP (ficha)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon verde"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-      <div class="stat-num">${porCategoria.Leitura}</div>
-      <div class="stat-label">Motivos de PIP Leitura</div>
-    </div>
+    ${topLinha ? `
     <div class="stat-card">
       <div class="stat-icon roxo"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 4 5-8"/></svg></div>
-      <div class="stat-num">${porCategoria.Notas}</div>
-      <div class="stat-label">Motivos de Notas Trimestrais</div>
-      ${turmaComMais ? `<div class="stat-sub">${turmaComMais[0]}: ${turmaComMais[1]} estud.</div>` : ''}
-    </div>
+      <div class="stat-num">${topLinha.count}</div>
+      <div class="stat-label">${ltEsc(topLinha.label)}</div>
+      <div class="stat-sub">${topLinha.pct.toFixed(1)}% do total</div>
+    </div>` : ''}
   `;
 
-  const maxT = Math.max(1, ...Object.values(porTurma));
-  document.getElementById('relEncamChartTurma').innerHTML = Object.entries(porTurma)
-    .filter(([,v])=>v>0)
-    .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
-    .map(([t,v])=>`
-      <div class="horiz-bar">
-        <div class="horiz-bar-label"><span class="horiz-bar-name">${t}</span><span class="horiz-bar-val">${v}</span></div>
-        <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxT*100)}%;background:#0D9488"></div></div>
-      </div>
-    `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+  const chartsRow = document.getElementById('relEncamAnaliseCharts');
 
-  const catLabels = { Perfil:'Perfil', Encaminhamento:'Enc. cadastral', Ata:'Ata do Conselho', Notas:'Notas trimestrais', PIP:'PIP (ficha)', Leitura:'PIP Leitura' };
-  const catColors = { Perfil:'#BA7517', Encaminhamento:'#2563EB', Ata:'#D85A30', Notas:'#6B65CC', PIP:'#0D9488', Leitura:'#888780' };
-  const maxC = Math.max(1, ...Object.values(porCategoria));
-  document.getElementById('relEncamChartCategoria').innerHTML = Object.entries(porCategoria)
-    .filter(([,v])=>v>0)
-    .map(([k,v])=>`
-      <div class="horiz-bar">
-        <div class="horiz-bar-label"><span class="horiz-bar-name">${catLabels[k]}</span><span class="horiz-bar-val">${v}</span></div>
-        <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxC*100)}%;background:${catColors[k]}"></div></div>
+  if(temFiltro){
+    // Um gráfico (por turma) para cada critério selecionado
+    chartsRow.innerHTML = linhas.map(l=>{
+      const maxT = Math.max(1, ...Object.values(l.porTurma));
+      const barras = Object.entries(l.porTurma)
+        .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
+        .map(([t,v])=>`
+          <div class="horiz-bar">
+            <div class="horiz-bar-label"><span class="horiz-bar-name">${t}</span><span class="horiz-bar-val">${v}</span></div>
+            <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxT*100)}%;background:#0D9488"></div></div>
+          </div>
+        `).join('');
+      return `<div class="card">
+        <div class="card-title">${ltEsc(l.label)} <span style="text-transform:none;font-weight:400;letter-spacing:0;color:#BBB">— ${l.count} aluno${l.count!==1?'s':''} · ${l.pct.toFixed(1)}%</span></div>
+        ${barras}
+      </div>`;
+    }).join('');
+  } else {
+    // Panorama geral: total por turma + total por origem do motivo
+    const porTurma = {}; TURMAS.forEach(t=>porTurma[t]=0);
+    resultado.forEach(r=>{ porTurma[r.x.t] = (porTurma[r.x.t]||0) + 1; });
+    const porCategoria = { Perfil:0, Encaminhamento:0, Ata:0, Notas:0, PIP:0, Leitura:0 };
+    resultado.forEach(r=>r.motivos.forEach(m=>{
+      if(m.tipo==='perfil') porCategoria.Perfil++;
+      else if(m.tipo==='encam') porCategoria.Encaminhamento++;
+      else if(m.tipo==='ata') porCategoria.Ata++;
+      else if(m.tipo==='notasBaixas' || m.tipo==='notasRecuperadas') porCategoria.Notas++;
+      else if(m.tipo==='pip') porCategoria.PIP++;
+      else if(m.tipo==='leitura') porCategoria.Leitura++;
+    }));
+
+    const maxT = Math.max(1, ...Object.values(porTurma));
+    const chartTurma = Object.entries(porTurma)
+      .filter(([,v])=>v>0)
+      .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
+      .map(([t,v])=>`
+        <div class="horiz-bar">
+          <div class="horiz-bar-label"><span class="horiz-bar-name">${t}</span><span class="horiz-bar-val">${v}</span></div>
+          <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxT*100)}%;background:#0D9488"></div></div>
+        </div>
+      `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+
+    const catLabels = { Perfil:'Perfil', Encaminhamento:'Enc. cadastral', Ata:'Ata do Conselho', Notas:'Notas trimestrais', PIP:'PIP (ficha)', Leitura:'PIP Leitura' };
+    const catColors = { Perfil:'#BA7517', Encaminhamento:'#2563EB', Ata:'#D85A30', Notas:'#6B65CC', PIP:'#0D9488', Leitura:'#888780' };
+    const maxC = Math.max(1, ...Object.values(porCategoria));
+    const chartCategoria = Object.entries(porCategoria)
+      .filter(([,v])=>v>0)
+      .map(([k,v])=>`
+        <div class="horiz-bar">
+          <div class="horiz-bar-label"><span class="horiz-bar-name">${catLabels[k]}</span><span class="horiz-bar-val">${v}</span></div>
+          <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxC*100)}%;background:${catColors[k]}"></div></div>
+        </div>
+      `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+
+    chartsRow.innerHTML = `
+      <div class="card">
+        <div class="card-title">Estudantes com encaminhamento por turma</div>
+        ${chartTurma}
       </div>
-    `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+      <div class="card">
+        <div class="card-title">Motivos encontrados por origem</div>
+        ${chartCategoria}
+      </div>`;
+  }
 
   wrap.style.display = 'block';
 }
 
-function relEncamRenderTabela(resultado){
+function relEncamRenderTabela(resultado, criterios, baseTotal){
   const tbody = document.getElementById('relEncamTableBody');
-  document.getElementById('relEncamCount').textContent =
-    `${resultado.length} estudante${resultado.length!==1?'s':''} encontrado${resultado.length!==1?'s':''}`;
+  const pct = baseTotal ? (resultado.length/baseTotal*100) : 0;
+  document.getElementById('relEncamCount').textContent = baseTotal
+    ? `${resultado.length} estudante${resultado.length!==1?'s':''} encontrado${resultado.length!==1?'s':''} · ${pct.toFixed(1)}% do total (${baseTotal})`
+    : `${resultado.length} estudante${resultado.length!==1?'s':''} encontrado${resultado.length!==1?'s':''}`;
+
+  // Resumo por critério: quantos alunos e qual % foi indicado para cada situação selecionada
+  const resumoCard = document.getElementById('relEncamResumoCriteriosCard');
+  if(criterios){
+    const linhas = relEncamCalcularResumoCriterios(resultado, criterios, baseTotal);
+    if(linhas.length > 1){
+      document.getElementById('relEncamResumoCriterios').innerHTML = relEncamRenderResumoBarras(linhas);
+      resumoCard.style.display = 'block';
+    } else {
+      resumoCard.style.display = 'none';
+    }
+  } else {
+    resumoCard.style.display = 'none';
+  }
 
   if(!resultado.length){
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#BBB">Nenhum estudante encontrado com os critérios selecionados.</td></tr>`;
@@ -10967,7 +11086,7 @@ function relEncamRenderTabela(resultado){
         <td>${ltEsc(x.n)}</td>
         <td>${perfilBadge(x.p)}</td>
         <td>${encamBadge(x.e)}</td>
-        <td style="font-size:11.5px;color:#555">${motivos.map(m=>`<div>• ${ltEsc(m)}</div>`).join('')}</td>
+        <td style="font-size:11.5px;color:#555">${motivos.map(m=>`<div>• ${ltEsc(m.texto)}</div>`).join('')}</td>
       </tr>`).join('');
   }
   document.getElementById('relEncamResultadoWrap').style.display = 'block';
@@ -10977,7 +11096,7 @@ function relEncamExportarCSV(){
   if(!_relEncamUltimoResultado.length){ showToast('Gere a listagem antes de exportar.', 'amber'); return; }
   const linhas = [['Turma','Matrícula','Nome','Perfil','Encaminhamento','Motivos']];
   _relEncamUltimoResultado.forEach(({x,motivos})=>{
-    linhas.push([x.t, x.matricula||'', x.n, x.p, encamKey(x.e), motivos.join(' | ')]);
+    linhas.push([x.t, x.matricula||'', x.n, x.p, encamKey(x.e), motivos.map(m=>m.texto).join(' | ')]);
   });
   const csv = linhas.map(l=>l.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
   const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
@@ -11021,7 +11140,7 @@ function relEncamImprimir(){
     ${_relEncamUltimoResultado.map(({x,motivos})=>`<tr>
       <td>${ltEsc(x.t)}</td><td>${ltEsc(x.matricula||'—')}</td><td>${ltEsc(x.n)}</td>
       <td>${ltEsc(x.p)}</td><td>${ltEsc(encamKey(x.e))}</td>
-      <td>${motivos.map(m=>ltEsc(m)).join('<br>')}</td>
+      <td>${motivos.map(m=>ltEsc(m.texto)).join('<br>')}</td>
     </tr>`).join('')}
   </tbody>
 </table>
