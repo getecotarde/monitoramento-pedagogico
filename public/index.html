@@ -6294,6 +6294,32 @@ async function aplicarReconciliacaoTurmas(){
   if(falhas.length) alert('Não foi possível corrigir:\n\n'+falhas.join('\n'));
 }
 
+// Localiza um cadastro já existente (por matrícula; senão por nome normalizado, se único).
+function acharEstudanteExistente(nome, matricula){
+  if(matricula!=null && matricula!==''){
+    const e = S.find(x=>x.matricula!=null && String(x.matricula)===String(matricula));
+    if(e) return e;
+  }
+  const nn = normalizarNomeAluno(nome);
+  const c = S.filter(x=>normalizarNomeAluno(x.n)===nn);
+  return c.length===1 ? c[0] : null;
+}
+// Nova matrícula / inclusão: se o aluno JÁ existe no cadastro, atualiza a turma dele
+// (antes tentava inserir duplicado, falhava em silêncio e o cadastro ficava na turma antiga).
+async function gravarMatriculaNoCadastro(novoAluno, campos){
+  const existente = acharEstudanteExistente(novoAluno.n, novoAluno.matricula);
+  if(existente){
+    await patchEstudanteChecado(existente, { turma:novoAluno.t, ...campos.update });
+    existente.t = novoAluno.t;
+    if(campos.update.nova_matricula!==undefined) existente._novaMatricula = campos.update.nova_matricula;
+    return existente;
+  }
+  const arr = await postChecado('estudantes', campos.insert);
+  if(arr?.[0]?.id) novoAluno.id = arr[0].id;
+  S.push(novoAluno);
+  return novoAluno;
+}
+
 async function submitMovimento(){
   const tipo   = currentMovTipo;
   const data   = document.getElementById('movData')?.value;
@@ -6355,16 +6381,18 @@ async function submitMovimento(){
     const aee     = document.getElementById('movAEE').value.trim()||'N/A';
     if(!nome){ alert('Informe o nome do estudante.'); return; }
     if(!turmaAte){ alert('Selecione a turma.'); return; }
-    // Adiciona localmente imediatamente (garante que funcione mesmo sem Supabase)
     const novoAluno = { t:turmaAte, n:nome, matricula:numMatricula, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:true, _dataMatricula:data };
-    S.push(novoAluno);
-    // Tenta persistir no Supabase
     try {
-      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:true, data_matricula:data });
-      const novo = novoArr?.[0];
-      if(novo) novoAluno.id = novo.id;
-      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
-    } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
+      await gravarMatriculaNoCadastro(novoAluno, {
+        insert:{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:true, data_matricula:data },
+        update:{ nova_matricula:true, data_matricula:data }
+      });
+      await postChecado('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    } catch(e){
+      console.error('Falha ao registrar matrícula.', e);
+      alert('A matrícula NÃO foi gravada corretamente no servidor:\n\n'+e.message+'\n\nTente novamente ou use "Conferir turmas".');
+      return;
+    }
     movLog.unshift({ _local:true, tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     showMovNotification(`${nome} matriculado(a) na turma ${turmaAte}.`,'verde');
 
@@ -6378,16 +6406,18 @@ async function submitMovimento(){
     const aee     = document.getElementById('movAEE').value.trim()||'N/A';
     if(!nome){ alert('Informe o nome do estudante.'); return; }
     if(!turmaAte){ alert('Selecione a turma.'); return; }
-    // Adiciona localmente imediatamente (não é nova matrícula, apenas inclusão no sistema)
     const alunoExistente = { t:turmaAte, n:nome, matricula:numMatricula, s:sexo, p:perfil, a:aee, pip:'N/A', e:encam, r:'', o:motivo, _novaMatricula:false };
-    S.push(alunoExistente);
-    // Tenta persistir no Supabase
     try {
-      const { data:novoArr } = await sbPost('estudantes',{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:false });
-      const novo = novoArr?.[0];
-      if(novo) alunoExistente.id = novo.id;
-      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
-    } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
+      await gravarMatriculaNoCadastro(alunoExistente, {
+        insert:{ turma:turmaAte, nome, numero_matricula:numMatricula, sexo, perfil, aee, pip:'N/A', encam, rotina:'', obs:motivo, nova_matricula:false },
+        update:{}
+      });
+      await postChecado('movimentacoes',{ tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    } catch(e){
+      console.error('Falha ao incluir aluno.', e);
+      alert('A inclusão NÃO foi gravada corretamente no servidor:\n\n'+e.message+'\n\nTente novamente ou use "Conferir turmas".');
+      return;
+    }
     movLog.unshift({ _local:true, tipo, data, matricula_aluno:numMatricula, nome_aluno:nome, turma_de:'—', turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
     showMovNotification(`${nome} incluído(a) no sistema na turma ${turmaAte}.`,'verde');
   }
