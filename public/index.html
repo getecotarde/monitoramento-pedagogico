@@ -1036,6 +1036,7 @@
 
   /* ── CHART SECTION ─────────────────────────── */
   .ra-lbl{font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px}
+  .ra-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#B5B4AD;margin-bottom:8px}
   .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
   .card {
     background: #fff; border-radius: var(--radius); border: 1px solid #ECEAE4;
@@ -2786,6 +2787,10 @@
               <input type="number" id="relEncamNotasLimite" value="50" min="0" max="100" onchange="atualizarResumoFiltrosRelEncam()" style="width:52px;padding:2px 4px;border:1px solid #E8E7E3;border-radius:4px;font-size:12px;margin:0 3px">%
             </label>
             <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;cursor:pointer">
+              <input type="checkbox" id="relEncamNotasAltoChk" onchange="atualizarResumoFiltrosRelEncam()"> Destaque: rendimento a partir de
+              <input type="number" id="relEncamNotasAltoLimite" value="80" min="0" max="100" onchange="atualizarResumoFiltrosRelEncam()" style="width:52px;padding:2px 4px;border:1px solid #E8E7E3;border-radius:4px;font-size:12px;margin:0 3px">% em alguma disciplina
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#444;cursor:pointer">
               <input type="checkbox" id="relEncamNotasRecChk" onchange="atualizarResumoFiltrosRelEncam()"> Nota recuperada em algum trimestre
             </label>
           </div>
@@ -2841,39 +2846,46 @@
     <!-- ── Sub-aba: Análise Geral ─────────────────────────────────── -->
     <div id="relEncamSubAnaliseView" class="relencam-subview" style="display:none">
       <div class="card" style="margin-bottom:1rem">
+        <div class="ra-sec">Recorte</div>
         <div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end">
-          <div><label class="ra-lbl">Ano</label><select id="raAno" onchange="raRender()"></select></div>
-          <div><label class="ra-lbl">Turma</label><select id="raTurma" onchange="raRender()"></select></div>
-          <div><label class="ra-lbl">Trimestre (Ata e Notas)</label><select id="raTrim" onchange="raCarregar()"><option value="">Todos</option><option value="1">1º</option><option value="2">2º</option><option value="3">3º</option></select></div>
-          <div><label class="ra-lbl">Notas: abaixo de (%)</label><input type="number" id="raLim" value="50" min="0" max="100" onchange="raRender()" style="width:70px"></div>
-          <button class="action-btn" onclick="raCarregar()">↻ Atualizar dados</button>
+          <div><label class="ra-lbl">Escopo</label><select id="raEsc" onchange="raRender()"></select></div>
+          <div><label class="ra-lbl">Trimestre</label><select id="raTrim" onchange="raCarregar()"><option value="">Ano letivo (todos)</option><option value="1">1º trimestre</option><option value="2">2º trimestre</option><option value="3">3º trimestre</option></select></div>
+          <button class="action-btn" onclick="raCarregar()" title="Recarregar Ata e Notas">↻ Atualizar</button>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid #F0EFEA">
-          <div><label class="ra-lbl">1 · População (denominador)</label>
-            <div style="display:flex;gap:6px"><select id="raPopDim" onchange="raFillVals('raPop');raRender()"></select><select id="raPopVal" onchange="raRender()"></select></div></div>
-          <div><label class="ra-lbl">2 · Cruzar com (numerador)</label>
-            <div style="display:flex;gap:6px"><select id="raIndDim" onchange="raFillVals('raInd');raRender()"></select><select id="raIndVal" onchange="raRender()"></select></div></div>
-          <div><label class="ra-lbl">3 · Desagregar por</label>
-            <select id="raSeg" onchange="raRender()"><option value="">Sem desagregação</option><option value="sexo">Sexo</option><option value="raca">Raça/cor</option><option value="bf">Bolsa Família</option></select></div>
-          <div><label class="ra-lbl">4 · Base do % na tabela</label>
-            <select id="raGrp" onchange="raRender()"><option value="turma">Por turma</option><option value="ano">Por ano</option><option value="geral">Só o total</option></select></div>
+        <div class="ra-sec" style="margin-top:14px">Pergunta</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:#555">
+          <span>Entre</span>
+          <select id="raPopDim" onchange="raFillDims();raRender()"></select>
+          <select id="raPopVal" onchange="raRender()"></select>
+          <span>, qual % tem</span>
+          <select id="raIndDim" onchange="raFillVals('raInd');raRender()"></select>
+          <select id="raIndVal" onchange="raRender()"></select>
+          <span>?</span>
         </div>
-        <p id="raFrase" style="margin:12px 0 0;font-size:13px;color:#0F766E;font-weight:600"></p>
+        <div id="raNotasPar" style="display:none;margin-top:10px;font-size:12.5px;color:#555">
+          <b>Parâmetros de notas:</b> abaixo de <input type="number" id="raLim" value="50" min="0" max="100" onchange="raRender()" style="width:56px">% · destaque a partir de <input type="number" id="raLimAlto" value="80" min="0" max="100" onchange="raRender()" style="width:56px">% (em ao menos uma disciplina)
+        </div>
+        <div class="ra-sec" style="margin-top:14px">Visualização</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end">
+          <div><label class="ra-lbl">Comparar entre</label><select id="raGrp" onchange="raRender()"><option value="turma">Turmas</option><option value="ano">Anos</option><option value="geral">Somente o total</option></select></div>
+          <div><label class="ra-lbl">Detalhar por</label><select id="raSeg" onchange="raRender()"><option value="">Sem detalhamento</option><option value="sexo">Sexo</option><option value="raca">Raça/cor</option><option value="bf">Bolsa Família</option></select></div>
+        </div>
       </div>
+      <div id="raFrase" style="margin-bottom:1rem;padding:12px 16px;border-radius:10px;background:#F0FBF9;border:1px solid #C9EDE6;font-size:13.5px;color:#0F5F57;font-weight:600"></div>
       <div id="raAviso" style="display:none;margin-bottom:1rem;padding:10px 14px;border-radius:8px;background:#FEF3DC;color:#7A4A08;font-size:12.5px"></div>
       <div id="relEncamAnaliseCarregando" style="display:none;padding:2rem;text-align:center;color:#999">Consolidando dados de Perfil, Ata do Conselho, Notas, PIP e Fluência de Leitura…</div>
       <div id="relEncamAnaliseVazio" style="display:none;padding:2rem;text-align:center;color:#BBB">Nenhum estudante na população selecionada.</div>
       <div id="relEncamAnaliseWrap" style="display:none">
         <div class="stats-grid stats-grid-narrow" id="relEncamAnaliseStats"></div>
         <div class="charts-row" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
-          <div class="card"><div class="card-title">% por ano (e geral)</div><div style="height:260px"><canvas id="raChAno"></canvas></div></div>
-          <div class="card"><div class="card-title">% por turma</div><div style="height:260px"><canvas id="raChTurma"></canvas></div></div>
+          <div class="card"><div class="card-title" id="raGrpTitulo">Comparativo</div><div style="height:260px"><canvas id="raChGrp"></canvas></div></div>
+          <div class="card"><div class="card-title" id="raSegTitulo">Por segmento</div><div style="height:260px"><canvas id="raChSeg"></canvas></div></div>
           <div class="card"><div class="card-title" id="raCompTitulo">Composição da população</div><div style="height:260px"><canvas id="raChComp"></canvas></div></div>
         </div>
-        <div class="card" style="margin-bottom:1rem"><div class="card-title" id="raCrossTitulo">Cruzamento</div><div style="overflow-x:auto" id="raCross"></div></div>
-        <div class="card-title" style="margin:1.25rem 0 .5rem">Panorama da população selecionada (% por grupo de filtros)</div>
+        <div class="card" style="margin-bottom:1rem"><div class="card-title" id="raCrossTitulo">Tabela</div><div style="overflow-x:auto" id="raCross"></div></div>
+        <div class="card-title" style="margin:1.25rem 0 .5rem">Perfil da população selecionada</div>
         <div class="charts-row" id="relEncamAnaliseCharts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
-        <p style="font-size:11.5px;color:#999">Grupos com mais de uma categoria por aluno (Ata, Notas) podem somar mais de 100%. Percentuais sempre em relação à população escolhida em “1”.</p>
+        <p style="font-size:11.5px;color:#999">Percentuais sempre sobre a população definida em “Entre”. Ata e Notas admitem mais de uma categoria por aluno, então podem somar mais de 100%.</p>
       </div>
     </div>
   </div>
@@ -10683,6 +10695,8 @@ function relEncamLimparFiltros(){
   document.getElementById('relEncamTrimestre').value = '';
   ['RelEncPerfil','RelEncEncam','RelEncAta','RelEncPip','RelEncLeitura'].forEach(k=>clearMs(k));
   document.getElementById('relEncamNotasChk').checked = false;
+  document.getElementById('relEncamNotasAltoChk').checked = false;
+  document.getElementById('relEncamNotasAltoLimite').value = 80;
   document.getElementById('relEncamNotasRecChk').checked = false;
   document.getElementById('relEncamNotasLimite').value = 50;
   document.getElementById('relEncamResultadoWrap').style.display = 'none';
@@ -10704,6 +10718,7 @@ function atualizarResumoFiltrosRelEncam(){
     if(n) partes.push(`${MS_CONFIG[k].label} (${n})`);
   });
   if(document.getElementById('relEncamNotasChk')?.checked) partes.push('Rendimento baixo');
+  if(document.getElementById('relEncamNotasAltoChk')?.checked) partes.push('Destaque em notas');
   if(document.getElementById('relEncamNotasRecChk')?.checked) partes.push('Nota recuperada');
   el.textContent = partes.length ? partes.join(' · ') : 'Nenhum critério selecionado';
 }
@@ -10718,6 +10733,8 @@ function relEncamColetarCriterios(){
     ataCats:    [...MS_STATE.RelEncAta],
     notasChk:   document.getElementById('relEncamNotasChk').checked,
     notasRecChk:document.getElementById('relEncamNotasRecChk').checked,
+    notasAltoChk:document.getElementById('relEncamNotasAltoChk').checked,
+    notasAltoLimite:parseFloat(document.getElementById('relEncamNotasAltoLimite').value) || 0,
     notasLimite:parseFloat(document.getElementById('relEncamNotasLimite').value) || 0,
     pips:       [...MS_STATE.RelEncPip],
     leituras:   [...MS_STATE.RelEncLeitura],
@@ -10729,7 +10746,7 @@ function relEncamColetarCriterios(){
 // tipo+chave identificam de forma estável o critério exato que gerou o motivo, para permitir contagens
 // por critério (Listagem) e gráficos por critério (Análise Geral) sem precisar interpretar texto livre.
 function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
-  const { perfis, encams, ataCats, notasChk, notasRecChk, notasLimite, pips, leituras } = criterios;
+  const { perfis, encams, ataCats, notasChk, notasRecChk, notasAltoChk, notasAltoLimite, notasLimite, pips, leituras } = criterios;
   const motivos = [];
   const vistos = new Set();
   const add = (texto, tipo, chave) => {
@@ -10777,7 +10794,7 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
     }
   }
 
-  if((notasChk || notasRecChk) && notasRows.length){
+  if((notasChk || notasRecChk || notasAltoChk) && notasRows.length){
     const matDig = ltSoDigitos(x.matricula);
     const notasDoAluno = notasRows.filter(n=>{
       const nMatDig = ltSoDigitos(n.matricula);
@@ -10787,6 +10804,9 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
     notasDoAluno.forEach(n=>{
       if(notasChk && n.percentual!=null && n.percentual < notasLimite){
         add(`Notas ${n.trimestre}ºT — ${n.disciplina}: ${n.percentual}%`, 'notasBaixas', 'baixas');
+      }
+      if(notasAltoChk && n.percentual!=null && n.percentual >= notasAltoLimite){
+        add(`Notas ${n.trimestre}ºT — ${n.disciplina}: ${n.percentual}% (destaque)`, 'notasAltas', 'altas');
       }
       if(notasRecChk && n.status === 'recuperada'){
         add(`Notas ${n.trimestre}ºT — ${n.disciplina}: recuperada`, 'notasRecuperadas', 'recuperada');
@@ -10801,7 +10821,7 @@ function relEncamMotivosAluno(x, criterios, atasRows, notasRows){
 // Devolve { resultado, base } — resultado é a lista de estudantes com motivo(s) encontrados,
 // base é o universo de estudantes considerado (após filtro de turma), usado como denominador de %.
 async function relEncamComputar(criterios){
-  const { turma, trimestre, ataCats, notasChk, notasRecChk } = criterios;
+  const { turma, trimestre, ataCats, notasChk, notasRecChk, notasAltoChk } = criterios;
   let atasRows = [];
   let notasRows = [];
   try{
@@ -10812,7 +10832,7 @@ async function relEncamComputar(criterios){
       const r = await fetch(url, { headers: sbHeaders() });
       if(r.ok) atasRows = await r.json();
     }
-    if(notasChk || notasRecChk){
+    if(notasChk || notasRecChk || notasAltoChk){
       let url = `${SUPABASE_URL}/rest/v1/notas_trimestrais?select=matricula,aluno_nome,turma,disciplina,trimestre,percentual,status`;
       if(turma) url += `&turma=eq.${encodeURIComponent(turma)}`;
       if(trimestre) url += `&trimestre=eq.${encodeURIComponent(trimestre)}`;
@@ -10842,6 +10862,7 @@ function relEncamLabelCriterio(tipo, chave){
   if(tipo==='ata'){ const cat = LT_ATA_CATEGORIAS.find(c=>c.chave===chave); return `Ata — ${cat?cat.titulo:chave}`; }
   if(tipo==='pip') return REL_ENC_PIP_LABELS[chave] || chave;
   if(tipo==='leitura') return `PIP Leitura — prioridade ${String(chave).toLowerCase()}`;
+  if(tipo==='notasAltas') return 'Notas — destaque (acima do limite)';
   if(tipo==='notasBaixas') return 'Notas — rendimento abaixo do limite';
   if(tipo==='notasRecuperadas') return 'Notas — recuperada em algum trimestre';
   return chave;
@@ -10870,6 +10891,7 @@ function relEncamCalcularResumoCriterios(resultado, criterios, baseTotal){
   criterios.pips.forEach(v=>addLinha('pip', v));
   criterios.leituras.forEach(v=>addLinha('leitura', v));
   if(criterios.notasChk) addLinha('notasBaixas', 'baixas');
+  if(criterios.notasAltoChk) addLinha('notasAltas', 'altas');
   if(criterios.notasRecChk) addLinha('notasRecuperadas', 'recuperada');
 
   return linhas;
@@ -10890,9 +10912,9 @@ function relEncamRenderResumoBarras(linhas){
 async function relEncamGerar(){
   relEncamPopularTurmas();
   const criterios = relEncamColetarCriterios();
-  const { perfis, encams, ataCats, notasChk, notasRecChk, pips, leituras } = criterios;
+  const { perfis, encams, ataCats, notasChk, notasRecChk, notasAltoChk, pips, leituras } = criterios;
 
-  if(!perfis.length && !encams.length && !ataCats.length && !notasChk && !notasRecChk && !pips.length && !leituras.length){
+  if(!perfis.length && !encams.length && !ataCats.length && !notasChk && !notasRecChk && !notasAltoChk && !pips.length && !leituras.length){
     showToast('Selecione ao menos um critério de encaminhamento.', 'amber');
     return;
   }
@@ -10933,33 +10955,35 @@ function relEncamIrParaFiltros(){
   det?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-/* ═══ Análise Geral: dashboards em %, cruzamento de filtros e desagregação (sexo, raça/cor, Bolsa Família) ═══ */
+/* ═══ Análise Geral: dashboards em %, cruzamento coerente e detalhamento por sexo, raça/cor e Bolsa Família ═══ */
 const RA = { atas:[], notas:[], charts:{}, pronto:false };
 const RA_NI = 'Não informado';
 const RA_ORDEM = {
   perfil:['Típico','Atípico','Em análise'], leitura:['Alta','Média','Baixa','Sem registro'],
   pip:['PIP ativo','Avaliar PIP','Dispensado','Sem PIP'], sexo:['Feminino','Masculino'],
+  notas:['Abaixo do limite','Destaque','Nota recuperada','Sem alerta/destaque'],
   raca:['Branca','Preta','Parda','Amarela','Indígena','Não declarada',RA_NI], bf:['Recebe','Não recebe',RA_NI],
 };
 const RA_PALETA = ['#0D9488','#6B65CC','#D85A30','#BA7517','#2563EB','#888780','#D4537E','#639922'];
 const raAno = x => { const m=/^(\d+)/.exec(x.t||''); return m ? m[1]+'º ano' : (x.t||'—'); };
 const raBase = () => S.filter(x=>!x._transferido);
+const RA_GRUPOS = [ ['Perfil pedagógico',['perfil','encam','pip']], ['Aprendizagem',['leitura','notas','ata']], ['Perfil demográfico',['sexo','raca','bf']] ];
 const RA_DIMS = {
   perfil:{ label:'Perfil', v:x=>[({'TÍPICO':'Típico','ATÍPICO':'Atípico','EM ANÁLISE':'Em análise'})[x.p]||x.p] },
   encam:{ label:'Encaminhamento cadastral', v:x=>[encamKey(x.e)] },
   pip:{ label:'PIP (ficha)', v:x=>{ const v=x.pip||'N/A'; return [v==='Avaliar PIP'?'Avaliar PIP':v==='Dispensado'?'Dispensado':v!=='N/A'?'PIP ativo':'Sem PIP']; } },
   leitura:{ label:'PIP Leitura (prioridade)', v:x=>[x._leituraPrio ? (x._leituraPrio==='Media'?'Média':x._leituraPrio) : 'Sem registro'] },
   ata:{ label:'Indicações da Ata', v:x=>{ const r=[]; RA.atas.forEach(row=>{ if(row.turma!==x.t) return; LT_ATA_CATEGORIAS.forEach(c=>{ if((row[c.alunosCampo]||[]).some(i=>ltAlunoBateAta(i,x)) && !r.includes(c.titulo)) r.push(c.titulo); }); }); return r.length?r:['Sem indicação']; } },
-  notas:{ label:'Notas trimestrais', v:x=>{ const lim=parseFloat(document.getElementById('raLim').value)||0, md=ltSoDigitos(x.matricula), r=[];
-      RA.notas.forEach(n=>{ const nd=ltSoDigitos(n.matricula); const meu = (md&&nd) ? nd===md : ((n.aluno_nome||'').trim().toLowerCase()===(x.n||'').trim().toLowerCase() && n.turma===x.t); if(!meu) return;
-        if(n.percentual!=null && n.percentual<lim && !r.includes(`Rendimento < ${lim}%`)) r.push(`Rendimento < ${lim}%`);
-        if(n.status==='recuperada' && !r.includes('Nota recuperada')) r.push('Nota recuperada'); });
-      return r.length?r:['Sem alerta']; } },
+  notas:{ label:'Notas trimestrais', v:x=>{ const lim=parseFloat(document.getElementById('raLim').value)||0, alto=parseFloat(document.getElementById('raLimAlto').value)||0, md=ltSoDigitos(x.matricula), r=[];
+      const add=k=>{ if(!r.includes(k)) r.push(k); };
+      RA.notas.forEach(n=>{ const nd=ltSoDigitos(n.matricula); const meu=(md&&nd) ? nd===md : ((n.aluno_nome||'').trim().toLowerCase()===(x.n||'').trim().toLowerCase() && n.turma===x.t); if(!meu) return;
+        if(n.percentual!=null && n.percentual<lim) add('Abaixo do limite');
+        if(n.percentual!=null && n.percentual>=alto) add('Destaque');
+        if(n.status==='recuperada') add('Nota recuperada'); });
+      return r.length?r:['Sem alerta/destaque']; } },
   sexo:{ label:'Sexo', v:x=>[x.s==='F'?'Feminino':'Masculino'] },
   raca:{ label:'Raça/cor', v:x=>[x.rc||RA_NI] },
   bf:{ label:'Bolsa Família', v:x=>[x.bf==='SIM'?'Recebe':x.bf==='NÃO'?'Não recebe':RA_NI] },
-  ano:{ label:'Ano', v:x=>[raAno(x)] },
-  turma:{ label:'Turma', v:x=>[x.t] },
 };
 let _raMemo = new Map();
 const raVals = (dim,x) => { let m=_raMemo.get(x); if(!m){ m={}; _raMemo.set(x,m); } return m[dim] || (m[dim]=RA_DIMS[dim].v(x)); };
@@ -10967,11 +10991,21 @@ const raSort = (dim,arr) => { const o=RA_ORDEM[dim]||[]; return [...arr].sort((a
 const raValoresDim = dim => raSort(dim,[...new Set(raBase().flatMap(x=>raVals(dim,x)))]);
 const raPct = (n,d) => d ? n/d*100 : null;
 const raFmt = v => v==null ? '—' : v.toFixed(1).replace('.',',')+'%';
+const raNomeVal = (dim,v) => dim!=='notas' ? v : v==='Abaixo do limite' ? `Abaixo de ${document.getElementById('raLim').value}%` : v==='Destaque' ? `Destaque (≥ ${document.getElementById('raLimAlto').value}%)` : v;
 
 function raFillVals(pref){
   const dim=document.getElementById(pref+'Dim').value, sel=document.getElementById(pref+'Val'), ant=sel.value;
-  sel.innerHTML = (pref==='raPop'?'<option value="">Todos os valores</option>':'') + raValoresDim(dim).map(v=>`<option value="${ltEsc(v)}">${ltEsc(v)}</option>`).join('');
+  if(!dim){ sel.innerHTML=''; sel.style.display='none'; return; }
+  sel.style.display='';
+  sel.innerHTML = raValoresDim(dim).map(v=>`<option value="${ltEsc(v)}">${ltEsc(raNomeVal(dim,v))}</option>`).join('');
   if([...sel.options].some(o=>o.value===ant)) sel.value=ant;
+}
+// O grupo do numerador nunca pode ser o mesmo da população (cruzamento sem sentido)
+function raFillDims(){
+  const pop=document.getElementById('raPopDim').value, sel=document.getElementById('raIndDim'), ant=sel.value;
+  sel.innerHTML = RA_GRUPOS.map(([t,ks])=>`<optgroup label="${t}">${ks.filter(k=>k!==pop).map(k=>`<option value="${k}">${RA_DIMS[k].label}</option>`).join('')}</optgroup>`).join('');
+  if([...sel.options].some(o=>o.value===ant)) sel.value=ant;
+  raFillVals('raPop'); raFillVals('raInd');
 }
 async function raCarregar(){
   const trim=document.getElementById('raTrim').value;
@@ -10988,13 +11022,15 @@ async function raCarregar(){
 }
 async function relEncamCarregarAnaliseGeral(){
   if(!RA.pronto){
-    const opt = (id,arr,first) => document.getElementById(id).innerHTML = (first?`<option value="">${first}</option>`:'') + arr.map(v=>`<option value="${ltEsc(v)}">${ltEsc(v)}</option>`).join('');
-    opt('raAno', raSort('ano',[...new Set(raBase().map(raAno))]), 'Todos os anos');
-    opt('raTurma', [...new Set(raBase().map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR')), 'Todas as turmas');
-    const dims = Object.entries(RA_DIMS).map(([k,d])=>`<option value="${k}">${d.label}</option>`).join('');
-    document.getElementById('raPopDim').innerHTML = dims; document.getElementById('raIndDim').innerHTML = dims;
-    document.getElementById('raPopDim').value='perfil'; document.getElementById('raIndDim').value='leitura';
-    raFillVals('raPop'); raFillVals('raInd'); document.getElementById('raIndVal').value='Alta';
+    const anos = raSort('ano',[...new Set(raBase().map(raAno))]).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+    const turmas = [...new Set(raBase().map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+    document.getElementById('raEsc').innerHTML = '<option value="">Toda a escola</option>' +
+      `<optgroup label="Por ano">${anos.map(a=>`<option value="ano:${ltEsc(a)}">${ltEsc(a)}</option>`).join('')}</optgroup>` +
+      `<optgroup label="Por turma">${turmas.map(t=>`<option value="turma:${ltEsc(t)}">${ltEsc(t)}</option>`).join('')}</optgroup>`;
+    document.getElementById('raPopDim').innerHTML = '<option value="">Todos os estudantes</option>' +
+      RA_GRUPOS.map(([t,ks])=>`<optgroup label="${t}">${ks.map(k=>`<option value="${k}">${RA_DIMS[k].label}</option>`).join('')}</optgroup>`).join('');
+    document.getElementById('raPopDim').value='perfil'; raFillDims();
+    document.getElementById('raPopVal').value='Típico'; document.getElementById('raIndDim').value='leitura'; raFillVals('raInd'); document.getElementById('raIndVal').value='Alta';
     RA.pronto=true;
   }
   await raCarregar();
@@ -11002,16 +11038,15 @@ async function relEncamCarregarAnaliseGeral(){
 
 function raGrafico(id, cfg){
   if(RA.charts[id]) RA.charts[id].destroy();
-  if(typeof Chart==='undefined'){ return; }
+  if(typeof Chart==='undefined') return;
   RA.charts[id] = new Chart(document.getElementById(id), cfg);
 }
 const raRotulos = { id:'raRotulos', afterDatasetsDraw(ch){ if(ch.config.type!=='bar') return; const c=ch.ctx; c.save(); c.font='600 10px sans-serif'; c.fillStyle='#555'; c.textAlign='center';
   ch.data.datasets.forEach((ds,i)=>ch.getDatasetMeta(i).data.forEach((b,j)=>{ if(ds.data[j]!=null && ch.data.datasets.length<=3) c.fillText(ds.data[j].toFixed(0)+'%', b.x, b.y-4); })); c.restore(); } };
 function raBarras(id, grupos, segs, calc){
-  // grupos: rótulos do eixo X; segs: null ou lista de categorias; calc(grupo,seg) → {n,d}
   const series = segs || [null];
   raGrafico(id, { type:'bar', plugins:[raRotulos], data:{ labels:grupos, datasets: series.map((s,i)=>({
-      label: s||'% do indicador', data: grupos.map(g=>{ const r=calc(g,s); return raPct(r.n,r.d); }), _r: grupos.map(g=>calc(g,s)),
+      label: s||'% com o indicador', data: grupos.map(g=>{ const r=calc(g,s); return raPct(r.n,r.d); }), _r: grupos.map(g=>calc(g,s)),
       backgroundColor: RA_PALETA[i%RA_PALETA.length], borderRadius:4 })) },
     options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16}},
       scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} } },
@@ -11022,58 +11057,62 @@ function raRender(){
   if(!RA.pronto) return;
   _raMemo = new Map();
   const g = id => document.getElementById(id).value;
-  const [ano,turma,pd,pv,id_,iv,seg] = [g('raAno'),g('raTurma'),g('raPopDim'),g('raPopVal'),g('raIndDim'),g('raIndVal'),g('raSeg')];
-  const escopo = raBase().filter(x=>(!ano||raAno(x)===ano) && (!turma||x.t===turma));
-  const pop = escopo.filter(x=>!pv || raVals(pd,x).includes(pv));
+  const [esc,pd,pv,id_,iv,seg,grp] = [g('raEsc'),g('raPopDim'),g('raPopVal'),g('raIndDim'),g('raIndVal'),g('raSeg'),g('raGrp')];
+  document.getElementById('raNotasPar').style.display = (pd==='notas'||id_==='notas') ? 'block' : 'none';
+  const [tipoEsc,valEsc] = esc ? esc.split(/:(.*)/s) : ['',''];
+  const escopo = raBase().filter(x=> !esc || (tipoEsc==='ano' ? raAno(x)===valEsc : x.t===valEsc));
+  const pop = escopo.filter(x=>!pd || raVals(pd,x).includes(pv));
   const isInd = x => raVals(id_,x).includes(iv);
   const wrap=document.getElementById('relEncamAnaliseWrap'), vazio=document.getElementById('relEncamAnaliseVazio');
-  const nomePop = pv ? `${RA_DIMS[pd].label}: ${pv}` : 'todos os estudantes';
-  const escopoTxt = [ano||'todos os anos', turma||'todas as turmas'].join(' · ');
-  document.getElementById('raFrase').textContent = `% de estudantes com “${RA_DIMS[id_].label}: ${iv}” entre ${nomePop} — ${escopoTxt}`;
+  const nomePop = pd ? `${RA_DIMS[pd].label}: ${raNomeVal(pd,pv)}` : 'todos os estudantes';
+  const nomeInd = `${RA_DIMS[id_].label}: ${raNomeVal(id_,iv)}`;
+  const escTxt = esc ? valEsc : 'toda a escola';
 
-  // Aviso quando raça/cor ou Bolsa Família ainda não foram preenchidos
   const semRc = raBase().every(x=>!x.rc||x.rc===RA_NI), semBf = raBase().every(x=>!x.bf||x.bf===RA_NI);
   const av = document.getElementById('raAviso');
-  av.style.display = ((seg==='raca'&&semRc)||(seg==='bf'&&semBf)) ? 'block':'none';
-  av.textContent = 'Nenhum estudante tem este dado cadastrado ainda — preencha em cada ficha (ícone de lápis ao lado do nome) para que a desagregação seja útil.';
+  const faltam = [seg==='raca'||pd==='raca'||id_==='raca' ? (semRc?'raça/cor':null) : null, seg==='bf'||pd==='bf'||id_==='bf' ? (semBf?'Bolsa Família':null) : null].filter(Boolean);
+  av.style.display = faltam.length ? 'block':'none';
+  av.textContent = `Ainda não há dados de ${faltam.join(' e ')} cadastrados — preencha na ficha de cada estudante para essa análise ser útil.`;
 
   wrap.style.display='none'; vazio.style.display='none';
-  if(!pop.length){ vazio.style.display='block'; return; }
+  if(!pop.length){ document.getElementById('raFrase').textContent=`Nenhum estudante com ${nomePop} em ${escTxt}.`; vazio.style.display='block'; return; }
 
   const nInd = pop.filter(isInd).length;
+  document.getElementById('raFrase').innerHTML = `Entre ${ltEsc(nomePop)} (${pop.length} estudante${pop.length!==1?'s':''}, ${ltEsc(escTxt)}), <b style="font-size:16px">${raFmt(raPct(nInd,pop.length))}</b> têm ${ltEsc(nomeInd)} (${nInd}).`;
   document.getElementById('relEncamAnaliseStats').innerHTML = [
-    ['População selecionada', pop.length, `${raFmt(raPct(pop.length,escopo.length))} do escopo (${escopo.length})`],
-    ['Com o indicador', nInd, `${iv} · ${RA_DIMS[id_].label}`],
+    ['População', pop.length, `${raFmt(raPct(pop.length,escopo.length))} de ${escopo.length} no escopo`],
+    ['Com o indicador', nInd, nomeInd],
     ['Percentual', raFmt(raPct(nInd,pop.length)), `${nInd} de ${pop.length}`],
   ].map(([l,n,s])=>`<div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">${l}</div><div class="stat-sub">${ltEsc(String(s))}</div></div>`).join('');
 
   const segs = seg ? raSort(seg,[...new Set(pop.flatMap(x=>raVals(seg,x)))]) : null;
-  const calc = (filtro) => (gr,s) => { const b=pop.filter(x=>filtro(x,gr)&&(!s||raVals(seg,x).includes(s))); return { n:b.filter(isInd).length, d:b.length }; };
-  const anos = raSort('ano',[...new Set(pop.map(raAno))]), turmas=[...new Set(pop.map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-  raBarras('raChAno', ['Geral',...anos], segs, calc((x,gr)=>gr==='Geral'||raAno(x)===gr));
-  raBarras('raChTurma', turmas, segs, calc((x,gr)=>x.t===gr));
-
   const cd = seg||'sexo', cv = raSort(cd,[...new Set(pop.flatMap(x=>raVals(cd,x)))]);
-  document.getElementById('raCompTitulo').textContent = `Composição da população por ${RA_DIMS[cd].label.toLowerCase()}`;
+  const calc = filtro => (gr,s) => { const b=pop.filter(x=>filtro(x,gr)&&(!s||raVals(seg,x).includes(s))); return { n:b.filter(isInd).length, d:b.length }; };
+  const anos = raSort('ano',[...new Set(pop.map(raAno))]).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+  const turmas = [...new Set(pop.map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+  const grupos = grp==='turma' ? turmas : grp==='ano' ? anos : [];
+  const cols = grupos.length>1 ? ['Geral',...grupos] : ['Geral'];
+  const dc = c => c==='Geral' ? pop : pop.filter(x=> grp==='turma' ? x.t===c : raAno(x)===c);
+
+  document.getElementById('raGrpTitulo').textContent = `% com o indicador — ${cols.length>1 ? (grp==='turma'?'por turma':'por ano') : 'total'}${seg?' e '+RA_DIMS[seg].label.toLowerCase():''}`;
+  raBarras('raChGrp', cols, segs, calc((x,gr)=>gr==='Geral'||(grp==='turma'?x.t===gr:raAno(x)===gr)));
+  document.getElementById('raSegTitulo').textContent = `% com o indicador — por ${RA_DIMS[cd].label.toLowerCase()}`;
+  raBarras('raChSeg', cv, null, (gr)=>{ const b=pop.filter(x=>raVals(cd,x).includes(gr)); return { n:b.filter(isInd).length, d:b.length }; });
+  document.getElementById('raCompTitulo').textContent = `Composição da população — ${RA_DIMS[cd].label.toLowerCase()}`;
   raGrafico('raChComp', { type:'doughnut', data:{ labels:cv, datasets:[{ data:cv.map(v=>pop.filter(x=>raVals(cd,x).includes(v)).length), backgroundColor:cv.map((_,i)=>RA_PALETA[i%RA_PALETA.length]) }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{ callbacks:{ label:c=>`${c.label}: ${c.parsed} (${raFmt(raPct(c.parsed,pop.length))})` } } } } });
 
-  // Tabela: colunas = Geral + (turmas | anos); linhas = valores do indicador; % sobre a população de CADA coluna
-  const grp = g('raGrp'), cols = ['Geral'];
-  if(grp==='turma') cols.push(...turmas); else if(grp==='ano') cols.push(...anos);
-  const dc = c => c==='Geral' ? pop : pop.filter(x=> grp==='turma' ? x.t===c : raAno(x)===c);
   const linhas = raValoresDim(id_), est = 'white-space:nowrap;max-width:none;overflow:visible;text-overflow:clip';
-  document.getElementById('raCrossTitulo').textContent = `${RA_DIMS[id_].label} — % sobre a população de cada ${grp==='turma'?'turma':grp==='ano'?'ano':'grupo'} (${nomePop})`;
+  document.getElementById('raCrossTitulo').textContent = `${RA_DIMS[id_].label} — % sobre a população de cada coluna (${nomePop})`;
   document.getElementById('raCross').innerHTML = `<table style="font-size:12.5px"><thead><tr><th style="${est}">${ltEsc(RA_DIMS[id_].label)}</th>${cols.map(c=>`<th style="${est}">${ltEsc(c)}</th>`).join('')}</tr></thead><tbody>` +
-    linhas.map(l=>`<tr><td style="${est};${l===iv?'font-weight:700;color:#0F766E':''}">${ltEsc(l)}</td>${cols.map(c=>{ const b=dc(c), n=b.filter(x=>raVals(id_,x).includes(l)).length, p=raPct(n,b.length);
+    linhas.map(l=>`<tr><td style="${est};${l===iv?'font-weight:700;color:#0F766E':''}">${ltEsc(raNomeVal(id_,l))}</td>${cols.map(c=>{ const b=dc(c), n=b.filter(x=>raVals(id_,x).includes(l)).length, p=raPct(n,b.length);
       return `<td style="${est};background:rgba(13,148,136,${((p||0)/100*.55).toFixed(2)});${l===iv?'font-weight:700':''}">${raFmt(p)} <span style="color:#777;font-size:11px">(${n})</span></td>`; }).join('')}</tr>`).join('') +
     `<tr style="border-top:2px solid #E8E7E3"><td style="${est}"><b>População</b></td>${cols.map(c=>`<td style="${est}">${dc(c).length} <span style="color:#777;font-size:11px">(100%)</span></td>`).join('')}</tr></tbody></table>`;
 
-  // Panorama: % da população em cada grupo de filtros
-  document.getElementById('relEncamAnaliseCharts').innerHTML = ['perfil','encam','pip','leitura','ata','notas','sexo','raca','bf'].map((dim,i)=>{
+  document.getElementById('relEncamAnaliseCharts').innerHTML = RA_GRUPOS.flatMap(([,ks])=>ks).filter(k=>k!==pd).map((dim,i)=>{
     const vs = raSort(dim,[...new Set(pop.flatMap(x=>raVals(dim,x)))]);
     return `<div class="card"><div class="card-title">${ltEsc(RA_DIMS[dim].label)}</div>` + vs.map(v=>{ const n=pop.filter(x=>raVals(dim,x).includes(v)).length, p=raPct(n,pop.length);
-      return `<div class="horiz-bar"><div class="horiz-bar-label"><span class="horiz-bar-name">${ltEsc(v)}</span><span class="horiz-bar-val">${raFmt(p)} · ${n}</span></div><div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(p)}%;background:${RA_PALETA[i%RA_PALETA.length]}"></div></div></div>`; }).join('') + '</div>';
+      return `<div class="horiz-bar"><div class="horiz-bar-label"><span class="horiz-bar-name">${ltEsc(raNomeVal(dim,v))}</span><span class="horiz-bar-val">${raFmt(p)} · ${n}</span></div><div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(p)}%;background:${RA_PALETA[i%RA_PALETA.length]}"></div></div></div>`; }).join('') + '</div>';
   }).join('');
   wrap.style.display='block';
 }
