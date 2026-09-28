@@ -1035,6 +1035,7 @@
   }
 
   /* ── CHART SECTION ─────────────────────────── */
+  .ra-lbl{font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px}
   .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
   .card {
     background: #fff; border-radius: var(--radius); border: 1px solid #ECEAE4;
@@ -2839,24 +2840,38 @@
 
     <!-- ── Sub-aba: Análise Geral ─────────────────────────────────── -->
     <div id="relEncamSubAnaliseView" class="relencam-subview" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
-        <p style="font-size:12.5px;color:#888;margin:0" id="relEncamAnaliseFiltroAtivo">Nenhum critério selecionado — mostrando o panorama geral (todos os critérios, todas as turmas)</p>
-        <div style="display:flex;gap:8px;flex-shrink:0">
-          <button class="action-btn" onclick="relEncamIrParaFiltros()">
-            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
-            Editar filtros
-          </button>
-          <button class="action-btn" onclick="relEncamCarregarAnaliseGeral()">
-            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Atualizar análise
-          </button>
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end">
+          <div><label class="ra-lbl">Ano</label><select id="raAno" onchange="raRender()"></select></div>
+          <div><label class="ra-lbl">Turma</label><select id="raTurma" onchange="raRender()"></select></div>
+          <div><label class="ra-lbl">Trimestre (Ata e Notas)</label><select id="raTrim" onchange="raCarregar()"><option value="">Todos</option><option value="1">1º</option><option value="2">2º</option><option value="3">3º</option></select></div>
+          <div><label class="ra-lbl">Notas: abaixo de (%)</label><input type="number" id="raLim" value="50" min="0" max="100" onchange="raRender()" style="width:70px"></div>
+          <button class="action-btn" onclick="raCarregar()">↻ Atualizar dados</button>
         </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid #F0EFEA">
+          <div><label class="ra-lbl">1 · População (denominador)</label>
+            <div style="display:flex;gap:6px"><select id="raPopDim" onchange="raFillVals('raPop');raRender()"></select><select id="raPopVal" onchange="raRender()"></select></div></div>
+          <div><label class="ra-lbl">2 · Cruzar com (numerador)</label>
+            <div style="display:flex;gap:6px"><select id="raIndDim" onchange="raFillVals('raInd');raRender()"></select><select id="raIndVal" onchange="raRender()"></select></div></div>
+          <div><label class="ra-lbl">3 · Desagregar por</label>
+            <select id="raSeg" onchange="raRender()"><option value="">Sem desagregação</option><option value="sexo">Sexo</option><option value="raca">Raça/cor</option><option value="bf">Bolsa Família</option></select></div>
+        </div>
+        <p id="raFrase" style="margin:12px 0 0;font-size:13px;color:#0F766E;font-weight:600"></p>
       </div>
+      <div id="raAviso" style="display:none;margin-bottom:1rem;padding:10px 14px;border-radius:8px;background:#FEF3DC;color:#7A4A08;font-size:12.5px"></div>
       <div id="relEncamAnaliseCarregando" style="display:none;padding:2rem;text-align:center;color:#999">Consolidando dados de Perfil, Ata do Conselho, Notas, PIP e Fluência de Leitura…</div>
-      <div id="relEncamAnaliseVazio" style="display:none;padding:2rem;text-align:center;color:#BBB">Nenhum estudante com critério de encaminhamento identificado no momento.</div>
+      <div id="relEncamAnaliseVazio" style="display:none;padding:2rem;text-align:center;color:#BBB">Nenhum estudante na população selecionada.</div>
       <div id="relEncamAnaliseWrap" style="display:none">
         <div class="stats-grid stats-grid-narrow" id="relEncamAnaliseStats"></div>
+        <div class="charts-row" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+          <div class="card"><div class="card-title">% por ano (e geral)</div><div style="height:260px"><canvas id="raChAno"></canvas></div></div>
+          <div class="card"><div class="card-title">% por turma</div><div style="height:260px"><canvas id="raChTurma"></canvas></div></div>
+          <div class="card"><div class="card-title" id="raCompTitulo">Composição da população</div><div style="height:260px"><canvas id="raChComp"></canvas></div></div>
+        </div>
+        <div class="card" style="margin-bottom:1rem"><div class="card-title" id="raCrossTitulo">Cruzamento</div><div style="overflow-x:auto" id="raCross"></div></div>
+        <div class="card-title" style="margin:1.25rem 0 .5rem">Panorama da população selecionada (% por grupo de filtros)</div>
         <div class="charts-row" id="relEncamAnaliseCharts" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div>
+        <p style="font-size:11.5px;color:#999">Grupos com mais de uma categoria por aluno (Ata, Notas) podem somar mais de 100%. Percentuais sempre em relação à população escolhida em “1”.</p>
       </div>
     </div>
   </div>
@@ -3369,7 +3384,7 @@ document.addEventListener('keydown', e => {
    ROLES / PERMISSIONS
    ════════════════════════════════════════════════════════════ */
 const ROLES = {
-  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','p','e','a','pip','r','ocn','ocs','obs'], needsApproval: false },
+  'coord-ped':   { label:'Coord. Pedagógico', cls:'role-coord-ped',  canEdit: ['n','s','rc','bf','p','e','a','pip','r','ocn','ocs','obs'], needsApproval: false },
   'coord-turno': { label:'Coord. de Turno',   cls:'role-coord-turno',canEdit: ['ocn','ocs','obs'],                          needsApproval: true  },
   'pip':         { label:'PIP',                cls:'role-pip',        canEdit: ['pip','obs'],                    needsApproval: true  },
   'aee':         { label:'AEE',                cls:'role-aee',        canEdit: ['a','r','obs'],                  needsApproval: true  },
@@ -3381,6 +3396,8 @@ const ROLES_TO_TRACK = ['coord-turno','pip','aee'];
 const FIELD_META = {
   'n':   { label:'Nome do estudante',           type:'text'    },
   's':   { label:'Sexo',                        type:'select',  options:['M','F'], optionLabels:{'M':'Masculino','F':'Feminino'} },
+  'rc':  { label:'Raça/cor', type:'select', options:['Não informado','Branca','Preta','Parda','Amarela','Indígena','Não declarada'] },
+  'bf':  { label:'Bolsa Família', type:'select', options:['Não informado','SIM','NÃO'] },
   'p':   { label:'Perfil do estudante',          type:'select',  options:['TÍPICO','ATÍPICO','EM ANÁLISE'] },
   'e':   { label:'Encaminhamento',               type:'select',  options:['REGULAR','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','REFORÇO','AVALIAR'] },
   'a':   { label:'AEE / Diagnóstico', type:'multiselect', options:['N/A','Avaliar AEE','Bx.Visão','DI','DI/DI/Neuro','DI/TDAH','SURDEZ','TDAH','TDAH/Bx.Vis/Neuro','TDAH/TOD','TDAH/TOD/M.UC/T.Alim.','TDAH e Outras','TEA','TEA/TDAH'] },
@@ -4375,7 +4392,7 @@ function renderModalContent(idx){
         <div class="modal-nome" style="display:flex;align-items:center;gap:6px">
           <span>${x.n}</span>${fieldEditBtn(idx,'n')}
         </div>
-        <div class="modal-sub" style="display:flex;align-items:center;gap:6px">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}${fieldEditBtn(idx,'s')}</div>
+        <div class="modal-sub" style="display:flex;align-items:center;gap:6px">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}${fieldEditBtn(idx,'s')} · Raça/cor: ${x.rc||'Não informado'}${fieldEditBtn(idx,'rc')} · Bolsa Família: ${x.bf||'Não informado'}${fieldEditBtn(idx,'bf')}</div>
       </div>
       <button class="modal-close" onclick="closeModalBtn()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -4919,7 +4936,7 @@ async function approvePending(id, valorFinal){
   const val = valorFinal !== undefined ? valorFinal : ed.newVal;
 
   // Salva no estudante no Supabase
-  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
+  const dbField = { n:'nome', s:'sexo', rc:'raca_cor', bf:'bolsa_familia', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
   const { error } = await sbPatch('estudantes', { [dbField]: val }, [`id=eq.${ed.studentId}`]);
   if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
 
@@ -6488,6 +6505,7 @@ async function carregarEstudantes(){
       id:x.id, matricula:x.numero_matricula||null, t:x.turma, n:x.nome, s:x.sexo||'M', p:x.perfil||'TÍPICO',
       a:x.aee||'N/A', pip:x.pip||'N/A', e:x.encam||'REGULAR', r:x.rotina||'',
       ocn:x.num_ocorrencias||0, ocs:x.sintese_ocorrencias||'', o:x.obs||'',
+      rc:x.raca_cor||'Não informado', bf:x.bolsa_familia||'Não informado',
       _transferido:!!x.transferido, _novaMatricula:!!x.nova_matricula
     }));
     const nomesNoSupabase = new Set(doSupabase.map(x=>normalizarNomeAluno(x.n)));
@@ -8269,7 +8287,7 @@ async function submitEdit(){
     closeEditModalBtn();
     showToast('Edição registrada. A Coordenação Pedagógica será notificada.','amber');
   } else {
-    const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[field];
+    const dbField = { n:'nome', s:'sexo', rc:'raca_cor', bf:'bolsa_familia', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[field];
     const { error } = await sbPatch('estudantes',{ [dbField]:newVal },[ `id=eq.${x.id}` ]);
     if(error){ showToast('Erro ao salvar alteração.','coral'); return; }
     if(field==='n') await sincronizarNomeAlunoEmOutrasAbas(x.id, x.matricula, oldVal, newVal);
@@ -8392,7 +8410,7 @@ async function approvePending(id){
   const est = (ed.studentMatricula!=null && S.find(x=>x.matricula!=null && String(x.matricula)===String(ed.studentMatricula)))
     || S.find(x=>x.n===ed.studentNome);
   if(!est){ showToast('Não foi possível localizar o cadastro deste aluno.','coral'); return; }
-  const dbField = { n:'nome', s:'sexo', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
+  const dbField = { n:'nome', s:'sexo', rc:'raca_cor', bf:'bolsa_familia', p:'perfil', e:'encam', a:'aee', pip:'pip', r:'rotina', ocn:'num_ocorrencias', ocs:'sintese_ocorrencias', obs:'obs' }[ed.field];
   await sbPatch('estudantes',{ [dbField]:ed.newVal },[ `id=eq.${est.id}` ]);
   if(ed.field==='n') await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, ed.oldVal, ed.newVal);
   // Mantém o registro, marcando como aprovado, para que a alteração
@@ -10913,146 +10931,146 @@ function relEncamIrParaFiltros(){
   det?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-const REL_ENC_CRITERIO_DEFAULT = {
-  turma:'', trimestre:'',
-  perfis:      ['TÍPICO','ATÍPICO','EM ANÁLISE'],
-  encams:      ['REFORÇO','PIP','ADAPTAÇÃO','PIP/ADAPTAÇÃO','AVALIAR'],
-  ataCats:     LT_ATA_CATEGORIAS.map(c=>c.chave),
-  notasChk:    true,
-  notasRecChk: true,
-  pips:        ['ativo','avaliar','dispensado'],
-  leituras:    ['Alta','Média','Baixa'],
+/* ═══ Análise Geral: dashboards em %, cruzamento de filtros e desagregação (sexo, raça/cor, Bolsa Família) ═══ */
+const RA = { atas:[], notas:[], charts:{}, pronto:false };
+const RA_NI = 'Não informado';
+const RA_ORDEM = {
+  perfil:['Típico','Atípico','Em análise'], leitura:['Alta','Média','Baixa','Sem registro'],
+  pip:['PIP ativo','Avaliar PIP','Dispensado','Sem PIP'], sexo:['Feminino','Masculino'],
+  raca:['Branca','Preta','Parda','Amarela','Indígena','Não declarada',RA_NI], bf:['Recebe','Não recebe',RA_NI],
 };
+const RA_PALETA = ['#0D9488','#6B65CC','#D85A30','#BA7517','#2563EB','#888780','#D4537E','#639922'];
+const raAno = x => { const m=/^(\d+)/.exec(x.t||''); return m ? m[1]+'º ano' : (x.t||'—'); };
+const raBase = () => S.filter(x=>!x._transferido);
+const RA_DIMS = {
+  perfil:{ label:'Perfil', v:x=>[({'TÍPICO':'Típico','ATÍPICO':'Atípico','EM ANÁLISE':'Em análise'})[x.p]||x.p] },
+  encam:{ label:'Encaminhamento cadastral', v:x=>[encamKey(x.e)] },
+  pip:{ label:'PIP (ficha)', v:x=>{ const v=x.pip||'N/A'; return [v==='Avaliar PIP'?'Avaliar PIP':v==='Dispensado'?'Dispensado':v!=='N/A'?'PIP ativo':'Sem PIP']; } },
+  leitura:{ label:'PIP Leitura (prioridade)', v:x=>[x._leituraPrio ? (x._leituraPrio==='Media'?'Média':x._leituraPrio) : 'Sem registro'] },
+  ata:{ label:'Indicações da Ata', v:x=>{ const r=[]; RA.atas.forEach(row=>{ if(row.turma!==x.t) return; LT_ATA_CATEGORIAS.forEach(c=>{ if((row[c.alunosCampo]||[]).some(i=>ltAlunoBateAta(i,x)) && !r.includes(c.titulo)) r.push(c.titulo); }); }); return r.length?r:['Sem indicação']; } },
+  notas:{ label:'Notas trimestrais', v:x=>{ const lim=parseFloat(document.getElementById('raLim').value)||0, md=ltSoDigitos(x.matricula), r=[];
+      RA.notas.forEach(n=>{ const nd=ltSoDigitos(n.matricula); const meu = (md&&nd) ? nd===md : ((n.aluno_nome||'').trim().toLowerCase()===(x.n||'').trim().toLowerCase() && n.turma===x.t); if(!meu) return;
+        if(n.percentual!=null && n.percentual<lim && !r.includes(`Rendimento < ${lim}%`)) r.push(`Rendimento < ${lim}%`);
+        if(n.status==='recuperada' && !r.includes('Nota recuperada')) r.push('Nota recuperada'); });
+      return r.length?r:['Sem alerta']; } },
+  sexo:{ label:'Sexo', v:x=>[x.s==='F'?'Feminino':'Masculino'] },
+  raca:{ label:'Raça/cor', v:x=>[x.rc||RA_NI] },
+  bf:{ label:'Bolsa Família', v:x=>[x.bf==='SIM'?'Recebe':x.bf==='NÃO'?'Não recebe':RA_NI] },
+  ano:{ label:'Ano', v:x=>[raAno(x)] },
+  turma:{ label:'Turma', v:x=>[x.t] },
+};
+let _raMemo = new Map();
+const raVals = (dim,x) => { let m=_raMemo.get(x); if(!m){ m={}; _raMemo.set(x,m); } return m[dim] || (m[dim]=RA_DIMS[dim].v(x)); };
+const raSort = (dim,arr) => { const o=RA_ORDEM[dim]||[]; return [...arr].sort((a,b)=>{ const i=o.indexOf(a), j=o.indexOf(b); return (i<0?99:i)-(j<0?99:j) || a.localeCompare(b,'pt-BR',{numeric:true}); }); };
+const raValoresDim = dim => raSort(dim,[...new Set(raBase().flatMap(x=>raVals(dim,x)))]);
+const raPct = (n,d) => d ? n/d*100 : null;
+const raFmt = v => v==null ? '—' : v.toFixed(1).replace('.',',')+'%';
 
-// ─── Análise Geral: painel consolidado — usa os filtros ativos na Listagem;
-// se nenhum critério estiver selecionado, mostra o panorama geral (todos os critérios) ────
+function raFillVals(pref){
+  const dim=document.getElementById(pref+'Dim').value, sel=document.getElementById(pref+'Val'), ant=sel.value;
+  sel.innerHTML = (pref==='raPop'?'<option value="">Todos os valores</option>':'') + raValoresDim(dim).map(v=>`<option value="${ltEsc(v)}">${ltEsc(v)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===ant)) sel.value=ant;
+}
+async function raCarregar(){
+  const trim=document.getElementById('raTrim').value;
+  document.getElementById('relEncamAnaliseCarregando').style.display='block';
+  document.getElementById('relEncamAnaliseWrap').style.display='none';
+  try{
+    const q = t => `${SUPABASE_URL}/rest/v1/${t}` + (trim?`&trimestre=eq.${trim}`:'');
+    const [ra,rn] = await Promise.all([
+      fetch(q('atas_conselho?select=*'),{headers:sbHeaders()}), fetch(q('notas_trimestrais?select=matricula,aluno_nome,turma,disciplina,trimestre,percentual,status'),{headers:sbHeaders()}) ]);
+    RA.atas = ra.ok ? await ra.json() : []; RA.notas = rn.ok ? await rn.json() : [];
+  }catch(e){ console.error(e); showToast('Não foi possível consultar Ata/Notas agora; esses grupos podem ficar incompletos.','coral'); }
+  document.getElementById('relEncamAnaliseCarregando').style.display='none';
+  raRender();
+}
 async function relEncamCarregarAnaliseGeral(){
-  const carregando = document.getElementById('relEncamAnaliseCarregando');
-  const wrap       = document.getElementById('relEncamAnaliseWrap');
-  const vazio      = document.getElementById('relEncamAnaliseVazio');
-  const badge      = document.getElementById('relEncamAnaliseFiltroAtivo');
-  wrap.style.display = 'none';
-  vazio.style.display = 'none';
-  carregando.style.display = 'block';
-
-  const criteriosUsuario = relEncamColetarCriterios();
-  const temFiltro = criteriosUsuario.perfis.length || criteriosUsuario.encams.length || criteriosUsuario.ataCats.length ||
-                     criteriosUsuario.notasChk || criteriosUsuario.notasRecChk || criteriosUsuario.pips.length || criteriosUsuario.leituras.length;
-
-  const criterios = temFiltro ? criteriosUsuario : {
-    ...REL_ENC_CRITERIO_DEFAULT,
-    turma: criteriosUsuario.turma, trimestre: criteriosUsuario.trimestre,
-    notasLimite: criteriosUsuario.notasLimite,
-  };
-
-  const { resultado, base } = await relEncamComputar(criterios);
-  carregando.style.display = 'none';
-
-  if(badge){
-    badge.textContent = temFiltro
-      ? 'Usando os critérios selecionados na aba Listagem'
-      : 'Nenhum critério selecionado — mostrando o panorama geral (todos os critérios, todas as turmas)';
+  if(!RA.pronto){
+    const opt = (id,arr,first) => document.getElementById(id).innerHTML = (first?`<option value="">${first}</option>`:'') + arr.map(v=>`<option value="${ltEsc(v)}">${ltEsc(v)}</option>`).join('');
+    opt('raAno', raSort('ano',[...new Set(raBase().map(raAno))]), 'Todos os anos');
+    opt('raTurma', [...new Set(raBase().map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR')), 'Todas as turmas');
+    const dims = Object.entries(RA_DIMS).map(([k,d])=>`<option value="${k}">${d.label}</option>`).join('');
+    document.getElementById('raPopDim').innerHTML = dims; document.getElementById('raIndDim').innerHTML = dims;
+    document.getElementById('raPopDim').value='perfil'; document.getElementById('raIndDim').value='leitura';
+    raFillVals('raPop'); raFillVals('raInd'); document.getElementById('raIndVal').value='Alta';
+    RA.pronto=true;
   }
+  await raCarregar();
+}
 
-  if(!resultado.length){
-    vazio.style.display = 'block';
-    return;
-  }
+function raGrafico(id, cfg){
+  if(RA.charts[id]) RA.charts[id].destroy();
+  if(typeof Chart==='undefined'){ return; }
+  RA.charts[id] = new Chart(document.getElementById(id), cfg);
+}
+const raRotulos = { id:'raRotulos', afterDatasetsDraw(ch){ if(ch.config.type!=='bar') return; const c=ch.ctx; c.save(); c.font='600 10px sans-serif'; c.fillStyle='#555'; c.textAlign='center';
+  ch.data.datasets.forEach((ds,i)=>ch.getDatasetMeta(i).data.forEach((b,j)=>{ if(ds.data[j]!=null && ch.data.datasets.length<=3) c.fillText(ds.data[j].toFixed(0)+'%', b.x, b.y-4); })); c.restore(); } };
+function raBarras(id, grupos, segs, calc){
+  // grupos: rótulos do eixo X; segs: null ou lista de categorias; calc(grupo,seg) → {n,d}
+  const series = segs || [null];
+  raGrafico(id, { type:'bar', plugins:[raRotulos], data:{ labels:grupos, datasets: series.map((s,i)=>({
+      label: s||'% do indicador', data: grupos.map(g=>{ const r=calc(g,s); return raPct(r.n,r.d); }), _r: grupos.map(g=>calc(g,s)),
+      backgroundColor: RA_PALETA[i%RA_PALETA.length], borderRadius:4 })) },
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:16}},
+      scales:{ y:{ beginAtZero:true, max:100, ticks:{callback:v=>v+'%'} } },
+      plugins:{ legend:{ display:!!segs }, tooltip:{ callbacks:{ label:c=>{ const r=c.dataset._r[c.dataIndex]; return `${c.dataset.label}: ${raFmt(c.parsed.y)} (${r.n} de ${r.d})`; } } } } } });
+}
 
-  const linhas = relEncamCalcularResumoCriterios(resultado, criterios, base.length);
-  const pctTotal = base.length ? (resultado.length/base.length*100) : 0;
+function raRender(){
+  if(!RA.pronto) return;
+  _raMemo = new Map();
+  const g = id => document.getElementById(id).value;
+  const [ano,turma,pd,pv,id_,iv,seg] = [g('raAno'),g('raTurma'),g('raPopDim'),g('raPopVal'),g('raIndDim'),g('raIndVal'),g('raSeg')];
+  const escopo = raBase().filter(x=>(!ano||raAno(x)===ano) && (!turma||x.t===turma));
+  const pop = escopo.filter(x=>!pv || raVals(pd,x).includes(pv));
+  const isInd = x => raVals(id_,x).includes(iv);
+  const wrap=document.getElementById('relEncamAnaliseWrap'), vazio=document.getElementById('relEncamAnaliseVazio');
+  const nomePop = pv ? `${RA_DIMS[pd].label}: ${pv}` : 'todos os estudantes';
+  const escopoTxt = [ano||'todos os anos', turma||'todas as turmas'].join(' · ');
+  document.getElementById('raFrase').textContent = `% de estudantes com “${RA_DIMS[id_].label}: ${iv}” entre ${nomePop} — ${escopoTxt}`;
 
-  // Cartões de indicadores
-  const topLinha = [...linhas].sort((a,b)=>b.count-a.count)[0];
-  document.getElementById('relEncamAnaliseStats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-icon coral"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-      <div class="stat-num">${resultado.length}</div>
-      <div class="stat-label">Estudantes indicados</div>
-      <div class="stat-sub">${pctTotal.toFixed(1)}% do total (${base.length})</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon amber"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
-      <div class="stat-num">${linhas.length}</div>
-      <div class="stat-label">Critérios com estudantes encontrados</div>
-    </div>
-    ${topLinha ? `
-    <div class="stat-card">
-      <div class="stat-icon roxo"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 4 5-8"/></svg></div>
-      <div class="stat-num">${topLinha.count}</div>
-      <div class="stat-label">${ltEsc(topLinha.label)}</div>
-      <div class="stat-sub">${topLinha.pct.toFixed(1)}% do total</div>
-    </div>` : ''}
-  `;
+  // Aviso quando raça/cor ou Bolsa Família ainda não foram preenchidos
+  const semRc = raBase().every(x=>!x.rc||x.rc===RA_NI), semBf = raBase().every(x=>!x.bf||x.bf===RA_NI);
+  const av = document.getElementById('raAviso');
+  av.style.display = ((seg==='raca'&&semRc)||(seg==='bf'&&semBf)) ? 'block':'none';
+  av.textContent = 'Nenhum estudante tem este dado cadastrado ainda — preencha em cada ficha (ícone de lápis ao lado do nome) para que a desagregação seja útil.';
 
-  const chartsRow = document.getElementById('relEncamAnaliseCharts');
+  wrap.style.display='none'; vazio.style.display='none';
+  if(!pop.length){ vazio.style.display='block'; return; }
 
-  if(temFiltro){
-    // Um gráfico (por turma) para cada critério selecionado
-    chartsRow.innerHTML = linhas.map(l=>{
-      const maxT = Math.max(1, ...Object.values(l.porTurma));
-      const barras = Object.entries(l.porTurma)
-        .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
-        .map(([t,v])=>`
-          <div class="horiz-bar">
-            <div class="horiz-bar-label"><span class="horiz-bar-name">${t}</span><span class="horiz-bar-val">${v}</span></div>
-            <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxT*100)}%;background:#0D9488"></div></div>
-          </div>
-        `).join('');
-      return `<div class="card">
-        <div class="card-title">${ltEsc(l.label)} <span style="text-transform:none;font-weight:400;letter-spacing:0;color:#BBB">— ${l.count} aluno${l.count!==1?'s':''} · ${l.pct.toFixed(1)}%</span></div>
-        ${barras}
-      </div>`;
-    }).join('');
-  } else {
-    // Panorama geral: total por turma + total por origem do motivo
-    const porTurma = {}; TURMAS.forEach(t=>porTurma[t]=0);
-    resultado.forEach(r=>{ porTurma[r.x.t] = (porTurma[r.x.t]||0) + 1; });
-    const porCategoria = { Perfil:0, Encaminhamento:0, Ata:0, Notas:0, PIP:0, Leitura:0 };
-    resultado.forEach(r=>r.motivos.forEach(m=>{
-      if(m.tipo==='perfil') porCategoria.Perfil++;
-      else if(m.tipo==='encam') porCategoria.Encaminhamento++;
-      else if(m.tipo==='ata') porCategoria.Ata++;
-      else if(m.tipo==='notasBaixas' || m.tipo==='notasRecuperadas') porCategoria.Notas++;
-      else if(m.tipo==='pip') porCategoria.PIP++;
-      else if(m.tipo==='leitura') porCategoria.Leitura++;
-    }));
+  const nInd = pop.filter(isInd).length;
+  document.getElementById('relEncamAnaliseStats').innerHTML = [
+    ['População selecionada', pop.length, `${raFmt(raPct(pop.length,escopo.length))} do escopo (${escopo.length})`],
+    ['Com o indicador', nInd, `${iv} · ${RA_DIMS[id_].label}`],
+    ['Percentual', raFmt(raPct(nInd,pop.length)), `${nInd} de ${pop.length}`],
+  ].map(([l,n,s])=>`<div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">${l}</div><div class="stat-sub">${ltEsc(String(s))}</div></div>`).join('');
 
-    const maxT = Math.max(1, ...Object.values(porTurma));
-    const chartTurma = Object.entries(porTurma)
-      .filter(([,v])=>v>0)
-      .sort((a,b)=> a[0].localeCompare(b[0],'pt-BR'))
-      .map(([t,v])=>`
-        <div class="horiz-bar">
-          <div class="horiz-bar-label"><span class="horiz-bar-name">${t}</span><span class="horiz-bar-val">${v}</span></div>
-          <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxT*100)}%;background:#0D9488"></div></div>
-        </div>
-      `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+  const segs = seg ? raSort(seg,[...new Set(pop.flatMap(x=>raVals(seg,x)))]) : null;
+  const calc = (filtro) => (gr,s) => { const b=pop.filter(x=>filtro(x,gr)&&(!s||raVals(seg,x).includes(s))); return { n:b.filter(isInd).length, d:b.length }; };
+  const anos = raSort('ano',[...new Set(pop.map(raAno))]), turmas=[...new Set(pop.map(x=>x.t))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  raBarras('raChAno', ['Geral',...anos], segs, calc((x,gr)=>gr==='Geral'||raAno(x)===gr));
+  raBarras('raChTurma', turmas, segs, calc((x,gr)=>x.t===gr));
 
-    const catLabels = { Perfil:'Perfil', Encaminhamento:'Enc. cadastral', Ata:'Ata do Conselho', Notas:'Notas trimestrais', PIP:'PIP (ficha)', Leitura:'PIP Leitura' };
-    const catColors = { Perfil:'#BA7517', Encaminhamento:'#2563EB', Ata:'#D85A30', Notas:'#6B65CC', PIP:'#0D9488', Leitura:'#888780' };
-    const maxC = Math.max(1, ...Object.values(porCategoria));
-    const chartCategoria = Object.entries(porCategoria)
-      .filter(([,v])=>v>0)
-      .map(([k,v])=>`
-        <div class="horiz-bar">
-          <div class="horiz-bar-label"><span class="horiz-bar-name">${catLabels[k]}</span><span class="horiz-bar-val">${v}</span></div>
-          <div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(v/maxC*100)}%;background:${catColors[k]}"></div></div>
-        </div>
-      `).join('') || '<div style="color:#BBB;font-size:12.5px">Sem dados.</div>';
+  const cd = seg||'sexo', cv = raSort(cd,[...new Set(pop.flatMap(x=>raVals(cd,x)))]);
+  document.getElementById('raCompTitulo').textContent = `Composição da população por ${RA_DIMS[cd].label.toLowerCase()}`;
+  raGrafico('raChComp', { type:'doughnut', data:{ labels:cv, datasets:[{ data:cv.map(v=>pop.filter(x=>raVals(cd,x).includes(v)).length), backgroundColor:cv.map((_,i)=>RA_PALETA[i%RA_PALETA.length]) }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{ callbacks:{ label:c=>`${c.label}: ${c.parsed} (${raFmt(raPct(c.parsed,pop.length))})` } } } } });
 
-    chartsRow.innerHTML = `
-      <div class="card">
-        <div class="card-title">Estudantes com encaminhamento por turma</div>
-        ${chartTurma}
-      </div>
-      <div class="card">
-        <div class="card-title">Motivos encontrados por origem</div>
-        ${chartCategoria}
-      </div>`;
-  }
+  // Tabela de cruzamento: linhas = valores da população; colunas = valores do indicador (% da linha)
+  const linhas = pv ? [pv] : raValoresDim(pd), cols = raValoresDim(id_);
+  document.getElementById('raCrossTitulo').textContent = `Cruzamento: ${RA_DIMS[pd].label} × ${RA_DIMS[id_].label} (% de cada linha)`;
+  document.getElementById('raCross').innerHTML = `<table style="font-size:12.5px"><thead><tr><th>${ltEsc(RA_DIMS[pd].label)}</th><th>Total</th>${cols.map(c=>`<th${c===iv?' style="color:#0F766E"':''}>${ltEsc(c)}</th>`).join('')}</tr></thead><tbody>` +
+    linhas.map(l=>{ const b=escopo.filter(x=>raVals(pd,x).includes(l)); if(!b.length) return '';
+      return `<tr><td><b>${ltEsc(l)}</b></td><td>${b.length}</td>${cols.map(c=>{ const n=b.filter(x=>raVals(id_,x).includes(c)).length, p=raPct(n,b.length);
+        return `<td style="background:rgba(13,148,136,${(p/100*.55).toFixed(2)});${c===iv?'font-weight:700':''}">${raFmt(p)} <span style="color:#777;font-size:11px">(${n})</span></td>`; }).join('')}</tr>`; }).join('') + '</tbody></table>';
 
-  wrap.style.display = 'block';
+  // Panorama: % da população em cada grupo de filtros
+  document.getElementById('relEncamAnaliseCharts').innerHTML = ['perfil','encam','pip','leitura','ata','notas','sexo','raca','bf'].map((dim,i)=>{
+    const vs = raSort(dim,[...new Set(pop.flatMap(x=>raVals(dim,x)))]);
+    return `<div class="card"><div class="card-title">${ltEsc(RA_DIMS[dim].label)}</div>` + vs.map(v=>{ const n=pop.filter(x=>raVals(dim,x).includes(v)).length, p=raPct(n,pop.length);
+      return `<div class="horiz-bar"><div class="horiz-bar-label"><span class="horiz-bar-name">${ltEsc(v)}</span><span class="horiz-bar-val">${raFmt(p)} · ${n}</span></div><div class="horiz-bar-track"><div class="horiz-bar-fill" style="width:${Math.round(p)}%;background:${RA_PALETA[i%RA_PALETA.length]}"></div></div></div>`; }).join('') + '</div>';
+  }).join('');
+  wrap.style.display='block';
 }
 
 function relEncamRenderTabela(resultado, criterios, baseTotal){
