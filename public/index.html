@@ -2418,6 +2418,10 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
         Incluir aluno já matriculado
       </button>
+      <button class="btn-save" onclick="abrirReconciliacaoTurmas()" style="display:inline-flex;align-items:center;gap:6px;background:#B45309" title="Compara a turma do cadastro (usada nas Atas) com a última movimentação de cada aluno">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Conferir turmas (Mov. × Cadastro)
+      </button>
     </div>
 
     <!-- Filters -->
@@ -6196,6 +6200,100 @@ function autoFillTurmaOrigem(){
 function closeMovModal(e){ if(e.target===document.getElementById('movModalOverlay')) closeMovModalBtn(); }
 function closeMovModalBtn(){ document.getElementById('movModalOverlay').classList.remove('open'); currentMovTipo=null; }
 
+/* ════════════════════════════════════════════════════════════
+   SINCRONIA TURMA (Estudantes) × MOVIMENTAÇÕES
+   A turma "oficial" do aluno (usada pelas Atas, Perfil etc.) vem de
+   estudantes.turma. A movimentação só registra o histórico. Antes,
+   sbPatch/sbPost NÃO lançam exceção em erro HTTP (devolvem {error}) e o
+   código ignorava esse retorno: se a gravação em Estudantes falhava (RLS,
+   aluno sem id, rede), o histórico ficava certo, a tela mostrava sucesso,
+   mas a turma no banco continuava a antiga. Os helpers abaixo validam.
+   ════════════════════════════════════════════════════════════ */
+function filtroEstudante(est){
+  if(est.id) return [`id=eq.${est.id}`];
+  if(est.matricula!=null && est.matricula!=='') return [`numero_matricula=eq.${encodeURIComponent(est.matricula)}`];
+  return null;
+}
+async function patchEstudanteChecado(est, obj){
+  const filtro = filtroEstudante(est);
+  if(!filtro) throw new Error(`Não há id nem matrícula para localizar "${est.n}" em Estudantes.`);
+  const res = await sbPatch('estudantes', obj, filtro);
+  if(res.error) throw new Error('Supabase recusou a alteração: '+JSON.stringify(res.error));
+  if(!Array.isArray(res.data) || res.data.length===0) throw new Error(`Nenhuma linha de Estudantes foi alterada para "${est.n}" (cadastro não encontrado ou sem permissão de escrita).`);
+  return res.data;
+}
+async function postChecado(table, row){
+  const res = await sbPost(table, row);
+  if(res.error) throw new Error('Supabase recusou o registro em '+table+': '+JSON.stringify(res.error));
+  return res.data;
+}
+const MOV_TIPOS_QUE_DEFINEM_TURMA = ['remanejamento','matricula','atualizacao'];
+function estudanteDaMov(m){
+  if(m.matricula_aluno!=null && m.matricula_aluno!==''){
+    const e = S.find(x=>x.matricula!=null && String(x.matricula)===String(m.matricula_aluno));
+    if(e) return e;
+  }
+  const nn = normalizarNomeAluno(m.nome_aluno||'');
+  const cand = S.filter(x=>normalizarNomeAluno(x.n)===nn);
+  return cand.length===1 ? cand[0] : null; // nome ambíguo: não arrisca
+}
+function chaveOrdemMov(m){ return String((m.data||'').slice(0,10))+'|'+String(m.created_at||''); }
+// Movimentação mais recente do aluno (qualquer tipo), para saber qual é o "último estado".
+function movimentoMaisRecenteDoAluno(est){
+  let melhor=null;
+  movLog.forEach(m=>{
+    if(estudanteDaMov(m)!==est) return;
+    if(!melhor || chaveOrdemMov(m)>chaveOrdemMov(melhor)) melhor=m;
+  });
+  return melhor;
+}
+function calcularDivergenciasTurma(){
+  const out=[];
+  S.forEach(est=>{
+    if(est._transferido) return;
+    const ult = movimentoMaisRecenteDoAluno(est);
+    if(!ult) return;
+    if(!MOV_TIPOS_QUE_DEFINEM_TURMA.includes(ult.tipo)) return;
+    if(!ult.turma_ate || ult.turma_ate==='—') return;
+    if(est.t!==ult.turma_ate) out.push({est, de:est.t, para:ult.turma_ate, data:(ult.data||'').slice(0,10), tipo:ult.tipo});
+  });
+  return out.sort((a,b)=>String(a.est.n).localeCompare(String(b.est.n),'pt-BR'));
+}
+function fecharReconciliacaoTurmas(){ document.getElementById('reconTurmasOverlay')?.remove(); }
+function abrirReconciliacaoTurmas(){
+  if(!currentRole || (currentRole!=='coord-ped' && currentRole!=='coord-turno')){ alert('Apenas Coordenadores podem conferir/corrigir turmas.'); return; }
+  const div = calcularDivergenciasTurma();
+  fecharReconciliacaoTurmas();
+  const ov = document.createElement('div');
+  ov.id='reconTurmasOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem';
+  const linhas = div.map((d,i)=>`<tr style="border-top:1px solid #eee"><td style="padding:6px 8px"><input type="checkbox" class="recon-chk" data-i="${i}" checked></td><td style="padding:6px 8px;font-weight:600">${escAttr(d.est.n)}<div style="font-size:11px;color:#999;font-weight:400">${escAttr(d.est.matricula||'sem matrícula')}</div></td><td style="padding:6px 8px">${escAttr(d.de)}</td><td style="padding:6px 8px;font-weight:700;color:#0D9488">${escAttr(d.para)}</td><td style="padding:6px 8px;font-size:12px;color:#888">${escAttr(MOV_TIPO_LABEL[d.tipo]?.[0]||d.tipo)}<br>${escAttr(d.data)}</td></tr>`).join('');
+  ov.innerHTML = `<div style="background:#fff;color:#1F2937;border-radius:12px;max-width:720px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.25)">
+    <div style="padding:16px 20px;border-bottom:1px solid #eee"><div style="font-size:16px;font-weight:700">Conferir turmas: Movimentações × Cadastro</div>
+    <div style="font-size:12.5px;color:#777;margin-top:4px">${div.length ? `Encontrei <b>${div.length}</b> aluno(s) cuja turma no cadastro (usada nas Atas) difere da turma de destino da última movimentação. Desmarque quem NÃO deve ser alterado (ex.: aluno movido depois, direto no cadastro).` : 'Nenhuma divergência: todas as turmas do cadastro batem com a última movimentação.'}</div></div>
+    <div style="overflow:auto;padding:0 12px">${div.length?`<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;color:#888;font-size:11px"><th></th><th style="padding:8px">ALUNO</th><th style="padding:8px">TURMA NO CADASTRO</th><th style="padding:8px">TURMA DA MOVIMENTAÇÃO</th><th style="padding:8px">ÚLTIMA MOV.</th></tr></thead><tbody>${linhas}</tbody></table>`:''}</div>
+    <div style="padding:12px 20px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button class="btn-cancel" onclick="fecharReconciliacaoTurmas()">${div.length?'Cancelar':'Fechar'}</button>${div.length?'<button class="btn-save" id="reconAplicarBtn" onclick="aplicarReconciliacaoTurmas()">Corrigir selecionados</button>':''}</div></div>`;
+  ov._div = div;
+  document.body.appendChild(ov);
+}
+async function aplicarReconciliacaoTurmas(){
+  const ov = document.getElementById('reconTurmasOverlay'); if(!ov) return;
+  const div = ov._div||[];
+  const marcados = [...ov.querySelectorAll('.recon-chk:checked')].map(c=>div[parseInt(c.dataset.i)]);
+  if(!marcados.length){ alert('Nenhum aluno selecionado.'); return; }
+  const btn = document.getElementById('reconAplicarBtn'); if(btn){ btn.disabled=true; btn.textContent='Corrigindo…'; }
+  let ok=0; const falhas=[];
+  for(const d of marcados){
+    try{ await patchEstudanteChecado(d.est, { turma:d.para }); d.est.t=d.para; ok++; }
+    catch(e){ falhas.push(`${d.est.n}: ${e.message}`); }
+  }
+  fecharReconciliacaoTurmas();
+  try{ await carregarEstudantes(); }catch(e){}
+  try{ refreshAllViews(); }catch(e){}
+  showMovNotification(`${ok} turma(s) corrigida(s)${falhas.length?`, ${falhas.length} falha(s)`:''}.`, falhas.length?'coral':'verde');
+  if(falhas.length) alert('Não foi possível corrigir:\n\n'+falhas.join('\n'));
+}
+
 async function submitMovimento(){
   const tipo   = currentMovTipo;
   const data   = document.getElementById('movData')?.value;
@@ -6210,9 +6308,13 @@ async function submitMovimento(){
     if(!est){ alert('Estudante não encontrado.'); return; }
     // Tenta salvar no Supabase; se falhar, registra apenas localmente
     try {
-      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
-      if(est.id) await sbPatch('estudantes',{ transferido:true, data_transferencia:data },[ `id=eq.${est.id}` ]);
-    } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
+      await patchEstudanteChecado(est,{ transferido:true, data_transferencia:data });
+      await postChecado('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:est.t, turma_ate:'—', motivo, registrado_por:ROLES[currentRole].label });
+    } catch(e){
+      console.error('Falha ao registrar transferência.', e);
+      alert('A transferência NÃO foi gravada no servidor:\n\n'+e.message+'\n\nNada foi alterado. Tente novamente.');
+      return;
+    }
     est._transferido=true;
     // Garante registro local no log de movimentações
     if(!movLog.find(m=>m._local && m.nome_aluno===est.n && m.tipo===tipo && m.data===data)){
@@ -6230,9 +6332,13 @@ async function submitMovimento(){
     if(est.t===turmaAte){ alert('A turma de destino deve ser diferente da turma atual.'); return; }
     const turmaDe = est.t;
     try {
-      await sbPost('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
-      if(est.id) await sbPatch('estudantes',{ turma:turmaAte },[ `id=eq.${est.id}` ]);
-    } catch(e){ console.warn('Supabase indisponível, salvando localmente.', e); }
+      await patchEstudanteChecado(est,{ turma:turmaAte });
+      await postChecado('movimentacoes',{ tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
+    } catch(e){
+      console.error('Falha ao registrar remanejamento.', e);
+      alert('O remanejamento NÃO foi gravado no servidor:\n\n'+e.message+'\n\nA turma do aluno continua '+turmaDe+'. Tente novamente.');
+      return;
+    }
     est.t = turmaAte;
     if(!movLog.find(m=>m._local && m.nome_aluno===est.n && m.tipo===tipo && m.data===data)){
       movLog.unshift({ _local:true, tipo, data, matricula_aluno:est.matricula||null, nome_aluno:est.n, turma_de:turmaDe, turma_ate:turmaAte, motivo, registrado_por:ROLES[currentRole].label });
@@ -6388,11 +6494,18 @@ async function salvarCampoMov(cid, campo, novoValor){
         catch(e){ console.warn('Não foi possível atualizar o nome em Estudantes.', e); }
       }
       await sincronizarNomeAlunoEmOutrasAbas(est.id, est.matricula, nomeAntigo, valorNormalizado);
-    } else if(campo==='turma_ate' && ['remanejamento','matricula','atualizacao'].includes(registro.tipo) && valorNormalizado!=='—'){
-      est.t = valorNormalizado;
-      if(est.id){
-        try{ await sbPatch('estudantes', { turma:valorNormalizado }, [`id=eq.${est.id}`]); }
-        catch(e){ console.warn('Não foi possível atualizar a turma em Estudantes.', e); }
+    } else if(campo==='turma_ate' && MOV_TIPOS_QUE_DEFINEM_TURMA.includes(registro.tipo) && valorNormalizado!=='—'){
+      // Só mexe no cadastro se esta for a movimentação mais recente do aluno
+      // (editar um remanejamento antigo não deve desfazer um mais novo).
+      const ult = movimentoMaisRecenteDoAluno(est);
+      if(!ult || ult===registro || chaveOrdemMov(registro)>=chaveOrdemMov(ult)){
+        try{
+          await patchEstudanteChecado(est, { turma:valorNormalizado });
+          est.t = valorNormalizado;
+        }catch(e){
+          console.error('Não foi possível atualizar a turma em Estudantes.', e);
+          showMovNotification('Histórico salvo, mas a turma no CADASTRO não foi atualizada: '+e.message,'coral');
+        }
       }
     } else if(campo==='data' && registro.tipo==='transferencia' && est.id){
       try{ await sbPatch('estudantes', { data_transferencia:valorNormalizado }, [`id=eq.${est.id}`]); }
