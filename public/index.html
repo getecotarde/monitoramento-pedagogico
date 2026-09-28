@@ -2855,6 +2855,8 @@
             <div style="display:flex;gap:6px"><select id="raIndDim" onchange="raFillVals('raInd');raRender()"></select><select id="raIndVal" onchange="raRender()"></select></div></div>
           <div><label class="ra-lbl">3 · Desagregar por</label>
             <select id="raSeg" onchange="raRender()"><option value="">Sem desagregação</option><option value="sexo">Sexo</option><option value="raca">Raça/cor</option><option value="bf">Bolsa Família</option></select></div>
+          <div><label class="ra-lbl">4 · Base do % na tabela</label>
+            <select id="raGrp" onchange="raRender()"><option value="turma">Por turma</option><option value="ano">Por ano</option><option value="geral">Só o total</option></select></div>
         </div>
         <p id="raFrase" style="margin:12px 0 0;font-size:13px;color:#0F766E;font-weight:600"></p>
       </div>
@@ -11056,13 +11058,16 @@ function raRender(){
   raGrafico('raChComp', { type:'doughnut', data:{ labels:cv, datasets:[{ data:cv.map(v=>pop.filter(x=>raVals(cd,x).includes(v)).length), backgroundColor:cv.map((_,i)=>RA_PALETA[i%RA_PALETA.length]) }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{ callbacks:{ label:c=>`${c.label}: ${c.parsed} (${raFmt(raPct(c.parsed,pop.length))})` } } } } });
 
-  // Tabela de cruzamento: linhas = valores da população; colunas = valores do indicador (% da linha)
-  const linhas = pv ? [pv] : raValoresDim(pd), cols = raValoresDim(id_);
-  document.getElementById('raCrossTitulo').textContent = `Cruzamento: ${RA_DIMS[pd].label} × ${RA_DIMS[id_].label} (% de cada linha)`;
-  document.getElementById('raCross').innerHTML = `<table style="font-size:12.5px"><thead><tr><th>${ltEsc(RA_DIMS[pd].label)}</th><th>Total</th>${cols.map(c=>`<th${c===iv?' style="color:#0F766E"':''}>${ltEsc(c)}</th>`).join('')}</tr></thead><tbody>` +
-    linhas.map(l=>{ const b=escopo.filter(x=>raVals(pd,x).includes(l)); if(!b.length) return '';
-      return `<tr><td><b>${ltEsc(l)}</b></td><td>${b.length}</td>${cols.map(c=>{ const n=b.filter(x=>raVals(id_,x).includes(c)).length, p=raPct(n,b.length);
-        return `<td style="background:rgba(13,148,136,${(p/100*.55).toFixed(2)});${c===iv?'font-weight:700':''}">${raFmt(p)} <span style="color:#777;font-size:11px">(${n})</span></td>`; }).join('')}</tr>`; }).join('') + '</tbody></table>';
+  // Tabela: colunas = Geral + (turmas | anos); linhas = valores do indicador; % sobre a população de CADA coluna
+  const grp = g('raGrp'), cols = ['Geral'];
+  if(grp==='turma') cols.push(...turmas); else if(grp==='ano') cols.push(...anos);
+  const dc = c => c==='Geral' ? pop : pop.filter(x=> grp==='turma' ? x.t===c : raAno(x)===c);
+  const linhas = raValoresDim(id_), est = 'white-space:nowrap;max-width:none;overflow:visible;text-overflow:clip';
+  document.getElementById('raCrossTitulo').textContent = `${RA_DIMS[id_].label} — % sobre a população de cada ${grp==='turma'?'turma':grp==='ano'?'ano':'grupo'} (${nomePop})`;
+  document.getElementById('raCross').innerHTML = `<table style="font-size:12.5px"><thead><tr><th style="${est}">${ltEsc(RA_DIMS[id_].label)}</th>${cols.map(c=>`<th style="${est}">${ltEsc(c)}</th>`).join('')}</tr></thead><tbody>` +
+    linhas.map(l=>`<tr><td style="${est};${l===iv?'font-weight:700;color:#0F766E':''}">${ltEsc(l)}</td>${cols.map(c=>{ const b=dc(c), n=b.filter(x=>raVals(id_,x).includes(l)).length, p=raPct(n,b.length);
+      return `<td style="${est};background:rgba(13,148,136,${((p||0)/100*.55).toFixed(2)});${l===iv?'font-weight:700':''}">${raFmt(p)} <span style="color:#777;font-size:11px">(${n})</span></td>`; }).join('')}</tr>`).join('') +
+    `<tr style="border-top:2px solid #E8E7E3"><td style="${est}"><b>População</b></td>${cols.map(c=>`<td style="${est}">${dc(c).length} <span style="color:#777;font-size:11px">(100%)</span></td>`).join('')}</tr></tbody></table>`;
 
   // Panorama: % da população em cada grupo de filtros
   document.getElementById('relEncamAnaliseCharts').innerHTML = ['perfil','encam','pip','leitura','ata','notas','sexo','raca','bf'].map((dim,i)=>{
