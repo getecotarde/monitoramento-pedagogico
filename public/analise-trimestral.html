@@ -177,10 +177,13 @@ body{
 }
 .risk-card h4{margin:0 0 4px; font-family:'Fraunces',serif; font-size:15px;}
 .risk-card .risk-count{font-size:11px; color:var(--danger); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
-.risk-subj-row{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; padding:5px 0; border-top:1px dashed var(--line);}
+.risk-card{min-width:0; overflow:hidden;}
+.risk-subj-row{display:flex; flex-direction:column; align-items:flex-start; gap:2px; font-size:12.5px; padding:6px 0; border-top:1px dashed var(--line); min-width:0;}
 .risk-subj-row:first-of-type{border-top:none;}
-.risk-subj-row .risk-subj-name{color:var(--ink);}
-.risk-subj-row .risk-subj-val{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--danger); white-space:nowrap; margin-left:8px;}
+.risk-subj-row .risk-subj-name{color:var(--ink); font-weight:600;}
+.risk-subj-row .risk-ast-note{font-size:11px; color:var(--warn); font-weight:600; line-height:1.3;}
+.risk-legend{font-size:12px; color:var(--warn); font-weight:600; margin:6px 0 10px;}
+.risk-subj-row .risk-subj-val{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:var(--danger); white-space:normal; overflow-wrap:anywhere; margin-left:0;}
 .risk-empty{color:var(--ink-soft); font-size:12.5px; padding:6px 0;}
 .detail-panel{
   margin-top:20px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px 22px;
@@ -228,7 +231,9 @@ body{
 .hdr-info label{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
 .meta-input{font-family:'Inter',sans-serif; font-size:12px; padding:4px 7px; border:1px solid var(--line); border-radius:6px; width:150px; background:#fff; color:var(--ink);}
 .print-footer{display:none;}
-.print-subject-doc, .print-cards-doc{ display:none; }
+.print-subject-doc, .print-cards-doc, .print-oer-cards-doc, .print-oer-table-doc{ display:none; }
+.risk-actions{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
+@page oertable{ size:A4 landscape; margin:8mm; }
 
 /* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
 @media print{
@@ -322,6 +327,32 @@ body{
   .print-cards-doc .risk-card{ border:1px solid #000; break-inside:avoid; page-break-inside:avoid; }
   .print-cards-doc .risk-card .risk-count{ color:#000; }
   .print-cards-doc .risk-subj-row .risk-subj-val{ color:#000; }
+  .print-cards-doc .risk-subj-row .risk-ast-note{ color:#000; font-weight:400; }
+
+  /* O.E.R: cards para entrega ao aluno e tabela por turma (disciplinas em colunas) */
+  body.print-mode-oer-cards .app, body.print-mode-oer-table .app{ display:none !important; }
+  body.print-mode-oer-cards .print-oer-cards-doc{ display:block !important; }
+  body.print-mode-oer-table .print-oer-table-doc{ display:block !important; page:oertable; }
+  .oer-cards-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .oer-card{ border:1.2px solid #000; border-radius:4px; padding:7px 9px; break-inside:avoid; page-break-inside:avoid; color:#000; background:#fff; font-size:10.5px; line-height:1.3; }
+  .oer-card-school{ font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
+  .oer-card-title{ font-family:'Fraunces',serif; font-size:12.5px; font-weight:700; margin:1px 0 4px; }
+  .oer-card-name{ font-size:12px; font-weight:800; }
+  .oer-card-sub{ font-size:10.5px; margin-bottom:5px; }
+  .oer-card table{ width:100%; border-collapse:collapse; font-size:10.5px; }
+  .oer-card th, .oer-card td{ border:1px solid #000; padding:2px 4px; text-align:center; color:#000; }
+  .oer-card th{ font-size:10px; font-weight:700; background:#fff; }
+  .oer-card td.l, .oer-card th.l{ text-align:left; }
+  .oer-card td.need{ font-weight:800; }
+  .oer-card-note{ margin:5px 0 4px; font-size:10px; }
+  .oer-card-sign{ margin-top:8px; font-size:10.5px; }
+  .oer-table{ width:100%; border-collapse:collapse; font-size:10.5px; }
+  .oer-table th, .oer-table td{ border:1px solid #000; padding:3px 4px; text-align:center; color:#000; vertical-align:middle; }
+  .oer-table th{ background:#fff; font-size:9.5px; text-transform:uppercase; }
+  .oer-table td.l, .oer-table th.l{ text-align:left; }
+  .oer-table td.risk{ font-weight:800; background:#e6e6e6; }
+  .oer-table td.risk small{ font-weight:400; font-size:9.5px; }
+  .oer-legend{ margin-top:6px; font-size:10.5px; }
 }
 
 /* Notas metodológicas dos gráficos do Dashboard */
@@ -392,6 +423,8 @@ body{
 </div>
 <div id="printSubjectDoc" class="print-subject-doc"></div>
 <div id="printCardsDoc" class="print-cards-doc"></div>
+<div id="printOerCardsDoc" class="print-oer-cards-doc"></div>
+<div id="printOerTableDoc" class="print-oer-table-doc"></div>
 
 <script>
 // Worker do pdf.js embutido localmente (base64) para nao depender de nenhum CDN externo.
@@ -410,11 +443,42 @@ const TRI_MAX  = [30, 30, 40];
 const TRI_PASS = [18, 18, 24];
 const CUM_MAX  = [30, 60, 100]; // acumulado após 1, 2 ou 3 trimestres lançados
 const CUM_PASS = [18, 36, 60];  // 60% do acumulado
-// Risco de O.E.R: por disciplina, o aluno entra quando a diferença entre os 60
-// pontos do Total Anual e a somatória dele (faltam) é SUPERIOR a 24 pontos.
+// Risco de O.E.R (Oportunidade Especial de Recuperação): por disciplina. Se o 1º e o 2º
+// estão lançados, vale a somatória completa. Se falta a nota de UM dos dois, a soma considera
+// só a nota existente e o aluno entra COM ASTERISCO (parcial=true), pois a nota ausente, somada
+// à presente, pode afastar o risco. Sem nenhuma das duas notas, não há o que avaliar. Para fechar o ano o aluno precisa de 60
+// pontos; se a somatória do 1º+2º (cada trimestre já com a recuperação) deixa uma demanda
+// SUPERIOR a 24 pontos (a média do 3º, que vale 40) no 3º trimestre, ele entra no risco
+// — ou seja, somatória do 1º+2º abaixo de 36.
 const OER_TOTAL  = 60;
 const OER_LIMITE = 24;
-function emRiscoOER(calc){ return calc.filledCount>0 && (OER_TOTAL - calc.ta) > OER_LIMITE; }
+function oerInfo(calc){
+  const t1 = calc.tris[0], t2 = calc.tris[1];
+  if(!t1.filled && !t2.filled) return null;
+  const parcial = !(t1.filled && t2.filled);
+  const faltaTri = !t1.filled ? 1 : (!t2.filled ? 2 : null);
+  const soma = (t1.filled ? t1.total : 0) + (t2.filled ? t2.total : 0);
+  const somaMax = (t1.filled ? t1.max : 0) + (t2.filled ? t2.max : 0);
+  const precisa = OER_TOTAL - soma;
+  if(precisa <= OER_LIMITE) return null;
+  return { t1: t1.filled ? t1.total : null, t2: t2.filled ? t2.total : null, soma, precisa, falta: precisa, ta: soma, taMax: somaMax, pct: pct(soma, somaMax), parcial, faltaTri };
+}
+// Apoio à sinalização de nota ausente (asterisco + observação) na tela e nas impressões.
+const oerV   = v => (v===null||v===undefined) ? '—' : v;
+const oerAst = s => s.parcial ? '*' : '';
+const oerTemParcial = list => list.some(x => x.parcial);
+const OER_ASTERISCO_TXT = '* Falta lançar a nota do 1º ou do 2º trimestre: a soma considera só a nota existente. Quando a nota ausente for lançada, o aluno pode deixar de estar em risco de O.E.R.';
+function oerRowNote(s){
+  return s.parcial ? `<span class="risk-ast-note">* sem nota no ${s.faltaTri}º trim. — o risco pode deixar de existir quando for lançada</span>` : '';
+}
+function oerLegendHtml(list, extra){
+  return oerTemParcial(list) ? `<div class="oer-legend">${OER_ASTERISCO_TXT}${extra||''}</div>` : '';
+}
+function oerCardObs(st){
+  const p = st.subjects.filter(x=>x.parcial);
+  if(!p.length) return '';
+  return `<div class="oer-card-note">* ${p.map(x=>`${x.name} (sem nota no ${x.faltaTri}º trim.)`).join('; ')}. A soma considera só a nota lançada; quando a nota ausente for lançada, o risco de O.E.R pode deixar de existir.</div>`;
+}
 const DIRECT='direct', RECOVERED='recovered', NOTREC='notrec', NA='na';
 
 // ---------- SUPABASE (sincronização das notas trimestrais) ----------
@@ -731,9 +795,9 @@ function computeStats(classData, tri){
   return {stats, destaques70, destaquesPort, destaquesMat, atencao};
 }
 
-// Alunos com risco de O.E.R: para CADA disciplina em que faltam mais de 24 pontos
-// para os 60 do Total Anual (60 - somatória > 24), monta um card individual do aluno
-// listando a(s) disciplina(s) em risco, a nota total e quantos pontos faltam.
+// Alunos com risco de O.E.R: para CADA disciplina com 1º e 2º trimestres lançados em que
+// 60 - (1º+2º) > 24, monta um card individual do aluno listando a(s) disciplina(s) em
+// risco, a somatória do 1º+2º e quantos pontos ele precisa no 3º trimestre.
 // Diferente de "atencao" (que só sinaliza quem está mal em 2+ disciplinas),
 // aqui entra qualquer aluno com pelo menos 1 disciplina em risco de O.E.R.
 function computeRetentionRisk(classData){
@@ -743,18 +807,12 @@ function computeRetentionRisk(classData){
     subjects.forEach((subjName,idx)=>{
       if(isLiteratura(subjName)) return;
       const calc = subjectCalc(st.subjects[idx]);
-      if(emRiscoOER(calc)){
-        lowSubjects.push({
-          name: subjName,
-          ta: calc.ta,
-          taMax: calc.taMax,
-          taPass: calc.taPass,
-          falta: OER_TOTAL - calc.ta,
-          pct: pct(calc.ta, calc.taMax)
-        });
+      const oer = oerInfo(calc);
+      if(oer){
+        lowSubjects.push({ name: subjName, ...oer });
       }
     });
-    return {name: st.name, subjects: lowSubjects};
+    return {name: st.name, subjects: lowSubjects, parcial: lowSubjects.some(x=>x.parcial)};
   }).filter(st=> st.subjects.length>0)
     .sort((a,b)=> b.subjects.length - a.subjects.length || a.name.localeCompare(b.name));
   return risk;
@@ -762,11 +820,11 @@ function computeRetentionRisk(classData){
 
 function riskCards(list){
   if(!list.length){
-    return `<div class="risk-empty">Nenhum aluno com risco de O.E.R (faltando mais de 24 pontos para os 60 do Total Anual) em alguma disciplina.</div>`;
+    return `<div class="risk-empty">Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em alguma disciplina.</div>`;
   }
   return list.map(st=>{
     const rows = st.subjects.map(s=>
-      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">${s.ta}/${s.taMax} · faltam ${s.falta} pt${s.falta===1?'':'s'} para 60 (${s.pct}%)</span></div>`
+      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">1º+2º: ${s.soma}${oerAst(s)}/60 · precisa de ${s.precisa}${oerAst(s)} pt${s.precisa===1?'':'s'} no 3º</span>${oerRowNote(s)}</div>`
     ).join('');
     return `<div class="risk-card">
       <h4>${st.name}</h4>
@@ -786,15 +844,9 @@ function computeRetentionRiskBySubject(classData){
     if(isLiteratura(subjName)) return;
     const atRisk = students.map(st=>{
       const calc = subjectCalc(st.subjects[idx]);
-      if(emRiscoOER(calc)){
-        return {
-          name: st.name,
-          ta: calc.ta,
-          taMax: calc.taMax,
-          taPass: calc.taPass,
-          falta: OER_TOTAL - calc.ta,
-          pct: pct(calc.ta, calc.taMax)
-        };
+      const oer = oerInfo(calc);
+      if(oer){
+        return { name: st.name, ...oer };
       }
       return null;
     }).filter(Boolean).sort((a,b)=> b.falta - a.falta || a.name.localeCompare(b.name));
@@ -815,7 +867,7 @@ function printRiskBySubject(className){
   if(bySubject.length===0){
     html = `<div class="print-page">
       <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div></div></div>
-      <p>Nenhum aluno com risco de O.E.R (faltando mais de 24 pontos para os 60 do Total Anual) em nenhuma disciplina.</p>
+      <p>Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em nenhuma disciplina.</p>
     </div>`;
   } else {
     html = bySubject.map(sec => `
@@ -828,11 +880,11 @@ function printRiskBySubject(className){
           <div class="print-page-teacher">Professor(a): ______________________________</div>
         </div>
         <table class="print-subj-table">
-          <thead><tr><th>Aluno</th><th>Nota Total</th><th>Faltam para 60 (pontos)</th><th>%</th></tr></thead>
+          <thead><tr><th>Aluno</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma 1º+2º (máx. 60)</th><th>Precisa no 3º (máx. 40)</th><th>Obs.</th></tr></thead>
           <tbody>
-            ${sec.students.map(s=>`<tr><td>${s.name}</td><td>${s.ta}/${s.taMax}</td><td>${s.falta}</td><td>${s.pct}%</td></tr>`).join('')}
+            ${sec.students.map(s=>`<tr><td>${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td>${s.precisa}${oerAst(s)}</td><td>${s.parcial ? '* sem nota no '+s.faltaTri+'º trim.' : ''}</td></tr>`).join('')}
           </tbody>
-        </table>
+        </table>${oerLegendHtml(sec.students)}
       </div>`).join('');
   }
   document.getElementById('printSubjectDoc').innerHTML = html;
@@ -852,13 +904,91 @@ function printRiskCardsAllClasses(){
     const risk = computeRetentionRisk(cd);
     return `<div class="print-page">
       <div class="print-page-hdr"><div><h1>${name}</h1><div class="print-page-sub">${cd.students.length} alunos</div></div></div>
-      <div class="risk-grid print-risk-grid">${riskCards(risk)}</div>
+      <div class="risk-grid print-risk-grid">${riskCards(risk)}</div>${oerLegendHtml(risk)}
     </div>`;
   }).join('');
   document.getElementById('printCardsDoc').innerHTML = html;
   document.body.classList.add('print-mode-cards');
   window.print();
   setTimeout(()=>{ document.body.classList.remove('print-mode-cards'); }, 300);
+}
+
+// ---------- IMPRESSÕES DE O.E.R (por turma) ----------
+function oerPrintMeta(className){
+  const cd = currentClasses[className];
+  const cfg = loadGlobalConfig();
+  cd.meta = cd.meta || {};
+  return {
+    cd,
+    turma: shortTurmaLabel(className),
+    escola: cfg.escola || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA',
+    mesAno: cd.meta.mesAno || '',
+    prof: cd.meta.professor || ''
+  };
+}
+function runPrintMode(docId, html, mode){
+  document.getElementById(docId).innerHTML = html;
+  document.body.classList.add(mode);
+  window.print();
+  setTimeout(()=>{ document.body.classList.remove(mode); }, 300);
+}
+
+// Cards individuais (um por aluno em risco) para recortar e entregar ao aluno/responsável.
+function printOerCards(className){
+  if(!currentClasses[className]) return;
+  const m = oerPrintMeta(className);
+  const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
+  if(!risk.length){ alert('Nenhum aluno desta turma com risco de O.E.R.'); return; }
+  const cards = risk.map(st=>{
+    const rows = st.subjects.map(s=>
+      `<tr><td class="l">${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need">${s.precisa}${oerAst(s)}</td></tr>`
+    ).join('');
+    return `<div class="oer-card">
+      <div class="oer-card-school">${m.escola}</div>
+      <div class="oer-card-title">Aviso: risco de O.E.R</div>
+      <div class="oer-card-name">${st.name}</div>
+      <div class="oer-card-sub">Turma ${m.turma}${m.mesAno ? ' · '+m.mesAno : ''}</div>
+      <table>
+        <thead><tr><th class="l">Disciplina</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma (máx. 60)</th><th>Precisa no 3º (máx. 40)</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="oer-card-note">Para ser aprovado, o aluno precisa de 60 pontos no ano. Nas disciplinas acima, a demanda de pontos no 3º trimestre é maior que a média (24 de 40), por isso há risco de O.E.R (Oportunidade Especial de Recuperação).</div>${oerCardObs(st)}
+      <div class="oer-card-sign">Ciente do responsável: ______________________________</div>
+    </div>`;
+  }).join('');
+  const html = `<div class="print-page">
+    <div class="print-page-hdr"><div><h1>${m.turma} — Cards de risco de O.E.R</h1><div class="print-page-sub">${m.escola}${m.mesAno ? ' · '+m.mesAno : ''} · ${risk.length} aluno${risk.length>1?'s':''}</div></div></div>
+    <div class="oer-cards-grid">${cards}</div>
+  </div>`;
+  runPrintMode('printOerCardsDoc', html, 'print-mode-oer-cards');
+}
+
+// Tabela da turma: uma linha por aluno em risco, uma coluna por disciplina; a célula traz
+// os pontos necessários no 3º trimestre (e, entre parênteses, a soma do 1º+2º) quando em risco.
+function printOerTable(className){
+  if(!currentClasses[className]) return;
+  const m = oerPrintMeta(className);
+  const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
+  if(!risk.length){ alert('Nenhum aluno desta turma com risco de O.E.R.'); return; }
+  const subjects = m.cd.subjects.filter(s=>!isLiteratura(s));
+  const head = subjects.map(s=>`<th>${s}</th>`).join('');
+  const body = risk.map((st,i)=>{
+    const by = {}; st.subjects.forEach(s=>{ by[s.name] = s; });
+    const cells = subjects.map(sn=>{
+      const s = by[sn];
+      return s ? `<td class="risk">${s.precisa}${oerAst(s)} <small>(${s.soma}${s.parcial ? '; s/'+s.faltaTri+'º' : ''})</small></td>` : `<td>–</td>`;
+    }).join('');
+    return `<tr><td>${i+1}</td><td class="l">${st.name}</td>${cells}<td><strong>${st.subjects.length}</strong></td></tr>`;
+  }).join('');
+  const html = `<div class="print-page">
+    <div class="print-page-hdr"><div><h1>${m.turma} — Alunos com risco de O.E.R</h1><div class="print-page-sub">${m.escola}${m.mesAno ? ' · '+m.mesAno : ''}${m.prof ? ' · Prof. de referência: '+m.prof : ''} · ${risk.length} aluno${risk.length>1?'s':''} de ${m.cd.students.length}</div></div></div>
+    <table class="oer-table">
+      <thead><tr><th>Nº</th><th class="l">Aluno</th>${head}<th>Disc. em risco</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    <div class="oer-legend">Valor na célula = pontos que o aluno precisa no 3º trimestre (máx. 40; média 24). Entre parênteses: somatória do 1º+2º trimestres (máx. 60). "–" = sem risco na disciplina.</div>${oerLegendHtml(risk.flatMap(x=>x.subjects), ' Na célula, "s/1º" = sem a nota do 1º trimestre e "s/2º" = sem a nota do 2º.')}
+  </div>`;
+  runPrintMode('printOerTableDoc', html, 'print-mode-oer-table');
 }
 
 // ---------- STORAGE ----------
@@ -1151,8 +1281,12 @@ function renderMain(){
   html += `</div>`;
 
   html += `<div class="risk-section">
-    <div class="section-title">Alunos com risco de O.E.R (faltam mais de 24 pontos para os 60 do Total Anual, por disciplina)</div>
-    <div class="risk-grid">${riskCards(retentionRisk)}</div>
+    <div class="section-title">Alunos com risco de O.E.R — Oportunidade Especial de Recuperação (1º+2º trimestres abaixo de 36 pontos: precisam de mais de 24 no 3º, por disciplina)</div>
+    <div class="risk-actions">
+      <button class="print-btn" onclick="printOerCards('${activeClass.replace(/'/g,"\\'")}')">🖶 Cards de O.E.R para entrega ao aluno (esta turma)</button>
+      <button class="print-btn" onclick="printOerTable('${activeClass.replace(/'/g,"\\'")}')">🖶 Tabela de alunos em risco de O.E.R (esta turma)</button>
+    </div>
+    ${oerTemParcial(retentionRisk) ? `<div class="risk-legend">${OER_ASTERISCO_TXT}</div>` : ''}<div class="risk-grid">${riskCards(retentionRisk)}</div>
   </div>`;
 
   html += `<div class="print-footer">
