@@ -220,6 +220,9 @@ body{
 }
 .print-btn:hover{background:var(--ink); color:var(--paper);}
 .hdr-actions{display:flex; align-items:center; gap:14px;}
+.tri-filter-bar{display:flex; align-items:center; gap:12px; margin:22px 0 -14px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);}
+.tri-select{font-family:'Inter',sans-serif; font-size:13px; padding:5px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink);}
+.tri-filter-hint{font-size:11.5px; color:var(--ink-soft);}
 .hdr-sub{color:var(--ink-soft); font-size:13px; margin-top:2px;}
 .hdr-info{display:flex; gap:16px; margin-top:9px; flex-wrap:wrap;}
 .hdr-info label{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
@@ -234,7 +237,7 @@ body{
   html, body{ background:#fff !important; color:#000 !important; font-size:11px; height:auto !important; }
   .app{ display:block; }
   .sidebar, .print-btn, .status-line, #uploadBox, .upload-box, .overview-btn,
-  .class-item .del, .review-box, .detail-panel, .risk-section{ display:none !important; }
+  .class-item .del, .review-box, .detail-panel, .risk-section, .tri-filter-bar{ display:none !important; }
   .main{ padding:0; max-width:100%; }
 
   .hdr{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1.3px solid #000; padding-bottom:3px; margin-bottom:5px; }
@@ -407,6 +410,11 @@ const TRI_MAX  = [30, 30, 40];
 const TRI_PASS = [18, 18, 24];
 const CUM_MAX  = [30, 60, 100]; // acumulado após 1, 2 ou 3 trimestres lançados
 const CUM_PASS = [18, 36, 60];  // 60% do acumulado
+// Risco de O.E.R: por disciplina, o aluno entra quando a diferença entre os 60
+// pontos do Total Anual e a somatória dele (faltam) é SUPERIOR a 24 pontos.
+const OER_TOTAL  = 60;
+const OER_LIMITE = 24;
+function emRiscoOER(calc){ return calc.filledCount>0 && (OER_TOTAL - calc.ta) > OER_LIMITE; }
 const DIRECT='direct', RECOVERED='recovered', NOTREC='notrec', NA='na';
 
 // ---------- SUPABASE (sincronização das notas trimestrais) ----------
@@ -462,6 +470,19 @@ let currentClasses = {}; // name -> data
 let pendingParse = null; // {rawLines, name, tokensPerSubjDetected, studentsRaw}
 let activeClass = null; // 'OVERVIEW' or class name
 let reviewQueue = []; // turmas detectadas aguardando confirmação
+// Filtro de trimestre por turma (só em memória): 0,1,2 = 1º/2º/3º trimestre, 'ALL' = acumulado.
+// Sem valor definido => abre no trimestre mais recente que tenha notas lançadas.
+const triFilter = {};
+function triHasData(cd, idx){
+  return cd.students.some(st=> st.subjects.some((s,i)=>
+    !isLiteratura(cd.subjects[i]) && !isEmpty(s['n'+(idx+1)])));
+}
+function availableTris(cd){ return [0,1,2].filter(i=>triHasData(cd,i)); }
+function getTriFilter(name, cd){
+  if(triFilter[name]!==undefined) return triFilter[name];
+  const av = availableTris(cd);
+  return av.length ? av[av.length-1] : 'ALL';
+}
 
 function findSavedClassKey(name){
   const norm = name.trim().toLowerCase();
@@ -633,12 +654,28 @@ function subjectCalc(s){
   return {tris, ta, taMax, taPass, taStatus: ta>=taPass ? 'ok':'bad', filledCount: filled.length};
 }
 
-function computeStats(classData){
+// tri: 0/1/2 filtra só aquele trimestre; omitido/'ALL' mantém a visão acumulada (Total Anual).
+function computeStats(classData, tri){
   const {subjects, students} = classData;
+  const byTri = (tri===0 || tri===1 || tri===2);
+  // proporção atingida (0–1) na disciplina, no recorte escolhido; null = nada lançado
+  const ratioOf = (calc)=>{
+    if(byTri){ const t = calc.tris[tri]; return t.filled ? t.total/t.max : null; }
+    return calc.filledCount>0 ? calc.ta/calc.taMax : null;
+  };
   const stats = subjects.map((name,idx)=>{
     let direct=0, recovered=0, notrec=0, taPass=0, taTotal=0, n=0;
     for(const st of students){
       const calc = subjectCalc(st.subjects[idx]);
+      if(byTri){
+        const t = calc.tris[tri];
+        if(t.filled){
+          n++; taTotal++;
+          if(t.status===DIRECT) direct++; else if(t.status===RECOVERED) recovered++; else notrec++;
+          if(t.status!==NOTREC) taPass++;
+        }
+        continue;
+      }
       const filled = calc.tris.filter(t=>t.filled);
       if(filled.length){
         n++;
@@ -657,6 +694,7 @@ function computeStats(classData){
     const lowSubjects = subjects.filter((subjName,idx)=>{
       if(isLiteratura(subjName)) return false;
       const calc = subjectCalc(st.subjects[idx]);
+      if(byTri) return calc.tris[tri].filled && calc.tris[tri].status===NOTREC;
       return calc.filledCount>0 && calc.taStatus==='bad';
     });
     return {name: st.name, count: lowSubjects.length, lowSubjects};
@@ -667,10 +705,10 @@ function computeStats(classData){
     let hasAny=false;
     return st.subjects.every((s,idx)=>{
       if(isLiteratura(subjects[idx])) return true;
-      const calc = subjectCalc(s);
-      if(calc.filledCount===0) return true;
+      const r = ratioOf(subjectCalc(s));
+      if(r===null) return true;
       hasAny=true;
-      return (calc.ta/calc.taMax) >= 0.7;
+      return r >= 0.7;
     }) && hasAny;
   });
 
@@ -681,21 +719,23 @@ function computeStats(classData){
   const idxMat = subjIndexOf('MATEM');
   const destaquesPort = idxPort>=0 ? students.filter(st=>{
     const calc = subjectCalc(st.subjects[idxPort]);
-    return calc.filledCount>0 && (calc.ta/calc.taMax)>=0.9;
+    const r = ratioOf(calc);
+    return r!==null && r>=0.9;
   }) : [];
   const destaquesMat = idxMat>=0 ? students.filter(st=>{
     const calc = subjectCalc(st.subjects[idxMat]);
-    return calc.filledCount>0 && (calc.ta/calc.taMax)>=0.9;
+    const r = ratioOf(calc);
+    return r!==null && r>=0.9;
   }) : [];
 
   return {stats, destaques70, destaquesPort, destaquesMat, atencao};
 }
 
-// Alunos com risco de retenção: para CADA disciplina cuja nota do Total Anual
-// ficou abaixo de 60% (taStatus==='bad'), monta um card individual do aluno
-// listando a(s) disciplina(s) em risco, a nota total e o percentual atingido.
+// Alunos com risco de O.E.R: para CADA disciplina em que faltam mais de 24 pontos
+// para os 60 do Total Anual (60 - somatória > 24), monta um card individual do aluno
+// listando a(s) disciplina(s) em risco, a nota total e quantos pontos faltam.
 // Diferente de "atencao" (que só sinaliza quem está mal em 2+ disciplinas),
-// aqui entra qualquer aluno com pelo menos 1 disciplina abaixo de 60%.
+// aqui entra qualquer aluno com pelo menos 1 disciplina em risco de O.E.R.
 function computeRetentionRisk(classData){
   const {subjects, students} = classData;
   const risk = students.map(st=>{
@@ -703,13 +743,13 @@ function computeRetentionRisk(classData){
     subjects.forEach((subjName,idx)=>{
       if(isLiteratura(subjName)) return;
       const calc = subjectCalc(st.subjects[idx]);
-      if(calc.filledCount>0 && calc.taStatus==='bad'){
+      if(emRiscoOER(calc)){
         lowSubjects.push({
           name: subjName,
           ta: calc.ta,
           taMax: calc.taMax,
           taPass: calc.taPass,
-          falta: calc.taPass - calc.ta,
+          falta: OER_TOTAL - calc.ta,
           pct: pct(calc.ta, calc.taMax)
         });
       }
@@ -722,21 +762,21 @@ function computeRetentionRisk(classData){
 
 function riskCards(list){
   if(!list.length){
-    return `<div class="risk-empty">Nenhum aluno com nota do Total Anual abaixo de 60% em alguma disciplina.</div>`;
+    return `<div class="risk-empty">Nenhum aluno com risco de O.E.R (faltando mais de 24 pontos para os 60 do Total Anual) em alguma disciplina.</div>`;
   }
   return list.map(st=>{
     const rows = st.subjects.map(s=>
-      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">${s.ta}/${s.taMax} · faltam ${s.falta} pt${s.falta===1?'':'s'} (${s.pct}%)</span></div>`
+      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">${s.ta}/${s.taMax} · faltam ${s.falta} pt${s.falta===1?'':'s'} para 60 (${s.pct}%)</span></div>`
     ).join('');
     return `<div class="risk-card">
       <h4>${st.name}</h4>
-      <div class="risk-count">${st.subjects.length} disciplina${st.subjects.length>1?'s':''} em risco</div>
+      <div class="risk-count">${st.subjects.length} disciplina${st.subjects.length>1?'s':''} em risco de O.E.R</div>
       ${rows}
     </div>`;
   }).join('');
 }
 
-// Mesma base de "risco de retenção", mas organizada por DISCIPLINA em vez de por
+// Mesma base de "risco de O.E.R", mas organizada por DISCIPLINA em vez de por
 // aluno — pensada para impressão e entrega individual a cada professor(a), já
 // que cada um só precisa ver os alunos da sua própria disciplina.
 function computeRetentionRiskBySubject(classData){
@@ -746,13 +786,13 @@ function computeRetentionRiskBySubject(classData){
     if(isLiteratura(subjName)) return;
     const atRisk = students.map(st=>{
       const calc = subjectCalc(st.subjects[idx]);
-      if(calc.filledCount>0 && calc.taStatus==='bad'){
+      if(emRiscoOER(calc)){
         return {
           name: st.name,
           ta: calc.ta,
           taMax: calc.taMax,
           taPass: calc.taPass,
-          falta: calc.taPass - calc.ta,
+          falta: OER_TOTAL - calc.ta,
           pct: pct(calc.ta, calc.taMax)
         };
       }
@@ -775,7 +815,7 @@ function printRiskBySubject(className){
   if(bySubject.length===0){
     html = `<div class="print-page">
       <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div></div></div>
-      <p>Nenhum aluno com nota do Total Anual abaixo de 60% em nenhuma disciplina.</p>
+      <p>Nenhum aluno com risco de O.E.R (faltando mais de 24 pontos para os 60 do Total Anual) em nenhuma disciplina.</p>
     </div>`;
   } else {
     html = bySubject.map(sec => `
@@ -788,7 +828,7 @@ function printRiskBySubject(className){
           <div class="print-page-teacher">Professor(a): ______________________________</div>
         </div>
         <table class="print-subj-table">
-          <thead><tr><th>Aluno</th><th>Nota Total</th><th>Faltam (pontos)</th><th>%</th></tr></thead>
+          <thead><tr><th>Aluno</th><th>Nota Total</th><th>Faltam para 60 (pontos)</th><th>%</th></tr></thead>
           <tbody>
             ${sec.students.map(s=>`<tr><td>${s.name}</td><td>${s.ta}/${s.taMax}</td><td>${s.falta}</td><td>${s.pct}%</td></tr>`).join('')}
           </tbody>
@@ -802,7 +842,7 @@ function printRiskBySubject(className){
 }
 
 // Imprime, em folhas separadas (uma por turma), o conjunto de cards de risco de
-// retenção já usados na tela — útil para levar o conjunto completo de turmas
+// O.E.R já usados na tela — útil para levar o conjunto completo de turmas
 // numa única impressão em papel, sem precisar abrir turma por turma.
 function printRiskCardsAllClasses(){
   const names = Object.keys(currentClasses).sort();
@@ -1040,7 +1080,10 @@ function renderMain(){
     return;
   }
   const cd = currentClasses[activeClass];
-  const {stats, destaques70, destaquesPort, destaquesMat, atencao} = computeStats(cd);
+  const tri = getTriFilter(activeClass, cd);
+  const byTri = (tri!=='ALL');
+  const triTxt = byTri ? (tri+1)+'º trimestre' : 'acumulado (Total Anual)';
+  const {stats, destaques70, destaquesPort, destaquesMat, atencao} = computeStats(cd, byTri ? tri : undefined);
   const retentionRisk = computeRetentionRisk(cd);
   const cfg = loadGlobalConfig();
   if(!cfg.escola){ cfg.escola = 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(cfg); }
@@ -1073,14 +1116,17 @@ function renderMain(){
     </div>
   </div>`;
 
-  html += `<div class="section-title">Destaques e acompanhamento da turma</div><div class="highlight-row">`;
+  const triOpts = availableTris(cd).map(i=>`<option value="${i}" ${tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')
+    + `<option value="ALL" ${tri==='ALL'?'selected':''}>Acumulado (Total Anual)</option>`;
+  html += `<div class="tri-filter-bar"><label>Trimestre: <select id="triSelect" class="tri-select">${triOpts}</select></label><span class="tri-filter-hint">Vale para "Destaques e acompanhamento" e "Análise por disciplina"</span></div>`;
+  html += `<div class="section-title">Destaques e acompanhamento da turma — ${triTxt}</div><div class="highlight-row">`;
   html += hlCard('Destaques gerais (≥70% em todas as disciplinas)', destaques70, 'plum');
   html += hlCard('Destaques em Língua Portuguesa (≥90%)', destaquesPort, 'acc');
   html += hlCard('Destaques em Matemática (≥90%)', destaquesMat, 'acc');
   html += attentionCard(atencao);
   html += `</div>`;
 
-  html += `<div class="section-title">Análise por disciplina</div><div class="subject-grid">`;
+  html += `<div class="section-title">Análise por disciplina — ${triTxt}</div><div class="subject-grid">`;
   stats.forEach((s,i)=>{
     if(isLiteratura(s.name)) return;
     const wDirect = s.n? (s.direct/s.n*100):0;
@@ -1099,13 +1145,13 @@ function renderMain(){
         <span><i class="dot" style="background:var(--warn)"></i>Recuperou ${pct(s.recovered,s.needRec)??'–'}% <span style="color:#999">(de ${s.needRec})</span></span>
         <span><i class="dot" style="background:var(--danger)"></i>Não recuperou ${pct(s.notrec,s.needRec)??'–'}%</span>
       </div>
-      <div class="final-row"><span class="lbl">Aprovação final (nota total)</span><span class="val ${statusClass(taP)==='ok'?'ok':statusClass(taP)==='mid'?'mid':'bad'}">${taP??'–'}%</span></div>
+      <div class="final-row"><span class="lbl">${byTri ? 'Aprovação no trimestre' : 'Aprovação final (nota total)'}</span><span class="val ${statusClass(taP)==='ok'?'ok':statusClass(taP)==='mid'?'mid':'bad'}">${taP??'–'}%</span></div>
     </div>`;
   });
   html += `</div>`;
 
   html += `<div class="risk-section">
-    <div class="section-title">Alunos com risco de retenção (Total Anual &lt; 60% por disciplina)</div>
+    <div class="section-title">Alunos com risco de O.E.R (faltam mais de 24 pontos para os 60 do Total Anual, por disciplina)</div>
     <div class="risk-grid">${riskCards(retentionRisk)}</div>
   </div>`;
 
@@ -1120,6 +1166,11 @@ function renderMain(){
     card.onclick = ()=> renderDetail(cd, Number(card.dataset.idx));
   });
 
+  document.getElementById('triSelect').onchange = (e)=>{
+    const v = e.target.value;
+    triFilter[activeClass] = (v==='ALL') ? 'ALL' : Number(v);
+    renderMain();
+  };
   document.getElementById('metaEscola').onchange = (e)=>{
     const c = loadGlobalConfig(); c.escola = e.target.value; saveGlobalConfig(c);
   };
@@ -1589,6 +1640,7 @@ async function salvarTudoAutomaticamente(){
     try{
       await saveClass(data.className, data);
       currentClasses[data.className] = data;
+      delete triFilter[data.className]; // reabre no trimestre mais recente
       activeClass = data.className;
       existingKey ? atualizadas++ : salvas++;
     }catch(err){
@@ -1643,6 +1695,7 @@ function showReview(parsed){
     try{
       await saveClass(data.className, data);
       currentClasses[data.className] = data;
+      delete triFilter[data.className]; // reabre no trimestre mais recente
       activeClass = data.className;
       statusMsg('Turma "'+data.className+'" '+(existingKey ? 'atualizada' : 'salva')+'.');
       renderSidebar();
