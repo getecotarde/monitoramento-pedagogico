@@ -6335,54 +6335,6 @@ let movLog = [];
 let movIdCounter = 1;
 let currentMovTipo = null;
 
-function openMovModal(tipo){
-  if(!currentRole){ alert('Você precisa estar logado para registrar movimentações.'); return; }
-  if(currentRole !== 'coord-ped' && currentRole !== 'coord-turno'){
-    alert('Apenas Coordenadores podem registrar movimentações.'); return;
-  }
-  currentMovTipo = tipo;
-  const titles = { transferencia:'Registrar Transferência', remanejamento:'Registrar Remanejamento de Sala', matricula:'Registrar Nova Matrícula', rematricula:'Registrar Rematrícula' };
-  const subs   = { transferencia:'O estudante sairá do sistema (transferido para outra escola)', remanejamento:'Troca de turma dentro da escola', matricula:'Entrada de novo estudante no turno tarde', rematricula:'Aluno transferido que voltou: o mesmo cadastro é reativado com todos os dados anteriores' };
-  document.getElementById('movModalTitle').textContent = titles[tipo];
-  document.getElementById('movModalSub').textContent   = subs[tipo];
-  const turmaOptions  = TURMAS.map(t=>`<option value="${t}">${t}</option>`).join('');
-  const perfilOptions = `<option value="TÍPICO">Típico</option><option value="ATÍPICO">Atípico</option><option value="EM ANÁLISE">Em análise</option>`;
-  const encamOptions  = `<option value="REGULAR">Regular</option><option value="PIP">PIP</option><option value="ADAPTAÇÃO">Adaptação</option><option value="PIP/ADAPTAÇÃO">PIP/Adaptação</option><option value="REFORÇO">Reforço</option><option value="AVALIAR">Avaliar</option>`;
-  let bodyHtml = '';
-  if(tipo==='transferencia'){
-    const allStudents = S.map((x,i)=>x._transferido?'':`<option value="${i}">${x.n} (${x.t})</option>`).join('');
-    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Estudante *</label><select id="movEstudante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione o estudante —</option>${allStudents}</select></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data da transferência *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo / Observação</label><textarea id="movMotivo" rows="3" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>
-    <div style="background:#FAECE7;border-radius:6px;padding:10px 12px;font-size:12px;color:#7A2E10;margin-bottom:1rem">⚠️ O estudante será marcado como transferido e removido das estatísticas e listas ativas.</div>`;
-  } else if(tipo==='remanejamento'){
-    const allStudents = S.map((x,i)=>x._transferido?'':`<option value="${i}">${x.n} (${x.t})</option>`).join('');
-    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Estudante *</label><select id="movEstudante" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" onchange="autoFillTurmaOrigem()"><option value="">— selecione o estudante —</option>${allStudents}</select></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma de origem</label><input type="text" id="movTurmaDe" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;background:#FAFAF8" readonly></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Nova turma *</label><select id="movTurmaAte" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione —</option>${turmaOptions}</select></div></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Motivo / Observação</label><textarea id="movMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>`;
-  } else if(tipo==='rematricula'){
-    const transf = S.map((x,i)=>x._transferido?`<option value="${i}">${x.n} (última turma: ${x.t})</option>`:'').join('');
-    const inp='width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none';
-    const lab='font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px';
-    bodyHtml=`<div style="margin-bottom:1rem"><label style="${lab}">Estudante transferido *</label><select id="movEstudante" style="${inp}" onchange="autoFillRematricula()"><option value="">— selecione o estudante —</option>${transf}</select></div>
-    <div id="movInfoTransf" style="background:#EEF2FF;border-radius:6px;padding:10px 12px;font-size:12px;color:#3730A3;margin-bottom:1rem;display:none"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="${lab}">Turma de retorno *</label><select id="movTurmaAte" style="${inp}"><option value="">— selecione —</option>${turmaOptions}</select></div><div><label style="${lab}">Data da rematrícula *</label><input type="date" id="movData" style="${inp}" value="${new Date().toISOString().slice(0,10)}"></div></div>
-    <div style="margin-bottom:1rem"><label style="${lab}">Observação</label><textarea id="movMotivo" rows="2" style="${inp};resize:vertical"></textarea></div>
-    <div style="background:#E6FFFA;border-radius:6px;padding:10px 12px;font-size:12px;color:#0F766E;margin-bottom:1rem">✓ O aluno volta às listas ativas com o mesmo cadastro: perfil, AEE, PIP, ocorrências, relatórios e materiais anteriores são preservados e seguem valendo neste novo período.</div>`;
-  } else if(tipo==='matricula'){
-    bodyHtml=`<div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Nome completo *</label><input type="text" id="movNomeNovo" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Nome do novo estudante"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Turma *</label><select id="movTurmaAte" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="">— selecione —</option>${turmaOptions}</select></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Sexo</label><select id="movSexo" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none"><option value="M">Masculino</option><option value="F">Feminino</option></select></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Perfil</label><select id="movPerfil" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">${perfilOptions}</select></div><div><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Encaminhamento</label><select id="movEncam" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none">${encamOptions}</select></div></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Data de matrícula *</label><input type="date" id="movData" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">AEE / Diagnóstico (se houver)</label><input type="text" id="movAEE" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none" placeholder="Ex: TEA, TDAH, N/A"></div>
-    <div style="margin-bottom:1rem"><label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Observações</label><textarea id="movMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>`;
-  }
-  bodyHtml += `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:.5rem"><button class="btn-cancel" onclick="closeMovModalBtn()">Cancelar</button><button class="btn-save" onclick="submitMovimento()">Confirmar registro</button></div>`;
-  document.getElementById('movModalBody').innerHTML = bodyHtml;
-  document.getElementById('movModalOverlay').classList.add('open');
-}
-
 // Última transferência registrada do aluno (data ISO) — início do período fora da escola.
 function dataUltimaTransferencia(est, ate){
   let d=null;
@@ -9367,12 +9319,14 @@ function openMovModal(tipo){
     transferencia: 'Registrar Transferência',
     remanejamento: 'Registrar Remanejamento de Sala',
     matricula: 'Registrar Nova Matrícula',
+    rematricula: 'Registrar Rematrícula',
     atualizacao: 'Incluir Aluno Já Matriculado'
   };
   const subs = {
     transferencia: 'O estudante sairá do sistema (transferido para outra escola)',
     remanejamento: 'Troca de turma dentro da escola',
     matricula: 'Entrada de novo estudante no turno tarde',
+    rematricula: 'Aluno transferido que voltou: o mesmo cadastro é reativado com todos os dados anteriores',
     atualizacao: 'Aluno já matriculado na escola que ainda não estava cadastrado no sistema (não é nova matrícula)'
   };
   document.getElementById('movModalTitle').textContent = titles[tipo];
@@ -9489,6 +9443,15 @@ function openMovModal(tipo){
         <label style="font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px">Observações</label>
         <textarea id="movMotivo" rows="2" style="width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none;resize:vertical" placeholder="Informações adicionais sobre a matrícula..."></textarea>
       </div>`;
+  } else if(tipo==='rematricula'){
+    const transf = S.map((x,i)=>x._transferido?`<option value="${i}">${x.n} (última turma: ${x.t})</option>`:'').join('');
+    const inp='width:100%;padding:8px 10px;border:1px solid #E8E7E3;border-radius:6px;font-size:13px;font-family:inherit;outline:none';
+    const lab='font-size:11px;font-weight:600;color:#888;display:block;margin-bottom:4px';
+    bodyHtml=`<div style="margin-bottom:1rem"><label style="${lab}">Estudante transferido *</label><select id="movEstudante" style="${inp}" onchange="autoFillRematricula()"><option value="">— selecione o estudante —</option>${transf}</select></div>
+    <div id="movInfoTransf" style="background:#EEF2FF;border-radius:6px;padding:10px 12px;font-size:12px;color:#3730A3;margin-bottom:1rem;display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem"><div><label style="${lab}">Turma de retorno *</label><select id="movTurmaAte" style="${inp}"><option value="">— selecione —</option>${turmaOptions}</select></div><div><label style="${lab}">Data da rematrícula *</label><input type="date" id="movData" style="${inp}" value="${new Date().toISOString().slice(0,10)}"></div></div>
+    <div style="margin-bottom:1rem"><label style="${lab}">Observação</label><textarea id="movMotivo" rows="2" style="${inp};resize:vertical"></textarea></div>
+    <div style="background:#E6FFFA;border-radius:6px;padding:10px 12px;font-size:12px;color:#0F766E;margin-bottom:1rem">✓ O aluno volta às listas ativas com o mesmo cadastro: perfil, AEE, PIP, ocorrências, relatórios e materiais anteriores são preservados e seguem valendo neste novo período.</div>`;
   } else if(tipo === 'atualizacao'){
     bodyHtml = `
       <div style="background:#EEEDFE;border-radius:6px;padding:10px 12px;font-size:12px;color:#3C3489;margin-bottom:1rem">
