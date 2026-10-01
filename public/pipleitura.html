@@ -138,6 +138,51 @@
     cursor: pointer;
   }
   .filter-select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  /* multiseleção */
+  .ms { position: relative; }
+  .ms-btn { display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:160px; text-align:left; }
+  .ms-caret { font-size: 10px; }
+  .ms-panel {
+    position:absolute; top: calc(100% + 2px); left:0; z-index:60;
+    min-width:100%; max-height:280px; overflow:auto;
+    background: var(--white); border:1px solid var(--ink-navy);
+    box-shadow: 0 6px 16px rgba(32,43,69,0.18); padding: 4px 0;
+  }
+  .ms-panel[hidden] { display:none; }
+  .ms-opt { display:flex; align-items:center; gap:8px; padding:7px 12px; font-size:12.5px; color:var(--ink-navy); cursor:pointer; white-space:nowrap; user-select:none; }
+  .ms-opt:hover { background: var(--paper-deep); }
+  .ms-opt input { accent-color: var(--ink-navy); cursor:pointer; margin:0; }
+  .ms-clear { display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--ledger-line); padding:7px 12px; font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; font-weight:600; color:var(--stamp-red-deep); cursor:pointer; }
+  .ms-clear:hover { background: var(--paper-deep); }
+  .ms-empty { padding:8px 12px; font-size:12px; color:var(--text-mute); }
+  .panel-toolbar { justify-content:flex-end; }
+  .sel-overlay { position:fixed; inset:0; background:rgba(32,43,69,0.55); display:flex; align-items:center; justify-content:center; z-index:100; padding:16px; }
+  .sel-box { background:var(--card-bg); border:1px solid var(--ink-navy); max-width:440px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+  .sel-head { padding:14px 18px; border-bottom:1px solid var(--ledger-line); }
+  .sel-title { font-family:'Special Elite',monospace; font-size:15px; color:var(--ink-navy); }
+  .sel-sub { font-size:12px; color:var(--text-mute); margin-top:3px; }
+  .sel-tools { display:flex; gap:8px; padding:10px 18px 4px; }
+  .sel-list { overflow:auto; padding:4px 0 8px; }
+  .sel-item { display:flex; align-items:center; gap:10px; padding:8px 18px; font-size:13px; color:var(--text-dark); cursor:pointer; }
+  .sel-item:hover { background:var(--paper-deep); }
+  .sel-item input { accent-color:var(--ink-navy); margin:0; }
+  .sel-item small { color:var(--text-mute); margin-left:auto; white-space:nowrap; }
+  .dup-box { max-width: 600px; }
+  .dup-item { display:flex; align-items:flex-start; gap:10px; padding:10px 18px; border-bottom:1px solid var(--ledger-line); cursor:pointer; }
+  .dup-item:hover { background: var(--paper-deep); }
+  .dup-item input { accent-color: var(--ink-navy); margin:3px 0 0; flex-shrink:0; }
+  .dup-nome { font-weight:600; font-size:13px; color:var(--text-dark); }
+  .dup-nome small { font-weight:400; color:var(--text-mute); margin-left:6px; }
+  .dup-linha { font-size:11.5px; color:var(--text-mute); margin-top:3px; word-break:break-word; }
+  .dup-linha.novo { color:var(--ink-navy); }
+  .dup-linha b { font-weight:600; }
+  .dup-aviso { display:inline-block; margin-top:4px; font-size:11px; color:var(--stamp-red-deep); font-weight:600; }
+  .sel-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid var(--ledger-line); }
+  .dash-cobertura { margin-top:10px; padding-top:9px; border-top:1px dashed var(--ledger-line); font-size:11.5px; color:var(--text-dark); }
+  .dash-cobertura.muted { color:var(--text-mute); font-style:italic; }
+  .dash-cobertura-bar { display:flex; height:6px; background:#E4DED0; margin:6px 0 0; border-radius:2px; overflow:hidden; }
+  .dash-cobertura-bar > div { background: var(--ink-navy); }
+
   button.btn {
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12.5px;
@@ -476,20 +521,13 @@
     <div class="toolbar">
       <div class="count-badge" id="countBadge">0 registros no livro</div>
       <div class="filter-group">
-        <select class="filter-select" id="filterTurma" title="Filtrar por turma">
-          <option value="">Todas as turmas</option>
-        </select>
-        <select class="filter-select" id="filterPrioridade" title="Filtrar por prioridade">
-          <option value="">Todas as prioridades</option>
-          <option value="Alta">🔴 Alta</option>
-          <option value="Média">🟡 Média</option>
-          <option value="Baixa">🟢 Baixa</option>
-          <option value="Não classificado">⚪ Não classificado</option>
-        </select>
+        <div class="ms" id="filterTurma"></div>
+        <div class="ms" id="filterPrioridade"></div>
       </div>
       <div class="btn-group">
         <button class="btn" id="pipInfoBtn">📋 Resumo do PIP Leitura</button>
         <button class="btn" id="printBtn">🖨️ Imprimir</button>
+        <button class="btn" id="naoAvaliadosBtn" title="Lista dos alunos que ainda não foram avaliados, nas turmas com ao menos uma avaliação">📝 Alunos não avaliados</button>
         <button class="btn" id="exportCsvBtn">Exportar CSV</button>
         <button class="btn primary" id="exportXlsxBtn">Exportar planilha (.xlsx)</button>
         <button class="btn danger" id="clearBtn">Limpar tudo</button>
@@ -522,10 +560,16 @@
   </div>
 
   <div class="tab-panel" id="panelDashboard" style="display:none;">
+    <div class="toolbar panel-toolbar">
+      <div class="btn-group"><button class="btn" id="printDashBtn" type="button">🖨️ Imprimir painel</button></div>
+    </div>
     <div id="dashboardContent"></div>
   </div>
 
   <div class="tab-panel" id="panelPrioridade" style="display:none;">
+    <div class="toolbar panel-toolbar">
+      <div class="btn-group"><button class="btn" id="printPriorityBtn" type="button">🖨️ Imprimir alta prioridade</button></div>
+    </div>
     <div id="priorityContent"></div>
   </div>
 </div>
@@ -542,8 +586,82 @@
   const emptyState = document.getElementById('emptyState');
   const countBadge = document.getElementById('countBadge');
   const modalRoot = document.getElementById('modalRoot');
-  const filterTurmaSel = document.getElementById('filterTurma');
-  const filterPrioridadeSel = document.getElementById('filterPrioridade');
+  const filterTurmaSel = createMultiSelect(document.getElementById('filterTurma'), {
+    allLabel: 'Todas as turmas', title: 'Filtrar por turma',
+    summary: n => n + ' turmas selecionadas', onChange: () => render()
+  });
+  const filterPrioridadeSel = createMultiSelect(document.getElementById('filterPrioridade'), {
+    allLabel: 'Todas as prioridades', title: 'Filtrar por prioridade',
+    summary: n => n + ' prioridades selecionadas', onChange: () => render()
+  });
+  filterPrioridadeSel.setOptions([
+    {value:'Alta', label:'🔴 Alta'},
+    {value:'Média', label:'🟡 Média'},
+    {value:'Baixa', label:'🟢 Baixa'},
+    {value:'Não classificado', label:'⚪ Não classificado'}
+  ]);
+
+  // ---------- componente: filtro de multiseleção ----------
+  function createMultiSelect(root, opts){
+    const selected = new Set();
+    let options = [];
+    root.innerHTML = '<button type="button" class="filter-select ms-btn" aria-haspopup="true" aria-expanded="false"><span class="ms-label"></span><span class="ms-caret">▾</span></button><div class="ms-panel" hidden></div>';
+    const btn = root.querySelector('.ms-btn');
+    const label = root.querySelector('.ms-label');
+    const panel = root.querySelector('.ms-panel');
+    btn.title = opts.title || '';
+
+    function updateLabel(){
+      if(selected.size === 0) label.textContent = opts.allLabel;
+      else if(selected.size === 1){
+        const o = options.find(x => selected.has(x.value));
+        label.textContent = o ? o.label : [...selected][0];
+      } else label.textContent = opts.summary(selected.size);
+    }
+    function renderPanel(){
+      if(!options.length){ panel.innerHTML = '<div class="ms-empty">Nenhuma opção disponível</div>'; return; }
+      panel.innerHTML =
+        (selected.size ? '<button type="button" class="ms-clear">✕ Limpar seleção</button>' : '') +
+        options.map((o,i) => `<label class="ms-opt"><input type="checkbox" data-i="${i}" ${selected.has(o.value) ? 'checked' : ''}> <span>${escapeHtml(o.label)}</span></label>`).join('');
+    }
+    function setOpen(open){
+      panel.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(panel.hidden); });
+    panel.addEventListener('click', (e) => e.stopPropagation());
+    panel.addEventListener('change', (e) => {
+      const cb = e.target.closest('input[type=checkbox]');
+      if(!cb) return;
+      const o = options[+cb.dataset.i];
+      if(cb.checked) selected.add(o.value); else selected.delete(o.value);
+      updateLabel(); renderPanel();
+      opts.onChange && opts.onChange();
+    });
+    panel.addEventListener('click', (e) => {
+      if(e.target.classList.contains('ms-clear')){
+        selected.clear(); updateLabel(); renderPanel();
+        opts.onChange && opts.onChange();
+      }
+    });
+    document.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') setOpen(false); });
+
+    updateLabel(); renderPanel();
+    return {
+      getSelected: () => [...selected],
+      has: v => selected.has(v),
+      isActive: () => selected.size > 0,
+      setOptions(newOpts){
+        const same = newOpts.length === options.length && newOpts.every((o,i) => o.value === options[i].value && o.label === options[i].label);
+        options = newOpts;
+        // descarta seleções que não existem mais
+        [...selected].forEach(v => { if(!options.some(o => o.value === v)) selected.delete(v); });
+        updateLabel();
+        if(!same) renderPanel();
+      }
+    };
+  }
 
   let records = [];
 
@@ -674,6 +792,7 @@
     }catch(e){
       estudantes = [];
     }
+    if(typeof renderDashboard === 'function') renderDashboard();
   }
 
   // Tenta vincular automaticamente por nome (e turma, se houver mais de um homônimo)
@@ -880,34 +999,53 @@
     const agora = new Date();
     const dataGeracao = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
 
-    const turmaSel = filterTurmaSel.value || 'Todas';
-    const prioSel = filterPrioridadeSel.value || 'Todas';
-    const filtrosAtivos = (filterTurmaSel.value || filterPrioridadeSel.value)
+    const turmaSel = filterTurmaSel.isActive() ? filterTurmaSel.getSelected().join(', ') : 'Todas';
+    const prioSel = filterPrioridadeSel.isActive() ? filterPrioridadeSel.getSelected().join(', ') : 'Todas';
+    const filtrosAtivos = (filterTurmaSel.isActive() || filterPrioridadeSel.isActive())
       ? `Filtros aplicados — Turma: <strong>${escapeHtml(turmaSel)}</strong> · Prioridade: <strong>${escapeHtml(prioSel)}</strong>`
       : 'Sem filtros aplicados — todos os registros do livro';
 
     const contagem = { Alta: 0, 'Média': 0, Baixa: 0, 'Não classificado': 0 };
     list.forEach(r => { const p = priorityOf(r); contagem[p] = (contagem[p]||0) + 1; });
 
-    let turmaAtual = null;
-    const linhas = list.map((rec, i) => {
-      const novaTurma = rec.turma !== turmaAtual;
-      turmaAtual = rec.turma;
-      const separador = novaTurma
-        ? `<tr class="turma-sep"><td colspan="8">Turma ${escapeHtml(rec.turma || 'Não informada')}</td></tr>`
-        : '';
-      const p = priorityOf(rec);
-      return separador + `
-        <tr>
-          <td>${escapeHtml(rec.nome)}</td>
-          <td class="mono center">${escapeHtml(rec.dataAvaliacao)}</td>
-          <td class="mono center">${escapeHtml(rec.ppm)}</td>
-          <td>${escapeHtml(rec.classificacao)}</td>
-          <td class="center" style="color:${priorityPrintColor(p)};font-weight:700">${escapeHtml(p)}</td>
-          <td>${escapeHtml((rec.prosodia||'').split('\n')[0])}</td>
-          <td>${escapeHtml(rec.compreensao)}</td>
-        </tr>`;
-    }).join('');
+    // agrupa por turma (a lista já vem ordenada por turma)
+    const porTurma = [];
+    list.forEach(rec => {
+      const ultimo = porTurma[porTurma.length-1];
+      if(ultimo && ultimo.turma === rec.turma) ultimo.recs.push(rec);
+      else porTurma.push({ turma: rec.turma, recs: [rec] });
+    });
+    const secoes = porTurma.map((g, idx) => `
+      <section class="turma-bloco${idx ? ' nova-pagina' : ''}">
+        <table>
+          <thead>
+            <tr class="turma-sep"><th colspan="7">Turma ${escapeHtml(g.turma || 'Não informada')} <span class="qtd">· ${g.recs.length} registro${g.recs.length===1?'':'s'}</span></th></tr>
+            <tr>
+              <th>Aluno</th>
+              <th class="center">Data</th>
+              <th class="center">PPM</th>
+              <th>Classificação</th>
+              <th class="center">Prioridade</th>
+              <th>Prosódia</th>
+              <th>Compreensão</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${g.recs.map(rec => {
+              const p = priorityOf(rec);
+              return `<tr>
+                <td>${escapeHtml(rec.nome)}</td>
+                <td class="mono center">${escapeHtml(rec.dataAvaliacao)}</td>
+                <td class="mono center">${escapeHtml(rec.ppm)}</td>
+                <td>${escapeHtml(rec.classificacao)}</td>
+                <td class="center" style="color:${priorityPrintColor(p)};font-weight:700">${escapeHtml(p)}</td>
+                <td>${escapeHtml((rec.prosodia||'').split('\n')[0])}</td>
+                <td>${escapeHtml(rec.compreensao)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </section>`).join('');
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -921,6 +1059,7 @@
   .header-left .brasao { font-family: 'Arial', sans-serif; font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color:#555; margin-bottom: 2px; }
   .header-left .orgao { font-family: 'Arial', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
   .header-left .depto { font-family: 'Arial', sans-serif; font-size: 11.5px; color:#333; margin-top: 1px; }
+  .header-left .coord { font-family: Arial, sans-serif; font-size: 11.5px; font-weight: 700; color:#1a1a1a; margin-top: 3px; }
   .header-right { text-align:right; font-family: 'Arial', sans-serif; font-size: 10.5px; color:#555; }
   .titulo-doc { text-align:center; margin: 18px 0 4px; }
   .titulo-doc h1 { font-size: 21px; margin: 0; letter-spacing: 0.3px; }
@@ -932,6 +1071,9 @@
   thead th { text-align:left; border-bottom: 2px solid #1a1a1a; padding: 7px 8px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; color:#333; }
   tbody td { padding: 6px 8px; border-bottom: 1px solid #E4E1D6; vertical-align: top; }
   tbody tr.turma-sep td { background:#EFEBDD; font-weight:700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; padding: 7px 8px; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; }
+  thead tr.turma-sep th { background:#EFEBDD; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; font-size: 11.5px; padding: 7px 8px; }
+  thead tr.turma-sep .qtd { font-weight:400; text-transform:none; letter-spacing:0; color:#555; }
+  .turma-bloco.nova-pagina { page-break-before: always; break-before: page; }
   .center { text-align:center; }
   .mono { font-family: 'Courier New', monospace; }
   .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc; font-family:'Arial', sans-serif; font-size: 9.5px; color:#888; text-align:center; }
@@ -948,6 +1090,7 @@
       <div class="brasao">Prefeitura de Belo Horizonte</div>
       <div class="orgao">Secretaria Municipal de Educação</div>
       <div class="depto">Diretoria do Ensino Fundamental</div>
+      <div class="coord">Coord. Pedagógico: Everton Correa Alves (GETECO)</div>
     </div>
     <div class="header-right">
       Gerado em ${dataGeracao}<br>
@@ -972,24 +1115,9 @@
     <span>⚪ Não classificado: <b>${contagem['Não classificado']}</b></span>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Aluno</th>
-        <th class="center">Data</th>
-        <th class="center">PPM</th>
-        <th>Classificação</th>
-        <th class="center">Prioridade</th>
-        <th>Prosódia</th>
-        <th>Compreensão</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${linhas}
-    </tbody>
-  </table>
+  ${secoes}
 
-  <div class="footer">Documento gerado digitalmente pelo aplicativo Medidor de Fluência — Diretoria do Ensino Fundamental, Prefeitura de Belo Horizonte</div>
+  <div class="footer">Documento gerado digitalmente pela Coordenação Pedagógica do GETECO a partir de relatórios do Medidor de Fluência — Diretoria do Ensino Fundamental, Prefeitura de Belo Horizonte.</div>
 </body>
 </html>`;
   }
@@ -1005,6 +1133,299 @@
     win.onload = () => { win.focus(); win.print(); };
   }
 
+  // ---------- impressão dos painéis (Painel por Turma / Alta Prioridade) ----------
+  function abrirJanelaImpressao(html){
+    const win = window.open('', '_blank');
+    if(!win){ setStatus('O navegador bloqueou a janela de impressão. Permita pop-ups para este site.', 'error'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+  }
+
+  function buildPanelPrintHtml(titulo, subtitulo, resumoHtml, corpoHtml){
+    const agora = new Date();
+    const dataGeracao = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(titulo)} — Fluência de Leitura</title>
+<style>
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'Georgia', 'Times New Roman', serif; color:#1a1a1a; margin: 0; padding: 32px 40px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 3px double #1a1a1a; padding-bottom: 14px; margin-bottom: 6px; }
+  .header-left .brasao { font-family: Arial, sans-serif; font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color:#555; margin-bottom: 2px; }
+  .header-left .orgao { font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+  .header-left .depto { font-family: Arial, sans-serif; font-size: 11.5px; color:#333; margin-top: 1px; }
+  .header-left .coord { font-family: Arial, sans-serif; font-size: 11.5px; font-weight: 700; color:#1a1a1a; margin-top: 3px; }
+  .header-right { text-align:right; font-family: Arial, sans-serif; font-size: 10.5px; color:#555; }
+  .titulo-doc { text-align:center; margin: 18px 0 4px; }
+  .titulo-doc h1 { font-size: 21px; margin: 0; letter-spacing: 0.3px; }
+  .titulo-doc .sub { font-family: Arial, sans-serif; font-size: 11.5px; color:#555; margin-top: 4px; }
+  .resumo { font-family: Arial, sans-serif; font-size: 11px; color:#333; margin: 14px 0 16px; padding: 8px 12px; background:#F6F4EE; border:1px solid #D9D5C7; display:flex; gap:18px; flex-wrap:wrap; }
+  .resumo b { font-size: 12.5px; }
+  .cards { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: Arial, sans-serif; }
+  .card { border:1px solid #C9C4AE; padding: 11px 13px; page-break-inside: avoid; break-inside: avoid; }
+  .card-title { font-weight:700; font-size: 13px; }
+  .card-sub { font-size: 10.5px; color:#666; margin: 2px 0 8px; }
+  .bar { display:flex; height: 12px; background:#E4DED0; margin-bottom: 8px; }
+  .seg.alta { background:#B23A2E; } .seg.media { background:#D9A441; } .seg.baixa { background:#3C7A4B; } .seg.nc { background:#ABA290; }
+  .legend { font-size: 10.5px; line-height: 1.6; }
+  .cob { margin-top: 8px; padding-top: 7px; border-top: 1px dashed #B9B49E; font-size: 10.5px; }
+  .cob.muted { color:#777; font-style: italic; }
+  .cob-bar { display:flex; height: 6px; background:#E4DED0; margin-top: 5px; }
+  .cob-bar > div { background:#202B45; }
+  .dot { display:inline-block; width:8px; height:8px; margin-right:5px; }
+  .dot.alta { background:#B23A2E; } .dot.media { background:#D9A441; } .dot.baixa { background:#3C7A4B; } .dot.nc { background:#ABA290; }
+  .grupo { margin-top: 18px; font-family: Arial, sans-serif; }
+  .grupo.nova-pagina { page-break-before: always; break-before: page; margin-top: 0; }
+  thead tr.g-tit th { background:#EFEBDD; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; padding: 7px 8px; font-size: 11.5px; letter-spacing: 0.4px; color:#1a1a1a; }
+  thead tr.g-tit .qtd { font-weight:400; text-transform:none; letter-spacing:0; color:#555; font-size: 10.5px; float:right; }
+  .grupo-titulo { display:flex; justify-content:space-between; align-items:baseline; background:#EFEBDD; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; padding: 7px 8px; font-weight:700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .grupo-titulo .qtd { font-weight:400; font-size: 10.5px; text-transform:none; color:#555; letter-spacing:0; }
+  table { width:100%; border-collapse:collapse; font-size: 11.5px; }
+  thead th { text-align:left; border-bottom: 1px solid #1a1a1a; padding: 6px 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color:#333; }
+  tbody td { padding: 6px 8px; border-bottom: 1px solid #E4E1D6; vertical-align: top; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  .center { text-align:center; } .mono { font-family: 'Courier New', monospace; }
+  .vazio { text-align:center; color:#666; font-family: Arial, sans-serif; font-size: 12px; padding: 30px 0; }
+  .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc; font-family: Arial, sans-serif; font-size: 9.5px; color:#888; text-align:center; }
+  @media print { body { padding: 14mm 16mm; } thead { display: table-header-group; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="brasao">Prefeitura de Belo Horizonte</div>
+      <div class="orgao">Secretaria Municipal de Educação</div>
+      <div class="depto">Diretoria do Ensino Fundamental</div>
+      <div class="coord">Coord. Pedagógico: Everton Correa Alves (GETECO)</div>
+    </div>
+    <div class="header-right">Gerado em ${dataGeracao}<br>Sistema Medidor de Fluência</div>
+  </div>
+  <div class="titulo-doc">
+    <h1>${escapeHtml(titulo)}</h1>
+    <div class="sub">${escapeHtml(subtitulo)}</div>
+  </div>
+  ${resumoHtml}
+  ${corpoHtml}
+  <div class="footer">Documento gerado digitalmente pela Coordenação Pedagógica do GETECO a partir de relatórios do Medidor de Fluência — Diretoria do Ensino Fundamental, Prefeitura de Belo Horizonte.</div>
+</body>
+</html>`;
+  }
+
+  // Um bloco por turma; cada turma (exceto a primeira) começa em nova página.
+  // O título da turma fica no <thead>, então se repete se a turma passar de uma página.
+  function blocoTurmaHtml({ titulo, qtd, colunas, linhas, primeiro }){
+    return `<div class="grupo${primeiro ? '' : ' nova-pagina'}">
+      <table>
+        <thead>
+          <tr class="g-tit"><th colspan="${colunas.length}">${titulo}<span class="qtd">${qtd}</span></th></tr>
+          <tr>${colunas.join('')}</tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </div>`;
+  }
+
+  function imprimirDashboard(){
+    if(!records.length){ setStatus('Não há registros para imprimir.', 'error'); return; }
+    const byTurma = {};
+    const total = { alta:0, media:0, baixa:0, nc:0, total:0 };
+    records.forEach(rec => {
+      const t = rec.turma || 'Não informada';
+      if(!byTurma[t]) byTurma[t] = { alta:0, media:0, baixa:0, nc:0, total:0 };
+      const p = priorityOf(rec);
+      const key = p === 'Alta' ? 'alta' : p === 'Média' ? 'media' : p === 'Baixa' ? 'baixa' : 'nc';
+      byTurma[t][key]++; byTurma[t].total++;
+      total[key]++; total.total++;
+    });
+    const turmas = Object.keys(byTurma).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const pct = (n, tot) => tot ? Math.round((n/tot)*100) : 0;
+
+    let cobTotal = 0, cobNao = 0;
+    turmas.forEach(t => { const c = coberturaTurma(t); if(c){ cobTotal += c.total; cobNao += c.nao; } });
+    const cobResumo = cobTotal
+      ? `<span>⏳ Não avaliados: <b>${cobNao}</b> de ${cobTotal} (${Math.round((cobNao/cobTotal)*100)}%)</span>` : '';
+
+    const resumo = `<div class="resumo">
+      <span>Turmas: <b>${turmas.length}</b></span>
+      <span>Alunos avaliados: <b>${total.total}</b></span>
+      <span>🔴 Alta: <b>${total.alta}</b> (${pct(total.alta,total.total)}%)</span>
+      <span>🟡 Média: <b>${total.media}</b> (${pct(total.media,total.total)}%)</span>
+      <span>🟢 Baixa: <b>${total.baixa}</b> (${pct(total.baixa,total.total)}%)</span>
+      ${total.nc ? `<span>⚪ Não classificado: <b>${total.nc}</b> (${pct(total.nc,total.total)}%)</span>` : ''}
+      ${cobResumo}
+    </div>`;
+
+    const cards = '<div class="cards">' + turmas.map(t => {
+      const d = byTurma[t];
+      return `<div class="card">
+        <div class="card-title">Turma ${escapeHtml(t)}</div>
+        <div class="card-sub">${d.total} aluno${d.total === 1 ? '' : 's'} avaliado${d.total === 1 ? '' : 's'}</div>
+        <div class="bar">
+          ${d.alta ? `<div class="seg alta" style="width:${pct(d.alta,d.total)}%"></div>` : ''}
+          ${d.media ? `<div class="seg media" style="width:${pct(d.media,d.total)}%"></div>` : ''}
+          ${d.baixa ? `<div class="seg baixa" style="width:${pct(d.baixa,d.total)}%"></div>` : ''}
+          ${d.nc ? `<div class="seg nc" style="width:${pct(d.nc,d.total)}%"></div>` : ''}
+        </div>
+        <div class="legend">
+          <div><span class="dot alta"></span>Alta: ${pct(d.alta,d.total)}% (${d.alta})</div>
+          <div><span class="dot media"></span>Média: ${pct(d.media,d.total)}% (${d.media})</div>
+          <div><span class="dot baixa"></span>Baixa: ${pct(d.baixa,d.total)}% (${d.baixa})</div>
+          ${d.nc ? `<div><span class="dot nc"></span>Não classificado: ${pct(d.nc,d.total)}% (${d.nc})</div>` : ''}
+        </div>
+        ${(() => {
+          const c = coberturaTurma(t);
+          if(!c) return '<div class="cob muted">Não avaliados: total de alunos da turma não encontrado no cadastro.</div>';
+          return `<div class="cob">⏳ Não avaliados: <b>${c.pctNao}%</b> (${c.nao} de ${c.total} aluno${c.total === 1 ? '' : 's'} da turma)
+            <div class="cob-bar"><div style="width:${c.pctAval}%"></div></div></div>`;
+        })()}
+      </div>`;
+    }).join('') + '</div>';
+
+    abrirJanelaImpressao(buildPanelPrintHtml(
+      'Painel por Turma',
+      'Distribuição dos alunos por nível de prioridade — PIP Leitura',
+      resumo, cards));
+  }
+
+  // Alunos cadastrados que ainda não têm avaliação, somente em turmas
+  // que já tiveram pelo menos uma avaliação.
+  function naoAvaliadosPorTurma(){
+    const grupos = [];
+    const vistas = new Set();
+    records.forEach(r => {
+      const key = turmaKey(r.turma);
+      if(!key || vistas.has(key)) return;
+      vistas.add(key);
+      const cadastrados = estudantes.filter(e => turmaKey(e.turma) === key);
+      if(!cadastrados.length) return;
+      const matriculas = new Set();
+      const nomes = new Set();
+      records.filter(x => turmaKey(x.turma) === key).forEach(x => {
+        const m = x.estudanteMatricula || autoMatchEstudante(x.nome, x.turma);
+        if(m != null && m !== '') matriculas.add(String(m));
+        nomes.add(normalizeStr(x.nome));
+      });
+      const nao = cadastrados
+        .filter(e => !((e.numero_matricula != null && matriculas.has(String(e.numero_matricula))) || nomes.has(normalizeStr(e.nome))))
+        .sort((a,b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+      grupos.push({ turma: r.turma, total: cadastrados.length, nao });
+    });
+    return grupos.sort((a,b) => a.turma.localeCompare(b.turma, 'pt-BR'));
+  }
+
+  // Passo 1: escolher as turmas (uma, várias ou todas) antes de gerar
+  function abrirNaoAvaliados(){
+    if(!records.length){ setStatus('Não há registros no livro ainda.', 'error'); return; }
+    if(!estudantes.length){ setStatus('O cadastro de alunos não foi carregado; não é possível listar os não avaliados.', 'error'); return; }
+    const grupos = naoAvaliadosPorTurma();
+    if(!grupos.length){ setStatus('Nenhuma turma encontrada no cadastro de alunos para os registros do livro.', 'error'); return; }
+    const pendentes = grupos.filter(g => g.nao.length);
+    if(!pendentes.length){ setStatus('Todos os alunos das turmas avaliadas já foram avaliados.', 'ok'); return; }
+
+    // pré-seleção: turmas do filtro do livro, se houver; senão todas
+    const pre = turma => !filterTurmaSel.isActive() || filterTurmaSel.has(turma);
+    const overlay = document.createElement('div');
+    overlay.className = 'sel-overlay';
+    overlay.innerHTML = `
+      <div class="sel-box" role="dialog" aria-modal="true">
+        <div class="sel-head">
+          <div class="sel-title">📝 Alunos não avaliados</div>
+          <div class="sel-sub">Escolha as turmas que deseja imprimir. Cada turma começa em uma nova página.</div>
+        </div>
+        <div class="sel-tools">
+          <button type="button" class="btn" data-act="all">Marcar todas</button>
+          <button type="button" class="btn" data-act="none">Limpar</button>
+        </div>
+        <div class="sel-list">
+          ${pendentes.map((g,i) => `<label class="sel-item"><input type="checkbox" data-i="${i}" ${pre(g.turma) ? 'checked' : ''}> <span>Turma ${escapeHtml(g.turma)}</span><small>${g.nao.length} de ${g.total} não avaliado${g.nao.length === 1 ? '' : 's'}</small></label>`).join('')}
+        </div>
+        <div class="sel-foot">
+          <button type="button" class="btn" data-act="cancel">Cancelar</button>
+          <button type="button" class="btn primary" data-act="go">🖨️ Gerar lista</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if(e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    const boxes = () => [...overlay.querySelectorAll('input[type=checkbox]')];
+    overlay.addEventListener('click', (e) => {
+      if(e.target === overlay){ close(); return; }
+      const act = e.target.dataset && e.target.dataset.act;
+      if(act === 'cancel') close();
+      else if(act === 'all') boxes().forEach(b => b.checked = true);
+      else if(act === 'none') boxes().forEach(b => b.checked = false);
+      else if(act === 'go'){
+        const escolhidas = boxes().filter(b => b.checked).map(b => pendentes[+b.dataset.i]);
+        if(!escolhidas.length){ setStatus('Selecione ao menos uma turma para gerar a lista.', 'error'); return; }
+        close();
+        imprimirNaoAvaliados(escolhidas, grupos.length, pendentes.length);
+      }
+    });
+  }
+
+  // Passo 2: gera o documento — uma turma por página
+  function imprimirNaoAvaliados(escolhidas, totalTurmasAvaliadas, totalPendentes){
+    const totalNao = escolhidas.reduce((a,g) => a + g.nao.length, 0);
+    const resumo = `<div class="resumo">
+      <span>Turmas na lista: <b>${escolhidas.length}</b>${escolhidas.length < totalPendentes ? ` de ${totalPendentes} com pendências` : ''}</span>
+      <span>⏳ Alunos não avaliados: <b>${totalNao}</b></span>
+    </div>`;
+
+    const corpo = escolhidas.map((g, idx) => blocoTurmaHtml({
+      primeiro: idx === 0,
+      titulo: `Turma ${escapeHtml(g.turma)}`,
+      qtd: `${g.nao.length} de ${g.total} aluno${g.total === 1 ? '' : 's'} não avaliado${g.nao.length === 1 ? '' : 's'}`,
+      colunas: ['<th class="center" style="width:40px">Nº</th>','<th>Aluno</th>','<th class="center">Matrícula</th>'],
+      linhas: g.nao.map((e,i) => `<tr><td class="mono center">${i+1}</td><td>${escapeHtml(e.nome)}</td><td class="mono center">${escapeHtml(e.numero_matricula ?? '—')}</td></tr>`).join('')
+    })).join('');
+
+    abrirJanelaImpressao(buildPanelPrintHtml(
+      'Alunos Não Avaliados',
+      'Alunos das turmas com ao menos uma avaliação que ainda não possuem registro de fluência',
+      resumo, corpo));
+  }
+
+  function imprimirAltaPrioridade(){
+    const altaRecs = records.filter(r => priorityOf(r) === 'Alta');
+    if(!altaRecs.length){ setStatus('Não há alunos em alta prioridade para imprimir.', 'error'); return; }
+    const byTurma = {};
+    altaRecs.forEach(rec => { const t = rec.turma || 'Não informada'; (byTurma[t] = byTurma[t] || []).push(rec); });
+    const turmas = Object.keys(byTurma).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const ppmNum = r => parseFloat(String(r.ppm).replace(',','.')) || 0;
+
+    const resumo = `<div class="resumo">
+      <span>🔴 Alunos em alta prioridade: <b>${altaRecs.length}</b></span>
+      <span>Turmas com alunos em alta prioridade: <b>${turmas.length}</b></span>
+    </div>`;
+
+    const corpo = turmas.map((t, idx) => {
+      const list = byTurma[t].slice().sort((a,b) => ppmNum(a) - ppmNum(b));
+      return blocoTurmaHtml({
+        primeiro: idx === 0,
+        titulo: `🔴 Turma ${escapeHtml(t)}`,
+        qtd: `${list.length} aluno${list.length === 1 ? '' : 's'} para intervenção`,
+        colunas: ['<th>Aluno</th>','<th>Classificação</th>','<th class="center">Avaliado em</th>','<th class="center">PPM</th>'],
+        linhas: list.map(r => `<tr>
+              <td>${escapeHtml(r.nome)}</td>
+              <td>${escapeHtml(r.classificacao)}</td>
+              <td class="mono center">${escapeHtml(r.dataAvaliacao)}</td>
+              <td class="mono center">${escapeHtml(r.ppm)}</td>
+            </tr>`).join('')
+      });
+    }).join('');
+
+    abrirJanelaImpressao(buildPanelPrintHtml(
+      'Alta Prioridade — Alunos para Intervenção',
+      'Estudantes classificados como Alta Prioridade (PIP Leitura), agrupados por turma',
+      resumo, corpo));
+  }
+
   // ---------- filtros e ordenação (Livro de Registro) ----------
   // Ordem de prioridade pedida: Alta, Média, Baixa e por último não classificado.
   function priorityOrder(p){
@@ -1017,21 +1438,15 @@
   function populateTurmaFilter(){
     const turmasAtuais = [...new Set(records.map(r => r.turma || 'Não informada'))]
       .sort((a,b) => a.localeCompare(b, 'pt-BR'));
-    const valorSelecionado = filterTurmaSel.value;
-    filterTurmaSel.innerHTML = '<option value="">Todas as turmas</option>' +
-      turmasAtuais.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-    // preserva a seleção anterior se a turma ainda existir na lista
-    if(turmasAtuais.includes(valorSelecionado)) filterTurmaSel.value = valorSelecionado;
+    filterTurmaSel.setOptions(turmasAtuais.map(t => ({value:t, label:t})));
   }
 
   // Filtra por turma/prioridade selecionadas e ordena: turma (A-Z) →
   // prioridade (Alta, Média, Baixa, Não classificado) → nome (A-Z).
   function getFilteredSortedRecords(){
-    const turmaSel = filterTurmaSel.value;
-    const prioSel = filterPrioridadeSel.value;
     let list = records.slice();
-    if(turmaSel) list = list.filter(r => (r.turma || 'Não informada') === turmaSel);
-    if(prioSel) list = list.filter(r => priorityOf(r) === prioSel);
+    if(filterTurmaSel.isActive()) list = list.filter(r => filterTurmaSel.has(r.turma || 'Não informada'));
+    if(filterPrioridadeSel.isActive()) list = list.filter(r => filterPrioridadeSel.has(priorityOf(r)));
     list.sort((a,b) => {
       const turmaCmp = (a.turma || '').localeCompare(b.turma || '', 'pt-BR');
       if(turmaCmp !== 0) return turmaCmp;
@@ -1089,6 +1504,35 @@
     renderPriorityList();
   }
 
+  // ---------- cobertura: alunos ainda não avaliados por turma ----------
+  // Total da turma = alunos cadastrados (tabela de estudantes) naquela turma.
+  // Avaliado = aluno cadastrado que tem ao menos um registro no livro
+  // (por vínculo/matrícula ou, na falta dele, por nome).
+  function turmaKey(t){
+    return normalizeStr(t).replace(/[^a-z0-9]/g, '');
+  }
+  function coberturaTurma(turma){
+    const key = turmaKey(turma);
+    const cadastrados = estudantes.filter(e => turmaKey(e.turma) === key);
+    if(!key || !cadastrados.length) return null;
+    const recsTurma = records.filter(r => turmaKey(r.turma || 'Não informada') === key);
+    const matriculas = new Set();
+    const nomes = new Set();
+    recsTurma.forEach(r => {
+      const m = r.estudanteMatricula || autoMatchEstudante(r.nome, r.turma);
+      if(m != null && m !== '') matriculas.add(String(m));
+      nomes.add(normalizeStr(r.nome));
+    });
+    const avaliados = cadastrados.filter(e =>
+      (e.numero_matricula != null && matriculas.has(String(e.numero_matricula))) ||
+      nomes.has(normalizeStr(e.nome))
+    ).length;
+    const total = cadastrados.length;
+    const nao = total - avaliados;
+    const pct = n => Math.round((n / total) * 100);
+    return { total, avaliados, nao, pctNao: pct(nao), pctAval: pct(avaliados) };
+  }
+
   // ---------- dashboard: % por turma nos níveis de prioridade ----------
   function renderDashboard(){
     const el = document.getElementById('dashboardContent');
@@ -1129,6 +1573,14 @@
             <span class="dash-legend-item"><span class="dash-legend-dot baixa"></span>🟢 Baixa: ${pct(d.baixa, d.total)}% (${d.baixa})</span>
             ${d.nc ? `<span class="dash-legend-item"><span class="dash-legend-dot nc"></span>Não classif.: ${pct(d.nc, d.total)}% (${d.nc})</span>` : ''}
           </div>
+          ${(() => {
+            const c = coberturaTurma(t);
+            if(!c) return '<div class="dash-cobertura muted">⏳ Não avaliados: total de alunos da turma não encontrado no cadastro.</div>';
+            return `<div class="dash-cobertura">
+              ⏳ Não avaliados: <b>${c.pctNao}%</b> (${c.nao} de ${c.total} aluno${c.total === 1 ? '' : 's'} da turma)
+              <div class="dash-cobertura-bar" title="${c.avaliados} avaliados de ${c.total}"><div style="width:${c.pctAval}%"></div></div>
+            </div>`;
+          })()}
         </div>
       `;
     }).join('') + '</div>';
@@ -1192,8 +1644,6 @@
     b.addEventListener('click', () => switchTab(b.dataset.tab));
   });
 
-  filterTurmaSel.addEventListener('change', render);
-  filterPrioridadeSel.addEventListener('change', render);
 
   function openModal(rec){
     modalRoot.innerHTML = `
@@ -1377,6 +1827,78 @@
     });
   }
 
+  // ---------- duplicidade: mesmo aluno já avaliado ----------
+  function sameStudent(a, b){
+    if(!a.nome || a.nome === 'Não informado' || !b.nome || b.nome === 'Não informado') return false;
+    if(a.estudanteMatricula && b.estudanteMatricula) return String(a.estudanteMatricula) === String(b.estudanteMatricula);
+    return normalizeStr(a.nome) === normalizeStr(b.nome) && turmaKey(a.turma) === turmaKey(b.turma);
+  }
+
+  function dataBRtime(str){
+    const m = String(str || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if(!m) return null;
+    const ano = m[3].length === 2 ? 2000 + (+m[3]) : +m[3];
+    const t = new Date(ano, +m[2]-1, +m[1]).getTime();
+    return isNaN(t) ? null : t;
+  }
+
+  // true se "novo" deve prevalecer sobre "antigo" (data mais recente; sem data comparável, o novo vence)
+  function isNewer(novo, antigo){
+    const tn = dataBRtime(novo.dataAvaliacao), ta = dataBRtime(antigo.dataAvaliacao);
+    return (tn != null && ta != null) ? tn >= ta : true;
+  }
+
+  // Card de confirmação. Resolve com um Set de ids (registros novos a substituir) ou null (cancelar tudo).
+  function confirmarSubstituicoes(conflitos){
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'sel-overlay';
+      overlay.innerHTML = `
+        <div class="sel-box dup-box" role="dialog" aria-modal="true">
+          <div class="sel-head">
+            <div class="sel-title">⚠️ Alunos já avaliados</div>
+            <div class="sel-sub">${conflitos.length === 1 ? 'Este aluno já possui' : 'Estes ' + conflitos.length + ' alunos já possuem'} avaliação no livro. Ao substituir, os dados anteriores são apagados e fica apenas o arquivo mais recente. Desmarque quem deve permanecer como está.</div>
+          </div>
+          <div class="sel-tools">
+            <button type="button" class="btn" data-act="all">Marcar todos</button>
+            <button type="button" class="btn" data-act="none">Desmarcar todos</button>
+          </div>
+          <div class="sel-list">
+            ${conflitos.map((c,i) => {
+              const ult = c.existentes[0];
+              const mais = c.existentes.length > 1;
+              const velho = !isNewer(c.rec, ult);
+              return `<label class="dup-item">
+                <input type="checkbox" data-i="${i}" checked>
+                <div>
+                  <div class="dup-nome">${escapeHtml(c.rec.nome)}<small>Turma ${escapeHtml(c.rec.turma)}</small></div>
+                  <div class="dup-linha"><b>Atual:</b> avaliado em ${escapeHtml(ult.dataAvaliacao)} · ${escapeHtml(ult.ppm)} PPM · ${escapeHtml(ult.arquivo || 'sem arquivo')}${mais ? ' (+' + (c.existentes.length-1) + ' registro' + (c.existentes.length > 2 ? 's' : '') + ' anterior' + (c.existentes.length > 2 ? 'es' : '') + ')' : ''}</div>
+                  <div class="dup-linha novo"><b>Novo:</b> avaliado em ${escapeHtml(c.rec.dataAvaliacao)} · ${escapeHtml(c.rec.ppm)} PPM · ${escapeHtml(c.rec.arquivo)}</div>
+                  ${velho ? '<div class="dup-aviso">⚠ A avaliação do arquivo novo tem data anterior à atual.</div>' : ''}
+                </div>
+              </label>`;
+            }).join('')}
+          </div>
+          <div class="sel-foot">
+            <button type="button" class="btn" data-act="cancel">Cancelar importação</button>
+            <button type="button" class="btn primary" data-act="go">Confirmar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const boxes = () => [...overlay.querySelectorAll('input[type=checkbox]')];
+      const finish = (val) => { overlay.remove(); document.removeEventListener('keydown', onKey); resolve(val); };
+      const onKey = (e) => { if(e.key === 'Escape') finish(null); };
+      document.addEventListener('keydown', onKey);
+      overlay.addEventListener('click', (e) => {
+        const act = e.target.dataset && e.target.dataset.act;
+        if(act === 'cancel') finish(null);
+        else if(act === 'all') boxes().forEach(b => b.checked = true);
+        else if(act === 'none') boxes().forEach(b => b.checked = false);
+        else if(act === 'go') finish(new Set(boxes().filter(b => b.checked).map(b => conflitos[+b.dataset.i].rec.id)));
+      });
+    });
+  }
+
   async function handleFiles(fileList){
     const files = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.txt'));
     if(!files.length){
@@ -1384,32 +1906,91 @@
       return;
     }
     let okCount = 0, partialCount = 0, failCount = 0, linkedCount = 0;
+    let replacedCount = 0, keptCount = 0, dupLoteCount = 0, oldNotRemoved = 0;
+
+    // 1) lê e interpreta todos os arquivos
+    const parsed = [];
     for(const file of files){
       try{
         const text = await readFileAsText(file);
         const rec = parseReport(text, file.name);
         rec.estudanteMatricula = autoMatchEstudante(rec.nome, rec.turma);
-        if(rec.estudanteMatricula) linkedCount++;
-        const saved = await insertRecord(rec);
-        records.unshift(saved);
-        if(rec.parseOk) okCount++; else partialCount++;
+        parsed.push(rec);
       }catch(e){
         failCount++;
-        setStatus('Falha ao salvar o arquivo ' + file.name + ' no banco de dados.', 'error');
+        setStatus('Falha ao ler o arquivo ' + file.name + '.', 'error');
+      }
+    }
+
+    // 2) mesmo aluno em mais de um arquivo do mesmo envio: fica o mais recente
+    const lote = [];
+    parsed.forEach(rec => {
+      const i = lote.findIndex(x => sameStudent(x, rec));
+      if(i < 0) lote.push(rec);
+      else { dupLoteCount++; if(isNewer(rec, lote[i])) lote[i] = rec; }
+    });
+
+    // 3) alunos que já possuem avaliação no livro: pede confirmação
+    const conflitos = lote
+      .map(rec => ({ rec, existentes: records.filter(r => sameStudent(r, rec)) }))
+      .filter(c => c.existentes.length);
+    const conflitoPorId = new Map(conflitos.map(c => [c.rec.id, c]));
+    let substituir = new Set();
+    if(conflitos.length){
+      const decisao = await confirmarSubstituicoes(conflitos);
+      if(!decisao){
+        setStatus('Importação cancelada. Nenhum registro foi alterado.', 'ok');
+        return;
+      }
+      substituir = decisao;
+    }
+
+    // 4) grava (novo primeiro; só depois remove o antigo, para nunca perder dados)
+    for(const rec of lote){
+      const conflito = conflitoPorId.get(rec.id);
+      if(conflito && !substituir.has(rec.id)){ keptCount++; continue; }
+      try{
+        const saved = await insertRecord(rec);
+        records.unshift(saved);
+        if(rec.estudanteMatricula) linkedCount++;
+        if(rec.parseOk) okCount++; else partialCount++;
+        if(conflito){
+          for(const antigo of conflito.existentes){
+            try{
+              await deleteRecord(antigo.id);
+              records = records.filter(r => r.id !== antigo.id);
+            }catch(e){ oldNotRemoved++; }
+          }
+          replacedCount++;
+        }
+      }catch(e){
+        failCount++;
+        setStatus('Falha ao salvar o arquivo ' + rec.arquivo + ' no banco de dados.', 'error');
       }
     }
     render();
-    if(failCount){
+
+    const extras = [];
+    if(replacedCount) extras.push(replacedCount + (replacedCount === 1 ? ' aluno substituído' : ' alunos substituídos'));
+    if(keptCount) extras.push(keptCount + (keptCount === 1 ? ' mantido sem alteração' : ' mantidos sem alteração'));
+    if(dupLoteCount) extras.push(dupLoteCount + (dupLoteCount === 1 ? ' arquivo repetido no envio (mantido o mais recente)' : ' arquivos repetidos no envio (mantido o mais recente)'));
+    const extraTxt = extras.length ? ' · ' + extras.join(' · ') : '';
+
+    if(oldNotRemoved){
+      setStatus('Atenção: o novo registro foi salvo, mas ' + oldNotRemoved + ' registro(s) anterior(es) não pôde(ram) ser removido(s). Remova-o(s) manualmente na tabela.', 'error');
+    }else if(failCount){
       // status de erro já foi definido acima
     }else if(okCount && !partialCount){
-      const semVinculo = okCount + partialCount - linkedCount;
+      const semVinculo = okCount - linkedCount;
       setStatus(
         okCount + (okCount === 1 ? ' relatório importado.' : ' relatórios importados.') +
-        (semVinculo ? ' ' + semVinculo + ' sem vínculo automático — use "🔗 vincular" na tabela.' : ''),
+        (semVinculo ? ' ' + semVinculo + ' sem vínculo automático — use "🔗 vincular" na tabela.' : '') + extraTxt,
         'ok'
       );
     }else if(okCount || partialCount){
-      setStatus(okCount + ' importado(s) com sucesso, ' + partialCount + ' importado(s) parcialmente (estrutura incompleta) — confira antes de exportar.', 'error');
+      setStatus(okCount + ' importado(s) com sucesso, ' + partialCount + ' importado(s) parcialmente (estrutura incompleta) — confira antes de exportar.' + extraTxt, 'error');
+    }else if(keptCount){
+      setStatus('Nenhum registro importado — ' + keptCount + (keptCount === 1 ? ' aluno mantido' : ' alunos mantidos') + ' sem alteração.', 'ok');
     }
   }
 
@@ -1428,6 +2009,9 @@
 
   document.getElementById('clearBtn').addEventListener('click', clearAll);
   document.getElementById('printBtn').addEventListener('click', imprimirLivro);
+  document.getElementById('naoAvaliadosBtn').addEventListener('click', abrirNaoAvaliados);
+  document.getElementById('printDashBtn').addEventListener('click', imprimirDashboard);
+  document.getElementById('printPriorityBtn').addEventListener('click', imprimirAltaPrioridade);
   document.getElementById('pipInfoBtn').addEventListener('click', openPipInfoModal);
 
   document.getElementById('exportCsvBtn').addEventListener('click', () => {
