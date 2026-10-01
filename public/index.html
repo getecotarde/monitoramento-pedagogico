@@ -9888,7 +9888,10 @@ function montarEventosLinhaDoTempo(x){
 
   // Advertências / ocorrências — número e síntese (mesmo que a síntese esteja vazia)
   if((x.ocn && x.ocn>0) || x.ocs){
-    const qtd = x.ocn ? `${x.ocn} ocorrência${x.ocn>1?'s':''}/advertência${x.ocn>1?'s':''} registrada${x.ocn>1?'s':''}` : 'Ocorrências/advertências registradas';
+    // Nº de advertências = soma das ocorrências por tipo na síntese (não o nº de registros).
+    // Se a síntese estiver fora do padrão/vazia, usa o número informado como alternativa.
+    const totalAdv = ltTotalAdvertenciasPorTipo(x.ocs) ?? (x.ocn||0);
+    const qtd = totalAdv ? `${totalAdv} advertência${totalAdv>1?'s':''} registrada${totalAdv>1?'s':''}` : 'Advertências registradas';
     eventos.push({ data:null, tipo:'Advertências / ocorrências', desc: qtd, ocsRaw: x.ocs||'', por:'—', categoria:'advertencias' });
   }
 
@@ -10313,11 +10316,59 @@ function ltEsc(s){
 // Advertências, mas o campo também pode ter sido editado manualmente — por
 // isso, qualquer trecho que não bata com o padrão esperado é exibido como
 // texto simples, sem quebrar o layout).
+// Ordem de exibição dos trimestres no Perfil Individual: 2º primeiro, 1º logo
+// após, depois os demais em ordem crescente. Devolve um número (menor = antes).
+function ltOrdemTrimestre(n){
+  const v = parseInt(String(n).replace(/\D/g,''), 10);
+  if(isNaN(v)) return 100;
+  if(v===2) return 0;
+  if(v===1) return 1;
+  return v;
+}
+
+// Ordem dos blocos da Síntese das Advertências: 2º Trimestre, 1º Trimestre,
+// demais trimestres, texto livre e, por último, "Fora do período".
+function ltOrdemBlocoAdvertencia(bloco){
+  const m = bloco.match(/^(.+?):/);
+  if(!m) return 90;
+  const titulo = m[1].trim();
+  if(/^fora do per[íi]odo/i.test(titulo)) return 99;
+  const mt = titulo.match(/^(\d+)\s*º/);
+  return mt ? ltOrdemTrimestre(mt[1]) : 80;
+}
+
+// Soma as ocorrências de cada tipo de advertência de uma lista de itens
+// (ex.: ["atraso (10x)", "conversa (2x)"] = 12). Item sem "(Nx)" conta 1.
+function ltSomarItensAdvertencia(itens){
+  return itens.reduce((acc,it)=>{
+    const m = it.match(/\((\d+)\s*x\)\s*$/i);
+    return acc + (m ? parseInt(m[1],10) : 1);
+  }, 0);
+}
+
+// Total de advertências de um bloco (soma dos "(Nx)" de todos os tipos).
+function ltContarTiposBloco(bloco){
+  const m = bloco.match(/^(.+?):\s*([\s\S]*)$/);
+  if(!m) return 0;
+  return ltSomarItensAdvertencia(m[2].split(';').map(s=>s.trim()).filter(Boolean));
+}
+
+// Total de advertências = soma das ocorrências de cada tipo (os "(Nx)") em
+// todos os blocos da síntese. Se a síntese estiver vazia ou fora do padrão, devolve null.
+function ltTotalAdvertenciasPorTipo(ocsRaw){
+  const blocos = (ocsRaw||'').split('|').map(s=>s.trim()).filter(Boolean);
+  const total = blocos.reduce((acc,b)=>acc+ltContarTiposBloco(b), 0);
+  return total>0 ? total : null;
+}
+
 function ltFormatSinteseAdvertencias(ocsRaw, paraImpressao){
   const texto = (ocsRaw||'').trim();
   if(!texto) return `<div style="font-size:12px;color:#BBB;font-style:italic;padding:2px 0">Sem advertências registradas.</div>`;
 
-  const blocos = texto.split('|').map(s=>s.trim()).filter(Boolean);
+  const blocos = texto.split('|').map(s=>s.trim()).filter(Boolean)
+    .map((b,i)=>({b,i}))
+    .sort((a,c)=> (ltOrdemBlocoAdvertencia(a.b)-ltOrdemBlocoAdvertencia(c.b)) || (a.i-c.i))
+    .map(o=>o.b);
 
   return blocos.map(bloco=>{
     const m = bloco.match(/^(.+?):\s*([\s\S]*)$/);
@@ -10334,7 +10385,7 @@ function ltFormatSinteseAdvertencias(ocsRaw, paraImpressao){
     // Separa o contador "(N advertências)" do título, para exibir como selo à parte.
     let contador = '';
     const mc = titulo.match(/^(.*?)\s*\((\d+\s*advert[êe]ncias?)\)$/i);
-    if(mc){ titulo = mc[1].trim(); contador = mc[2].trim(); }
+    if(mc){ titulo = mc[1].trim(); }
 
     const foraDoPeriodo = /^fora do per[íi]odo$/i.test(titulo);
     const corBorda   = foraDoPeriodo ? '#B8B7B0' : '#BA7517';
@@ -10347,6 +10398,9 @@ function ltFormatSinteseAdvertencias(ocsRaw, paraImpressao){
     const corItem    = foraDoPeriodo ? '#555'    : '#5A4A2E';
 
     const itens = corpo ? corpo.split(';').map(s=>s.trim()).filter(Boolean) : [];
+    // O selo mostra a soma das ocorrências por tipo (ex.: atraso 10x + conversa 2x = 12),
+    // e não o nº de registros.
+    if(mc || itens.length){ const n = ltSomarItensAdvertencia(itens); contador = `${n} advertência${n!==1?'s':''}`; }
     const listaHtml = itens.length
       ? `<ul style="margin:0;padding-left:16px;font-size:11.5px;color:${corItem};line-height:1.65">${itens.map(it=>{
           const mi = it.match(/^(.*?)(\s*\(\d+x\))$/i);
@@ -10372,7 +10426,7 @@ function ltFormatSinteseAdvertencias(ocsRaw, paraImpressao){
 // Agrupa os itens da seção "Ata de Conselho" por trimestre — cada ata é um
 // registro único por (turma, trimestre), então o professor e a data já vêm
 // iguais para todas as indicações (encaminhamentos) daquele trimestre. Os
-// grupos aparecem em ordem crescente de trimestre.
+// grupos aparecem com o 2º trimestre primeiro, o 1º logo após e os demais em ordem crescente.
 function ltAgruparAtaPorTrimestre(itens){
   const porTrimestre = new Map();
   itens.forEach(ev=>{
@@ -10382,7 +10436,7 @@ function ltAgruparAtaPorTrimestre(itens){
     if(!grupo.data && ev.data) grupo.data = ev.data;
     grupo.indicacoes.push({ titulo: ev.tipo, obs: ev.obs||'' });
   });
-  return [...porTrimestre.values()].sort((a,b)=> String(a.trimestre).localeCompare(String(b.trimestre), 'pt-BR', { numeric:true }));
+  return [...porTrimestre.values()].sort((a,b)=> (ltOrdemTrimestre(a.trimestre)-ltOrdemTrimestre(b.trimestre)));
 }
 
 // Renderiza o bloco "Ata de Conselho" dividido em subblocos por trimestre —
