@@ -2070,11 +2070,15 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Exportar CSV
       </button>
-      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar estudantes ou atualizar nº/síntese de advertências via CSV">
+      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar CSV: atualiza matrícula, nº e síntese de advertências dos estudantes já cadastrados (nomes comparados sem acentos) e cadastra estudantes novos com as demais colunas (arquivo sem coluna Matrícula). Use o botão Modelo CSV para gerar o arquivo base.">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
         Importar CSV
       </button>
       <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleCSVImport(event)">
+      <button id="btnModeloCSV" class="action-btn" onclick="baixarModeloCSV()" title="Baixar um CSV modelo (com os cabeçalhos aceitos pela importação) para preencher e importar depois">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+        Modelo CSV
+      </button>
       <button id="btnPrint" class="action-btn" onclick="printTable()" title="Imprimir lista de estudantes">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Imprimir
@@ -5313,23 +5317,59 @@ function changeFontSize(htmlSize, bodySize, btn){
 /* ════════════════════════════════════════════════════════════
    CSV IMPORT
    ════════════════════════════════════════════════════════════ */
+function baixarModeloCSV(){
+  // Separador ";" abre direto em colunas no Excel em português; a importação detecta sozinha.
+  const headers = ['Turma','Nome do Estudante','Matrícula','Nº de Advertências','Síntese das Advertências','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Observações'];
+  const exemplo = ['6ºA','NOME DO ESTUDANTE (exemplo - apague esta linha)','123456','0','','Feminino','TÍPICO','N/A','N/A','REGULAR','',''];
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + headers.join(';') + '\r\n' + exemplo.join(';') + '\r\n'], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'modelo_importacao_estudantes.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  showToast('Modelo baixado. Nas linhas, preencha só as colunas que quiser atualizar.','verde');
+}
+
 function importCSVClick(){
   document.getElementById('csvFileInput').click();
+}
+
+function _impEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// Normaliza para comparação: sem acento, maiúsculas, sem pontuação, espaços únicos
+function _impNorm(s){
+  return String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
+}
+function _impNormTurma(s){ return _impNorm(s).replace(/ /g,''); }           // "6º A" == "6ºA"
+function _impMat(s){ return String(s==null?'':s).trim().replace(/\.0+$/,'').replace(/\s+/g,''); } // tira ".0" do Excel
+// UTF-8; se o arquivo vier do Excel em Windows-1252, decodifica assim (evita "Vit�ria")
+function _impDecode(buf){
+  try { return new TextDecoder('utf-8',{fatal:true}).decode(buf); }
+  catch(e){ return new TextDecoder('windows-1252').decode(buf); }
+}
+// Detecta o separador (vírgula, ponto e vírgula ou tab) pela linha de cabeçalho
+function _impDelim(headerLine){
+  const c={',':0,';':0,'\t':0}; let q=false;
+  for(const ch of headerLine){ if(ch==='"') q=!q; else if(!q && ch in c) c[ch]++; }
+  return Object.keys(c).sort((a,b)=>c[b]-c[a])[0];
 }
 
 function handleCSVImport(evt){
   const file = evt.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = async e => {
+  reader.onload = e => {
     try {
-      const text = e.target.result.replace(/^\uFEFF/,''); // remove BOM
+      const text = _impDecode(e.target.result).replace(/^\uFEFF/,''); // remove BOM
       const lines = text.split(/\r?\n/).filter(l=>l.trim());
       if(lines.length < 2){ showToast('CSV vazio ou sem dados.','coral'); return; }
-      const headers = parseCSVRow(lines[0]).map(h=>h.trim().toLowerCase());
+      const delim = _impDelim(lines[0]);
+      const headers = parseCSVRow(lines[0], delim);
       const colMap = {
         turma: findCol(headers,['turma']),
-        nome:  findCol(headers,['nome do estudante','nome','estudante']),
+        nome:  findCol(headers,['nome do estudante','nome','estudante','aluno','nome do aluno']),
+        mat:   findCol(headers,['matrícula','matricula','nº de matrícula','nº matrícula','numero de matricula','numero matricula','numero_matricula','nº da matrícula','num. matrícula','n° matrícula']),
         sexo:  findCol(headers,['sexo']),
         perfil:findCol(headers,['perfil']),
         aee:   findCol(headers,['aee / diagnóstico','aee','diagnóstico']),
@@ -5340,93 +5380,231 @@ function handleCSVImport(evt){
         ocs:   findCol(headers,['síntese das ocorrências','sintese das ocorrencias','síntese','sintese','texto síntese das ocorrências','texto sintese das ocorrencias','resumo das ocorrências','síntese das advertências','sintese das advertencias','texto síntese das advertências','resumo das advertências']),
         obs:   findCol(headers,['observações','observacoes','obs']),
       };
-      if(colMap.nome === -1 || colMap.turma === -1){
-        showToast('CSV precisa ter colunas "Turma" e "Nome do Estudante".','coral');
-        return;
+      if(colMap.nome === -1){
+        showToast('CSV precisa ter a coluna "Nome do Estudante".','coral'); return;
       }
-      let added = 0, updated = 0, skipped = 0;
-      const updatesParaSalvar = []; // {id, fields}
-      for(let i=1;i<lines.length;i++){
-        const cells = parseCSVRow(lines[i]);
-        if(cells.every(c=>!c.trim())) continue;
-        const nome = get(cells,colMap.nome);
-        const turma = get(cells,colMap.turma);
-        if(!nome||!turma){ skipped++; continue; }
-
-        const ocnRaw = colMap.ocn !== -1 ? get(cells,colMap.ocn) : '';
-        const ocsRaw = colMap.ocs !== -1 ? get(cells,colMap.ocs) : '';
-
-        // Estudante já cadastrado? Atualiza apenas nº/síntese de ocorrências
-        const existente = S.find(x=>x.n===nome&&x.t===turma);
-        if(existente){
-          let mudou = false;
-          const camposAtualizados = {};
-          if(ocnRaw !== ''){
-            const ocnNum = Math.max(0, parseInt(ocnRaw,10) || 0);
-            if(ocnNum !== (existente.ocn||0)){ existente.ocn = ocnNum; camposAtualizados.num_ocorrencias = ocnNum; mudou = true; }
-          }
-          if(ocsRaw !== '' && ocsRaw !== existente.ocs){
-            existente.ocs = ocsRaw; camposAtualizados.sintese_ocorrencias = ocsRaw; mudou = true;
-          }
-          if(mudou){
-            updated++;
-            if(existente.id !== undefined) updatesParaSalvar.push({ id: existente.id, fields: camposAtualizados });
-          } else {
-            skipped++;
-          }
-          continue;
-        }
-
-        const sexoRaw = get(cells,colMap.sexo).toUpperCase();
-        const perfilRaw = get(cells,colMap.perfil).toUpperCase();
-        S.push({
-          t: turma,
-          n: nome,
-          s: sexoRaw.startsWith('F')?'F':'M',
-          p: ['ATÍPICO','EM ANÁLISE'].includes(perfilRaw)?perfilRaw:'TÍPICO',
-          a: get(cells,colMap.aee)||'N/A',
-          pip: get(cells,colMap.pip)||'N/A',
-          e: get(cells,colMap.encam)||'REGULAR',
-          r: get(cells,colMap.rotina)||'',
-          ocn: ocnRaw !== '' ? Math.max(0, parseInt(ocnRaw,10) || 0) : 0,
-          ocs: ocsRaw || '',
-          o: get(cells,colMap.obs)||'',
-        });
-        added++;
+      if(colMap.turma === -1 && colMap.mat === -1){
+        showToast('CSV precisa ter as colunas "Turma" e "Nome do Estudante" (ou "Matrícula" e "Nome").','coral'); return;
       }
-      // Salva atualizações de ocorrências no Supabase (estudantes já existentes)
-      for(const upd of updatesParaSalvar){
-        try { await sbPatch('estudantes', upd.fields, [`id=eq.${upd.id}`]); } catch(err){ /* mantém dado local mesmo se falhar */ }
+      const rows = lines.slice(1).map(l=>parseCSVRow(l, delim)).filter(c=>!c.every(x=>!x.trim()));
+      const plan = _impConstruirPlano(rows, colMap);
+      const total = plan.mat.length + plan.oc.length + plan.novos.length;
+      if(!total && !plan.naoEncontrados.length && !plan.ambiguos.length && !plan.conflitos.length){
+        showToast(`Nenhuma alteração: ${plan.semMudanca} registro${plan.semMudanca!==1?'s':''} já estava${plan.semMudanca!==1?'m':''} igual${plan.semMudanca!==1?'is':''}.`,'amber'); return;
       }
-      // Rebuild turma list
-      rebuildTurmas();
-      renderTable(); renderAtipicos(); renderDashboard();
-      if(currentModalIdx!==null) renderModalContent(currentModalIdx);
-      const partes = [];
-      if(added) partes.push(`${added} estudante${added!==1?'s':''} adicionado${added!==1?'s':''}`);
-      if(updated) partes.push(`${updated} registro${updated!==1?'s':''} de advertências atualizado${updated!==1?'s':''}`);
-      if(skipped) partes.push(`${skipped} linha${skipped!==1?'s':''} ignorada${skipped!==1?'s':''}`);
-      showToast(`CSV importado: ${partes.join(', ')||'nenhuma alteração'}.`, 'verde');
+      _impMostrarPrevia(plan, ()=>_impAplicar(plan));
     } catch(err){
       showToast('Erro ao ler CSV: '+err.message,'coral');
+    } finally {
+      evt.target.value='';
     }
-    evt.target.value='';
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsArrayBuffer(file);
 }
 
-function parseCSVRow(line){
+// Compara o CSV com os estudantes (S) e monta o plano de alterações — não grava nada.
+function _impConstruirPlano(rows, colMap){
+  const temMat = colMap.mat !== -1;
+  const plan = { mat:[], oc:[], novos:[], naoEncontrados:[], ambiguos:[], conflitos:[], semMudanca:0, ignoradas:0 };
+  const idx = new Map();
+  S.forEach(x=>{ const k=_impNorm(x.n); if(!idx.has(k)) idx.set(k,[]); idx.get(k).push(x); });
+  const matPlanejada = new Map();   // estudante -> matrícula nova (evita 2 linhas pro mesmo aluno)
+  const matUsadaNoArquivo = new Map(); // matrícula nova -> estudante (evita a mesma matrícula p/ 2 alunos)
+
+  for(const cells of rows){
+    const nome = get(cells,colMap.nome);
+    const turma = get(cells,colMap.turma);
+    if(!nome || (!temMat && !turma)){ plan.ignoradas++; continue; }
+    const matNova = temMat ? _impMat(get(cells,colMap.mat)) : '';
+    const ocnRaw = colMap.ocn !== -1 ? get(cells,colMap.ocn) : '';
+    const ocsRaw = colMap.ocs !== -1 ? get(cells,colMap.ocs) : '';
+
+    // Localiza o estudante ignorando acento/caixa/espaços
+    const cands = idx.get(_impNorm(nome)) || [];
+    let existente = null, ambiguo = false;
+    const porTurma = turma ? cands.filter(x=>_impNormTurma(x.t)===_impNormTurma(turma)) : [];
+    if(porTurma.length===1) existente = porTurma[0];
+    else if(porTurma.length>1) ambiguo = true;
+    else if(temMat){ // atualização de matrícula: aceita casar só pelo nome se for único
+      if(cands.length===1) existente = cands[0];
+      else if(cands.length>1) ambiguo = true;
+    }
+
+    if(existente){
+      let mudou = false, tratado = false;
+      if(temMat && matNova!==''){
+        const atual = existente.matricula==null ? '' : String(existente.matricula);
+        if(atual !== matNova){
+          const outro = S.find(x=>x!==existente && x.matricula!=null && String(x.matricula)===matNova);
+          const dupArq = matUsadaNoArquivo.get(matNova);
+          if(outro){
+            tratado = true; plan.conflitos.push({ nome:existente.n, turma:existente.t, mat:matNova, motivo:`já pertence a ${outro.n} (${outro.t})` });
+          } else if(dupArq && dupArq!==existente){
+            tratado = true; plan.conflitos.push({ nome:existente.n, turma:existente.t, mat:matNova, motivo:`aparece no arquivo também para ${dupArq.n}` });
+          } else if(matPlanejada.has(existente) && matPlanejada.get(existente)!==matNova){
+            tratado = true; plan.conflitos.push({ nome:existente.n, turma:existente.t, mat:matNova, motivo:'aluno aparece no arquivo com outra matrícula' });
+          } else if(!matPlanejada.has(existente)){
+            matPlanejada.set(existente, matNova); matUsadaNoArquivo.set(matNova, existente);
+            plan.mat.push({ est:existente, de:atual, para:matNova });
+            mudou = true;
+          }
+        }
+      }
+      // nº/síntese de advertências (comportamento anterior)
+      const campos = {}; let ocMudou = false;
+      if(ocnRaw !== ''){
+        const n = Math.max(0, parseInt(ocnRaw,10) || 0);
+        if(n !== (existente.ocn||0)){ campos.num_ocorrencias = n; ocMudou = true; }
+      }
+      if(ocsRaw !== '' && ocsRaw !== existente.ocs){ campos.sintese_ocorrencias = ocsRaw; ocMudou = true; }
+      if(ocMudou){ plan.oc.push({ est:existente, campos }); mudou = true; }
+      if(!mudou && !tratado) plan.semMudanca++;
+      continue;
+    }
+
+    if(ambiguo){ plan.ambiguos.push({ nome, turma, mat:matNova }); continue; }
+    // Arquivo de matrícula: não cria aluno novo (evita duplicar por diferença de grafia)
+    if(temMat){ plan.naoEncontrados.push({ nome, turma, mat:matNova }); continue; }
+
+    const sexoRaw = get(cells,colMap.sexo).toUpperCase();
+    const perfilRaw = get(cells,colMap.perfil).toUpperCase();
+    plan.novos.push({
+      t: turma, n: nome, s: sexoRaw.startsWith('F')?'F':'M',
+      p: ['ATÍPICO','EM ANÁLISE'].includes(perfilRaw)?perfilRaw:'TÍPICO',
+      a: get(cells,colMap.aee)||'N/A', pip: get(cells,colMap.pip)||'N/A',
+      e: get(cells,colMap.encam)||'REGULAR', r: get(cells,colMap.rotina)||'',
+      ocn: ocnRaw !== '' ? Math.max(0, parseInt(ocnRaw,10) || 0) : 0,
+      ocs: ocsRaw || '', o: get(cells,colMap.obs)||'',
+    });
+  }
+  return plan;
+}
+
+// Janela de conferência antes de gravar
+function _impMostrarPrevia(plan, onConfirm){
+  const velho = document.getElementById('impPreviaOverlay'); if(velho) velho.remove();
+  const total = plan.mat.length + plan.oc.length + plan.novos.length;
+  const borda = '1px solid rgba(128,128,128,.28)';
+  const tabela = (cols, linhas)=>`<div style="max-height:210px;overflow:auto;border:${borda};border-radius:8px;margin-top:6px">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>${cols.map(c=>`<th style="text-align:left;padding:6px 8px;background:rgba(128,128,128,.14);position:sticky;top:0">${c}</th>`).join('')}</tr></thead>
+      <tbody>${linhas.map(l=>`<tr>${l.map(c=>`<td style="padding:5px 8px;border-top:${borda}">${_impEsc(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>`;
+  const secao = (titulo, n, corpo, aberta)=> n ? `<details ${aberta?'open':''} style="margin-top:12px"><summary style="cursor:pointer;font-weight:600;font-size:13px">${titulo} (${n})</summary>${corpo}</details>` : '';
+
+  const html =
+    secao('Matrículas a atualizar', plan.mat.length,
+      tabela(['Estudante','Turma','Matrícula atual','Nova matrícula'], plan.mat.map(m=>[m.est.n, m.est.t, m.de||'—', m.para])), true) +
+    secao('Advertências a atualizar', plan.oc.length,
+      tabela(['Estudante','Turma','Nº','Síntese'], plan.oc.map(o=>[o.est.n, o.est.t, o.campos.num_ocorrencias!==undefined?o.campos.num_ocorrencias:'—', o.campos.sintese_ocorrencias!==undefined?'alterada':'—'])), plan.mat.length===0) +
+    secao('Novos estudantes', plan.novos.length,
+      tabela(['Nome','Turma'], plan.novos.map(n=>[n.n, n.t])), true) +
+    secao('Não encontrados — nada será gravado para eles', plan.naoEncontrados.length,
+      tabela(['Nome no arquivo','Turma','Matrícula'], plan.naoEncontrados.map(n=>[n.nome, n.turma||'—', n.mat||'—'])), true) +
+    secao('Nome repetido em mais de um aluno — ignorados', plan.ambiguos.length,
+      tabela(['Nome no arquivo','Turma','Matrícula'], plan.ambiguos.map(n=>[n.nome, n.turma||'—', n.mat||'—'])), true) +
+    secao('Conflitos de matrícula — ignorados', plan.conflitos.length,
+      tabela(['Estudante','Turma','Matrícula','Motivo'], plan.conflitos.map(c=>[c.nome, c.turma, c.mat, c.motivo])), true);
+
+  const ov = document.createElement('div');
+  ov.id = 'impPreviaOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = `<div role="dialog" aria-modal="true" style="background:var(--bg-card,#fff);color:var(--text-main,#1F2937);border-radius:14px;max-width:720px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);font-family:inherit">
+    <div style="padding:18px 20px 8px">
+      <div style="font-size:16px;font-weight:700">Conferir importação</div>
+      <div style="font-size:12.5px;opacity:.75;margin-top:4px">${total} alteraç${total!==1?'ões':'ão'} pronta${total!==1?'s':''} para gravar${plan.semMudanca?` · ${plan.semMudanca} já estava${plan.semMudanca!==1?'m':''} igual${plan.semMudanca!==1?'is':''}`:''}${plan.ignoradas?` · ${plan.ignoradas} linha${plan.ignoradas!==1?'s':''} sem nome/turma`:''}. Nomes foram comparados sem considerar acentos, maiúsculas ou espaços extras.</div>
+    </div>
+    <div style="padding:0 20px 12px;overflow:auto;flex:1">${html || '<div style="margin-top:12px;font-size:13px">Nada a gravar.</div>'}</div>
+    <div style="padding:12px 20px;border-top:${borda};display:flex;justify-content:flex-end;gap:8px">
+      <button id="impPreviaCancel" style="padding:8px 16px;border-radius:8px;border:${borda};background:transparent;color:inherit;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button id="impPreviaOk" ${total?'':'disabled'} style="padding:8px 16px;border-radius:8px;border:none;background:var(--verde-dark,#0F766E);color:#fff;cursor:pointer;font-weight:600;font-family:inherit;${total?'':'opacity:.4;cursor:not-allowed'}">Aplicar ${total} alteraç${total!==1?'ões':'ão'}</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const fechar = ()=>{ ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = ev=>{ if(ev.key==='Escape') fechar(); };
+  document.addEventListener('keydown', onKey);
+  ov.addEventListener('click', ev=>{ if(ev.target===ov) fechar(); });
+  document.getElementById('impPreviaCancel').onclick = fechar;
+  document.getElementById('impPreviaOk').onclick = async ()=>{
+    const ok = document.getElementById('impPreviaOk'); ok.disabled = true; ok.textContent = 'Gravando…';
+    fechar();
+    await onConfirm();
+  };
+}
+
+async function _impAplicar(plan){
+  const falhas = [];      // alunos cuja gravação falhou
+  const cascFalhas = new Set();
+  let matOk = 0, ocOk = 0;
+
+  // Tabelas que usam a matrícula como vínculo com o aluno
+  const CASCATA = [['fluencia_leitura','estudante_matricula'],['materiais_recebimento','aluno_matricula'],['rel_escolares','aluno_matricula'],['aprovacoes_pendentes','estudante_matricula']];
+
+  async function trocarMatricula(item){
+    const est = item.est;
+    if(est.id!==undefined && est.id!==null){
+      const res = await sbPatch('estudantes', { numero_matricula:item.para }, [`id=eq.${est.id}`]);
+      if(res.error || !Array.isArray(res.data) || !res.data.length){ falhas.push(est.n); return; }
+      if(item.de){ // mantém PIP Leitura, materiais e relatórios vinculados ao mesmo aluno
+        const de = encodeURIComponent(item.de);
+        await Promise.all(CASCATA.map(async ([tab,col])=>{
+          try { const r = await sbPatch(tab, { [col]:item.para }, [`${col}=eq.${de}`]); if(r.error) cascFalhas.add(tab); }
+          catch(err){ cascFalhas.add(tab); }
+        }));
+        try { if(typeof materiaisLog!=='undefined') materiaisLog.forEach(m=>{ if(m.aluno_matricula!=null && String(m.aluno_matricula)===item.de) m.aluno_matricula=item.para; }); } catch(_){}
+        try { if(typeof relEscolaresLog!=='undefined') relEscolaresLog.forEach(r=>{ if(r.aluno_matricula!=null && String(r.aluno_matricula)===item.de) r.aluno_matricula=item.para; }); } catch(_){}
+      }
+    }
+    est.matricula = item.para;
+    matOk++;
+  }
+
+  const total = plan.mat.length;
+  for(let i=0;i<plan.mat.length;i+=6){
+    showToast(`Atualizando matrículas… ${Math.min(i+6,total)}/${total}`,'amber');
+    await Promise.all(plan.mat.slice(i,i+6).map(trocarMatricula));
+  }
+  try { if(typeof _pipLeituraCache!=='undefined') Object.keys(_pipLeituraCache).forEach(k=>delete _pipLeituraCache[k]); } catch(_){}
+
+  for(const o of plan.oc){
+    const est = o.est;
+    if(o.campos.num_ocorrencias!==undefined) est.ocn = o.campos.num_ocorrencias;
+    if(o.campos.sintese_ocorrencias!==undefined) est.ocs = o.campos.sintese_ocorrencias;
+    if(est.id!==undefined && est.id!==null){
+      try { const r = await sbPatch('estudantes', o.campos, [`id=eq.${est.id}`]); if(r.error) falhas.push(est.n); } catch(err){ falhas.push(est.n); }
+    }
+    ocOk++;
+  }
+  plan.novos.forEach(n=>S.push(n));
+
+  rebuildTurmas();
+  renderTable(); renderAtipicos(); renderDashboard();
+  if(currentModalIdx!==null) renderModalContent(currentModalIdx);
+
+  const partes = [];
+  if(matOk) partes.push(`${matOk} matrícula${matOk!==1?'s':''} atualizada${matOk!==1?'s':''}`);
+  if(ocOk) partes.push(`${ocOk} registro${ocOk!==1?'s':''} de advertências atualizado${ocOk!==1?'s':''}`);
+  if(plan.novos.length) partes.push(`${plan.novos.length} estudante${plan.novos.length!==1?'s':''} adicionado${plan.novos.length!==1?'s':''}`);
+  let msg = `CSV importado: ${partes.join(', ')||'nenhuma alteração'}.`;
+  if(falhas.length) msg += ` ATENÇÃO: ${falhas.length} não gravou no banco (${falhas.slice(0,3).join(', ')}${falhas.length>3?'…':''}).`;
+  if(cascFalhas.size) msg += ` Vínculos não atualizados em: ${[...cascFalhas].join(', ')}.`;
+  showToast(msg, (falhas.length||cascFalhas.size)?'coral':'verde');
+  if(falhas.length) console.warn('[Importação CSV] falhas ao gravar:', falhas);
+}
+
+function parseCSVRow(line, delim=','){
   const result=[]; let cur=''; let inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
     if(c==='"'){ if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ; }
-    else if(c===','&&!inQ){ result.push(cur); cur=''; }
+    else if(c===delim&&!inQ){ result.push(cur); cur=''; }
     else cur+=c;
   }
   result.push(cur);
   return result.map(s=>s.trim());
 }
-function findCol(headers, names){ for(const n of names){ const i=headers.indexOf(n); if(i!==-1) return i; } return -1; }
+// Cabeçalhos comparados sem acento e sem diferença de maiúsculas
+function findCol(headers, names){ const hn=headers.map(_impNorm); for(const n of names){ const i=hn.indexOf(_impNorm(n)); if(i!==-1) return i; } return -1; }
 function get(cells,idx){ return idx===-1?'':(cells[idx]||'').trim(); }
 
 function rebuildTurmas(){
@@ -6711,7 +6889,7 @@ async function migrarAlunosOrfaosParaSupabase(alunos){
   for(const aluno of alunos){
     try {
       const { data } = await sbPost('estudantes', {
-        turma: aluno.t, nome: aluno.n, sexo: aluno.s, perfil: aluno.p,
+        turma: aluno.t, nome: aluno.n, numero_matricula: aluno.matricula||null, sexo: aluno.s, perfil: aluno.p,
         aee: aluno.a, pip: aluno.pip, encam: aluno.e, rotina: aluno.r,
         num_ocorrencias: aluno.ocn||0, sintese_ocorrencias: aluno.ocs||'',
         obs: aluno.o, transferido: !!aluno._transferido, nova_matricula: !!aluno._novaMatricula
