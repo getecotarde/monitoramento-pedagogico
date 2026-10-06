@@ -1173,6 +1173,22 @@
         <p style="font-size:0.82rem; opacity:0.85;">🎓 6º Anos: 08 e 09/09 · 🎓 7º Anos: 10 e 11/09 — use o seletor "6º Anos / 7º Anos" dentro de cada aba.</p>
     </header>
 
+    <!-- CONTROLE DE EDIÇÃO — código de acesso da coordenação / professor de Educação Física -->
+    <div class="container" style="padding-bottom:0;">
+        <div id="lockedView" style="display:block; margin-top:0.8rem; padding:0.7rem 1rem; border:1px solid #bfdbfe; background:#eff6ff; border-radius:8px;">
+            <form onsubmit="tryUnlockEditing(event)" style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
+                <span style="font-size:0.9rem; color:#1e3a8a;">🔒 <strong>Modo consulta.</strong> Coordenação / Professor de Educação Física: digite o código para liberar a edição (placares, grupos, deduções).</span>
+                <input type="password" id="editCodeInput" placeholder="Código de acesso" autocomplete="off" required style="padding:0.4rem 0.6rem; border:1px solid #93c5fd; border-radius:6px;">
+                <button type="submit" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;">🔓 Liberar Edição</button>
+                <span id="unlockErrorMsg" style="display:none; color:#b91c1c; font-size:0.85rem; flex-basis:100%;"></span>
+            </form>
+        </div>
+        <div id="unlockedView" style="display:none; margin-top:0.8rem; padding:0.7rem 1rem; border:1px solid #86efac; background:#f0fdf4; border-radius:8px;">
+            <span style="font-size:0.9rem; color:#166534;">🔓 <strong>Edição liberada.</strong></span>
+            <button type="button" class="tab-btn" style="width:auto; margin-left:0.6rem;" onclick="lockEditing()">🔒 Bloquear novamente</button>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Navigation Tabs -->
         <nav class="tabs">
