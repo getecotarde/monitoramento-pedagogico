@@ -2364,7 +2364,7 @@
         <div id="quadrogeral" class="tab-content">
             <div class="card">
                 <h2>🥇 Quadro Geral — Pontuação por Colocação</h2>
-                <p style="color: var(--text-muted);">Classificação geral, somando os pontos de cada turma em todas as modalidades do seu ano: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. 6º e 7º Anos disputam quadros separados, já que competem em campeonatos distintos.</p>
+                <p style="color: var(--text-muted);">Classificação geral, somando os pontos de cada turma em todas as modalidades do seu ano: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. 6º e 7º Anos disputam quadros separados, já que competem em campeonatos distintos. Registros de indisciplina durante o evento podem gerar <strong>dedução de pontos</strong>; a nota descontada aparece com asterisco (*) e a explicação logo abaixo do quadro.</p>
                 <div class="view-toggle-bar" id="quadrogeralAnoToggle">
                     <button type="button" class="view-toggle-btn active" id="quadrogeralBtn6" onclick="switchAno('quadrogeral','6')">🎓 6º Anos</button>
                     <button type="button" class="view-toggle-btn" id="quadrogeralBtn7" onclick="switchAno('quadrogeral','7')">🎓 7º Anos</button>
@@ -2397,6 +2397,9 @@
                         <tbody id="corpoQuadroGeral"></tbody>
                     </table>
                 </div>
+                <div id="notaDescontos6"></div>
+                <div id="penalidadesForm6"></div>
+                <div id="penalidadesLista6"></div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>
             </div>
@@ -2420,6 +2423,9 @@
                         <tbody id="corpoQuadroGeral7"></tbody>
                     </table>
                 </div>
+                <div id="notaDescontos7"></div>
+                <div id="penalidadesForm7"></div>
+                <div id="penalidadesLista7"></div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/3º lugar definido não contam pontos até o resultado ser lançado.</p>
                 <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista.</p>
             </div>
@@ -6739,6 +6745,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             buildGroupTable('groupTable7', turmas7);
             renderScheduleTable();
             sincronizarPermissaoQuadro();
+            if (typeof window.__renderPenalidadesTodas === 'function') window.__renderPenalidadesTodas();
         }
 
         // Repassa o estado de edição (liberado/bloqueado) para dentro do iframe do
@@ -8880,6 +8887,159 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // somada em todas as modalidades e agrupada por turma/seleção. =====
         var PONTOS_QUADRO_GERAL = { ouro: 5, prata: 3, bronze: 1 };
 
+        // ===== DEDUÇÃO DE PONTOS POR INDISCIPLINA =====
+        // Guardadas junto dos placares (mesma linha do Supabase / mesmo localStorage),
+        // na chave reservada '__penalidades' => { lista: [ {id, turma, pontos, motivo, data} ] }.
+        var CHAVE_PENALIDADES = '__penalidades';
+
+        function _cfgPenal(ano) {
+            return (ano === '7')
+                ? { carregar: function () { return carregarPlacaresSalvos7(); }, ls: LS_KEY_PLACARES_7, sync: function (d) { return salvarPlacaresNoSupabase7(d); }, selecoes: function () { return SELECOES_TURMA_7; } }
+                : { carregar: function () { return carregarPlacaresSalvos(); }, ls: LS_KEY_PLACARES, sync: function (d) { return salvarPlacaresNoSupabase(d); }, selecoes: function () { return SELECOES_TURMA; } };
+        }
+
+        function escHtmlPenal(t) {
+            return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function listarPenalidades(ano) {
+            var d = _cfgPenal(ano).carregar();
+            var p = d && d[CHAVE_PENALIDADES];
+            return (p && Array.isArray(p.lista)) ? p.lista : [];
+        }
+
+        // Aplica as deduções às linhas do quadro (antes da ordenação).
+        function aplicarPenalidadesNoQuadro(lista, ano) {
+            var pens = listarPenalidades(ano);
+            lista.forEach(function (l) {
+                l.pontosBrutos = l.pontos;
+                l.descontos = pens.filter(function (p) { return p.turma === l.turma; });
+                l.descontoTotal = l.descontos.reduce(function (a, p) { return a + (Number(p.pontos) || 0); }, 0);
+                l.pontos = l.pontosBrutos - l.descontoTotal;
+            });
+        }
+
+        function htmlCelulaPontos(linha, impressao) {
+            if (!linha.descontoTotal) return impressao ? ('<b>' + linha.pontos + '</b>') : String(linha.pontos);
+            var det = '<div style="font-size:0.7rem; font-weight:400; color:' + (impressao ? '#555' : 'var(--text-muted)') + '; white-space:nowrap;">(' + linha.pontosBrutos + ' − ' + linha.descontoTotal + ')</div>';
+            return '<b>' + linha.pontos + '*</b>' + det;
+        }
+
+        function fmtDataPenal(iso) {
+            if (!iso) return '';
+            var m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            return m ? (m[3] + '/' + m[2] + '/' + m[1]) : '';
+        }
+
+        // Texto de explicação dos asteriscos (abaixo do quadro e na impressão).
+        function htmlNotasDescontos(lista, impressao) {
+            var comDesc = lista.filter(function (l) { return l.descontoTotal > 0; });
+            if (!comDesc.length) return '';
+            var itens = comDesc.map(function (l) {
+                var motivos = l.descontos.map(function (p) {
+                    return '−' + p.pontos + ' pt' + (Number(p.pontos) === 1 ? '' : 's') + ' por indisciplina: ' + escHtmlPenal(p.motivo) + (p.data ? ' (' + fmtDataPenal(p.data) + ')' : '');
+                }).join('; ');
+                return '<div style="margin-top:0.25rem;">* <strong>' + l.selecao.bandeira + ' ' + l.selecao.pais + ' (' + l.turma + ')</strong>: ' + motivos + '.</div>';
+            }).join('');
+            var estilo = impressao ? 'font-size:10px;margin-top:8px;' : 'font-size:0.82rem; margin-top:0.6rem; padding:0.6rem 0.8rem; border-left:4px solid #d97706; background:rgba(217,119,6,0.08); border-radius:6px;';
+            return '<div class="nota-rodape nota-descontos" style="' + estilo + '"><strong>* Pontuação com dedução por registro de indisciplina durante o evento:</strong>' + itens + '</div>';
+        }
+
+        function renderNotasDescontos(ano, lista) {
+            var el = document.getElementById('notaDescontos' + ano);
+            if (el) el.innerHTML = htmlNotasDescontos(lista, false);
+        }
+
+        function _podeEditarPenal() { return (typeof editUnlocked !== 'undefined') && !!editUnlocked; }
+
+        function renderPenalidadesUI(ano) {
+            var formBox = document.getElementById('penalidadesForm' + ano);
+            var listaBox = document.getElementById('penalidadesLista' + ano);
+            if (!formBox || !listaBox) return;
+            var pode = _podeEditarPenal();
+            // O formulário só é reconstruído quando o estado de bloqueio muda (não apaga o que está sendo digitado).
+            if (formBox.getAttribute('data-pode') !== (pode ? '1' : '0')) {
+                formBox.setAttribute('data-pode', pode ? '1' : '0');
+                if (!pode) {
+                    formBox.innerHTML = '<div class="alert alert-info" style="margin-top:0.8rem;">🔒 O lançamento de deduções por indisciplina é restrito à coordenação / professor de Educação Física. Libere a edição com o código de acesso para registrar ou remover deduções.</div>';
+                } else {
+                    var opcoes = Object.keys(_cfgPenal(ano).selecoes()).map(function (t) {
+                        var sel = _cfgPenal(ano).selecoes()[t];
+                        return '<option value="' + t + '">' + sel.bandeira + ' ' + sel.pais + ' (' + t + ')</option>';
+                    }).join('');
+                    formBox.innerHTML =
+                        '<div style="margin-top:1rem; padding:0.8rem; border:1px dashed #d97706; border-radius:8px;">' +
+                        '<h3 style="margin:0 0 0.5rem 0;">⚖️ Registrar dedução por indisciplina</h3>' +
+                        '<div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end;">' +
+                        '<label style="font-size:0.8rem;">Turma / Seleção<br><select id="penTurma' + ano + '" style="padding:0.4rem;">' + opcoes + '</select></label>' +
+                        '<label style="font-size:0.8rem;">Pontos a descontar<br><input type="number" id="penPontos' + ano + '" min="1" step="1" value="1" style="padding:0.4rem; width:6rem;"></label>' +
+                        '<label style="font-size:0.8rem; flex:1; min-width:14rem;">Motivo / explicação (aparece no quadro)<br><input type="text" id="penMotivo' + ano + '" maxlength="160" placeholder="Ex.: desrespeito ao árbitro no jogo de Futsal" style="padding:0.4rem; width:100%;"></label>' +
+                        '<button type="button" class="tab-btn" style="width:auto; background:#d97706; color:#fff;" onclick="__addPenalidade(\'' + ano + '\')">➕ Aplicar dedução</button>' +
+                        '</div><div id="penStatus' + ano + '" style="font-size:0.8rem; margin-top:0.4rem; color:var(--text-muted);"></div></div>';
+                }
+            }
+            var pens = listarPenalidades(ano);
+            if (!pens.length) { listaBox.innerHTML = ''; return; }
+            var sels = _cfgPenal(ano).selecoes();
+            var linhas = pens.map(function (p) {
+                var sel = sels[p.turma];
+                return '<tr><td>' + (sel ? sel.bandeira + ' ' + sel.pais + ' ' : '') + '(' + escHtmlPenal(p.turma) + ')</td>' +
+                    '<td style="font-weight:700;">−' + escHtmlPenal(p.pontos) + '</td>' +
+                    '<td>' + escHtmlPenal(p.motivo) + '</td>' +
+                    '<td style="white-space:nowrap;">' + fmtDataPenal(p.data) + '</td>' +
+                    '<td>' + (pode ? '<button type="button" class="tab-btn" style="width:auto; padding:0.2rem 0.6rem;" onclick="__removerPenalidade(\'' + ano + '\',\'' + escHtmlPenal(p.id) + '\')">🗑️ Remover</button>' : '') + '</td></tr>';
+            }).join('');
+            listaBox.innerHTML = '<h3 style="margin-top:1rem;">📝 Deduções registradas</h3><div class="table-responsive"><table><thead><tr><th>Turma</th><th>Pontos</th><th>Motivo</th><th>Data</th><th></th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+        }
+
+        function _atualizarQuadroPorAno(ano) {
+            if (ano === '7') { if (typeof renderQuadroGeral7 === 'function') renderQuadroGeral7(); }
+            else renderQuadroGeral();
+        }
+
+        async function _salvarPenalidades(ano, novaLista, msgEl) {
+            var cfg = _cfgPenal(ano);
+            var d = cfg.carregar();
+            d[CHAVE_PENALIDADES] = { lista: novaLista };
+            try { localStorage.setItem(cfg.ls, JSON.stringify(d)); } catch (e) { }
+            _atualizarQuadroPorAno(ano);
+            if (msgEl) msgEl.textContent = '💾 Salvando...';
+            var ok = await cfg.sync(d);
+            var el = document.getElementById('penStatus' + ano) || msgEl;
+            if (el) el.textContent = ok ? '✅ Salvo e sincronizado (' + new Date().toLocaleTimeString('pt-BR') + ').' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.';
+        }
+
+        window.__addPenalidade = function (ano) {
+            if (!_podeEditarPenal()) return;
+            var turma = document.getElementById('penTurma' + ano).value;
+            var pontos = parseInt(document.getElementById('penPontos' + ano).value, 10);
+            var motivoEl = document.getElementById('penMotivo' + ano);
+            var motivo = (motivoEl.value || '').trim();
+            var st = document.getElementById('penStatus' + ano);
+            if (!turma) { st.textContent = '⚠️ Selecione a turma.'; return; }
+            if (!(pontos >= 1)) { st.textContent = '⚠️ Informe os pontos a descontar (número inteiro maior que zero).'; return; }
+            if (!motivo) { st.textContent = '⚠️ Informe o motivo da dedução — ele será exibido junto ao asterisco no quadro.'; return; }
+            var nova = listarPenalidades(ano).concat([{ id: 'pen_' + Date.now(), turma: turma, pontos: pontos, motivo: motivo, data: new Date().toISOString() }]);
+            motivoEl.value = '';
+            _salvarPenalidades(ano, nova, st);
+        };
+
+        window.__removerPenalidade = function (ano, id) {
+            if (!_podeEditarPenal()) return;
+            if (!confirm('Remover esta dedução de pontos?')) return;
+            var nova = listarPenalidades(ano).filter(function (p) { return p.id !== id; });
+            _salvarPenalidades(ano, nova, document.getElementById('penStatus' + ano));
+        };
+
+        // Chamado quando a edição é liberada/bloqueada (ver applyEditLockUI).
+        window.__renderPenalidadesTodas = function () {
+            renderPenalidadesUI('6');
+            renderPenalidadesUI('7');
+        };
+
+
         // Siglas curtas de cada modalidade, exibidas ao lado do nº de
         // conquistas no Quadro Geral (ex.: 🥇 2 — FUT-M, QUE).
         var SIGLA_MODALIDADE = {
@@ -8920,6 +9080,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 });
             });
             var lista = turmasOrdem.map(function (t) { return tabela[t]; });
+            aplicarPenalidadesNoQuadro(lista, '6');
             lista.sort(function (a, b) {
                 if (b.pontos !== a.pontos) return b.pontos - a.pontos;
                 if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
@@ -8947,9 +9108,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<td>' + celulaMedalha(linha.ouro) + '</td>' +
                     '<td>' + celulaMedalha(linha.prata) + '</td>' +
                     '<td>' + celulaMedalha(linha.bronze) + '</td>' +
-                    '<td style="font-weight:700;">' + linha.pontos + '</td>' +
+                    '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td>' +
                     '</tr>';
             }).join('');
+            renderNotasDescontos('6', lista);
+            renderPenalidadesUI('6');
         }
 
         // ---------------------------------------------------------------
@@ -8970,14 +9133,15 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<td>' + celula(linha.ouro) + '</td>' +
                     '<td>' + celula(linha.prata) + '</td>' +
                     '<td>' + celula(linha.bronze) + '</td>' +
-                    '<td><b>' + linha.pontos + '</b></td>' +
+                    '<td>' + htmlCelulaPontos(linha, true) + '</td>' +
                     '</tr>';
             }).join('');
             return '<div class="qg-print-page">' +
                 '<h1>🥇 Quadro Geral — Interclasse GETECO 2026</h1>' +
-                '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Pontuação: 1º lugar = 5 pts · 2º lugar = 3 pts · 3º lugar = 1 pt</p>' +
+                '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Pontuação: 1º lugar = 5 pts · 2º lugar = 3 pts · 3º lugar = 1 pt · * = pontuação com dedução por indisciplina (veja a explicação abaixo da tabela)</p>' +
                 '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
+                htmlNotasDescontos(lista, true) +
                 '<p class="nota-rodape"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>' +
                 '<p class="nota-rodape">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado. Gerado em ' + new Date().toLocaleDateString('pt-BR') + '.</p>' +
                 '<p style="font-size:9px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
@@ -10397,6 +10561,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 });
             });
             var lista = turmasOrdem.map(function (t) { return tabela[t]; });
+            aplicarPenalidadesNoQuadro(lista, '7');
             lista.sort(function (a, b) {
                 if (b.pontos !== a.pontos) return b.pontos - a.pontos;
                 if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
@@ -10420,8 +10585,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 return '<tr><td style="font-weight:700;">' + posicao + '</td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
                     '<td>' + celulaMedalha(linha.ouro) + '</td><td>' + celulaMedalha(linha.prata) + '</td><td>' + celulaMedalha(linha.bronze) + '</td>' +
-                    '<td style="font-weight:700;">' + linha.pontos + '</td></tr>';
+                    '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td></tr>';
             }).join('');
+            renderNotasDescontos('7', lista);
+            renderPenalidadesUI('7');
         }
 
         // ----- Alterna a visualização 6º / 7º Ano dentro de uma mesma aba,
