@@ -466,6 +466,60 @@
     .tab-btn { font-size: 11px; padding: 8px 10px; }
   }
 
+
+  .tab-bar{overflow-x:auto;flex-wrap:nowrap}
+  .tab-btn{white-space:nowrap}
+  .tab-btn.ori{border-color:var(--gold)}
+  .ori-sub{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+  .ori-sub button{font:500 12.5px 'IBM Plex Sans',sans-serif;padding:7px 14px;border:1px solid var(--ledger-line);background:var(--card-bg);color:var(--ink-navy-soft);border-radius:20px;cursor:pointer}
+  .ori-sub button.active{background:var(--ink-navy);color:var(--white);border-color:var(--ink-navy)}
+  .ori-sub button.main{border:2px solid var(--gold);font-weight:600}
+  .ori{background:var(--card-bg);border:1px solid var(--ledger-line);border-radius:4px;padding:20px 24px;line-height:1.55;color:var(--text-dark);font-size:14px;max-width:980px}
+  .ori.guia{border:2px solid var(--gold);border-top-width:6px}
+  .ori h2{font:400 22px 'Special Elite',monospace;color:var(--ink-navy);margin:0 0 6px}
+  .ori h3{font:400 16px 'Special Elite',monospace;color:var(--stamp-red);margin:22px 0 6px;padding-top:6px;border-top:1px dashed var(--ledger-line)}
+  .ori p{margin:6px 0}
+  .ori table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px;display:block;overflow-x:auto}
+  .ori th,.ori td{border:1px solid var(--ledger-line);padding:6px 9px;text-align:left;vertical-align:top}
+  .ori th{background:var(--paper-deep);color:var(--ink-navy)}
+  .ori .toc{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+  .ori .toc a{font-size:12px;padding:4px 10px;border-radius:14px;background:var(--paper);border:1px solid var(--ledger-line);color:var(--ink-navy);text-decoration:none}
+  .ori .toc a:hover{background:var(--paper-deep)}
+  .ori .box{background:var(--paper);border-left:4px solid var(--gold);padding:8px 12px;margin:10px 0;border-radius:0 3px 3px 0}
+  .ori blockquote{margin:10px 0;padding:6px 14px;border-left:3px solid var(--stamp-red);font-style:italic}
+  .ori .texto{font-family:'Caveat',cursive;font-size:20px;line-height:1.35;background:var(--white);border:1px dashed var(--ledger-line);padding:10px 14px}
+  .ori .r{color:#A73B2E;font-weight:600}.ori .y{color:#9A7418;font-weight:600}.ori .g{color:#4F6B3A;font-weight:600}
+  .calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin:8px 0}
+  .calc label{font-size:11.5px;color:var(--text-mute);display:block}
+  .calc input,.calc select{width:100%;box-sizing:border-box;padding:7px;border:1px solid var(--ledger-line);border-radius:3px;background:var(--white);font:inherit}
+  #calcOut{margin-top:8px;font-weight:500}
+  .ori-tools{display:flex;justify-content:flex-end;margin:0 0 8px}
+
+
+  .sd-pick{margin-top:10px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .sd-pick select,.sd-sel,.sd-filter select{font:inherit;padding:4px 6px;border:1px solid var(--ledger-line);border-radius:3px;background:var(--white)}
+  .sd-pick select{border:2px solid var(--gold)}
+  .sd-filter{margin:10px 0 6px;font-size:13px}
+  #sdBanner{display:none;margin-top:10px;padding:8px 12px;background:#F6E3DF;border-left:4px solid var(--stamp-red);font-size:12.5px}
+  #sdBanner code{display:block;margin:4px 0;padding:4px 6px;background:var(--white);user-select:all;word-break:break-all}
+  .evo{margin:8px 0 10px;padding:8px 12px;background:var(--paper);border-left:4px solid var(--gold);font-size:13px}
+  .evo-chip{display:inline-block;padding:2px 8px;border:1px solid var(--ledger-line);border-radius:12px;background:var(--white)}
+  .evo-chip.cur{border-color:var(--ink-navy);font-weight:600}.evo-arrow{margin:0 6px;color:var(--text-mute)}
+  .evo-tab{width:100%;border-collapse:collapse;font-size:13px;background:var(--card-bg)}
+  .evo-tab th,.evo-tab td{border:1px solid var(--ledger-line);padding:6px 9px;text-align:left}
+  .evo-tab th{background:var(--paper-deep)}.evo-tab tbody tr{cursor:pointer}.evo-tab tbody tr:hover{background:var(--paper)}
+  .evo-up{color:#4F6B3A;font-weight:600}.evo-down{color:#A73B2E;font-weight:600}
+  .mon-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  .mon-bar select{font:inherit;padding:6px 8px;border:1px solid var(--ledger-line);border-radius:3px;background:var(--white);min-width:200px}
+  .mon{background:var(--white);border:1px solid var(--ink-navy);padding:14px 16px;max-width:1100px}
+  .mon h2{margin:0 0 8px;text-align:center;font:400 17px 'Special Elite',monospace;color:var(--ink-navy)}
+  .mon table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+  .mon th,.mon td{border:1px solid #777;padding:5px 7px;text-align:left;vertical-align:middle}
+  .mon th{background:#E4E4E4;text-align:center;font-size:12px}.mon td.c{text-align:center}
+  .mon input,.mon select{font:inherit;width:100%;box-sizing:border-box;border:1px solid transparent;background:#FFFBE8;padding:3px 4px}
+  .mon input.n{width:70px;text-align:center}.mon input:focus,.mon select:focus{border-color:var(--gold);outline:none}
+  .mon .leg{font-size:11.5px;line-height:1.45;color:#333;white-space:pre-line;margin-top:6px}
+  .mon .ok{color:#2F6B2F;font-weight:600}.mon .no{color:#A73B2E;font-weight:600}
   /* ===== Print: single record, one page ===== */
   @media print {
     @page { size: A4; margin: 10mm; }
@@ -508,6 +562,10 @@
       <div class="dropzone-hint">Aceita múltiplos arquivos ao mesmo tempo · formato do Medidor de Fluência</div>
       <input type="file" id="fileInput" accept=".txt" multiple />
     </div>
+    <div class="sd-pick"><b>Esta importação é da sondagem:</b>
+      <select id="sdImport"><option value="">escolha…</option><option value="1">SD1</option><option value="2">SD2</option><option value="3">SD3</option><option value="4">SD4</option><option value="5">SD5</option><option value="6">SD6</option><option value="7">SD7</option><option value="8">SD8</option></select>
+      <small>Registros já existentes foram tratados como SD1.</small></div>
+    <div id="sdBanner">⚠️ O banco ainda não tem a coluna da sondagem. Rode uma vez no SQL Editor do Supabase (registros atuais viram SD1):<code>ALTER TABLE fluencia_leitura ADD COLUMN IF NOT EXISTS sondagem integer NOT NULL DEFAULT 1;</code>Depois recarregue esta página.</div>
     <div class="status-line" id="statusLine"></div>
   </div>
 
@@ -515,6 +573,9 @@
     <button class="tab-btn active" data-tab="livro" type="button">📖 Livro de Registro</button>
     <button class="tab-btn" data-tab="dashboard" type="button">📊 Painel por Turma</button>
     <button class="tab-btn" data-tab="prioridade" type="button">🔴 Alta Prioridade</button>
+    <button class="tab-btn" data-tab="evolucao" type="button">📈 Evolução por Aluno</button>
+    <button class="tab-btn" data-tab="monitoramento" type="button">📋 Monitoramento por Aluno</button>
+    <button class="tab-btn ori" data-tab="orientacoes" type="button">📘 Orientações</button>
   </div>
 
   <div class="tab-panel" id="panelLivro">
@@ -534,10 +595,12 @@
       </div>
     </div>
 
+    <div class="sd-filter">Sondagem: <select id="filterSD"><option value="">Todas</option><option value="1">SD1</option><option value="2">SD2</option><option value="3">SD3</option><option value="4">SD4</option><option value="5">SD5</option><option value="6">SD6</option><option value="7">SD7</option><option value="8">SD8</option></select></div>
     <div class="ledger-wrap">
       <table class="ledger" id="ledgerTable">
         <thead>
           <tr>
+            <th>SD</th>
             <th>Data</th>
             <th>Aluno</th>
             <th>Turma</th>
@@ -572,6 +635,162 @@
     </div>
     <div id="priorityContent"></div>
   </div>
+
+
+  <div class="tab-panel" id="panelEvolucao" style="display:none;">
+    <div class="toolbar panel-toolbar"><div class="btn-group">
+      <span class="sd-filter"><select id="evoTurma"></select></span>
+      <button class="btn" id="evoCsv" type="button">Exportar CSV</button></div></div>
+    <p style="font-size:12.5px;margin:4px 0 8px">PPM de cada aluno em cada sondagem. Clique numa linha para abrir o perfil individual.</p>
+    <div id="evoContent" style="overflow-x:auto"></div>
+  </div>
+
+  <div class="tab-panel" id="panelMonitoramento" style="display:none;">
+    <div class="mon-bar">
+      <select id="monTurma"></select><select id="monAluno"></select>
+      <button class="btn" id="monPrint" type="button">🖨️ Imprimir ficha</button>
+    </div>
+    <p style="font-size:12.5px;margin:0 0 8px">Os dados de PPM, prosódia, data e professor vêm das sondagens importadas (SD1, SD2…). Os campos amarelos são preenchidos aqui e ficam salvos neste navegador.</p>
+    <div id="monContent"></div>
+  </div>
+
+  <div class="tab-panel" id="panelOrientacoes" style="display:none;">
+    <div class="ori-sub" id="oriSub">
+      <button type="button" class="main active" data-sub="guia">⭐ Guia de Intervenção</button>
+      <button type="button" data-sub="projeto">Projeto PIP Leitura</button>
+      <button type="button" data-sub="protocolo">Protocolo do Professor</button>
+      <button type="button" data-sub="fichas">Fichas de Leitura</button>
+      <button type="button" id="oriPrint" style="margin-left:auto">🖨️ Imprimir seção</button>
+    </div>
+
+    <article class="ori guia" id="ori-guia">
+      <h2>Guia de Intervenção Pedagógica: Diagnóstico, Fluência e Compreensão</h2>
+      <p>Orienta a implementação do PIP Leitura com diretrizes para o diagnóstico, a classificação e o monitoramento da fluência leitora, transformando o ensino da leitura em um percurso de avanços visíveis.</p>
+      <div class="toc">
+        <a href="#g-sondagem">Sondagem inicial</a><a href="#g-tabulacao">Tabulação e critérios</a><a href="#g-classif">Classificação</a><a href="#g-cronograma">Cronograma 8 semanas</a><a href="#g-ciclo">Ciclo semanal</a><a href="#g-diario">Diário de Conquistas</a><a href="#g-gestao">Gestão e monitoramento</a><a href="#g-autonomia">Autonomia</a>
+      </div>
+
+      <h3 id="g-sondagem">Sondagem Inicial e o Teste de 1 minuto</h3>
+      <p>A Sondagem Inicial identifica o nível de autonomia de cada estudante. O objetivo não é rotular, mas mapear fluência e precisão para mediar o encontro com textos de desafio ideal: nem tão simples que não gerem evolução, nem tão complexos que impeçam o sentido.</p>
+      <p><b>Metodologia:</b> (1) <b>Texto:</b> nível neutro e adequado ao ano escolar. (2) <b>Procedimento:</b> leitura em voz alta por exatamente 60 segundos. (3) <b>Observação ativa:</b> o professor marca na ficha as palavras lidas incorretamente, as hesitações e o ponto onde a leitura parou quando soou o cronômetro.</p>
+      <p><b>Texto sugerido (Anos Iniciais e Finais) — 62 palavras:</b></p>
+      <div class="texto">"A leitura é como uma viagem sem sair do lugar. Quando abrimos um livro, podemos conhecer novos mundos, descobrir segredos da natureza e entender como as pessoas viviam antigamente. Ler ajuda a nossa mente a crescer e a nossa imaginação a voar bem alto. Por isso, praticar um pouco todos os dias faz de nós grandes exploradores do conhecimento."</div>
+
+      <h3 id="g-tabulacao">Planilha de Tabulação e Critérios de Avaliação</h3>
+      <p>Organiza os resultados da sondagem e define os grupos (Protocolos 1, 2 e 3), cruzando precisão técnica e atribuição de sentido.</p>
+      <table><tr><th>Estudante</th><th>PPM</th><th>Erros de decodificação</th><th>Prosódia (1–4)</th><th>Compreensão (1–4)</th><th>Classificação final</th></tr>
+        <tr><td>Ex: Ana</td><td>42</td><td>Frequentes</td><td>1</td><td>2</td><td class="r">🔴 ALTA (Protocolo 1)</td></tr>
+        <tr><td>Ex: Carlos</td><td>85</td><td>Ocasionais</td><td>2</td><td>3</td><td class="y">🟡 MÉDIA (Protocolo 2)</td></tr>
+        <tr><td>Ex: Julia</td><td>115</td><td>Zero</td><td>4</td><td>4</td><td class="g">🟢 BAIXA (Protocolo 3)</td></tr></table>
+      <p><b>1) PPM:</b> total de palavras lidas em 60 segundos; indica a automaticidade.</p>
+      <p><b>2) Erros de decodificação:</b> observe a qualidade do erro (troca de letras, omissão de fonemas, "adivinhação" do final da palavra). Erros frequentes indicam rota fonológica ainda não consolidada.</p>
+      <p><b>3) Prosódia:</b> <i>Silabada</i> (fragmentada por sílabas) · <i>Palavra por palavra</i> (lenta, sem conexão) · <i>Frases sem entonação</i> (agrupa palavras, mas ignora pontuação) · <i>Fluidez e ritmo</i> (respeita a pontuação e interpreta pela voz).</p>
+      <p><b>4) Compreensão</b> (breve arguição após a leitura): <i>Ausente</i> · <i>Fragmentada</i> (palavras soltas) · <i>Global</i> (ideia principal e tema) · <i>Interpretação e inferência</i> (explica com as próprias palavras e identifica o implícito).</p>
+      <div class="box">💡 <b>Dica de ouro:</b> durante a sondagem, não corrija o estudante: observe e anote. Se ele travar por mais de 3 segundos numa palavra, diga a palavra, peça que continue e marque como erro de decodificação.</div>
+
+      <h3 id="g-classif">Classificação e agrupamento</h3>
+      <table><tr><th>Resultado da sondagem</th><th>Classificação</th><th>Destino pedagógico</th></tr>
+        <tr><td>Abaixo de 60 PPM + prosódia 1 ou 2</td><td class="r">🔴 ALTA</td><td>Protocolo 01: decodificação, consciência fonológica e precisão.</td></tr>
+        <tr><td>Entre 60 e 100 PPM + prosódia 2 ou 3</td><td class="y">🟡 MÉDIA</td><td>Protocolo 02: ritmo, expressividade e consolidação da fluência.</td></tr>
+        <tr><td>Acima de 100 PPM + prosódia 4</td><td class="g">🟢 BAIXA</td><td>Protocolo 03: compreensão profunda e leitura crítica.</td></tr></table>
+      <p><b>Calculadora de apoio</b> <small>(aplica a tabela acima; não substitui o julgamento do professor)</small></p>
+      <div class="calc">
+        <div><label for="cPal">Palavras lidas em 60 s</label><input id="cPal" type="number" min="0"></div>
+        <div><label for="cErr">Erros de leitura</label><input id="cErr" type="number" min="0" value="0"></div>
+        <div><label for="cPro">Prosódia</label><select id="cPro"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      </div>
+      <div id="calcOut">Preencha as palavras lidas para ver o resultado.</div>
+
+      <h3 id="g-cronograma">Cronograma de Implementação: Ciclo de 8 Semanas</h3>
+      <table><tr><th>Fase</th><th>Período</th><th>Ação principal</th><th>Resultado esperado</th></tr>
+        <tr><td>1: Preparação</td><td>Semana 1</td><td>Alinhamento e diagnóstico inicial.</td><td>Equipe treinada e estudantes enturmados.</td></tr>
+        <tr><td>2: Execução</td><td>Semanas 2 a 7</td><td>Intervenção direta e rotina de fluência.</td><td>8 textos treinados (1 por semana).</td></tr>
+        <tr><td>3: Consolidação</td><td>Semana 8</td><td>Avaliação de saída e celebração.</td><td>Relatório de impacto e premiação.</td></tr></table>
+      <div class="box">💡 <b>Dicas:</b> <b>1. Constância:</b> o segredo não é a quantidade de horas, mas a frequência diária. <b>2. Visibilidade:</b> mantenha um "Termômetro da Leitura" na sala de professores durante a semana 12, para que todos vejam o impacto do trabalho coletivo. <b>3. Flexibilidade:</b> se uma turma tiver muitos estudantes ALTA, a coordenação pode dar mais suporte técnico a esse(a) professor(a).</div>
+
+      <h3 id="g-ciclo">O Ciclo Semanal de Fluência</h3>
+      <p>Tripé metodológico: Diagnóstico, Leitura e Monitoramento. O professor seleciona quatro dias na semana:</p>
+      <p><b>1º dia (Modelagem):</b> entrega da ficha da semana; leitura modelar (ritmo e entonação) e cronometragem inicial.<br><b>2º e 3º dias (Treino sistemático):</b> prática diária (escola/casa) repetindo o mesmo texto, para ganhar confiança.<br><b>4º dia (Tomada de leitura):</b> verificação final de 1 minuto, registro do progresso e preenchimento do Diário de Conquistas.</p>
+
+      <h3 id="g-diario">O Diário de Conquistas: do progresso ao protagonismo</h3>
+      <p>Ferramenta de fortalecimento da autoestima: para muitos estudantes em defasagem, ler é fonte de ansiedade. Ao transformar o progresso em desafios a alcançar, o foco sai do erro e vai para a evolução: o estudante vê que já deu seus "Primeiros Passos" e está em constante subida. Essa gamificação pedagógica aumenta o engajamento e faz de cada nova palavra conquistada um motivo de celebração.</p>
+      <p><b>Estrutura da ficha:</b> Montanha da Fluência (barra pintada conforme o PPM do mês: Primeiros Passos 0–30 · A subir a montanha 30–60 · Em grande ritmo 60–90 · Veloz como o vento 90–120 · Explorador experiente +120), colecionador de 10 estrelas (um por texto), medalhas do mês (Coragem, Compromisso, Expressão, Atenção), "Como me sinto a ler?" e mensagem do professor.</p>
+      <div class="box">🛠 <b>Instruções para o professor:</b><br>1. <b>Frequência:</b> entregue a ficha no início do mês e recolha no último dia para análise.<br>2. <b>Gamificação:</b> ao completar 10 estrelas (10 textos do protocolo), recompense com adesivo especial ou elogio público; o reconhecimento social é um poderoso motor de aprendizagem.<br>3. <b>Transição de protocolo:</b> quando a Montanha chegar ao topo de forma consistente, celebre a mudança para o próximo protocolo (ex.: do Vermelho para o Amarelo).<br><small>Materiais de referência: [05] Meu Diário de Conquistas PIP LEITURA (imprimir para os estudantes) e [03] Monitoramento PIP LEITURA.</small></div>
+
+      <h3 id="g-gestao">Gestão Pedagógica e Monitoramento</h3>
+      <p>O acompanhamento é dinâmico: além das sondagens trimestrais, a monitorização mensal permite ajustes finos. A planilha de Monitoramento por Aluno acompanha, por sessão (pré-teste, SD1 a SD5, pós-teste): palavras lidas (PLPM), erros totais, palavras corretas por minuto (PCPM), precisão (%) e nível de prosódia (1–4), com observações e foco.</p>
+      <p><b>Fórmulas:</b> PCPM = palavras lidas por minuto − erros totais · Precisão (%) = palavras corretas ÷ palavras lidas × 100. <b>Meta:</b> atingir e manter precisão acima de 95% antes de focar em velocidade e prosódia. Recomenda-se usar o mesmo texto nas sessões SD1 a SD5, facilitando a visualização do progresso.</p>
+
+      <h3 id="g-autonomia">Nosso Compromisso com a Autonomia</h3>
+      <p>O PIP Leitura encerra seu ciclo não como ponto final, mas como um novo começo para cada estudante que descobriu o poder da própria voz. Mais do que palavras por minuto, trata-se de libertação e autonomia.</p>
+      <blockquote>"A leitura do mundo precede a leitura da palavra, de sorte que a posterior leitura desta não pode prescindir da continuidade da leitura daquele." — Paulo Freire</blockquote>
+      <p>Que cada PPM conquistado seja celebrado como um degrau rumo à cidadania plena e ao pensamento crítico. Sua mediação entusiasta transforma dados estatísticos em vozes confiantes.</p>
+    </article>
+
+    <article class="ori" id="ori-projeto" style="display:none">
+      <h2>Projeto PIP Leitura</h2>
+      <p>Ação do Projeto de Intervenção Pedagógica (PIP) para o desenvolvimento da fluência e da compreensão leitora de estudantes do 2º ao 9º ano, alinhada ao Compromisso Nacional Criança Alfabetizada. A fluência é a "ponte" para a compreensão (Modelo Simples da Leitura: CL = D × L) e é avaliada em três dimensões: <b>precisão</b>, <b>velocidade/automaticidade</b> (PPM) e <b>prosódia</b>.</p>
+      <h3>Três protocolos</h3>
+      <table><tr><th>Protocolo</th><th>Perfil</th><th>Foco</th><th>Onde é atendido</th></tr>
+        <tr><td class="r">🔴 ALTA (Remediação)</td><td>Pré-leitor (níveis 1 a 4)</td><td>Decodificação precisa, rota fonológica, automaticidade</td><td>Grupos intensivos com o Professor PIP</td></tr>
+        <tr><td class="y">🟡 MÉDIA (Transição)</td><td>Leitor iniciante, leitura mecânica</td><td>Prosódia: ritmo, entonação, pontuação</td><td>Sala regular: Professor Regente + Estagiário de Atendimento Diferenciado</td></tr>
+        <tr><td class="g">🟢 BAIXA (Enriquecimento)</td><td>Leitor fluente</td><td>Compreensão de alto nível, inferência, análise crítica</td><td>Sala regular, com o Professor Regente</td></tr></table>
+      <h3>Público-alvo e prioridade</h3>
+      <p>Indicador oficial: Avaliação de Fluência do CAEd (SMAE), complementada por diagnóstico interno (leitura em voz alta, portfólios, observações). Havendo limite de vagas na Alta Prioridade, a escola prioriza estudantes pretos, pardos ou indígenas e beneficiários de programas sociais (ex.: Bolsa Família/CadÚnico) ou residentes em áreas de alta vulnerabilidade.</p>
+      <h3>Equipe e parcerias</h3>
+      <p><b>Professor PIP:</b> diagnóstico, monitoramento e intervenção em pequenos grupos de Alta Prioridade. <b>Professor Regente:</b> Média e Baixa Prioridade na sala, com apoio do estagiário. <b>Professor em readaptação e apoio:</b> rodas de leitura, contação de histórias e apoio à medição de PLM. <b>Biblioteca:</b> curadoria de acervo por nível e interesse, leitura mediada e registro de empréstimos.</p>
+      <h3>Família e leitura domiciliar</h3>
+      <p>Reunião de orientação pedagógica, <b>Kit PIP Leitura</b> (livro de interesse, Diário de Leitura Simplificado e Guia Rápido com meta mínima de 15 minutos diários) e <b>Termo de Compromisso</b> assinado pelos responsáveis.</p>
+      <h3>Monitoramento</h3>
+      <p>Atualização mensal do perfil leitor de cada estudante no SMAE (sala, escola e SMED).</p>
+      <h3>Passos para implementar na escola</h3>
+      <p>1) Reunir os resultados da Fluência 2025 e identificar o público prioritário. 2) Fazer diagnóstico interno do 3º ano, de todos do 5º ao 9º ano e de quem não fez a avaliação oficial. 3) Designar os Professores PIP. 4) Articular o apoio dos estagiários com os regentes. 5) Articular a mediação com o bibliotecário e o professor em readaptação. 6) Reunir as famílias, assinar o Termo de Compromisso e distribuir o Kit.</p>
+      <div class="box">✉️ <b>Contatos SMED:</b> PIP Anos Iniciais — anosiniciais.smed@edu.pbh.gov.br · PIP Anos Finais — anosfinais.smed@edu.pbh.gov.br</div>
+    </article>
+
+    <article class="ori" id="ori-protocolo" style="display:none">
+      <h2>Protocolo de Fluência Leitora (Manual do Professor)</h2>
+      <p>Trabalho <b>4 vezes por semana</b>, com 20 a 30 minutos ininterruptos, usando <b>um único texto e gênero por semana</b>.</p>
+      <table><tr><th>Dia</th><th>Etapa</th><th>Foco</th><th>Estratégia</th></tr>
+        <tr><td>1º</td><td>Apresentação e modelagem</td><td>Engajamento e escuta</td><td>Leitura em coro e eco</td></tr>
+        <tr><td>2º</td><td>Análise e precisão</td><td>Estrutura e vocabulário</td><td>Leitura compartilhada e cronometrada (1ª rodada)</td></tr>
+        <tr><td>3º</td><td>Produção e prosódia</td><td>Expressividade e escrita</td><td>Releitura com foco em entonação</td></tr>
+        <tr><td>4º</td><td>Avaliação e reescrita</td><td>Consolidação e registro</td><td>Leitura individual cronometrada</td></tr></table>
+      <h3>Estratégias de fluência</h3>
+      <p><b>Eco:</b> o professor modela e os estudantes repetem (prosódia e precisão). <b>Coro:</b> toda a turma em ritmo constante (reduz ansiedade, ganha velocidade). <b>Compartilhada:</b> alternância professor/estudantes (engajamento e compreensão). <b>Cronometrada:</b> releitura de 1 minuto com registro das palavras corretas (acompanha PPM e precisão).</p>
+      <div class="box">💡 Use um microfone (mesmo de brinquedo) na "Tomada de Leitura" do 4º dia: transforma o teste em performance. Nas leituras em eco e coro, peça aos alunos que "emprestem a voz" do professor.</div>
+      <h3>Escala de prosódia (1 a 4)</h3>
+      <table><tr><th>Nível</th><th>Descrição</th></tr>
+        <tr><td>1 · Monótono/sem pontuação</td><td>Lenta, palavra por palavra, pouca ou nenhuma observância da pontuação; soa robótica.</td></tr>
+        <tr><td>2 · Pouca expressão</td><td>Velocidade ligeiramente melhor, ainda não natural; ignora a maioria dos sinais; ritmo instável.</td></tr>
+        <tr><td>3 · Bom ritmo/expressão</td><td>Ritmo adequado; respeita a maioria dos sinais; entonação apropriada em partes do texto.</td></tr>
+        <tr><td>4 · Fluente e dramática</td><td>Expressiva e natural, com velocidade e precisão elevadas; a entonação reflete o sentido e parece fala.</td></tr></table>
+      <p><b>Precisão</b> = (palavras lidas corretamente ÷ total de palavras lidas) × 100. Leitor proficiente: <b>95% ou mais</b>.</p>
+      <h3>Planejamento de 8 semanas por grupo</h3>
+      <p><small>Código P{protocolo}.S{semana}.G{grupo}: G1 = 1º e 2º ano (alfabetização), G2 = 3º ao 5º (fluência básica), G3 = 6º ao 9º (fluência avançada).</small></p>
+      <table><tr><th>Sem.</th><th class="r">Grupo 1</th><th class="y">Grupo 2</th><th class="g">Grupo 3</th></tr>
+        <tr><td>1</td><td>Quadra, quadrinha, parlenda</td><td>Texto instrucional (regras de jogo)</td><td>Resenha crítica</td></tr>
+        <tr><td>2</td><td>Fábula curta</td><td>Poema/texto versificado</td><td>Artigo de divulgação científica</td></tr>
+        <tr><td>3</td><td>Receita simples</td><td>Notícia curta/reportagem local</td><td>Notícia e reportagem</td></tr>
+        <tr><td>4</td><td>Lista de compras</td><td>Conto popular ou lenda</td><td>Debate regulamentado</td></tr>
+        <tr><td>5</td><td>Trava-língua e rima</td><td>Artigo de divulgação científica (curto)</td><td>Crônica argumentativa</td></tr>
+        <tr><td>6</td><td>Enunciado de tarefa escolar</td><td>Receita culinária</td><td>Abaixo-assinado/petição</td></tr>
+        <tr><td>7</td><td>Bilhete/mensagem curta</td><td>Carta de reclamação/sugestão</td><td>Artigo de opinião</td></tr>
+        <tr><td>8</td><td>Título e legenda de imagem</td><td>Tira e história em quadrinhos</td><td>Blog post / postagem em rede social</td></tr></table>
+      <p><small>O detalhamento dia a dia de cada semana e a tarefa de casa (15 min) estão no documento orientador original.</small></p>
+    </article>
+
+    <article class="ori" id="ori-fichas" style="display:none">
+      <h2>Fichas de Leitura</h2>
+      <p>60 textos exclusivos: 3 protocolos × (10 para Anos Iniciais + 10 para Anos Finais). Cada ficha tem uma página para a atividade <b>na escola</b> (leitura com modelagem e Ficha do Professor) e outra para a atividade <b>PIP em Casa</b> (15 minutos diários com a Ficha da Família).</p>
+      <table><tr><th>Protocolo</th><th>Foco pedagógico</th></tr>
+        <tr><td class="r">🔴 Protocolo 1 (Alta)</td><td>Remediação: automaticidade e rota fonológica (decodificação)</td></tr>
+        <tr><td class="y">🟡 Protocolo 2 (Média)</td><td>Transição: prosódia e fluência textual (ritmo e expressividade)</td></tr>
+        <tr><td class="g">🟢 Protocolo 3 (Baixa)</td><td>Enriquecimento: compreensão de alto nível e análise crítica</td></tr></table>
+      <div class="box">💡 <b>Organização visual:</b> papel rosa/vermelho para o Protocolo 1, amarelo para o 2 e verde/azul para o 3.</div>
+    </article>
+  </div>
+
 </div>
 
 <div id="modalRoot"></div>
@@ -664,6 +883,7 @@
   }
 
   let records = [];
+  let temSondagem = true;
 
   // ---------- storage (Supabase) ----------
   const SUPABASE_URL = 'https://jmlxtczcrraefymjxqim.supabase.co';
@@ -702,7 +922,8 @@
       plano_intervencao: rec.planoIntervencao,
       texto_pratica: rec.textoPratica,
       professor: rec.professor || null,
-      parse_ok: rec.parseOk
+      parse_ok: rec.parseOk,
+      ...(temSondagem ? { sondagem: rec.sondagem || 1 } : {})
     };
   }
   function fromRow(row){
@@ -726,7 +947,8 @@
       planoIntervencao: row.plano_intervencao,
       textoPratica: row.texto_pratica,
       professor: row.professor,
-      parseOk: row.parse_ok
+      parseOk: row.parse_ok,
+      sondagem: Number(row.sondagem) || 1
     };
   }
 
@@ -735,6 +957,9 @@
       const r = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=importado_em.desc`, { headers: sbHeaders() });
       if(!r.ok) throw new Error('Falha ao consultar o banco de dados.');
       const rows = await r.json();
+      temSondagem = !rows.length || ('sondagem' in rows[0]);
+      document.getElementById('sdBanner').style.display = temSondagem ? 'none' : 'block';
+      if(!rows.length) document.getElementById('sdImport').value = '1';
       records = rows.map(fromRow);
     }catch(e){
       records = [];
@@ -1233,7 +1458,7 @@
     if(!records.length){ setStatus('Não há registros para imprimir.', 'error'); return; }
     const byTurma = {};
     const total = { alta:0, media:0, baixa:0, nc:0, total:0 };
-    records.forEach(rec => {
+    recsAtuais().forEach(rec => {
       const t = rec.turma || 'Não informada';
       if(!byTurma[t]) byTurma[t] = { alta:0, media:0, baixa:0, nc:0, total:0 };
       const p = priorityOf(rec);
@@ -1392,7 +1617,7 @@
   }
 
   function imprimirAltaPrioridade(){
-    const altaRecs = records.filter(r => priorityOf(r) === 'Alta');
+    const altaRecs = recsAtuais().filter(r => priorityOf(r) === 'Alta');
     if(!altaRecs.length){ setStatus('Não há alunos em alta prioridade para imprimir.', 'error'); return; }
     const byTurma = {};
     altaRecs.forEach(rec => { const t = rec.turma || 'Não informada'; (byTurma[t] = byTurma[t] || []).push(rec); });
@@ -1445,6 +1670,8 @@
   // prioridade (Alta, Média, Baixa, Não classificado) → nome (A-Z).
   function getFilteredSortedRecords(){
     let list = records.slice();
+    const fsd = document.getElementById('filterSD').value;
+    if(fsd) list = list.filter(r => String(r.sondagem) === fsd);
     if(filterTurmaSel.isActive()) list = list.filter(r => filterTurmaSel.has(r.turma || 'Não informada'));
     if(filterPrioridadeSel.isActive()) list = list.filter(r => filterPrioridadeSel.has(priorityOf(r)));
     list.sort((a,b) => {
@@ -1459,6 +1686,8 @@
 
   function render(){
     populateTurmaFilter();
+    if(document.getElementById('panelEvolucao').style.display !== 'none') renderEvolucao();
+    if(document.getElementById('panelMonitoramento').style.display !== 'none') renderMon();
     const filtered = getFilteredSortedRecords();
     const total = records.length;
     const showing = filtered.length;
@@ -1474,6 +1703,7 @@
         ? `<button class="link-badge linked" data-id="${rec.id}" title="Vinculado — clique para alterar">✓ vinculado</button>`
         : `<button class="link-badge unlinked" data-id="${rec.id}" title="Vincular a um aluno cadastrado">🔗 vincular</button>`;
       tr.innerHTML = `
+        <td><select class="sd-sel" data-id="${rec.id}" title="Alterar a sondagem deste registro">${sdOptions(rec.sondagem)}</select></td>
         <td class="mono">${escapeHtml(rec.dataAvaliacao)}</td>
         <td>${escapeHtml(rec.nome)}</td>
         <td>${escapeHtml(rec.turma)}</td>
@@ -1486,7 +1716,7 @@
         <td class="remove-cell"><button class="row-remove" title="Remover" data-id="${rec.id}">✕</button></td>
       `;
       tr.addEventListener('click', (e) => {
-        if(e.target.classList.contains('row-remove') || e.target.classList.contains('link-badge')) return;
+        if(e.target.classList.contains('row-remove') || e.target.classList.contains('link-badge') || e.target.closest('.sd-sel')) return;
         openModal(rec);
       });
       tr.querySelector('.row-remove').addEventListener('click', (e) => {
@@ -1515,7 +1745,7 @@
     const key = turmaKey(turma);
     const cadastrados = estudantes.filter(e => turmaKey(e.turma) === key);
     if(!key || !cadastrados.length) return null;
-    const recsTurma = records.filter(r => turmaKey(r.turma || 'Não informada') === key);
+    const recsTurma = recsAtuais().filter(r => turmaKey(r.turma || 'Não informada') === key);
     const matriculas = new Set();
     const nomes = new Set();
     recsTurma.forEach(r => {
@@ -1542,7 +1772,7 @@
       return;
     }
     const byTurma = {};
-    records.forEach(rec => {
+    recsAtuais().forEach(rec => {
       const t = rec.turma || 'Não informada';
       if(!byTurma[t]) byTurma[t] = { alta:0, media:0, baixa:0, nc:0, total:0 };
       const p = priorityOf(rec);
@@ -1590,7 +1820,7 @@
   function renderPriorityList(){
     const el = document.getElementById('priorityContent');
     if(!el) return;
-    const altaRecs = records.filter(r => priorityOf(r) === 'Alta');
+    const altaRecs = recsAtuais().filter(r => priorityOf(r) === 'Alta');
     if(!altaRecs.length){
       el.innerHTML = `<div class="priority-empty"><span class="stamp-font" style="display:block;margin-bottom:6px;">— nenhum aluno em alta prioridade —</span>Estudantes classificados como Alta Prioridade (Pré-Leitor 1 a 4, conforme o PIP Leitura) aparecerão aqui, agrupados por turma, para atendimento intensivo.</div>`;
       return;
@@ -1637,12 +1867,46 @@
     document.getElementById('panelLivro').style.display = tab === 'livro' ? '' : 'none';
     document.getElementById('panelDashboard').style.display = tab === 'dashboard' ? '' : 'none';
     document.getElementById('panelPrioridade').style.display = tab === 'prioridade' ? '' : 'none';
+    document.getElementById('panelOrientacoes').style.display = tab === 'orientacoes' ? '' : 'none';
+    document.getElementById('panelEvolucao').style.display = tab === 'evolucao' ? '' : 'none';
+    document.getElementById('panelMonitoramento').style.display = tab === 'monitoramento' ? '' : 'none';
+    if(tab === 'monitoramento') renderMon();
+    if(tab === 'evolucao') renderEvolucao();
     if(tab === 'dashboard') renderDashboard();
     if(tab === 'prioridade') renderPriorityList();
   }
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.addEventListener('click', () => switchTab(b.dataset.tab));
   });
+
+  (function(){
+    const sub = document.getElementById('oriSub');
+    function showSub(k){
+      sub.querySelectorAll('button[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === k));
+      ['guia','projeto','protocolo','fichas'].forEach(s => document.getElementById('ori-'+s).style.display = s === k ? '' : 'none');
+    }
+    sub.querySelectorAll('button[data-sub]').forEach(b => b.addEventListener('click', () => showSub(b.dataset.sub)));
+    document.getElementById('oriPrint').addEventListener('click', () => {
+      const a = [...document.querySelectorAll('.ori')].find(e => e.style.display !== 'none');
+      const w = window.open('', '_blank'); if(!w) return;
+      w.document.write('<!DOCTYPE html><html lang="pt-BR"><meta charset="utf-8"><title>PIP Leitura — Orientações</title><style>body{font:12px/1.45 sans-serif;margin:14mm}h2{font-size:17px}h3{font-size:14px;margin:14px 0 4px;color:#8A2F24}table{border-collapse:collapse;width:100%;margin:6px 0}th,td{border:1px solid #888;padding:4px 6px;text-align:left;vertical-align:top}th{background:#eee}.box{border-left:4px solid #B8892B;padding:4px 10px;background:#f6f1e4}.toc,.calc,#calcOut{display:none}.texto{border:1px dashed #888;padding:6px 10px}</style>' + a.innerHTML.replace(/<div class="calc">[\s\S]*?<\/div>\s*<\/div>/, ''));
+      w.document.close(); setTimeout(() => w.print(), 300);
+    });
+    function calc(){
+      const pal = parseFloat(document.getElementById('cPal').value), err = parseFloat(document.getElementById('cErr').value) || 0,
+            pro = parseInt(document.getElementById('cPro').value), out = document.getElementById('calcOut');
+      if(!(pal >= 0) || isNaN(pal)){ out.textContent = 'Preencha as palavras lidas para ver o resultado.'; return; }
+      const pcpm = Math.max(pal - err, 0), prec = pal ? (pcpm / pal * 100) : 0;
+      let cls;
+      if(pal < 60 && pro <= 2) cls = '<span class="r">🔴 ALTA — Protocolo 1</span>';
+      else if(pal >= 60 && pal <= 100 && (pro === 2 || pro === 3)) cls = '<span class="y">🟡 MÉDIA — Protocolo 2</span>';
+      else if(pal > 100 && pro === 4) cls = '<span class="g">🟢 BAIXA — Protocolo 3</span>';
+      else cls = '⚠️ combinação não prevista na tabela do guia: avalie com a coordenação';
+      out.innerHTML = `${cls}<br><small>PCPM: ${pcpm} · Precisão: ${prec.toFixed(1)}% ${prec >= 95 ? '(≥ 95%, proficiente)' : '(abaixo da meta de 95%)'}</small>`;
+    }
+    ['cPal','cErr','cPro'].forEach(id => document.getElementById(id).addEventListener('input', calc));
+  })();
+
 
 
   function openModal(rec){
@@ -1652,7 +1916,8 @@
           <button class="modal-print-btn" id="modalPrint">🖶 Imprimir</button>
           <button class="modal-close" id="modalClose">×</button>
           <div class="modal-title">${escapeHtml(rec.nome)}</div>
-          <div class="modal-meta">${escapeHtml(rec.turma)} · ${escapeHtml(rec.idade)} · Avaliado em ${escapeHtml(rec.dataAvaliacao)} · arquivo: ${escapeHtml(rec.arquivo)}</div>
+          <div class="modal-meta">${escapeHtml(rec.turma)} · ${escapeHtml(rec.idade)} · ${sdLabel(rec.sondagem)} · Avaliado em ${escapeHtml(rec.dataAvaliacao)} · arquivo: ${escapeHtml(rec.arquivo)}</div>
+          ${evolHtml(rec)}
 
           <div class="field-grid-print">
             <div class="field-block"><div class="field-label">Classificação</div><div class="field-value">${escapeHtml(rec.classificacao)}</div></div>
@@ -1817,6 +2082,152 @@
     }
   }
 
+  // ---------- sondagens (SD) ----------
+  const SD_MAX = 8;
+  const sdLabel = n => 'SD' + (n || 1);
+  const sdOptions = sel => Array.from({length: SD_MAX}, (_, i) => `<option value="${i+1}"${sel === i+1 ? ' selected' : ''}>SD${i+1}</option>`).join('');
+  function studentKey(r){
+    if(r.estudanteMatricula) return 'm' + r.estudanteMatricula;
+    if(!r.nome || r.nome === 'Não informado') return 'i' + r.id;
+    return 'n' + normalizeStr(r.nome) + '|' + turmaKey(r.turma);
+  }
+  function histAluno(rec){ const k = studentKey(rec); return records.filter(r => studentKey(r) === k).sort((a,b) => a.sondagem - b.sondagem); }
+  function agrupaAlunos(){
+    const m = new Map();
+    records.forEach(r => { const k = studentKey(r); if(!m.has(k)) m.set(k, []); m.get(k).push(r); });
+    m.forEach(a => a.sort((x,y) => x.sondagem - y.sondagem));
+    return [...m.values()];
+  }
+  // um registro por aluno: o da sondagem mais recente (usado no painel, alta prioridade e impressão do livro)
+  function recsAtuais(){ return agrupaAlunos().map(g => g[g.length - 1]); }
+  function ppmNum(r){ const n = parseFloat(String(r.ppm).replace(',', '.')); return isNaN(n) ? null : n; }
+  const prioIco = r => ({A:'🔴', M:'🟡', B:'🟢'})[String(priorityOf(r))[0]] || '⚪';
+  function deltaPpm(g){
+    const n = g.map(ppmNum).filter(x => x != null);
+    return n.length < 2 ? null : n[n.length-1] - n[0];
+  }
+  function deltaHtml(d){
+    if(d == null) return '—';
+    return d > 0 ? `<span class="evo-up">▲ +${d}</span>` : d < 0 ? `<span class="evo-down">▼ ${d}</span>` : '● 0';
+  }
+  function evolHtml(rec){
+    const h = histAluno(rec);
+    if(h.length < 2) return `<div class="evo">📈 Evolução: apenas a ${sdLabel(rec.sondagem)} registrada até o momento.</div>`;
+    const chips = h.map(r => `<span class="evo-chip${r.id === rec.id ? ' cur' : ''}"><b>${sdLabel(r.sondagem)}</b> ${escapeHtml(r.ppm)} PPM ${prioIco(r)}</span>`).join('<span class="evo-arrow">→</span>');
+    const d = deltaPpm(h);
+    return `<div class="evo"><div class="field-label">Evolução nas sondagens</div><div>${chips}</div>${d == null ? '' : `<div style="margin-top:4px">${deltaHtml(d)} PPM de ${sdLabel(h[0].sondagem)} a ${sdLabel(h[h.length-1].sondagem)}</div>`}</div>`;
+  }
+  let evoLista = [];
+  function renderEvolucao(){
+    const box = document.getElementById('evoContent'), sel = document.getElementById('evoTurma');
+    const grupos = agrupaAlunos();
+    const turmas = [...new Set(grupos.map(g => g[0].turma || 'Não informada'))].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todas as turmas</option>' + turmas.map(t => `<option>${escapeHtml(t)}</option>`).join('');
+    sel.value = turmas.includes(cur) ? cur : '';
+    evoLista = grupos.filter(g => !sel.value || (g[0].turma || 'Não informada') === sel.value)
+      .sort((a,b) => (a[0].turma || '').localeCompare(b[0].turma || '', 'pt-BR') || (a[0].nome || '').localeCompare(b[0].nome || '', 'pt-BR'));
+    if(!evoLista.length){ box.innerHTML = '<p>Nenhum registro importado ainda.</p>'; return; }
+    const max = Math.max(1, ...records.map(r => r.sondagem));
+    const cols = Array.from({length: max}, (_, i) => i + 1);
+    box.innerHTML = `<table class="evo-tab"><thead><tr><th>Aluno</th><th>Turma</th>${cols.map(n => `<th>SD${n}</th>`).join('')}<th>Evolução</th></tr></thead><tbody>${
+      evoLista.map((g,i) => `<tr data-i="${i}"><td>${escapeHtml(g[0].nome)}</td><td>${escapeHtml(g[0].turma)}</td>${
+        cols.map(n => { const r = g.find(x => x.sondagem === n); return `<td>${r ? escapeHtml(r.ppm) + ' ' + prioIco(r) : '—'}</td>`; }).join('')}<td>${deltaHtml(deltaPpm(g))}</td></tr>`).join('')}</tbody></table>`;
+    box.querySelectorAll('tbody tr').forEach(tr => tr.addEventListener('click', () => { const g = evoLista[+tr.dataset.i]; openModal(g[g.length-1]); }));
+  }
+  document.getElementById('evoTurma').addEventListener('change', renderEvolucao);
+  document.getElementById('evoCsv').addEventListener('click', () => {
+    renderEvolucao();
+    if(!evoLista.length){ setStatus('Não há registros para exportar.', 'error'); return; }
+    const max = Math.max(1, ...records.map(r => r.sondagem));
+    const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+    const head = ['Aluno','Turma', ...Array.from({length: max}, (_, i) => 'SD' + (i+1) + ' (PPM)'), 'Variação (PPM)'];
+    const rows = evoLista.map(g => [g[0].nome, g[0].turma, ...Array.from({length: max}, (_, i) => (g.find(x => x.sondagem === i+1) || {}).ppm ?? ''), deltaPpm(g) ?? '']);
+    const blob = new Blob(['\ufeff' + [head, ...rows].map(r => r.map(q).join(';')).join('\n')], {type: 'text/csv;charset=utf-8'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'evolucao_sondagens.csv'; a.click();
+  });
+  document.getElementById('filterSD').addEventListener('change', render);
+  ledgerBody.addEventListener('change', async (e) => {
+    const sel = e.target.closest('.sd-sel'); if(!sel) return;
+    const rec = records.find(r => r.id === sel.dataset.id), novo = parseInt(sel.value);
+    if(!rec || novo === rec.sondagem) return;
+    if(!temSondagem){ sel.value = rec.sondagem; setStatus('Crie antes a coluna "sondagem" no banco (veja o aviso no topo).', 'error'); return; }
+    try{ await patchRecord(rec.id, { sondagem: novo }); rec.sondagem = novo; setStatus(rec.nome + ': registro movido para ' + sdLabel(novo) + '.', 'ok'); render(); }
+    catch(err){ sel.value = rec.sondagem; setStatus('Não foi possível alterar a sondagem no banco de dados.', 'error'); }
+  });
+
+  // ---------- monitoramento por aluno (modelo da planilha PIP Leitura) ----------
+  const MON_LEG_F = 'Nível de Prosódia (1 a 4), pela avaliação do professor ou de um colega mais fluente:\n- Nível 1 - Não Prosódico: leitura monótona, palavra por palavra, com poucas pausas na pontuação ou pausas em locais aleatórios. Dificulta a compreensão.\n- Nível 2 - Parcialmente Prosódico: frases curtas ou grupos de 2-3 palavras. Respeita a pontuação, mas a entonação é artificial ou inadequada.\n- Nível 3 - Prosódico (Em Desenvolvimento): ritmo da fala (conversacional). Respeita a pontuação e a maioria dos agrupamentos de sentido, variando levemente a entonação.\n- Nível 4 - Altamente Prosódico: leitura expressiva e fluida, com ritmo e entonação adequados ao gênero textual e ao sentido. Facilita muito a compreensão.\nDica: use o mesmo texto nas sessões SD 1 a 5 para medir o ganho de fluência na repetição.';
+  const MON_LEG_G = 'Fórmulas de cálculo (por sessão):\n1) Palavras Lidas por Minuto (PLPM): total de palavras lidas no minuto (corretas + incorretas).\n2) Palavras Corretas por Minuto (PCPM): PLPM menos Erros Totais.\n3) Precisão (%): PCPM ÷ PLPM × 100.\nMeta sugerida: atingir e manter precisão acima de 95% antes de focar intensamente em velocidade e prosódia.';
+  const PROS_NOME = {1:'1 - Não prosódico', 2:'2 - Parcialmente prosódico', 3:'3 - Prosódico (em desenvolvimento)', 4:'4 - Altamente prosódico'};
+  const monRead = () => { try{ return JSON.parse(localStorage.getItem('pipMon') || '{}'); }catch(e){ return {}; } };
+  const monWrite = o => { try{ localStorage.setItem('pipMon', JSON.stringify(o)); }catch(e){} };
+  const numOrNull = v => (v === '' || v == null || isNaN(parseFloat(v))) ? null : parseFloat(v);
+  function monRows(g){
+    const max = Math.max(5, ...g.map(r => r.sondagem));
+    const rows = [{id:'pre', label:'Pré-Teste'}];
+    for(let n = 1; n <= max; n++) rows.push({id:'sd'+n, label:'SD '+n, rec:g.find(r => r.sondagem === n)});
+    rows.push({id:'pos', label:'Pós-Teste'});
+    return rows;
+  }
+  function monHtml(g, ed){
+    const st = monRead(), k = studentKey(g[0]), ult = g[g.length-1];
+    const prof = g.slice().reverse().map(r => r.professor).find(Boolean) || '';
+    const get = (id, f) => ((st[k + '|' + id] || {})[f] ?? '');
+    const inp = (id, f, v, cls) => ed ? `<input class="${cls||''}" data-row="${id}" data-f="${f}" value="${escapeHtml(v)}">` : escapeHtml(v);
+    const escola = st._escola || '';
+    const body = monRows(g).map(row => {
+      const r = row.rec;
+      const plpm = r ? ppmNum(r) : numOrNull(get(row.id, 'plpm'));
+      const et = numOrNull(get(row.id, 'et'));
+      const pcpm = plpm != null && et != null ? Math.max(plpm - et, 0) : null;
+      const prec = pcpm != null && plpm > 0 ? pcpm / plpm * 100 : null;
+      const pm = String((r && r.prosodia) || '').match(/n[ií]vel\s*([1-4])/i) || String((r && r.prosodia) || '').match(/\b([1-4])\b/);
+      const pros = get(row.id, 'pros') || (pm ? pm[1] : '');
+      const prosCell = ed
+        ? `<select data-row="${row.id}" data-f="pros"><option value="">—</option>${[1,2,3,4].map(n => `<option value="${n}"${String(pros) === String(n) ? ' selected' : ''}>${PROS_NOME[n]}</option>`).join('')}</select>`
+        : (pros ? PROS_NOME[pros] : '');
+      const plpmCell = r ? (plpm != null ? plpm : escapeHtml(r.ppm)) : inp(row.id, 'plpm', get(row.id, 'plpm'), 'n');
+      return `<tr><td><b>${row.label}</b>${r ? '<br><small>' + escapeHtml(r.dataAvaliacao) + '</small>' : ''}</td><td class="c">${plpmCell}</td><td class="c">${inp(row.id, 'et', get(row.id, 'et'), 'n')}</td><td class="c">${pcpm ?? ''}</td><td class="c ${prec == null ? '' : prec >= 95 ? 'ok' : 'no'}">${prec == null ? '' : prec.toFixed(1) + '%'}</td><td>${prosCell}</td><td>${inp(row.id, 'obs', get(row.id, 'obs'))}</td></tr>`;
+    }).join('');
+    return `<div class="mon"><h2>MONITORAMENTO POR ALUNO - PIP LEITURA</h2>
+      <table><tr><td colspan="2"><b>Escola Municipal:</b> ${ed ? `<input data-f="_escola" value="${escapeHtml(escola)}" style="width:60%">` : escapeHtml(escola)}</td><td colspan="3"><b>Aluno(a):</b> ${escapeHtml(ult.nome)}</td></tr>
+      <tr><td colspan="2"><b>Turma:</b> ${escapeHtml(ult.turma)}</td><td colspan="3"><b>Professor(a):</b> ${escapeHtml(prof)}</td></tr></table>
+      <table><thead><tr><th>SESSÃO / DATA</th><th>Palavras Lidas (PLPM)</th><th>Erros Totais (ET)</th><th>PCPM</th><th>Precisão (%)</th><th>Nível de Prosódia (1-4)</th><th>Observações e Foco</th></tr></thead><tbody>${body}</tbody></table>
+      <div class="leg">${MON_LEG_F}</div><div class="leg">${MON_LEG_G}</div></div>`;
+  }
+  let monLista = [];
+  function renderMon(){
+    const tSel = document.getElementById('monTurma'), aSel = document.getElementById('monAluno'), box = document.getElementById('monContent');
+    const grupos = agrupaAlunos();
+    if(!grupos.length){ tSel.innerHTML = aSel.innerHTML = ''; box.innerHTML = '<p>Nenhum registro importado ainda.</p>'; return; }
+    const turmas = [...new Set(grupos.map(g => g[0].turma || 'Não informada'))].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    const tc = tSel.value;
+    tSel.innerHTML = turmas.map(t => `<option>${escapeHtml(t)}</option>`).join('');
+    tSel.value = turmas.includes(tc) ? tc : turmas[0];
+    monLista = grupos.filter(g => (g[0].turma || 'Não informada') === tSel.value).sort((a,b) => (a[0].nome || '').localeCompare(b[0].nome || '', 'pt-BR'));
+    const ac = aSel.value;
+    aSel.innerHTML = monLista.map(g => `<option value="${escapeHtml(studentKey(g[0]))}">${escapeHtml(g[0].nome)}</option>`).join('');
+    if(monLista.some(g => studentKey(g[0]) === ac)) aSel.value = ac;
+    const g = monLista.find(x => studentKey(x[0]) === aSel.value) || monLista[0];
+    box.innerHTML = monHtml(g, true);
+    box.querySelectorAll('[data-f]').forEach(el => el.addEventListener('change', () => {
+      const st = monRead();
+      if(el.dataset.f === '_escola') st._escola = el.value;
+      else { const key = studentKey(g[0]) + '|' + el.dataset.row; st[key] = st[key] || {}; st[key][el.dataset.f] = el.value; }
+      monWrite(st); renderMon();
+    }));
+  }
+  document.getElementById('monTurma').addEventListener('change', () => { document.getElementById('monAluno').innerHTML = ''; renderMon(); });
+  document.getElementById('monAluno').addEventListener('change', renderMon);
+  document.getElementById('monPrint').addEventListener('click', () => {
+    const g = monLista.find(x => studentKey(x[0]) === document.getElementById('monAluno').value);
+    if(!g){ setStatus('Selecione um aluno para imprimir.', 'error'); return; }
+    const w = window.open('', '_blank'); if(!w) return;
+    w.document.write('<!DOCTYPE html><html lang="pt-BR"><meta charset="utf-8"><title>Monitoramento — ' + escapeHtml(g[0].nome) + '</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px/1.35 Arial,sans-serif;margin:0}h2{text-align:center;font-size:15px;margin:0 0 8px}table{border-collapse:collapse;width:100%;margin-bottom:6px}th,td{border:1px solid #444;padding:4px 6px;text-align:left}th{background:#e6e6e6;text-align:center}td.c{text-align:center}tbody tr{height:26px}.leg{font-size:9.5px;white-space:pre-line;margin-top:4px}.ok{font-weight:bold}</style>' + monHtml(g, false));
+    w.document.close(); setTimeout(() => w.print(), 300);
+  });
+
   // ---------- file ingestion ----------
   function readFileAsText(file){
     return new Promise((resolve, reject) => {
@@ -1857,7 +2268,7 @@
         <div class="sel-box dup-box" role="dialog" aria-modal="true">
           <div class="sel-head">
             <div class="sel-title">⚠️ Alunos já avaliados</div>
-            <div class="sel-sub">${conflitos.length === 1 ? 'Este aluno já possui' : 'Estes ' + conflitos.length + ' alunos já possuem'} avaliação no livro. Ao substituir, os dados anteriores são apagados e fica apenas o arquivo mais recente. Desmarque quem deve permanecer como está.</div>
+            <div class="sel-sub">${conflitos.length === 1 ? 'Este aluno já possui' : 'Estes ' + conflitos.length + ' alunos já possuem'} avaliação na ${sdLabel(conflitos[0].rec.sondagem)}. Ao substituir, os dados anteriores são apagados e fica apenas o arquivo mais recente. Desmarque quem deve permanecer como está.</div>
           </div>
           <div class="sel-tools">
             <button type="button" class="btn" data-act="all">Marcar todos</button>
@@ -1905,6 +2316,9 @@
       setStatus('Selecione arquivos .txt exportados pelo Medidor de Fluência.', 'error');
       return;
     }
+    const sd = parseInt(document.getElementById('sdImport').value);
+    if(!sd){ setStatus('Escolha a sondagem (SD) desta importação antes de enviar os arquivos.', 'error'); return; }
+    if(!temSondagem && sd !== 1){ setStatus('Para importar a ' + sdLabel(sd) + ', crie antes a coluna "sondagem" no banco (veja o aviso no topo).', 'error'); return; }
     let okCount = 0, partialCount = 0, failCount = 0, linkedCount = 0;
     let replacedCount = 0, keptCount = 0, dupLoteCount = 0, oldNotRemoved = 0;
 
@@ -1915,6 +2329,7 @@
         const text = await readFileAsText(file);
         const rec = parseReport(text, file.name);
         rec.estudanteMatricula = autoMatchEstudante(rec.nome, rec.turma);
+        rec.sondagem = sd;
         parsed.push(rec);
       }catch(e){
         failCount++;
@@ -1932,7 +2347,7 @@
 
     // 3) alunos que já possuem avaliação no livro: pede confirmação
     const conflitos = lote
-      .map(rec => ({ rec, existentes: records.filter(r => sameStudent(r, rec)) }))
+      .map(rec => ({ rec, existentes: records.filter(r => sameStudent(r, rec) && r.sondagem === rec.sondagem) }))
       .filter(c => c.existentes.length);
     const conflitoPorId = new Map(conflitos.map(c => [c.rec.id, c]));
     let substituir = new Set();
@@ -1974,7 +2389,7 @@
     if(replacedCount) extras.push(replacedCount + (replacedCount === 1 ? ' aluno substituído' : ' alunos substituídos'));
     if(keptCount) extras.push(keptCount + (keptCount === 1 ? ' mantido sem alteração' : ' mantidos sem alteração'));
     if(dupLoteCount) extras.push(dupLoteCount + (dupLoteCount === 1 ? ' arquivo repetido no envio (mantido o mais recente)' : ' arquivos repetidos no envio (mantido o mais recente)'));
-    const extraTxt = extras.length ? ' · ' + extras.join(' · ') : '';
+    const extraTxt = ' · ' + sdLabel(sd) + (extras.length ? ' · ' + extras.join(' · ') : '');
 
     if(oldNotRemoved){
       setStatus('Atenção: o novo registro foi salvo, mas ' + oldNotRemoved + ' registro(s) anterior(es) não pôde(ram) ser removido(s). Remova-o(s) manualmente na tabela.', 'error');
