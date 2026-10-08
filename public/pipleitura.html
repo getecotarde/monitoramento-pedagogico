@@ -168,6 +168,16 @@
   .sel-item input { accent-color:var(--ink-navy); margin:0; }
   .sel-item small { color:var(--text-mute); margin-left:auto; white-space:nowrap; }
   .dup-box { max-width: 600px; }
+  .del-box { max-width: 460px; }
+  .del-body { padding:14px 18px 6px; font-size:13px; color:var(--text-dark); line-height:1.5; }
+  .del-body ul { margin:8px 0 0; padding-left:18px; color:var(--text-mute); }
+  .del-body li { margin-bottom:3px; }
+  .del-warn { margin-top:10px; font-weight:600; color:var(--stamp-red-deep); }
+  .del-actions { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px 16px; }
+  .del-btn { font:500 13px 'IBM Plex Sans',sans-serif; padding:8px 16px; border:1px solid var(--ink-navy); background:var(--card-bg); color:var(--ink-navy); cursor:pointer; }
+  .del-btn:hover { background:var(--paper-deep); }
+  .del-btn.danger { background:var(--stamp-red); border-color:var(--stamp-red-deep); color:#fff; }
+  .del-btn.danger:hover { background:var(--stamp-red-deep); }
   .dup-item { display:flex; align-items:flex-start; gap:10px; padding:10px 18px; border-bottom:1px solid var(--ledger-line); cursor:pointer; }
   .dup-item:hover { background: var(--paper-deep); }
   .dup-item input { accent-color: var(--ink-navy); margin:3px 0 0; flex-shrink:0; }
@@ -649,6 +659,7 @@
     <div class="mon-bar">
       <select id="monTurma"></select><select id="monAluno"></select>
       <button class="btn" id="monPrint" type="button">🖨️ Imprimir ficha</button>
+      <button class="btn" id="monPrintTurma" type="button">🖨️ Imprimir turma</button>
     </div>
     <p style="font-size:12.5px;margin:0 0 8px">Os dados de PPM, prosódia, data e professor vêm das sondagens importadas (SD1, SD2…). Os campos amarelos são preenchidos aqui e ficam salvos neste navegador.</p>
     <div id="monContent"></div>
@@ -909,7 +920,7 @@
       importado_em: rec.importadoEm,
       data_avaliacao: rec.dataAvaliacao,
       nome: rec.nome,
-      turma: rec.turma,
+      turma: canonTurma(rec.turma),
       idade: rec.idade,
       classificacao: rec.classificacao,
       prioridade: rec.prioridade,
@@ -934,7 +945,7 @@
       importadoEm: row.importado_em,
       dataAvaliacao: row.data_avaliacao,
       nome: row.nome,
-      turma: row.turma,
+      turma: canonTurma(row.turma),
       idade: row.idade,
       classificacao: row.classificacao,
       prioridade: row.prioridade,
@@ -1003,6 +1014,12 @@
   // ---------- estudantes (para vínculo) ----------
   let estudantes = [];
 
+  // Padroniza o nome da turma: "6ºB", "6º B", "6° b", "6 B", "6º ano B" -> "6º B"
+  function canonTurma(t){
+    const raw = String(t == null ? '' : t).replace(/\s+/g, ' ').trim();
+    const m = raw.match(/^(\d{1,2})\s*(?:[ºo°ª˚]|\.)?\s*(?:ano)?\s*[-–.]?\s*([A-Za-z])$/i);
+    return m ? m[1] + 'º ' + m[2].toUpperCase() : raw;
+  }
   function normalizeStr(s){
     return String(s||'')
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
@@ -1027,8 +1044,8 @@
     let candidatos = estudantes.filter(e => normalizeStr(e.nome) === nNome);
     if(candidatos.length === 1) return candidatos[0].numero_matricula ?? null;
     if(candidatos.length > 1 && turma){
-      const nTurma = normalizeStr(turma);
-      const porTurma = candidatos.filter(e => normalizeStr(e.turma) === nTurma);
+      const nTurma = turmaKey(turma);
+      const porTurma = candidatos.filter(e => turmaKey(e.turma) === nTurma);
       if(porTurma.length === 1) return porTurma[0].numero_matricula ?? null;
     }
     return null; // ambíguo ou sem correspondência — fica para vínculo manual
@@ -1147,7 +1164,7 @@
       importadoEm: new Date().toISOString(),
       dataAvaliacao: grabField(ident, 'Data da Avaliação') || '—',
       nome: grabField(ident, 'Nome') || 'Não informado',
-      turma: grabField(ident, 'Turma') || 'Não informada',
+      turma: canonTurma(grabField(ident, 'Turma')) || 'Não informada',
       idade: grabField(ident, 'Idade') || 'Não informada',
       classificacao: classif || '—',
       prioridade: derivePriority(classif),
@@ -1721,7 +1738,7 @@
       });
       tr.querySelector('.row-remove').addEventListener('click', (e) => {
         e.stopPropagation();
-        removeRecord(rec.id);
+        confirmRemoveRecord(rec);
       });
       tr.querySelector('.link-badge').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2058,6 +2075,44 @@
     });
   }
 
+  function confirmRemoveRecord(rec){
+    if(document.getElementById('delConfirmOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'sel-overlay';
+    overlay.id = 'delConfirmOverlay';
+    const vinculado = rec.estudanteMatricula
+      ? '<li>O vínculo com o aluno cadastrado será desfeito junto com o registro, e o histórico do aluno deixará de mostrar esta sondagem.</li>'
+      : '';
+    overlay.innerHTML = `
+      <div class="sel-box del-box" role="alertdialog" aria-modal="true" aria-labelledby="delTitle">
+        <div class="sel-head">
+          <div class="sel-title" id="delTitle">Confirmar exclusão</div>
+          <div class="sel-sub">${escapeHtml(rec.nome)} · ${escapeHtml(rec.turma)} · ${sdLabel(rec.sondagem)} · ${escapeHtml(rec.dataAvaliacao)}</div>
+        </div>
+        <div class="del-body">
+          Deseja realmente excluir este registro do Livro de Registro? Ao confirmar:
+          <ul>
+            <li>O registro será apagado permanentemente do banco de dados.</li>
+            <li>Ele deixará de contar no painel, na lista de prioridades, no monitoramento e na evolução do aluno.</li>
+            ${vinculado}
+          </ul>
+          <div class="del-warn">Esta ação não pode ser desfeita.</div>
+        </div>
+        <div class="del-actions">
+          <button type="button" class="del-btn" id="delCancel">Cancelar</button>
+          <button type="button" class="del-btn danger" id="delOk">Excluir registro</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if(e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', (e) => { if(e.target === overlay) close(); });
+    overlay.querySelector('#delCancel').addEventListener('click', close);
+    overlay.querySelector('#delOk').addEventListener('click', () => { close(); removeRecord(rec.id); });
+    overlay.querySelector('#delCancel').focus();
+  }
+
   async function removeRecord(id){
     try{
       await deleteRecord(id);
@@ -2159,6 +2214,8 @@
   // ---------- monitoramento por aluno (modelo da planilha PIP Leitura) ----------
   const MON_LEG_F = 'Nível de Prosódia (1 a 4), pela avaliação do professor ou de um colega mais fluente:\n- Nível 1 - Não Prosódico: leitura monótona, palavra por palavra, com poucas pausas na pontuação ou pausas em locais aleatórios. Dificulta a compreensão.\n- Nível 2 - Parcialmente Prosódico: frases curtas ou grupos de 2-3 palavras. Respeita a pontuação, mas a entonação é artificial ou inadequada.\n- Nível 3 - Prosódico (Em Desenvolvimento): ritmo da fala (conversacional). Respeita a pontuação e a maioria dos agrupamentos de sentido, variando levemente a entonação.\n- Nível 4 - Altamente Prosódico: leitura expressiva e fluida, com ritmo e entonação adequados ao gênero textual e ao sentido. Facilita muito a compreensão.\nDica: use o mesmo texto nas sessões SD 1 a 5 para medir o ganho de fluência na repetição.';
   const MON_LEG_G = 'Fórmulas de cálculo (por sessão):\n1) Palavras Lidas por Minuto (PLPM): total de palavras lidas no minuto (corretas + incorretas).\n2) Palavras Corretas por Minuto (PCPM): PLPM menos Erros Totais.\n3) Precisão (%): PCPM ÷ PLPM × 100.\nMeta sugerida: atingir e manter precisão acima de 95% antes de focar intensamente em velocidade e prosódia.';
+  const ESCOLA_PADRAO = 'E.M. Gerraldo Teixeira da Costa';
+  const PROFESSOR_PADRAO = 'Laura Marta dos Santos Silva';
   const PROS_NOME = {1:'1 - Não prosódico', 2:'2 - Parcialmente prosódico', 3:'3 - Prosódico (em desenvolvimento)', 4:'4 - Altamente prosódico'};
   const monRead = () => { try{ return JSON.parse(localStorage.getItem('pipMon') || '{}'); }catch(e){ return {}; } };
   const monWrite = o => { try{ localStorage.setItem('pipMon', JSON.stringify(o)); }catch(e){} };
@@ -2172,10 +2229,10 @@
   }
   function monHtml(g, ed){
     const st = monRead(), k = studentKey(g[0]), ult = g[g.length-1];
-    const prof = g.slice().reverse().map(r => r.professor).find(Boolean) || '';
+    const prof = st._professor || PROFESSOR_PADRAO;
     const get = (id, f) => ((st[k + '|' + id] || {})[f] ?? '');
     const inp = (id, f, v, cls) => ed ? `<input class="${cls||''}" data-row="${id}" data-f="${f}" value="${escapeHtml(v)}">` : escapeHtml(v);
-    const escola = st._escola || '';
+    const escola = st._escola || ESCOLA_PADRAO;
     const body = monRows(g).map(row => {
       const r = row.rec;
       const plpm = r ? ppmNum(r) : numOrNull(get(row.id, 'plpm'));
@@ -2192,7 +2249,7 @@
     }).join('');
     return `<div class="mon"><h2>MONITORAMENTO POR ALUNO - PIP LEITURA</h2>
       <table><tr><td colspan="2"><b>Escola Municipal:</b> ${ed ? `<input data-f="_escola" value="${escapeHtml(escola)}" style="width:60%">` : escapeHtml(escola)}</td><td colspan="3"><b>Aluno(a):</b> ${escapeHtml(ult.nome)}</td></tr>
-      <tr><td colspan="2"><b>Turma:</b> ${escapeHtml(ult.turma)}</td><td colspan="3"><b>Professor(a):</b> ${escapeHtml(prof)}</td></tr></table>
+      <tr><td colspan="2"><b>Turma:</b> ${escapeHtml(ult.turma)}</td><td colspan="3"><b>Professor(a):</b> ${ed ? `<input data-f="_professor" value="${escapeHtml(prof)}" style="width:60%">` : escapeHtml(prof)}</td></tr></table>
       <table><thead><tr><th>SESSÃO / DATA</th><th>Palavras Lidas (PLPM)</th><th>Erros Totais (ET)</th><th>PCPM</th><th>Precisão (%)</th><th>Nível de Prosódia (1-4)</th><th>Observações e Foco</th></tr></thead><tbody>${body}</tbody></table>
       <div class="leg">${MON_LEG_F}</div><div class="leg">${MON_LEG_G}</div></div>`;
   }
@@ -2214,6 +2271,7 @@
     box.querySelectorAll('[data-f]').forEach(el => el.addEventListener('change', () => {
       const st = monRead();
       if(el.dataset.f === '_escola') st._escola = el.value;
+      else if(el.dataset.f === '_professor') st._professor = el.value;
       else { const key = studentKey(g[0]) + '|' + el.dataset.row; st[key] = st[key] || {}; st[key][el.dataset.f] = el.value; }
       monWrite(st); renderMon();
     }));
@@ -2226,6 +2284,55 @@
     const w = window.open('', '_blank'); if(!w) return;
     w.document.write('<!DOCTYPE html><html lang="pt-BR"><meta charset="utf-8"><title>Monitoramento — ' + escapeHtml(g[0].nome) + '</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px/1.35 Arial,sans-serif;margin:0}h2{text-align:center;font-size:15px;margin:0 0 8px}table{border-collapse:collapse;width:100%;margin-bottom:6px}th,td{border:1px solid #444;padding:4px 6px;text-align:left}th{background:#e6e6e6;text-align:center}td.c{text-align:center}tbody tr{height:26px}.leg{font-size:9.5px;white-space:pre-line;margin-top:4px}.ok{font-weight:bold}</style>' + monHtml(g, false));
     w.document.close(); setTimeout(() => w.print(), 300);
+  });
+  function imprimirFichasTurma(lista, turma){
+    const w = window.open('', '_blank'); if(!w){ setStatus('O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.', 'error'); return; }
+    const fichas = lista.map(g => '<section class="ficha">' + monHtml(g, false) + '</section>').join('');
+    w.document.write('<!DOCTYPE html><html lang="pt-BR"><meta charset="utf-8"><title>Monitoramento — Turma ' + escapeHtml(turma) + '</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px/1.35 Arial,sans-serif;margin:0}.ficha{page-break-after:always;break-after:page}.ficha:last-child{page-break-after:auto;break-after:auto}h2{text-align:center;font-size:15px;margin:0 0 8px}table{border-collapse:collapse;width:100%;margin-bottom:6px}th,td{border:1px solid #444;padding:4px 6px;text-align:left}th{background:#e6e6e6;text-align:center}td.c{text-align:center}tbody tr{height:26px}.leg{font-size:9.5px;white-space:pre-line;margin-top:4px}.ok{font-weight:bold}</style>' + fichas);
+    w.document.close(); setTimeout(() => w.print(), 300);
+  }
+  document.getElementById('monPrintTurma').addEventListener('click', () => {
+    if(!monLista.length){ setStatus('Nenhum aluno na turma selecionada.', 'error'); return; }
+    const turma = document.getElementById('monTurma').value;
+    const lista = monLista.slice();
+    const overlay = document.createElement('div');
+    overlay.className = 'sel-overlay';
+    overlay.innerHTML = `
+      <div class="sel-box" role="dialog" aria-modal="true">
+        <div class="sel-head">
+          <div class="sel-title">🖨️ Imprimir turma ${escapeHtml(turma)}</div>
+          <div class="sel-sub">Todas as fichas da turma vêm marcadas (${lista.length} aluno${lista.length === 1 ? '' : 's'}). Desmarque quem não deve sair. Cada aluno ocupa uma página.</div>
+        </div>
+        <div class="sel-tools">
+          <button type="button" class="btn" data-act="all">Marcar todos</button>
+          <button type="button" class="btn" data-act="none">Limpar</button>
+        </div>
+        <div class="sel-list">
+          ${lista.map((g,i) => `<label class="sel-item"><input type="checkbox" data-i="${i}" checked> <span>${escapeHtml(g[0].nome)}</span></label>`).join('')}
+        </div>
+        <div class="sel-foot">
+          <button type="button" class="btn" data-act="cancel">Cancelar</button>
+          <button type="button" class="btn primary" data-act="go">🖨️ Imprimir fichas</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if(e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    const boxes = () => [...overlay.querySelectorAll('input[type=checkbox]')];
+    overlay.addEventListener('click', (e) => {
+      if(e.target === overlay){ close(); return; }
+      const act = e.target.dataset && e.target.dataset.act;
+      if(act === 'cancel') close();
+      else if(act === 'all') boxes().forEach(b => b.checked = true);
+      else if(act === 'none') boxes().forEach(b => b.checked = false);
+      else if(act === 'go'){
+        const escolhidos = boxes().filter(b => b.checked).map(b => lista[+b.dataset.i]);
+        if(!escolhidos.length){ setStatus('Marque ao menos um aluno para imprimir.', 'error'); return; }
+        close();
+        imprimirFichasTurma(escolhidos, turma);
+      }
+    });
   });
 
   // ---------- file ingestion ----------
