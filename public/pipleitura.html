@@ -1257,8 +1257,27 @@
       if(ultimo && ultimo.turma === rec.turma) ultimo.recs.push(rec);
       else porTurma.push({ turma: rec.turma, recs: [rec] });
     });
-    const secoes = porTurma.map((g, idx) => `
-      <section class="turma-bloco${idx ? ' nova-pagina' : ''}">
+    // Páginas: 6º anos juntos; 7º anos + 8º X juntos; demais turmas, uma por página
+    const paginaDe = t => {
+      const k = turmaKey(t || '');
+      if(/^6/.test(k)) return 'ano6';
+      if(/^7/.test(k) || k === '8x') return 'ano7_8x';
+      return 'turma:' + k;
+    };
+    const paginas = new Map();
+    porTurma.forEach(g => {
+      const pk = paginaDe(g.turma);
+      if(!paginas.has(pk)) paginas.set(pk, []);
+      paginas.get(pk).push(g);
+    });
+    const ordenadas = [];
+    let pgIdx = 0;
+    paginas.forEach(grupo => {
+      grupo.forEach((g, i) => { g.novaPagina = pgIdx > 0 && i === 0; g.mesmaPagina = i > 0; ordenadas.push(g); });
+      pgIdx++;
+    });
+    const secoes = ordenadas.map((g, idx) => `
+      <section class="turma-bloco${g.novaPagina ? ' nova-pagina' : ''}${g.mesmaPagina ? ' mesma-pagina' : ''}">
         <table>
           <thead>
             <tr class="turma-sep"><th colspan="7">Turma ${escapeHtml(g.turma || 'Não informada')} <span class="qtd">· ${g.recs.length} registro${g.recs.length===1?'':'s'}</span></th></tr>
@@ -1316,6 +1335,7 @@
   thead tr.turma-sep th { background:#EFEBDD; border-top: 2px solid #1a1a1a; border-bottom: 1px solid #C9C4AE; font-size: 11.5px; padding: 7px 8px; }
   thead tr.turma-sep .qtd { font-weight:400; text-transform:none; letter-spacing:0; color:#555; }
   .turma-bloco.nova-pagina { page-break-before: always; break-before: page; }
+  .turma-bloco.mesma-pagina { margin-top: 22px; }
   .center { text-align:center; }
   .mono { font-family: 'Courier New', monospace; }
   .footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid #ccc; font-family:'Arial', sans-serif; font-size: 9.5px; color:#888; text-align:center; }
@@ -1407,6 +1427,8 @@
   .titulo-doc .sub { font-family: Arial, sans-serif; font-size: 11.5px; color:#555; margin-top: 4px; }
   .resumo { font-family: Arial, sans-serif; font-size: 11px; color:#333; margin: 14px 0 16px; padding: 8px 12px; background:#F6F4EE; border:1px solid #D9D5C7; display:flex; gap:18px; flex-wrap:wrap; }
   .resumo b { font-size: 12.5px; }
+  .pagina-turmas.nova-pagina { page-break-before: always; break-before: page; }
+  .pagina-titulo { font-family: Arial, sans-serif; font-weight:700; font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; border-bottom: 2px solid #1a1a1a; padding-bottom: 4px; margin: 4px 0 12px; }
   .cards { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: Arial, sans-serif; }
   .card { border:1px solid #C9C4AE; padding: 11px 13px; page-break-inside: avoid; break-inside: avoid; }
   .card-title { font-weight:700; font-size: 13px; }
@@ -1501,7 +1523,7 @@
       ${cobResumo}
     </div>`;
 
-    const cards = '<div class="cards">' + turmas.map(t => {
+    const cardHtml = t => {
       const d = byTurma[t];
       return `<div class="card">
         <div class="card-title">Turma ${escapeHtml(t)}</div>
@@ -1525,7 +1547,19 @@
             <div class="cob-bar"><div style="width:${c.pctAval}%"></div></div></div>`;
         })()}
       </div>`;
-    }).join('') + '</div>';
+    };
+
+    // Páginas: 1) 6º anos · 2) 7º anos + 8º anos · 3) demais turmas (se houver)
+    const anoDe = t => { const m = String(t).match(/^\s*(\d{1,2})/); return m ? +m[1] : null; };
+    const paginas = [
+      { titulo: '6º anos', lista: turmas.filter(t => anoDe(t) === 6) },
+      { titulo: '7º e 8º anos', lista: turmas.filter(t => anoDe(t) === 7 || anoDe(t) === 8) },
+      { titulo: 'Outras turmas', lista: turmas.filter(t => ![6,7,8].includes(anoDe(t))) }
+    ].filter(pg => pg.lista.length);
+    const cards = paginas.map((pg, i) => `<div class="pagina-turmas${i ? ' nova-pagina' : ''}">
+      <div class="pagina-titulo">${pg.titulo}</div>
+      <div class="cards">${pg.lista.map(cardHtml).join('')}</div>
+    </div>`).join('');
 
     abrirJanelaImpressao(buildPanelPrintHtml(
       'Painel por Turma',
