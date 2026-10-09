@@ -104,6 +104,11 @@ body{
 .overview-btn.oer{background:var(--warn);}
 .risk-lvl{display:inline-block; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; padding:1px 6px; border-radius:4px; color:#fff; background:var(--danger);}
 .risk-lvl.n3{background:#000;}
+.oer-chip{display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--line); border-radius:14px; background:#fff; cursor:pointer; user-select:none; font-size:13px;}
+.oer-chip.on{background:var(--warn); color:#fff; border-color:var(--warn); font-weight:600;}
+.oer-chip input{accent-color:#fff; margin:0;}
+.oer-chip.all{font-weight:700;}
+.print-btn:disabled{opacity:.45; cursor:not-allowed;}
 .oer-tab-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 18px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);}
 .nav-row{display:flex; flex-direction:column; gap:6px;}
 .turma-switch{display:flex; flex-direction:column; gap:6px;}
@@ -1037,12 +1042,13 @@ function runPrintMode(docId, html, mode){
 }
 
 // Cards individuais (um por aluno em risco) para recortar e entregar ao aluno/responsável.
-function printOerCards(className){
-  if(!currentClasses[className]) return;
+function printOerCards(){
+  const names = oerSelectedNames();
+  if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
+  const cards = names.flatMap(className=>{
   const m = oerPrintMeta(className);
   const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
-  if(!risk.length){ alert('Nenhum aluno desta turma com risco de O.E.R.'); return; }
-  const cards = risk.map(st=>{
+  return risk.map(st=>{
     const rows = st.subjects.map(s=>
       `<tr><td class="l">${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need n${oerNivel(s.precisa)}">${s.precisa}${oerAst(s)}<small>${oerNivel(s.precisa)===3 ? 'acima de 40 pts' : oerNivel(s.precisa)===2 ? 'risco elevadíssimo' : (s.precisa-OER_LIMITE)+' pt'+((s.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</small></td></tr>`
     ).join('');
@@ -1063,7 +1069,9 @@ function printOerCards(className){
       ${via === 'Via da escola' ? `<div class="oer-card-sign">Ciente do responsável: ____________________________ &nbsp;Data: ____/____/______</div>` : ''}
     </div>`;
     return `<div class="oer-pair">${one('Via da família')}<div class="oer-cut" aria-hidden="true"><span>✂</span></div>${one('Via da escola')}</div>`;
+  });
   }).join('');
+  if(!cards){ alert('Nenhum aluno das turmas selecionadas com risco de O.E.R.'); return; }
   const html = `<div class="print-page">
     <div class="oer-cards-grid">${cards}</div>
   </div>`;
@@ -1072,22 +1080,24 @@ function printOerCards(className){
 
 // Tabela da turma: uma linha por aluno em risco, uma coluna por disciplina; a célula traz
 // os pontos necessários no 3º trimestre (e, entre parênteses, a soma do 1º+2º) quando em risco.
-function printOerTable(className){
-  if(!currentClasses[className]) return;
-  const m = oerPrintMeta(className);
-  const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
-  if(!risk.length){ alert('Nenhum aluno desta turma com risco de O.E.R.'); return; }
-  const subjects = m.cd.subjects.filter(s=>!isLiteratura(s));
-  const head = subjects.map(s=>`<th>${s}</th>`).join('');
-  const body = risk.map((st,i)=>{
-    const by = {}; st.subjects.forEach(s=>{ by[s.name] = s; });
-    const cells = subjects.map(sn=>{
-      const s = by[sn];
-      return s ? `<td class="risk">${s.precisa}${oerAst(s)} <small>(${s.soma}${s.parcial ? '; s/'+s.faltaTri+'º' : ''})</small></td>` : `<td>–</td>`;
+function printOerTable(){
+  const names = oerSelectedNames();
+  if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
+  const pages = names.map(className=>{
+    const m = oerPrintMeta(className);
+    const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
+    if(!risk.length) return '';
+    const subjects = m.cd.subjects.filter(s=>!isLiteratura(s));
+    const head = subjects.map(s=>`<th>${s}</th>`).join('');
+    const body = risk.map((st,i)=>{
+      const by = {}; st.subjects.forEach(s=>{ by[s.name] = s; });
+      const cells = subjects.map(sn=>{
+        const s = by[sn];
+        return s ? `<td class="risk">${s.precisa}${oerAst(s)} <small>(${s.soma}${s.parcial ? '; s/'+s.faltaTri+'º' : ''})</small></td>` : `<td>–</td>`;
+      }).join('');
+      return `<tr><td>${i+1}</td><td class="l">${st.name}</td>${cells}<td><strong>${st.subjects.length}</strong></td></tr>`;
     }).join('');
-    return `<tr><td>${i+1}</td><td class="l">${st.name}</td>${cells}<td><strong>${st.subjects.length}</strong></td></tr>`;
-  }).join('');
-  const html = `<div class="print-page">
+    return `<div class="print-page">
     <div class="print-page-hdr"><div><h1>${m.turma} — Alunos com risco de O.E.R</h1><div class="print-page-sub">${m.escola}${m.mesAno ? ' · '+m.mesAno : ''}${m.prof ? ' · Prof. de referência: '+m.prof : ''} · ${risk.length} aluno${risk.length>1?'s':''} de ${m.cd.students.length}</div></div></div>
     <table class="oer-table">
       <thead><tr><th>Nº</th><th class="l">Aluno</th>${head}<th>Disc. em risco</th></tr></thead>
@@ -1095,6 +1105,9 @@ function printOerTable(className){
     </table>
     <div class="oer-legend">Valor na célula = pontos que o aluno precisa no 3º trimestre (máx. 40; média 24). Entre parênteses: somatória do 1º+2º trimestres (máx. 60). "–" = sem risco na disciplina.</div>${oerLegendHtml(risk.flatMap(x=>x.subjects), ' Na célula, "s/1º" = sem a nota do 1º trimestre e "s/2º" = sem a nota do 2º.')}
   </div>`;
+  }).filter(Boolean);
+  if(!pages.length){ alert('Nenhum aluno das turmas selecionadas com risco de O.E.R.'); return; }
+  const html = pages.join('');
   runPrintMode('printOerTableDoc', html, 'print-mode-oer-table');
 }
 
@@ -1311,6 +1324,10 @@ function statusClass(p){ if(p===null) return 'na'; if(p>=70) return 'ok'; if(p>=
 
 // ---------- ABA O.E.R (após o Dashboard) ----------
 let oerTurma = null;
+let oerSel = new Set();
+function oerSelectedNames(){
+  return Object.keys(currentClasses).sort().filter(n=>oerSel.has(n));
+}
 function renderOerTab(){
   const main = document.getElementById('main');
   const names = Object.keys(currentClasses).sort();
@@ -1318,25 +1335,49 @@ function renderOerTab(){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para ver os alunos em risco de O.E.R.</p></div>`;
     return;
   }
-  if(!oerTurma || !currentClasses[oerTurma]) oerTurma = names[0];
-  const cd = currentClasses[oerTurma];
-  const risk = computeRetentionRisk(cd);
-  const q = oerTurma.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  main.innerHTML = `<div class="hdr"><div><h1>O.E.R — Oportunidade Especial de Recuperação</h1>
-      <div class="hdr-sub">${shortTurmaLabel(oerTurma)} · ${cd.students.length} alunos · ${risk.length} em risco</div></div></div>
-    <div class="oer-tab-controls">
-      <label>Turma: <select id="oerTurmaSelect" class="tri-select">${names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}" title="${n.replace(/"/g,'&quot;')}" ${n===oerTurma?'selected':''}>${shortTurmaLabel(n)}</option>`).join('')}</select></label>
-    </div>
-    <div class="risk-section">
-      <div class="section-title">Alunos com risco de O.E.R — Oportunidade Especial de Recuperação (1º+2º trimestres abaixo de 36 pontos: precisam de mais de 24 no 3º, por disciplina)</div>
-      <div class="risk-actions">
-        <button class="print-btn" onclick="printOerCards('${q}')">🖶 Cards de O.E.R para entrega ao aluno (esta turma)</button>
-        <button class="print-btn" onclick="printOerTable('${q}')">🖶 Tabela de alunos em risco de O.E.R (esta turma)</button>
-      </div>
+  // mantém só turmas que ainda existem; se nada estiver marcado, começa pela turma que estava sendo vista
+  oerSel = new Set([...oerSel].filter(n=>currentClasses[n]));
+  if(oerSel.size===0 && !oerSelTouched){
+    oerSel.add(oerTurma && currentClasses[oerTurma] ? oerTurma : names[0]);
+  }
+  const sel = oerSelectedNames();
+  const esc = n => n.replace(/"/g,'&quot;');
+  const riskBy = {}; let totRisk = 0, totAlunos = 0;
+  sel.forEach(n=>{ riskBy[n] = computeRetentionRisk(currentClasses[n]); totRisk += riskBy[n].length; totAlunos += currentClasses[n].students.length; });
+  const allOn = sel.length===names.length;
+  const chips = names.map(n=>`<label class="oer-chip${oerSel.has(n)?' on':''}" title="${esc(n)}"><input type="checkbox" class="oer-turma-cb" value="${esc(n)}" ${oerSel.has(n)?'checked':''}> ${shortTurmaLabel(n)}</label>`).join('');
+  const sections = sel.map(n=>{
+    const risk = riskBy[n];
+    return `<div class="risk-section">
+      <div class="section-title">${shortTurmaLabel(n)} — ${risk.length} de ${currentClasses[n].students.length} alunos com risco de O.E.R (1º+2º trimestres abaixo de 36 pontos: precisam de mais de 24 no 3º, por disciplina)</div>
       ${oerTemParcial(risk) ? `<div class="risk-legend">${OER_ASTERISCO_TXT}</div>` : ''}<div class="risk-grid">${riskCards(risk)}</div>
     </div>`;
-  document.getElementById('oerTurmaSelect').onchange = e=>{ oerTurma = e.target.value; renderOerTab(); };
+  }).join('');
+  const resumo = sel.length===0 ? 'Nenhuma turma selecionada'
+    : (sel.length===1 ? shortTurmaLabel(sel[0]) : (allOn ? 'Todas as turmas' : sel.length+' turmas selecionadas'))
+      + ` · ${totAlunos} alunos · ${totRisk} em risco`;
+  main.innerHTML = `<div class="hdr"><div><h1>O.E.R — Oportunidade Especial de Recuperação</h1>
+      <div class="hdr-sub">${resumo}</div></div></div>
+    <div class="oer-tab-controls">
+      <span><b>Turmas:</b></span>
+      <label class="oer-chip all${allOn?' on':''}"><input type="checkbox" id="oerAllCb" ${allOn?'checked':''}> Todas</label>
+      ${chips}
+    </div>
+    <div class="risk-actions" style="margin:0 0 18px">
+      <button class="print-btn" onclick="printOerCards()" ${sel.length?'':'disabled'}>🖶 Cards de O.E.R para entrega ao aluno (${sel.length===1?'esta turma':sel.length===names.length?'todas as turmas':sel.length+' turmas'})</button>
+      <button class="print-btn" onclick="printOerTable()" ${sel.length?'':'disabled'}>🖶 Tabela de alunos em risco de O.E.R (${sel.length===1?'esta turma':sel.length===names.length?'todas as turmas':sel.length+' turmas'})</button>
+    </div>
+    ${sections}`;
+  main.querySelectorAll('.oer-turma-cb').forEach(cb=>{
+    cb.onchange = ()=>{ oerSelTouched = true; if(cb.checked) oerSel.add(cb.value); else oerSel.delete(cb.value); renderOerTab(); };
+  });
+  document.getElementById('oerAllCb').onchange = e=>{
+    oerSelTouched = true;
+    oerSel = e.target.checked ? new Set(names) : new Set();
+    renderOerTab();
+  };
 }
+let oerSelTouched = false;
 
 // ═══════════════════════════════════════════════════════════════════════
 // LIBERAÇÃO DE BOLETIM
@@ -2306,7 +2347,7 @@ document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; r
 document.getElementById('dashboardBtn').onclick = ()=>{ activeClass='DASHBOARD'; renderSidebar(); renderMain(); };
 document.getElementById('libBtn').onclick = ()=>{ activeClass='LIBERACAO'; renderSidebar(); renderMain(); };
 document.getElementById('oerBtn').onclick = ()=>{
-  if(currentClasses[activeClass]) oerTurma = activeClass; // abre já na turma que estava sendo vista
+  if(currentClasses[activeClass]){ oerTurma = activeClass; oerSel = new Set([activeClass]); oerSelTouched = true; } // abre já na turma que estava sendo vista
   activeClass='OER'; renderSidebar(); renderMain();
 };
 
