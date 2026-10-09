@@ -341,7 +341,9 @@ body{
   /* Cards O.E.R: folha em PAISAGEM, 2 colunas, fonte grande (leitura tranquila pelo responsável), fundo claro (economia de tinta) */
   /* uma folha por aluno: o mesmo card em duas vias lado a lado (família | escola) */
   .oer-cards-grid{ display:block; }
-  .oer-pair{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; break-after:page; page-break-after:always; }
+  .oer-pair{ display:grid; grid-template-columns:1fr 22px 1fr; gap:0; align-items:start; break-after:page; page-break-after:always; }
+  .oer-cut{ align-self:stretch; position:relative; border-left:2px dashed #000; margin-left:10px; width:0; }
+  .oer-cut span{ position:absolute; top:10px; left:-11px; width:20px; height:20px; line-height:20px; text-align:center; background:#fff; font-size:18px; transform:rotate(180deg); }
   .oer-pair:last-child{ break-after:auto; page-break-after:auto; }
   .oer-card-via{ float:right; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; border:1.5px solid #000; border-radius:10px; padding:1px 9px; margin:0 0 2px 6px; }
   .oer-card{ border:1.5px solid #000; border-radius:6px; padding:9px 12px; break-inside:avoid; page-break-inside:avoid; color:#000; background:#fff; font-size:13px; line-height:1.35; min-width:0; }
@@ -1058,9 +1060,9 @@ function printOerCards(className){
       </table>
       <div class="oer-card-note">Para ser aprovado, o aluno precisa de 60 pontos no ano. Nas disciplinas acima, a demanda de pontos no 3º trimestre é <b>maior que a média (24 de 40)</b>, por isso há risco de O.E.R (Oportunidade Especial de Recuperação).</div>
       <div class="oer-card-alert"><b>A O.E.R é a recuperação final</b>: não há nova oportunidade depois dela. Por isso, esta situação <b>exige mudança de rotina e foco nos estudos desde já</b>, para evitar chegar à O.E.R.</div>${oerAlertasNivel(st)}${oerCardObs(st)}
-      <div class="oer-card-sign">Ciente do responsável: ____________________________ &nbsp;Data: ____/____/______</div>
+      ${via === 'Via da escola' ? `<div class="oer-card-sign">Ciente do responsável: ____________________________ &nbsp;Data: ____/____/______</div>` : ''}
     </div>`;
-    return `<div class="oer-pair">${one('Via da família')}${one('Via da escola')}</div>`;
+    return `<div class="oer-pair">${one('Via da família')}<div class="oer-cut" aria-hidden="true"><span>✂</span></div>${one('Via da escola')}</div>`;
   }).join('');
   const html = `<div class="print-page">
     <div class="oer-cards-grid">${cards}</div>
