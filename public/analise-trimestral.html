@@ -101,6 +101,10 @@ body{
 }
 .overview-btn:hover{opacity:.9;}
 .overview-btn.dash{background:var(--plum);}
+.overview-btn.oer{background:var(--warn);}
+.risk-lvl{display:inline-block; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; padding:1px 6px; border-radius:4px; color:#fff; background:var(--danger);}
+.risk-lvl.n3{background:#000;}
+.oer-tab-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 18px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);}
 .nav-row{display:flex; flex-direction:column; gap:6px;}
 .turma-switch{display:flex; flex-direction:column; gap:6px;}
 .turma-switch .lbl-sm{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600; margin-top:6px;}
@@ -234,6 +238,7 @@ body{
 .print-subject-doc, .print-cards-doc, .print-oer-cards-doc, .print-oer-table-doc{ display:none; }
 .risk-actions{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
 @page oertable{ size:A4 landscape; margin:8mm; }
+@page oercards{ size:A4 landscape; margin:8mm; }
 
 /* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
 @media print{
@@ -331,21 +336,55 @@ body{
 
   /* O.E.R: cards para entrega ao aluno e tabela por turma (disciplinas em colunas) */
   body.print-mode-oer-cards .app, body.print-mode-oer-table .app{ display:none !important; }
-  body.print-mode-oer-cards .print-oer-cards-doc{ display:block !important; }
+  body.print-mode-oer-cards .print-oer-cards-doc{ display:block !important; page:oercards; }
   body.print-mode-oer-table .print-oer-table-doc{ display:block !important; page:oertable; }
-  .oer-cards-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .oer-card{ border:1.2px solid #000; border-radius:4px; padding:7px 9px; break-inside:avoid; page-break-inside:avoid; color:#000; background:#fff; font-size:10.5px; line-height:1.3; }
-  .oer-card-school{ font-size:10px; text-transform:uppercase; letter-spacing:.03em; }
-  .oer-card-title{ font-family:'Fraunces',serif; font-size:12.5px; font-weight:700; margin:1px 0 4px; }
-  .oer-card-name{ font-size:12px; font-weight:800; }
-  .oer-card-sub{ font-size:10.5px; margin-bottom:5px; }
-  .oer-card table{ width:100%; border-collapse:collapse; font-size:10.5px; }
-  .oer-card th, .oer-card td{ border:1px solid #000; padding:2px 4px; text-align:center; color:#000; }
-  .oer-card th{ font-size:10px; font-weight:700; background:#fff; }
+  /* Cards O.E.R: folha em PAISAGEM, 2 colunas, fonte grande (leitura tranquila pelo responsável), fundo claro (economia de tinta) */
+  /* uma folha por aluno: o mesmo card em duas vias lado a lado (família | escola) */
+  .oer-cards-grid{ display:block; }
+  .oer-pair{ display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; break-after:page; page-break-after:always; }
+  .oer-pair:last-child{ break-after:auto; page-break-after:auto; }
+  .oer-card-via{ float:right; font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; border:1.5px solid #000; border-radius:10px; padding:1px 9px; margin:0 0 2px 6px; }
+  .oer-card{ border:1.5px solid #000; border-radius:6px; padding:9px 12px; break-inside:avoid; page-break-inside:avoid; color:#000; background:#fff; font-size:13px; line-height:1.35; min-width:0; }
+  .oer-card-school{ font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
+  .oer-card-title{ font-family:'Fraunces',serif; font-size:16px; font-weight:700; margin:1px 0 3px; }
+  .oer-card-name{ font-size:16px; font-weight:800; }
+  .oer-card-sub{ font-size:12.5px; margin-bottom:6px; }
+  .oer-card table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:13px; }
+  .oer-card th, .oer-card td{ border:1px solid #000; padding:4px 5px; text-align:center; color:#000; vertical-align:middle; }
+  .oer-card th{ font-size:11px; font-weight:700; background:#fff; line-height:1.2; }
   .oer-card td.l, .oer-card th.l{ text-align:left; }
-  .oer-card td.need{ font-weight:800; }
-  .oer-card-note{ margin:5px 0 4px; font-size:10px; }
-  .oer-card-sign{ margin-top:8px; font-size:10.5px; }
+  .oer-card td.l{ font-weight:600; overflow-wrap:anywhere; word-break:break-word; hyphens:auto; line-height:1.2; }
+  .oer-card th.need-h{ background:#ececec; color:#000; border:2px solid #000; }
+  .oer-card th.need-h small{ display:block; font-weight:400; font-size:9.5px; margin-top:1px; }
+  .oer-card td.need{ font-weight:900; font-size:20px; line-height:1.1; background:#f2f2f2; border:2px solid #000; }
+  .oer-card td.need small{ display:block; font-weight:600; font-size:9.5px; margin-top:1px; line-height:1.15; }
+  .oer-card td.need.n2 small, .oer-card td.need.n3 small{ font-weight:900; text-transform:uppercase; }
+  .oer-card-note{ margin:6px 0 4px; font-size:11.5px; }
+  .oer-card-note b{ font-weight:900; }
+  .oer-card-alert{ margin:6px 0; padding:4px 8px; border:1.5px solid #000; font-size:12px; line-height:1.3; break-inside:avoid; background:#fff; }
+  .oer-card-alert.n2{ border-width:2.5px; }
+  .oer-card-alert.n3{ border:3.5px double #000; }
+  .oer-card-alert b{ font-weight:900; }
+  .oer-card-sign{ margin-top:10px; font-size:12.5px; }
+  /* densidade automática: muitas disciplinas => card um pouco mais compacto para caber inteiro na folha */
+  .oer-card.d{ padding:7px 11px; font-size:12.5px; line-height:1.28; }
+  .oer-card.d table{ font-size:12.5px; }
+  .oer-card.d th, .oer-card.d td{ padding:2px 4px; }
+  .oer-card.d td.need{ font-size:17px; }
+  .oer-card.d td.need small{ font-size:8.5px; }
+  .oer-card.d .oer-card-title{ font-size:14.5px; margin:0 0 2px; }
+  .oer-card.d .oer-card-name{ font-size:15px; }
+  .oer-card.d .oer-card-sub{ margin-bottom:4px; }
+  .oer-card.d .oer-card-alert{ font-size:11.5px; padding:3px 7px; margin:4px 0; }
+  .oer-card.d .oer-card-note{ font-size:11px; margin:4px 0 3px; }
+  .oer-card.d .oer-card-sign{ margin-top:6px; font-size:12px; }
+  .oer-card.xd{ padding:6px 10px; }
+  .oer-card.xd th, .oer-card.xd td{ padding:1px 4px; }
+  .oer-card.xd td.need{ font-size:15.5px; }
+  .oer-card.xd td.need small{ font-size:8px; }
+  .oer-card.xd .oer-card-alert{ font-size:11px; padding:2px 6px; margin:3px 0; }
+  .oer-card.xd .oer-card-note{ font-size:10.5px; margin:3px 0 2px; }
+  .oer-card.xd .oer-card-sign{ margin-top:4px; }
   .oer-table{ width:100%; border-collapse:collapse; font-size:10.5px; }
   .oer-table th, .oer-table td{ border:1px solid #000; padding:3px 4px; text-align:center; color:#000; vertical-align:middle; }
   .oer-table th{ background:#fff; font-size:9.5px; text-transform:uppercase; }
@@ -404,6 +443,7 @@ body{
     <div class="nav-row">
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
       <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard</div>
+      <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
     </div>
     <div class="turma-switch">
       <div class="lbl-sm" id="turmaCountLbl">Turmas</div>
@@ -452,6 +492,9 @@ const CUM_PASS = [18, 36, 60];  // 60% do acumulado
 // — ou seja, somatória do 1º+2º abaixo de 36.
 const OER_TOTAL  = 60;
 const OER_LIMITE = 24;
+const OER_ELEVADO = 28;   // acima disso: risco elevadíssimo de Recuperação Final
+const OER_MAX_3TRI = 40;  // acima disso: nem o máximo do 3º trimestre cobre a demanda
+function oerNivel(precisa){ return precisa > OER_MAX_3TRI ? 3 : (precisa > OER_ELEVADO ? 2 : 1); }
 function oerInfo(calc){
   const t1 = calc.tris[0], t2 = calc.tris[1];
   if(!t1.filled && !t2.filled) return null;
@@ -473,6 +516,15 @@ function oerRowNote(s){
 }
 function oerLegendHtml(list, extra){
   return oerTemParcial(list) ? `<div class="oer-legend">${OER_ASTERISCO_TXT}${extra||''}</div>` : '';
+}
+function oerAlertasNivel(st){
+  const lista = arr => arr.map(x=>x.name+' ('+x.precisa+' pts)').join('; ');
+  const n2 = st.subjects.filter(x=>oerNivel(x.precisa)===2);
+  const n3 = st.subjects.filter(x=>oerNivel(x.precisa)===3);
+  let h = '';
+  if(n2.length) h += `<div class="oer-card-alert n2"><b>ATENÇÃO — risco elevadíssimo de Recuperação Final:</b> em ${lista(n2)} é preciso <b>mais de 28 pontos</b> no 3º trimestre.</div>`;
+  if(n3.length) h += `<div class="oer-card-alert n3"><b>${lista(n3)}:</b> a demanda é <b>maior que 40 pontos</b>, o valor máximo do 3º trimestre. É muito importante <b>dar continuidade aos estudos</b>. Haverá <b>atividades paralelas aos estudos</b> para que haja possibilidade de recuperação.</div>`;
+  return h;
 }
 function oerCardObs(st){
   const p = st.subjects.filter(x=>x.parcial);
@@ -824,7 +876,7 @@ function riskCards(list){
   }
   return list.map(st=>{
     const rows = st.subjects.map(s=>
-      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">1º+2º: ${s.soma}${oerAst(s)}/60 · precisa de ${s.precisa}${oerAst(s)} pt${s.precisa===1?'':'s'} no 3º</span>${oerRowNote(s)}</div>`
+      `<div class="risk-subj-row"><span class="risk-subj-name">${s.name}</span><span class="risk-subj-val">1º+2º: ${s.soma}${oerAst(s)}/60 · precisa de ${s.precisa}${oerAst(s)} pt${s.precisa===1?'':'s'} no 3º</span>${oerNivel(s.precisa)===3 ? '<span class="risk-lvl n3">Acima de 40 pts — atividades paralelas</span>' : oerNivel(s.precisa)===2 ? '<span class="risk-lvl">Risco elevadíssimo (&gt; 28 pts)</span>' : ''}${oerRowNote(s)}</div>`
     ).join('');
     return `<div class="risk-card">
       <h4>${st.name}</h4>
@@ -941,23 +993,27 @@ function printOerCards(className){
   if(!risk.length){ alert('Nenhum aluno desta turma com risco de O.E.R.'); return; }
   const cards = risk.map(st=>{
     const rows = st.subjects.map(s=>
-      `<tr><td class="l">${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need">${s.precisa}${oerAst(s)}</td></tr>`
+      `<tr><td class="l">${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need n${oerNivel(s.precisa)}">${s.precisa}${oerAst(s)}<small>${oerNivel(s.precisa)===3 ? 'acima de 40 pts' : oerNivel(s.precisa)===2 ? 'risco elevadíssimo' : (s.precisa-OER_LIMITE)+' pt'+((s.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</small></td></tr>`
     ).join('');
-    return `<div class="oer-card">
+    const dens = st.subjects.length>=8 ? ' d xd' : (st.subjects.length>=6 ? ' d' : '');
+    const one = via => `<div class="oer-card${dens}">
+      <div class="oer-card-via">${via}</div>
       <div class="oer-card-school">${m.escola}</div>
       <div class="oer-card-title">Aviso: risco de O.E.R</div>
       <div class="oer-card-name">${st.name}</div>
       <div class="oer-card-sub">Turma ${m.turma}${m.mesAno ? ' · '+m.mesAno : ''}</div>
       <table>
-        <thead><tr><th class="l">Disciplina</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma (máx. 60)</th><th>Precisa no 3º (máx. 40)</th></tr></thead>
+        <colgroup><col style="width:30%"><col style="width:13%"><col style="width:13%"><col style="width:16%"><col style="width:28%"></colgroup>
+        <thead><tr><th class="l">Disciplina</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma (máx. 60)</th><th class="need-h">PRECISA NO 3º TRIM.<small>média = 24 · máx. 40</small></th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div class="oer-card-note">Para ser aprovado, o aluno precisa de 60 pontos no ano. Nas disciplinas acima, a demanda de pontos no 3º trimestre é maior que a média (24 de 40), por isso há risco de O.E.R (Oportunidade Especial de Recuperação).</div>${oerCardObs(st)}
-      <div class="oer-card-sign">Ciente do responsável: ______________________________</div>
+      <div class="oer-card-note">Para ser aprovado, o aluno precisa de 60 pontos no ano. Nas disciplinas acima, a demanda de pontos no 3º trimestre é <b>maior que a média (24 de 40)</b>, por isso há risco de O.E.R (Oportunidade Especial de Recuperação).</div>
+      <div class="oer-card-alert"><b>A O.E.R é a recuperação final</b>: não há nova oportunidade depois dela. Por isso, esta situação <b>exige mudança de rotina e foco nos estudos desde já</b>, para evitar chegar à O.E.R.</div>${oerAlertasNivel(st)}${oerCardObs(st)}
+      <div class="oer-card-sign">Ciente do responsável: ____________________________ &nbsp;Data: ____/____/______</div>
     </div>`;
+    return `<div class="oer-pair">${one('Via da família')}${one('Via da escola')}</div>`;
   }).join('');
   const html = `<div class="print-page">
-    <div class="print-page-hdr"><div><h1>${m.turma} — Cards de risco de O.E.R</h1><div class="print-page-sub">${m.escola}${m.mesAno ? ' · '+m.mesAno : ''} · ${risk.length} aluno${risk.length>1?'s':''}</div></div></div>
     <div class="oer-cards-grid">${cards}</div>
   </div>`;
   runPrintMode('printOerCardsDoc', html, 'print-mode-oer-cards');
@@ -1201,10 +1257,41 @@ function shortTurmaLabel(name){
 function pct(a,b){ return b>0 ? Math.round((a/b)*100) : null; }
 function statusClass(p){ if(p===null) return 'na'; if(p>=70) return 'ok'; if(p>=40) return 'mid'; return 'bad'; }
 
+
+// ---------- ABA O.E.R (após o Dashboard) ----------
+let oerTurma = null;
+function renderOerTab(){
+  const main = document.getElementById('main');
+  const names = Object.keys(currentClasses).sort();
+  if(names.length===0){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para ver os alunos em risco de O.E.R.</p></div>`;
+    return;
+  }
+  if(!oerTurma || !currentClasses[oerTurma]) oerTurma = names[0];
+  const cd = currentClasses[oerTurma];
+  const risk = computeRetentionRisk(cd);
+  const q = oerTurma.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  main.innerHTML = `<div class="hdr"><div><h1>O.E.R — Oportunidade Especial de Recuperação</h1>
+      <div class="hdr-sub">${shortTurmaLabel(oerTurma)} · ${cd.students.length} alunos · ${risk.length} em risco</div></div></div>
+    <div class="oer-tab-controls">
+      <label>Turma: <select id="oerTurmaSelect" class="tri-select">${names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}" title="${n.replace(/"/g,'&quot;')}" ${n===oerTurma?'selected':''}>${shortTurmaLabel(n)}</option>`).join('')}</select></label>
+    </div>
+    <div class="risk-section">
+      <div class="section-title">Alunos com risco de O.E.R — Oportunidade Especial de Recuperação (1º+2º trimestres abaixo de 36 pontos: precisam de mais de 24 no 3º, por disciplina)</div>
+      <div class="risk-actions">
+        <button class="print-btn" onclick="printOerCards('${q}')">🖶 Cards de O.E.R para entrega ao aluno (esta turma)</button>
+        <button class="print-btn" onclick="printOerTable('${q}')">🖶 Tabela de alunos em risco de O.E.R (esta turma)</button>
+      </div>
+      ${oerTemParcial(risk) ? `<div class="risk-legend">${OER_ASTERISCO_TXT}</div>` : ''}<div class="risk-grid">${riskCards(risk)}</div>
+    </div>`;
+  document.getElementById('oerTurmaSelect').onchange = e=>{ oerTurma = e.target.value; renderOerTab(); };
+}
+
 function renderMain(){
   const main = document.getElementById('main');
   if(activeClass==='OVERVIEW') return renderOverview();
   if(activeClass==='DASHBOARD') return renderDashboard();
+  if(activeClass==='OER') return renderOerTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
     return;
@@ -1214,7 +1301,6 @@ function renderMain(){
   const byTri = (tri!=='ALL');
   const triTxt = byTri ? (tri+1)+'º trimestre' : 'acumulado (Total Anual)';
   const {stats, destaques70, destaquesPort, destaquesMat, atencao} = computeStats(cd, byTri ? tri : undefined);
-  const retentionRisk = computeRetentionRisk(cd);
   const cfg = loadGlobalConfig();
   if(!cfg.escola){ cfg.escola = 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(cfg); }
   cd.meta = cd.meta || {};
@@ -1279,15 +1365,6 @@ function renderMain(){
     </div>`;
   });
   html += `</div>`;
-
-  html += `<div class="risk-section">
-    <div class="section-title">Alunos com risco de O.E.R — Oportunidade Especial de Recuperação (1º+2º trimestres abaixo de 36 pontos: precisam de mais de 24 no 3º, por disciplina)</div>
-    <div class="risk-actions">
-      <button class="print-btn" onclick="printOerCards('${activeClass.replace(/'/g,"\\'")}')">🖶 Cards de O.E.R para entrega ao aluno (esta turma)</button>
-      <button class="print-btn" onclick="printOerTable('${activeClass.replace(/'/g,"\\'")}')">🖶 Tabela de alunos em risco de O.E.R (esta turma)</button>
-    </div>
-    ${oerTemParcial(retentionRisk) ? `<div class="risk-legend">${OER_ASTERISCO_TXT}</div>` : ''}<div class="risk-grid">${riskCards(retentionRisk)}</div>
-  </div>`;
 
   html += `<div class="print-footer">
     <div>Coordenador(a) Pedagógico(a): <strong>Prof. Everton Correa</strong></div>
@@ -1845,6 +1922,10 @@ function showReview(parsed){
 
 document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; renderSidebar(); renderMain(); };
 document.getElementById('dashboardBtn').onclick = ()=>{ activeClass='DASHBOARD'; renderSidebar(); renderMain(); };
+document.getElementById('oerBtn').onclick = ()=>{
+  if(currentClasses[activeClass]) oerTurma = activeClass; // abre já na turma que estava sendo vista
+  activeClass='OER'; renderSidebar(); renderMain();
+};
 
 // ---------- INIT ----------
 (async function init(){
