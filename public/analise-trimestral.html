@@ -394,6 +394,53 @@ body{
   .oer-legend{ margin-top:6px; font-size:10.5px; }
 }
 
+/* ===== Liberação de boletim ===== */
+.overview-btn.lib{background:var(--accent);}
+.print-lib-doc{ display:none; }
+.lib-panel{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 18px; font-size:13px;}
+.lib-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px;}
+.lib-row:last-child{margin-bottom:0;}
+.lib-lbl{min-width:92px; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;}
+.lib-lbl small{text-transform:none; letter-spacing:0; font-weight:500;}
+.lib-chk{display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:var(--paper); cursor:pointer;}
+.lib-link{background:none; border:0; color:var(--accent); font:inherit; font-size:12px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0 2px;}
+.lib-num{width:64px; padding:4px 6px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:13px; background:#fff;}
+.lib-row small, .lib-hint{color:var(--ink-soft); font-size:11.5px;}
+.lib-hint{margin:-4px 0 10px 102px;}
+.lib-graves{align-items:flex-start;}
+.lib-tipos{display:flex; flex-wrap:wrap; gap:6px; flex:1; min-width:260px;}
+.lib-tipo{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border:1px solid var(--line); border-radius:14px; background:var(--paper); cursor:pointer; font-size:12.5px;}
+.lib-tipo.on{background:var(--danger-soft); border-color:var(--danger); color:var(--danger); font-weight:600;}
+.lib-tipo small{color:inherit; opacity:.75; font-weight:400;}
+.lib-status{font-size:12px; color:var(--ink-soft);}
+.lib-msg{padding:14px 16px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft);}
+.lib-msg.bad{border-color:var(--danger); background:var(--danger-soft); color:var(--danger); border-style:solid;}
+.lib-summary{display:flex; gap:10px; flex-wrap:wrap; margin:0 0 14px;}
+.lib-chip{padding:8px 14px; border-radius:8px; background:var(--paper-2); font-size:13px;}
+.lib-chip b{font-size:18px; margin-right:4px;}
+.lib-chip.ok{background:var(--accent-soft); color:var(--accent);}
+.lib-chip.bad{background:var(--danger-soft); color:var(--danger);}
+.lib-chip.warn{background:var(--warn-soft); color:var(--warn);}
+.lib-turma{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 14px;}
+.lib-turma-hdr{display:flex; align-items:center; gap:14px; margin-bottom:8px;}
+.lib-turma-hdr h3{font-family:'Fraunces',serif; font-size:18px; margin:0;}
+.lib-turma-hdr span{color:var(--ink-soft); font-size:12.5px; flex:1;}
+.print-btn.lib-small{padding:4px 10px; font-size:12px;}
+.lib-table{width:100%; border-collapse:collapse; font-size:13px; margin:4px 0;}
+.lib-table th, .lib-table td{border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top;}
+.lib-table th{font-size:11px; text-transform:uppercase; color:var(--ink-soft);}
+.lib-table td:first-child{width:36px; color:var(--ink-soft);}
+.lib-obs{color:var(--ink-soft); font-size:12px;}
+.lib-det{margin-top:8px; border-radius:8px; padding:6px 10px;}
+.lib-det summary{cursor:pointer; font-weight:600; font-size:13px;}
+.lib-det.bad{background:var(--danger-soft);} .lib-det.bad summary{color:var(--danger);}
+.lib-det.warn{background:var(--warn-soft);} .lib-det.warn summary{color:var(--warn);}
+@media print{
+  body.print-mode-liberacao .app{ display:none !important; }
+  body.print-mode-liberacao .print-lib-doc{ display:block !important; }
+  .print-lib-doc .print-subj-table td{ height:26px; }
+}
+
 /* Notas metodológicas dos gráficos do Dashboard */
 .chart-card{ position:relative; }
 .chart-methodology{
@@ -444,6 +491,7 @@ body{
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
       <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard</div>
       <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
+      <div class="overview-btn lib" id="libBtn">📄 Liberação de boletim</div>
     </div>
     <div class="turma-switch">
       <div class="lbl-sm" id="turmaCountLbl">Turmas</div>
@@ -465,6 +513,7 @@ body{
 <div id="printCardsDoc" class="print-cards-doc"></div>
 <div id="printOerCardsDoc" class="print-oer-cards-doc"></div>
 <div id="printOerTableDoc" class="print-oer-table-doc"></div>
+<div id="printLibDoc" class="print-lib-doc"></div>
 
 <script>
 // Worker do pdf.js embutido localmente (base64) para nao depender de nenhum CDN externo.
@@ -1287,11 +1336,342 @@ function renderOerTab(){
   document.getElementById('oerTurmaSelect').onchange = e=>{ oerTurma = e.target.value; renderOerTab(); };
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// LIBERAÇÃO DE BOLETIM
+// Lista, por turma, os alunos que PODEM receber o boletim do 2º trimestre:
+//   (1) não precisam de mais de 24 pontos (parâmetro ajustável) no 3º trimestre
+//       em NENHUMA disciplina — mesma conta do risco de O.E.R: 60 − (1º+2º); e
+//   (2) não têm advertência/ocorrência GRAVE no 2º trimestre — lida da tabela
+//       "estudantes" do Supabase (campo sintese_ocorrencias, o mesmo que o
+//       Monitoramento Pedagógico grava).
+// Como o banco não tem um campo "gravidade", a coordenação marca na própria tela
+// quais TIPOS de advertência (os que existem no 2º trimestre) são graves.
+// ═══════════════════════════════════════════════════════════════════════
+const LIB_TRI_ADV = 2;                       // trimestre das advertências avaliado
+const LIB_CFG_KEY = 'config:liberacaoBoletim';
+// Sugestão inicial (só pré-marca a caixinha; a decisão final é sempre da coordenação).
+const LIB_GRAVE_RX = new RegExp('\\b(' + [
+  'AGRESS','AGREDI','BRIGA','VIOLEN','AMEAC','SOCO','CHUTE','BULLYING','DISCRIMIN','RACIS',
+  'HOMOFOB','PRECONCEIT','DESACATO','ARMA','FACA','ESTILETE','DROG','ENTORPEC','MACONHA',
+  'FUMAR','CIGARRO','VAPE','FURTO','ROUBO','DEPREDA','VANDAL','DANO AO PATRIM','INCENDI',
+  'ASSEDIO','SEXUAL','OBSCEN'
+].join('|') + ')');
+
+const libState = { adv:null, loading:false, erro:null, sel:null, limite:OER_LIMITE, cfg:null, res:null };
+
+function libEsc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function libNorm(s){
+  return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+}
+function libLoadCfg(){
+  try{
+    const c = JSON.parse(localStorage.getItem(LIB_CFG_KEY)||'{}');
+    return { marcados: c.marcados||{}, limiarQtd: Math.max(0, parseInt(c.limiarQtd,10)||0) };
+  }catch(e){ return { marcados:{}, limiarQtd:0 }; }
+}
+function libSaveCfg(){
+  try{ localStorage.setItem(LIB_CFG_KEY, JSON.stringify(libState.cfg)); }catch(e){ console.error(e); }
+}
+function libEhGrave(tipoKey){
+  const m = libState.cfg.marcados;
+  return (tipoKey in m) ? !!m[tipoKey] : LIB_GRAVE_RX.test(tipoKey);
+}
+function libTurmasOrdenadas(){
+  return Object.keys(currentClasses).sort((a,b)=> shortTurmaLabel(a).localeCompare(shortTurmaLabel(b),'pt-BR',{numeric:true}));
+}
+
+// Lê a síntese ("1º Trimestre (3 advertências): atraso (2x); conversa (1x) | 2º Trimestre (...): ...")
+// e devolve os itens agrupados por trimestre. Trechos fora do padrão vão para "livre".
+function libParseSintese(txt){
+  const res = { porTri:{}, foraPeriodo:[], livre:[] };
+  (txt||'').split('|').map(s=>s.trim()).filter(Boolean).forEach(b=>{
+    const m = b.match(/^(.+?):\s*([\s\S]*)$/);
+    if(!m){ res.livre.push(b); return; }
+    const titulo = m[1].trim();
+    const itens = m[2].split(';').map(s=>s.trim()).filter(Boolean).map(it=>{
+      const mi = it.match(/^(.*?)\s*\((\d+)\s*x\)\s*$/i);
+      return mi ? { tipo:mi[1].trim(), qtd:parseInt(mi[2],10) } : { tipo:it, qtd:1 };
+    });
+    const mt = titulo.match(/^(\d+)\s*[ºo°]/i);
+    if(mt){ const n = parseInt(mt[1],10); (res.porTri[n] = res.porTri[n]||[]).push(...itens); }
+    else if(/^fora do per/i.test(titulo)) res.foraPeriodo.push(...itens);
+    else res.livre.push(b);
+  });
+  return res;
+}
+
+// Busca TODOS os estudantes (paginado, pois o Supabase devolve no máximo 1000 por vez).
+async function libBuscarEstudantes(){
+  const out = [], page = 1000;
+  for(let off=0; ; off+=page){
+    const url = `${SUPABASE_URL}/rest/v1/estudantes?select=nome,turma,num_ocorrencias,sintese_ocorrencias,transferido&order=id.asc&limit=${page}&offset=${off}`;
+    const r = await fetch(url, { headers: sbHeaders() });
+    const rows = await r.json().catch(()=>null);
+    if(!r.ok || !Array.isArray(rows)) throw new Error('Supabase respondeu com erro ('+r.status+') ao ler "estudantes".');
+    out.push(...rows);
+    if(rows.length < page) break;
+  }
+  return out;
+}
+
+function libIndexar(){
+  const porTurmaNome = new Map(), porNome = new Map(), porTurma = new Map();
+  libState.adv.forEach(e=>{
+    const tn = normTurma(e.turma), nn = libNorm(e.nome);
+    porTurmaNome.set(tn+'|'+nn, e);
+    if(!porNome.has(nn)) porNome.set(nn, []);
+    porNome.get(nn).push(e);
+    if(!porTurma.has(tn)) porTurma.set(tn, []);
+    porTurma.get(tn).push(e);
+  });
+  return { porTurmaNome, porNome, porTurma };
+}
+// Casa o aluno do boletim com o cadastro do Monitoramento: turma+nome; senão nome único; senão nome parecido na turma.
+function libAcharEstudante(idx, turmaLabel, nome){
+  const tn = normTurma(turmaLabel), nn = libNorm(nome);
+  const exato = idx.porTurmaNome.get(tn+'|'+nn);
+  if(exato) return exato;
+  const mesmos = idx.porNome.get(nn);
+  if(mesmos && mesmos.length===1) return mesmos[0];
+  const parecidos = (idx.porTurma.get(tn)||[]).filter(x=>{
+    const o = libNorm(x.nome);
+    return Math.min(o.length, nn.length)>=12 && (o.startsWith(nn) || nn.startsWith(o));
+  });
+  return parecidos.length===1 ? parecidos[0] : null;
+}
+
+function libCalcular(){
+  const limite = libState.limite;
+  const limiarQtd = libState.cfg.limiarQtd;
+  const nomes = libTurmasOrdenadas().filter(n=>libState.sel.has(n));
+  const idx = libIndexar();
+  const tipos = new Map(); // chave normalizada -> {label, qtd, alunos:Set}
+  const turmas = nomes.map(name=>{
+    const cd = currentClasses[name];
+    const label = shortTurmaLabel(name);
+    const t = { name, label, total: cd.students.length, liberados:[], bloqueados:[], verificar:[], transferidos:0 };
+    cd.students.forEach(st=>{
+      const motivos = [], pend = [], semNota = [];
+      let algumaNota = false;
+      cd.subjects.forEach((sn, i)=>{
+        if(isLiteratura(sn)) return;
+        const calc = subjectCalc(st.subjects[i]);
+        const t1 = calc.tris[0], t2 = calc.tris[1];
+        if(!t1.filled && !t2.filled){ semNota.push(sn); return; }
+        algumaNota = true;
+        const soma = (t1.filled?t1.total:0) + (t2.filled?t2.total:0);
+        const precisa = OER_TOTAL - soma;
+        if(precisa > limite){
+          const falta = !t1.filled ? 1 : (!t2.filled ? 2 : null);
+          pend.push(`${sn}: precisa de ${precisa} pts no 3º trim.` + (falta ? ` (sem nota no ${falta}º trim.)` : ''));
+        }
+      });
+      motivos.push(...pend);
+
+      // ── advertências do 2º trimestre ──
+      const est = libAcharEstudante(idx, label, st.name);
+      const verif = [];
+      if(est && est.transferido){ t.transferidos++; return; }
+      if(!est){
+        verif.push('Não localizado no cadastro do Monitoramento (conferir o nome)');
+      } else {
+        const p = libParseSintese(est.sintese_ocorrencias);
+        const itens = p.porTri[LIB_TRI_ADV] || [];
+        itens.forEach(it=>{
+          const k = libNorm(it.tipo);
+          if(!tipos.has(k)) tipos.set(k, { key:k, label:it.tipo, qtd:0, alunos:new Set() });
+          const tp = tipos.get(k); tp.qtd += it.qtd; tp.alunos.add(name+'|'+st.name);
+        });
+        const graves = itens.filter(it=>libEhGrave(libNorm(it.tipo)));
+        graves.forEach(it=> motivos.push(`Advertência grave no ${LIB_TRI_ADV}º trim.: ${it.tipo}${it.qtd>1?' ('+it.qtd+'x)':''}`));
+        const totalTri = itens.reduce((a,it)=>a+it.qtd,0);
+        if(limiarQtd>0 && totalTri>=limiarQtd) motivos.push(`${totalTri} advertências no ${LIB_TRI_ADV}º trim. (limite: ${limiarQtd})`);
+        const semDetalhe = (parseInt(est.num_ocorrencias,10)||0)>0 && !Object.keys(p.porTri).length && !p.foraPeriodo.length && !p.livre.length;
+        if(p.livre.length || semDetalhe) verif.push('Advertências sem trimestre identificado (revisar a síntese no Monitoramento)');
+      }
+      if(!algumaNota) verif.push('Nenhuma nota de 1º/2º trimestre lançada');
+
+      const obs = semNota.length ? 'Sem nota lançada em: ' + semNota.join(', ') : '';
+      if(motivos.length) t.bloqueados.push({ nome: st.name, motivos });
+      else if(verif.length) t.verificar.push({ nome: st.name, motivos: verif });
+      else t.liberados.push({ nome: st.name, obs });
+    });
+    const cmp = (a,b)=> a.nome.localeCompare(b.nome,'pt-BR');
+    t.liberados.sort(cmp); t.bloqueados.sort(cmp); t.verificar.sort(cmp);
+    return t;
+  });
+  const listaTipos = [...tipos.values()].sort((a,b)=> a.label.localeCompare(b.label,'pt-BR'));
+  return { turmas, tipos: listaTipos };
+}
+
+// ── Interface ──
+function renderLiberacaoTab(){
+  const main = document.getElementById('main');
+  const nomes = libTurmasOrdenadas();
+  if(!nomes.length){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF de quadro síntese para gerar a listagem de liberação de boletim.</p></div>`;
+    return;
+  }
+  if(!libState.cfg) libState.cfg = libLoadCfg();
+  libState.sel = libState.sel ? new Set([...libState.sel].filter(n=>currentClasses[n])) : new Set(nomes);
+  main.innerHTML = `<div class="hdr"><div><h1>Liberação de boletim — ${LIB_TRI_ADV}º trimestre</h1>
+      <div class="hdr-sub">Alunos que não precisam de mais de <span id="libLimTxt">${libState.limite}</span> pontos em nenhuma disciplina e sem advertência grave no ${LIB_TRI_ADV}º trimestre</div></div></div>
+    <div class="lib-panel">
+      <div class="lib-row"><span class="lib-lbl">Turmas</span>
+        ${nomes.map(n=>`<label class="lib-chk"><input type="checkbox" class="libTurmaChk" value="${libEsc(n)}" ${libState.sel.has(n)?'checked':''}> ${libEsc(shortTurmaLabel(n))}</label>`).join('')}
+        <button class="lib-link" id="libTodas">todas</button><button class="lib-link" id="libNenhuma">nenhuma</button>
+      </div>
+      <div class="lib-row"><span class="lib-lbl">Notas</span>
+        <label>Não liberar se precisar de mais de <input type="number" id="libLimite" class="lib-num" min="0" max="60" value="${libState.limite}"> pontos no 3º trimestre em alguma disciplina <small>(1º+2º trimestres, já com recuperação)</small></label>
+      </div>
+      <div class="lib-row"><span class="lib-lbl">Advertências</span>
+        <label>Também não liberar com <input type="number" id="libLimiarQtd" class="lib-num" min="0" value="${libState.cfg.limiarQtd}"> ou mais advertências (de qualquer tipo) no ${LIB_TRI_ADV}º trimestre <small>(0 = desligado)</small></label>
+      </div>
+      <div id="libGravesBox"></div>
+      <div class="lib-row"><button class="print-btn" id="libRecarregar">↻ Atualizar advertências do Supabase</button><span id="libStatus" class="lib-status"></span></div>
+    </div>
+    <div id="libResultado"></div>`;
+
+  main.querySelectorAll('.libTurmaChk').forEach(cb=> cb.onchange = ()=>{
+    cb.checked ? libState.sel.add(cb.value) : libState.sel.delete(cb.value); libAtualizar();
+  });
+  document.getElementById('libTodas').onclick = ()=>{ libState.sel = new Set(nomes); main.querySelectorAll('.libTurmaChk').forEach(c=>c.checked=true); libAtualizar(); };
+  document.getElementById('libNenhuma').onclick = ()=>{ libState.sel = new Set(); main.querySelectorAll('.libTurmaChk').forEach(c=>c.checked=false); libAtualizar(); };
+  document.getElementById('libLimite').oninput = e=>{
+    const v = parseInt(e.target.value,10); libState.limite = isNaN(v) ? OER_LIMITE : v;
+    document.getElementById('libLimTxt').textContent = libState.limite; libAtualizar();
+  };
+  document.getElementById('libLimiarQtd').oninput = e=>{
+    libState.cfg.limiarQtd = Math.max(0, parseInt(e.target.value,10)||0); libSaveCfg(); libAtualizar();
+  };
+  document.getElementById('libRecarregar').onclick = ()=> libCarregar();
+  document.getElementById('libResultado').onclick = e=>{
+    const b = e.target.closest('[data-lib-act]'); if(!b) return;
+    const act = b.dataset.libAct;
+    if(act==='print-all') libImprimir(libTurmasOrdenadas().filter(n=>libState.sel.has(n)));
+    else if(act==='print-turma') libImprimir([b.dataset.turma]);
+    else if(act==='csv') libExportarCsv();
+  };
+  if(libState.adv===null && !libState.loading) libCarregar(); else libAtualizar();
+}
+
+async function libCarregar(){
+  libState.loading = true; libState.erro = null;
+  libAtualizar();
+  try{ libState.adv = await libBuscarEstudantes(); }
+  catch(e){ console.error(e); libState.adv = null; libState.erro = e.message || String(e); }
+  libState.loading = false;
+  libAtualizar();
+}
+
+function libAtualizar(){
+  const box = document.getElementById('libResultado');
+  if(!box) return; // usuário saiu da aba
+  const st = document.getElementById('libStatus');
+  if(libState.loading){
+    st.textContent = 'Buscando advertências no Supabase…';
+    box.innerHTML = `<div class="lib-msg">Carregando dados…</div>`; document.getElementById('libGravesBox').innerHTML=''; return;
+  }
+  if(libState.erro || !libState.adv){
+    st.textContent = '';
+    box.innerHTML = `<div class="lib-msg bad"><b>Não foi possível ler as advertências.</b><br>${libEsc(libState.erro||'Sem resposta do Supabase.')}<br>Sem esses dados a listagem não é gerada (para não liberar boletim sem checar ocorrências). Verifique a conexão e clique em “Atualizar”.</div>`;
+    document.getElementById('libGravesBox').innerHTML=''; return;
+  }
+  if(libState.adv.length===0){
+    st.textContent = '';
+    box.innerHTML = `<div class="lib-msg bad"><b>O Supabase retornou 0 estudantes.</b><br>Possível bloqueio de acesso (RLS) na tabela "estudantes". A listagem não foi gerada.</div>`;
+    document.getElementById('libGravesBox').innerHTML=''; return;
+  }
+  st.textContent = `${libState.adv.length} estudantes lidos do Supabase.`;
+  libState.res = libCalcular();
+  libRenderGraves();
+  libRenderResultado();
+}
+
+function libRenderGraves(){
+  const tipos = libState.res.tipos;
+  const el = document.getElementById('libGravesBox');
+  if(!tipos.length){
+    el.innerHTML = `<div class="lib-row"><span class="lib-lbl">Graves</span><span class="lib-hint">Nenhuma advertência registrada no ${LIB_TRI_ADV}º trimestre nas turmas selecionadas.</span></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="lib-row lib-graves"><span class="lib-lbl">Marque os tipos GRAVES<br><small>(${LIB_TRI_ADV}º trim.)</small></span>
+    <div class="lib-tipos">${tipos.map(t=>`<label class="lib-tipo ${libEhGrave(t.key)?'on':''}"><input type="checkbox" data-k="${libEsc(t.key)}" ${libEhGrave(t.key)?'checked':''}> ${libEsc(t.label)} <small>${t.qtd}× · ${t.alunos.size} aluno${t.alunos.size>1?'s':''}</small></label>`).join('')}</div></div>
+    <div class="lib-hint">Os tipos vêm do que foi registrado no Monitoramento; a pré-marcação é só uma sugestão e fica salva neste navegador.</div>`;
+  el.querySelectorAll('input[data-k]').forEach(cb=> cb.onchange = ()=>{
+    libState.cfg.marcados[cb.dataset.k] = cb.checked; libSaveCfg(); libAtualizar();
+  });
+}
+
+function libRenderResultado(){
+  const { turmas } = libState.res;
+  const box = document.getElementById('libResultado');
+  if(!turmas.length){ box.innerHTML = `<div class="lib-msg">Selecione ao menos uma turma.</div>`; return; }
+  const sum = k => turmas.reduce((a,t)=>a+t[k].length,0);
+  const transf = turmas.reduce((a,t)=>a+t.transferidos,0);
+  const tabela = (rows, cols) => `<table class="lib-table"><tbody>${rows.map(r=>`<tr>${cols(r)}</tr>`).join('')}</tbody></table>`;
+  box.innerHTML = `
+    <div class="lib-summary">
+      <div class="lib-chip ok"><b>${sum('liberados')}</b> liberados</div>
+      <div class="lib-chip bad"><b>${sum('bloqueados')}</b> não liberados</div>
+      <div class="lib-chip warn"><b>${sum('verificar')}</b> a verificar</div>
+      ${transf?`<div class="lib-chip"><b>${transf}</b> transferido${transf>1?'s':''} (ignorado${transf>1?'s':''})</div>`:''}
+    </div>
+    <div class="risk-actions">
+      <button class="print-btn" data-lib-act="print-all">🖶 Imprimir listagem (uma folha por turma)</button>
+      <button class="print-btn" data-lib-act="csv">⬇ Exportar CSV (todos, com situação)</button>
+    </div>
+    ${turmas.map(t=>`<div class="lib-turma">
+      <div class="lib-turma-hdr"><h3>${libEsc(t.label)}</h3><span>${t.liberados.length} de ${t.total} alunos liberados</span>
+        <button class="print-btn lib-small" data-lib-act="print-turma" data-turma="${libEsc(t.name)}">🖶 Imprimir esta turma</button></div>
+      ${t.liberados.length ? `<table class="lib-table"><thead><tr><th>Nº</th><th>Aluno</th><th>Obs.</th></tr></thead><tbody>${t.liberados.map((a,i)=>`<tr><td>${i+1}</td><td>${libEsc(a.nome)}</td><td class="lib-obs">${libEsc(a.obs)}</td></tr>`).join('')}</tbody></table>` : `<div class="lib-hint">Nenhum aluno liberado nesta turma.</div>`}
+      ${t.bloqueados.length ? `<details class="lib-det bad"><summary>Não liberados (${t.bloqueados.length})</summary>${tabela(t.bloqueados, a=>`<td>${libEsc(a.nome)}</td><td class="lib-obs">${a.motivos.map(libEsc).join('<br>')}</td>`)}</details>` : ''}
+      ${t.verificar.length ? `<details class="lib-det warn"><summary>A verificar manualmente (${t.verificar.length})</summary>${tabela(t.verificar, a=>`<td>${libEsc(a.nome)}</td><td class="lib-obs">${a.motivos.map(libEsc).join('<br>')}</td>`)}</details>` : ''}
+    </div>`).join('')}`;
+}
+
+function libImprimir(nomes){
+  if(!libState.res) return;
+  const turmas = libState.res.turmas.filter(t=>nomes.includes(t.name));
+  if(!turmas.length){ alert('Selecione ao menos uma turma.'); return; }
+  const cfg = loadGlobalConfig();
+  const escola = cfg.escola || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA';
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const crit = `Critérios: não precisa de mais de ${libState.limite} pontos no 3º trimestre em nenhuma disciplina (soma 1º+2º trimestres) e sem advertência grave no ${LIB_TRI_ADV}º trimestre.`;
+  const html = turmas.map(t=>`<div class="print-page">
+    <div class="print-page-hdr"><div><h1>${libEsc(t.label)} — Liberação de boletim (${LIB_TRI_ADV}º trimestre)</h1>
+      <div class="print-page-sub">${libEsc(escola)} · ${t.liberados.length} aluno${t.liberados.length===1?'':'s'} liberado${t.liberados.length===1?'':'s'} · emitido em ${hoje}</div></div></div>
+    ${t.liberados.length ? `<table class="print-subj-table"><thead><tr><th style="width:36px">Nº</th><th>Aluno</th><th style="width:110px">Data de entrega</th><th style="width:34%">Assinatura do responsável</th></tr></thead>
+      <tbody>${t.liberados.map((a,i)=>`<tr><td>${i+1}</td><td>${libEsc(a.nome)}</td><td></td><td></td></tr>`).join('')}</tbody></table>` : `<p>Nenhum aluno liberado nesta turma.</p>`}
+    <div class="oer-legend">${libEsc(crit)}</div>
+  </div>`).join('');
+  runPrintMode('printLibDoc', html, 'print-mode-liberacao');
+}
+
+function libExportarCsv(){
+  if(!libState.res) return;
+  const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+  const linhas = [['Turma','Aluno','Situação','Motivo'].map(q).join(';')];
+  libState.res.turmas.forEach(t=>{
+    t.liberados.forEach(a=> linhas.push([t.label,a.nome,'Liberado',a.obs].map(q).join(';')));
+    t.bloqueados.forEach(a=> linhas.push([t.label,a.nome,'Não liberado',a.motivos.join(' | ')].map(q).join(';')));
+    t.verificar.forEach(a=> linhas.push([t.label,a.nome,'A verificar',a.motivos.join(' | ')].map(q).join(';')));
+  });
+  const blob = new Blob(['\ufeff'+linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'liberacao-boletim-'+LIB_TRI_ADV+'tri.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
 function renderMain(){
   const main = document.getElementById('main');
   if(activeClass==='OVERVIEW') return renderOverview();
   if(activeClass==='DASHBOARD') return renderDashboard();
   if(activeClass==='OER') return renderOerTab();
+  if(activeClass==='LIBERACAO') return renderLiberacaoTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
     return;
@@ -1922,6 +2302,7 @@ function showReview(parsed){
 
 document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; renderSidebar(); renderMain(); };
 document.getElementById('dashboardBtn').onclick = ()=>{ activeClass='DASHBOARD'; renderSidebar(); renderMain(); };
+document.getElementById('libBtn').onclick = ()=>{ activeClass='LIBERACAO'; renderSidebar(); renderMain(); };
 document.getElementById('oerBtn').onclick = ()=>{
   if(currentClasses[activeClass]) oerTurma = activeClass; // abre já na turma que estava sendo vista
   activeClass='OER'; renderSidebar(); renderMain();
