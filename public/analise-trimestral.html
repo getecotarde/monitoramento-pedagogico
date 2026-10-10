@@ -559,7 +559,7 @@ body{
 /* relatórios (tela e papel) */
 .rp-page{font-family:'Inter',sans-serif; font-size:9pt; color:#000; line-height:1.3; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
 .rp-hdr{display:flex; align-items:center; gap:10px; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:5px;}
-.rp-logo{height:15mm; width:auto; flex-shrink:0;}
+.rp-logo{height:17mm; width:auto; flex-shrink:0;}
 .rp-hdr-mid{flex:1; min-width:0;}
 .rp-school{font-family:'Fraunces',serif; font-weight:700; font-size:12pt; text-transform:uppercase; letter-spacing:.02em; line-height:1.15;}
 .rp-title{font-size:11pt; font-weight:800; margin-top:2px;}
@@ -577,7 +577,7 @@ body{
 .rp-table tr > :first-child{border-left:0;} .rp-table tr > :last-child{border-right:0;}
 .rp-table thead tr:first-child th{border-top:0;} .rp-table tbody tr:last-child td{border-bottom:0;}
 .rp-table td.na{color:#888;}
-.rp-table td.bar{width:70px;}
+.rp-table td.rp-barcell{width:70px; padding:1.3px 6px;}
 .rp-table tr.rp-sum td{border-top:1.4px solid #000; font-weight:800; background:#e9e9e9;}
 .rp-table tr.blank td{height:8mm;}
 .rp-evo td small{font-size:7pt;}
@@ -610,6 +610,71 @@ body{
 .rp-foot{margin-top:5px; border:.8px solid #000; padding:3px 6px; font-size:7.3pt; line-height:1.3;}
 .rp-foot .sw{display:inline-block; width:9px; height:7px; border:.6px solid #000; vertical-align:-1px; margin:0 2px 0 4px;}
 .rp-foot .sw.mid{background:#ffeaa0;} .rp-foot .sw.bad{background:#f7b9b0;}
+.rp-wrap{width:100%; border-collapse:collapse;}
+.rp-wrap > thead{display:table-header-group;}
+.rp-wrap > thead > tr > td, .rp-wrap > tbody > tr > td{border:0; padding:0; vertical-align:top;}
+/* densidade automática do relatório individual (muitas disciplinas / muitas em risco): continua cabendo em 1 folha */
+/* ===== visual moderno do modelo família e aluno: cantos arredondados, fundos claros, ótimo em P&B ===== */
+.fm .rp-hdr{border:1.3px solid #222; border-radius:14px; padding:5px 12px; margin-bottom:5px; gap:12px;}
+.fm .rp-logo{height:15mm;}
+.fm .rp-school{font-size:11.5pt; letter-spacing:.01em;}
+.fm .rp-title{font-size:10.5pt; font-weight:700;}
+.fm .rp-hdr-right{border:1px solid #222; border-radius:999px; padding:3px 13px; text-align:center; font-size:7.5pt; line-height:1.25; background:#f6f6f6;}
+.fm .fm-id{display:grid; grid-template-columns:1fr auto; gap:7px; margin:0 0 4.5px;}
+.fm .fm-id > div{border:1px solid #444; border-radius:10px; padding:2px 12px; background:#f6f6f6;}
+.fm .fm-id small{display:block; font-size:7pt; color:#444; line-height:1.1;}
+.fm .fm-id b{font-size:11pt;}
+.fm .rp-sec{border:1px solid #444; border-radius:12px; overflow:hidden; margin:4.5px 0; background:#fff;}
+.fm .rp-sec-t{background:#f0f0f0; border-bottom:1px solid #444; text-transform:none; letter-spacing:0; font-size:9pt; padding:3px 11px;}
+.fm .rp-sec-t::before{content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:#222; margin-right:7px;}
+.fm .fm-two{gap:7px; margin:4.5px 0;}
+.fm .fm-two .rp-sec{margin:0;}
+.fm .fm-big{border:1px solid #444; border-radius:14px; background:#f6f6f6;}
+.fm .fm-stk{border:1px solid #444; border-radius:999px; height:18px;}
+.fm .fm-leg i{border-radius:2px;}
+.fm .rp-lines div{border-bottom:1px dotted #555; height:5.2mm;}
+.fm .rp-sign{margin:4px 6mm 0;} .fm .rp-sign span{height:6mm;}
+.fm .rp-field{margin:4px 0 0;}
+.fm .rp-msg{border-radius:10px;}
+.fm .rp-note{border-top:1px dotted #777;}
+.fm .rp-foot{border:0; border-radius:10px; background:#f3f3f3; padding:4px 11px;}
+.fm .rp-sign span{border-bottom:1px solid #333;}
+/* modelo família e aluno (gráficos) */
+.fm-pad{padding:3px 8px 2px;}
+.fm-svg{display:block; width:100%; height:auto;}
+.fm-sum{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:center; padding:5px 8px;}
+.fm-big{text-align:center; border:.8px solid #000; padding:3px 12px; min-width:108px;}
+.fm-big b{display:block; font-size:21pt; line-height:1.05;}
+.fm-big span{display:block; font-size:7.5pt; line-height:1.2;}
+.fm-head{font-size:10.5pt; margin:0 0 4px;}
+.fm-stk{display:flex; height:17px; border:.8px solid #000; overflow:hidden;}
+.fm-stk i{display:flex; align-items:center; justify-content:center; font-style:normal; font-size:8.5pt; font-weight:800; border-right:.8px solid #000;}
+.fm-stk i:last-child{border-right:0;}
+.fm-ok{background:#d5ecdc;} .fm-rec{background:repeating-linear-gradient(45deg,#fde7a0 0 3px,#c9a227 3px 4.4px);} .fm-bad{background:#f2a597;} .fm-na{background:#eeeeee;}
+.fm-leg{display:flex; gap:12px; flex-wrap:wrap; font-size:7.3pt; padding:2px 0 1px;}
+.fm-leg i{display:inline-block; width:9px; height:8px; border:.6px solid #000; vertical-align:-1px; margin-right:3px;}
+.fm-two{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:4.5px 0; break-inside:avoid; page-break-inside:avoid;}
+.fm-two .rp-sec{margin:0;}
+.fm-read{padding:2px 8px;} .fm-read p{margin:2px 0;}
+.fm-q{font-size:7.5pt; color:#333; padding:2px 7px 0;}
+.rp-c1 .fm-big b{font-size:18pt;} .rp-c2 .fm-big b{font-size:16pt;}
+.rp-c1 .fm-two, .rp-c2 .fm-two{margin:3px 0;} .rp-c2 .fm-two{margin:2px 0;}
+.rp-c2 .fm-read p{margin:1px 0;}
+.rp-c1{font-size:8.4pt;}
+.rp-c1 .rp-table th, .rp-c1 .rp-table td{font-size:8pt; padding:.6px 3px;}
+.rp-c1 .rp-sec{margin:3px 0;}
+.rp-c1 .rp-lines div{height:4.8mm;}
+.rp-c1 .rp-sign span{height:6mm;}
+.rp-c1 .rp-box b{font-size:12.5pt;}
+.rp-c2{font-size:7.8pt;}
+.rp-c2 .rp-hdr{padding-bottom:2px; margin-bottom:3px;}
+.rp-c2 .rp-table th, .rp-c2 .rp-table td{font-size:7.4pt; padding:.2px 3px; line-height:1.15;}
+.rp-c2 .rp-table th{font-size:7pt;} .rp-c2 .rp-table th small{font-size:6pt;}
+.rp-c2 .rp-sec{margin:2px 0;}
+.rp-c2 .rp-lines div{height:4mm;}
+.rp-c2 .rp-sign{margin:4px 6mm 0;} .rp-c2 .rp-sign span{height:5mm;}
+.rp-c2 .rp-box b{font-size:11pt;} .rp-c2 .rp-boxes{padding:3px 5px;}
+.rp-c2 .rp-foot{font-size:6.6pt; margin-top:2px;}
 
 @media print{
   /* faixa padrão (logo + nome da escola) no topo de toda folha impressa */
@@ -2686,7 +2751,7 @@ const REP_TUR_PRESETS = {
   gestao:   {nome:'Resumo para a gestão',vars:['indicadores','disciplinas','criticas','oer','comparativo','assin']}
 };
 const repState = {
-  modo:'turma', turmas:new Set(), turmaAluno:null, alunos:new Set(), filtro:'', tri:'auto',
+  modo:'ind', turmas:new Set(), turmaAluno:null, alunos:new Set(), filtro:'', tri:'auto',
   indPreset:'padrao', varsInd:new Set(REP_IND_PRESETS.padrao.vars),
   turPreset:'completo', varsTur:new Set(REP_TUR_ALL), msg:'', started:false, preview:null
 };
@@ -2738,6 +2803,8 @@ function rpHeader(title, sub){
   const hoje = new Date().toLocaleDateString('pt-BR');
   return `<div class="rp-hdr"><img class="rp-logo" src="${getLogo()}" alt="Logo da escola"><div class="rp-hdr-mid"><div class="rp-school">${escHtml(schoolName())}</div><div class="rp-title">${title}</div>${sub?`<div class="rp-sub">${sub}</div>`:''}</div><div class="rp-hdr-right">Emitido em<br><b>${hoje}</b></div></div>`;
 }
+// Relatórios de várias folhas: o cabeçalho (logo + nome da escola) fica no <thead> e se repete em toda folha impressa.
+const rpWrap = (hdr, body) => `<section class="rp-page"><table class="rp-wrap"><thead><tr><td>${hdr}</td></tr></thead><tbody><tr><td>${body}</td></tr></tbody></table></section>`;
 const rpSec = (title, body) => `<div class="rp-sec"><div class="rp-sec-t">${title}</div>${body}</div>`;
 function rpTable(heads, rows, cls){
   return `<table class="rp-table ${cls||''}"><thead><tr>${heads.map(h=>`<th${h.l?' class="l"':''}>${h.t}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
@@ -2853,7 +2920,140 @@ function repIndividualPage(cd, className, st, V, t){
   if(V.has('assin')) parts.push(rpAssin());
 
   const foot = `<div class="rp-foot"><b>Notas:</b> 1º e 2º trim.: até 30 pts (média 18); 3º trim.: até 40 (média 24); média do ano = 60 pts. Nota final = maior entre nota e recuperação. ${RP_TINT_NOTE} “–” = sem nota. Literatura não exibida.</div>`;
-  return `<section class="rp-page">${rpHeader('Relatório individual do aluno', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
+  const nRows = data.length + data.filter(d=>d.oer).length; // disciplinas + linhas do quadro de O.E.R
+  const dens = nRows>=17 ? ' rp-c2' : (nRows>=12 ? ' rp-c1' : ''); // compacta sozinho p/ manter 1 folha por aluno
+  return `<section class="rp-page${dens}">${rpHeader('Relatório individual do aluno', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
+}
+
+// ---------- relatório individual para FAMÍLIA e ALUNO (uma folha A4, com gráficos) ----------
+// Cada dado aparece uma única vez: gráfico por disciplina (nota, situação e comparação com a turma),
+// evolução entre trimestres, pontos necessários (O.E.R.), leitura em linguagem simples e espaço para o aluno refletir.
+const FAM_COL = {ok:'#d5ecdc', rec:'#fde7a0', bad:'#f2a597', na:'#eeeeee'};
+let famUid = 0; // ids únicos dos padrões (hachura) de cada gráfico
+const FAM_LOW = new Set(['de','da','do','das','dos','e','a','o','em']);
+function titleCase(s){ return String(s||'').toLowerCase().split(' ').map((w,i)=> (i>0 && FAM_LOW.has(w)) ? w : w.charAt(0).toUpperCase()+w.slice(1)).join(' '); }
+function famStatus(d, t){
+  if(t==='ALL') return d.calc.filledCount ? (d.calc.taStatus==='ok' ? 'ok' : 'bad') : 'na';
+  const s = d.calc.tris[t].status;
+  return s===DIRECT ? 'ok' : s===RECOVERED ? 'rec' : s===NOTREC ? 'bad' : 'na';
+}
+const famSvg = (w, h, inner, label) => `<svg class="fm-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${label}" font-family="Inter, Arial, sans-serif">${inner}</svg>`;
+
+// Gráfico 1: barras por disciplina (% dos pontos) com linha da média (60%) e marcador da média da turma
+function famChartDisc(rows, t){
+  const n = rows.length, rh = n>=11 ? 16 : (n>8 ? 18 : 20), W = 700, bx = 168, bw = 330, top = 20, H = top + n*rh + 4;
+  const X = p => bx + bw*Math.max(0, Math.min(100, p))/100;
+  const pid = 'fmh'+(++famUid);
+  let g = `<defs><pattern id="${pid}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#fde7a0"/><line x1="0" y1="0" x2="0" y2="5" stroke="#9a7b00" stroke-width="1.5"/></pattern></defs>`;
+  [0,50,100].forEach(v=>{ g += `<line x1="${X(v)}" y1="${top-4}" x2="${X(v)}" y2="${H-2}" stroke="#ccc" stroke-width=".7"/><text x="${X(v)}" y="${top-8}" font-size="9" fill="#444" text-anchor="middle">${v}%</text>`; });
+  g += `<line x1="${X(60)}" y1="${top-4}" x2="${X(60)}" y2="${H-2}" stroke="#000" stroke-width="1.3" stroke-dasharray="4 3"/><text x="${X(60)+4}" y="${top-8}" font-size="9" font-weight="700">média = 60%</text>`;
+  rows.forEach((d,i)=>{
+    const y = top + i*rh, cy = y + rh/2, bh = rh - 8;
+    g += `<text x="0" y="${cy+3.7}" font-size="11" font-weight="600">${escHtml(titleCase(d.name).slice(0,26))}</text>`;
+    if(d.st==='na'){ g += `<text x="${bx+4}" y="${cy+3.5}" font-size="10" fill="#666">sem nota lançada</text>`; return; }
+    g += `<rect x="${bx}" y="${y+4}" width="${Math.max(2, X(d.pct)-bx)}" height="${bh}" rx="3.5" fill="${d.st==='rec'?`url(#${pid})`:FAM_COL[d.st]}" stroke="${d.st==='bad'?'#7a1a10':'#444'}" stroke-width="${d.st==='bad'?1.3:.7}"/>`;
+    if(d.cls.mean!==null && d.cls.mean!==undefined){ const mx = X(d.cls.mean); g += `<polygon points="${mx},${cy-5} ${mx+5},${cy} ${mx},${cy+5} ${mx-5},${cy}" fill="#000" stroke="#fff" stroke-width=".9"/>`; }
+    const lab = d.st==='ok' ? 'Na média' : d.st==='rec' ? 'Recuperou' : 'Abaixo da média';
+    g += `<text x="${bx+bw+12}" y="${cy+3.7}" font-size="10.5"><tspan font-weight="800">${d.pts}</tspan><tspan fill="${d.st==='bad'?'#7a1a10':'#222'}" font-weight="${d.st==='bad'?800:400}"> · ${lab}</tspan></text>`;
+  });
+  return famSvg(W, H, g, 'Desempenho por disciplina');
+}
+
+// Gráfico 2: evolução do aproveitamento (aluno x média da turma) nos trimestres
+function famChartEvo(cd, st){
+  const tris = availableTris(cd), W = 340, H = 150, x0 = 52, dx = 118, yT = 22, yB = 118;
+  const Y = p => yB - (yB-yT)*p/100, XS = i => x0 + dx*i;
+  let g = '';
+  [0,50,100].forEach(v=>{ g += `<line x1="34" y1="${Y(v)}" x2="${W-8}" y2="${Y(v)}" stroke="#ccc" stroke-width=".7"/><text x="30" y="${Y(v)+3}" font-size="9" fill="#444" text-anchor="end">${v}%</text>`; });
+  g += `<line x1="34" y1="${Y(60)}" x2="${W-8}" y2="${Y(60)}" stroke="#000" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${W-10}" y="${Y(60)-3}" font-size="8.5" fill="#333" text-anchor="end">média 60%</text>`;
+  [0,1,2].forEach(i=>{ g += `<text x="${XS(i)}" y="${H-12}" font-size="10" text-anchor="middle" fill="${tris.includes(i)?'#000':'#aaa'}" font-weight="600">${i+1}º trim.</text>`; });
+  const al = tris.map(i=>({i, p:repStudentPct(cd, st, i)})).filter(o=>o.p!==null);
+  const tu = tris.map(i=>({i, p:repClassPct(cd, i)})).filter(o=>o.p!==null);
+  const pts = arr => arr.map(o=>`${XS(o.i)},${Y(o.p)}`).join(' ');
+  if(tu.length>1) g += `<polyline points="${pts(tu)}" fill="none" stroke="#666" stroke-width="1.6" stroke-dasharray="5 3"/>`;
+  if(al.length>1) g += `<polyline points="${pts(al)}" fill="none" stroke="#1f4e79" stroke-width="2.6"/>`;
+  tu.forEach(o=>{ const a = al.find(x=>x.i===o.i); const up = a && a.p < o.p; g += `<rect x="${XS(o.i)-4}" y="${Y(o.p)-4}" width="8" height="8" fill="#fff" stroke="#555" stroke-width="1.4"/><text x="${XS(o.i)}" y="${Y(o.p)+(up?-9:16)}" font-size="9.5" fill="#444" text-anchor="middle">${Math.round(o.p)}%</text>`; });
+  al.forEach(o=>{ const u = tu.find(x=>x.i===o.i); const up = !u || o.p >= u.p; g += `<circle cx="${XS(o.i)}" cy="${Y(o.p)}" r="4.8" fill="#1f4e79" stroke="#fff" stroke-width="1"/><text x="${XS(o.i)}" y="${Y(o.p)+(up?-9:16)}" font-size="10.5" font-weight="800" fill="#1f4e79" text-anchor="middle">${Math.round(o.p)}%</text>`; });
+  return famSvg(W, H, g, 'Evolução do aproveitamento por trimestre');
+}
+
+// Gráfico 3: pontos necessários no 3º trimestre nas disciplinas em risco de O.E.R.
+function famChartOer(risk){
+  const n = risk.length, rh = n>8 ? 15 : 20, W = 340, bx = 112, bw = 150, top = 22, H = top + n*rh + 4;
+  const X = v => bx + bw*Math.min(v, OER_MAX_3TRI)/OER_MAX_3TRI;
+  let g = '';
+  [0, OER_MAX_3TRI].forEach(v=>{ g += `<line x1="${X(v)}" y1="${top-4}" x2="${X(v)}" y2="${H-2}" stroke="#bbb" stroke-width=".7"/><text x="${X(v)}" y="${top-9}" font-size="9" fill="#444" text-anchor="middle">${v}</text>`; });
+  g += `<line x1="${X(OER_LIMITE)}" y1="${top-4}" x2="${X(OER_LIMITE)}" y2="${H-2}" stroke="#000" stroke-width="1.2" stroke-dasharray="4 3"/><text x="${X(OER_LIMITE)}" y="${top-9}" font-size="8.5" font-weight="700" text-anchor="middle">média 24</text>`;
+  risk.forEach((d,i)=>{
+    const o = d.oer, nv = oerNivel(o.precisa), y = top + i*rh, cy = y + rh/2;
+    const col = nv===3 ? '#e07a6b' : nv===2 ? '#f2a597' : '#fde7a0';
+    g += `<text x="0" y="${cy+3.5}" font-size="10" font-weight="600">${escHtml(titleCase(d.name).slice(0,20))}</text>`;
+    g += `<rect x="${bx}" y="${y+3}" width="${X(o.precisa)-bx}" height="${rh-6}" rx="3" fill="${col}" stroke="${nv>=2?'#7a1a10':'#444'}" stroke-width="${nv===3?1.6:(nv===2?1.1:.7)}"/>`;
+    g += `<text x="${bx+bw+8}" y="${cy+3.5}" font-size="10" font-weight="800">${o.precisa}${oerAst(o)}${nv===3?' !':''}</text>`;
+  });
+  return famSvg(W, H, g, 'Pontos necessários no 3º trimestre');
+}
+
+function repFamiliaPage(cd, className, st, t){
+  cd.meta = cd.meta || {};
+  const turma = shortTurmaLabel(className);
+  const data = cd.subjects.map((name,idx)=>({name, idx})).filter(s=>!isLiteratura(s.name)).map(s=>{
+    const raw = st.subjects[s.idx], calc = subjectCalc(raw);
+    const d = {name:s.name, idx:s.idx, raw, calc, oer:oerInfo(calc), pct:repSubjPct(calc,t), cls:repClassSubj(cd,s.idx,t)};
+    d.st = famStatus(d, t);
+    d.pts = t==='ALL' ? (calc.filledCount ? calc.ta+'/'+calc.taMax : '') : (calc.tris[t].filled ? calc.tris[t].total+'/'+calc.tris[t].max : '');
+    return d;
+  });
+  const n = data.length;
+  const com = data.filter(d=>d.st!=='na');
+  const nOk = com.filter(d=>d.st==='ok').length, nRec = com.filter(d=>d.st==='rec').length, nBad = com.filter(d=>d.st==='bad').length, nNa = n - com.length;
+  const pAl = repStudentPct(cd, st, t), pTu = repClassPct(cd, t);
+  const primeiro = titleCase((st.name||'').split(' ')[0]);
+  const risk = data.filter(d=>d.oer).sort((a,b)=>b.oer.precisa-a.oer.precisa);
+  const parts = [];
+
+  parts.push(`<div class="fm-id"><div><small>Aluno(a)</small><b>${escHtml(st.name)}</b></div><div><small>Turma</small><b>${escHtml(turma)}</b></div></div>`);
+
+  // resumo: frase + aproveitamento geral + situação nas disciplinas (uma única vez)
+  const seg = (k,c,v) => v ? `<i class="fm-${k}" style="flex:${v}">${v}</i>` : '';
+  const frase = com.length ? `${escHtml(primeiro)} está na média em <b>${nOk+nRec} de ${com.length}</b> disciplina${com.length===1?'':'s'}${nRec?` (${nRec} após recuperação)`:''}.` : 'Ainda não há notas lançadas neste período.';
+  parts.push(rpSec('Resumo do período — '+repTriNome(t), `<div class="fm-sum">
+    <div class="fm-big"><b>${repFmt(pAl)}</b><span>dos pontos possíveis<br>turma: ${repFmt(pTu)}</span></div>
+    <div><div class="fm-head">${frase}</div>
+      <div class="fm-stk">${seg('ok',0,nOk)}${seg('rec',0,nRec)}${seg('bad',0,nBad)}${seg('na',0,nNa)}</div>
+      <div class="fm-leg"><span><i class="fm-ok"></i>${nOk} na média</span>${nRec?`<span><i class="fm-rec"></i>${nRec} recuperou</span>`:''}<span><i class="fm-bad"></i>${nBad} abaixo da média</span>${nNa?`<span><i class="fm-na"></i>${nNa} sem nota</span>`:''}</div>
+    </div></div>`));
+
+  // gráfico por disciplina
+  parts.push(rpSec('Como está cada disciplina', `<div class="fm-pad">${famChartDisc(data, t)}
+    <div class="fm-leg"><span><i class="fm-ok"></i>na média</span><span><i class="fm-rec"></i>recuperou</span><span><i class="fm-bad"></i>abaixo da média</span><span>◆ média da turma</span><span>┆ linha tracejada = média (60% dos pontos)</span></div></div>`));
+
+  // evolução + O.E.R. lado a lado
+  const evo = `<div class="rp-sec"><div class="rp-sec-t">Evolução ao longo do ano</div><div class="fm-pad">${famChartEvo(cd, st)}<div class="fm-leg"><span><b style="color:#1f4e79">●</b> ${escHtml(primeiro)}</span><span>□ média da turma</span></div></div></div>`;
+  const oerBox = risk.length
+    ? `<div class="fm-pad">${famChartOer(risk)}<div class="fm-leg"><span>Pontos necessários no 3º trim. (máx. 40) para fechar o ano com 60.</span>${risk.some(d=>oerNivel(d.oer.precisa)===3)?'<span>! = acima do máximo do trimestre</span>':''}</div></div>`
+    : `<div class="rp-ok" style="padding:10px 8px">Nenhuma disciplina em risco de O.E.R. com as notas lançadas até agora.</div>`;
+  parts.push(`<div class="fm-two">${evo}<div class="rp-sec"><div class="rp-sec-t">O que será preciso no 3º trimestre (O.E.R.)</div>${oerBox}${risk.length && oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : ''}</div></div>`);
+
+  // leitura em linguagem simples (substitui "pontos fortes", "disciplinas de atenção" e "orientações")
+  const fortes = com.filter(d=>d.pct!==null && d.pct>=70).sort((a,b)=>b.pct-a.pct).slice(0,4);
+  const abaixo = data.filter(d=>d.st==='bad');
+  const lst = arr => arr.map(d=>`<b>${escHtml(titleCase(d.name))}</b>`).join(', ');
+  const lei = [];
+  if(fortes.length) lei.push(`<p><b>Está indo bem em:</b> ${lst(fortes)}. Vale reconhecer o esforço e manter a rotina.</p>`);
+  if(abaixo.length) lei.push(`<p><b>Precisa de mais atenção em:</b> ${lst(abaixo)}. Combine um horário fixo de estudo todos os dias, revise o caderno e procure o(a) professor(a) para tirar dúvidas e fazer as atividades de recuperação.</p>`);
+  if(risk.length) lei.push(`<p><b>Risco de O.E.R.:</b> em ${risk.length} disciplina${risk.length===1?'':'s'} a soma do 1º e 2º trimestres ainda não garante os 60 pontos do ano. A O.E.R. (Oportunidade Especial de Recuperação) é a última chance de recuperar; converse com a escola o quanto antes.</p>`);
+  if(!abaixo.length && !risk.length) lei.push('<p>O desempenho está dentro do esperado. Incentive a manutenção da rotina de estudos e o acompanhamento das atividades.</p>');
+  parts.push(rpSec('Leitura do trimestre e orientações', `<div class="fm-read">${lei.join('')}</div>`));
+
+  const ln = n>=11 ? 2 : 3;
+  parts.push(`<div class="fm-two"><div class="rp-sec"><div class="rp-sec-t">Minha análise e meu plano (aluno)</div><div class="fm-q">O que percebo neste resultado? O que vou fazer no próximo trimestre?</div>${rpLines(ln)}</div><div class="rp-sec"><div class="rp-sec-t">Observações do professor / coordenação</div>${rpLines(ln+1)}</div></div>`);
+  const msg = rpMsg(); if(msg) parts.push(msg);
+  parts.push(`<div class="rp-field">Faltas: ____ · Frequência: ____ % &nbsp;&nbsp; Ciente do responsável: ____________________________ Data: ___/___/_____</div>`);
+  parts.push(rpAssin());
+  const foot = `<div class="rp-foot"><b>Como ler:</b> a linha tracejada marca a média (60% dos pontos) e o losango preto, a média da turma. Os 1º e 2º trimestres valem até 30 pontos e o 3º, até 40. A nota final considera a recuperação. Literatura não é exibida.</div>`;
+  const dens = (n>=14 || (n>=10 && risk.length>=8)) ? ' rp-c2' : (n>=11 ? ' rp-c1' : '');
+  return `<section class="rp-page fm${dens}">${rpHeader('Acompanhamento do aluno — leitura para a família e o aluno', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
 }
 
 // ---------- relatório da turma ----------
@@ -2879,7 +3079,7 @@ function repTurmaPage(cd, className, V, t){
     const heads = [{t:'Disciplina',l:1},{t:'Alunos com nota'}];
     if(t==='ALL') heads.push({t:'Na média'},{t:'Abaixo da média'}); else heads.push({t:'Média direta'},{t:'Recuperou'},{t:'Abaixo da média'});
     heads.push({t:'% na média'},{t:'Média (%)'},{t:'Mediana (%)'},{t:''});
-    const rows = st.map(s=>`<tr><td class="l">${escHtml(s.name)}</td><td>${s.n}</td>${t==='ALL'?`<td>${s.ok}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`:`<td>${s.direct}</td><td class="${s.rec?'t-mid':''}">${s.rec}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`}<td class="${repTint(s.pctOk)}"><b>${repFmt(s.pctOk)}</b></td><td>${repFmt(s.mean)}</td><td>${repFmt(s.med)}</td><td class="bar">${rpBar(s.pctOk)}</td></tr>`);
+    const rows = st.map(s=>`<tr><td class="l">${escHtml(s.name)}</td><td>${s.n}</td>${t==='ALL'?`<td>${s.ok}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`:`<td>${s.direct}</td><td class="${s.rec?'t-mid':''}">${s.rec}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`}<td class="${repTint(s.pctOk)}"><b>${repFmt(s.pctOk)}</b></td><td>${repFmt(s.mean)}</td><td>${repFmt(s.med)}</td><td class="rp-barcell">${rpBar(s.pctOk)}</td></tr>`);
     parts.push(rpSec('Resultado por disciplina — '+repTriNome(t), rpTable(heads, rows, 'rp-disc')));
   }
 
@@ -2919,7 +3119,7 @@ function repTurmaPage(cd, className, V, t){
   if(V.has('assin')) parts.push(rpAssin());
 
   const foot = `<div class="rp-foot"><b>Notas:</b> “% na média” = alunos que atingiram a média (direto ou após recuperação) ÷ alunos com nota lançada${t==='ALL'?'; no acumulado, a média é 60% do máximo de pontos do ano':'; média do trimestre: '+(TRI_PASS[t])+' de '+TRI_MAX[t]+' pontos'}. “Média (%)” e “Mediana (%)” são calculadas sobre o % de pontos obtidos. Em acompanhamento = abaixo da média em 2 ou mais disciplinas. Risco de O.E.R = soma do 1º+2º trimestres abaixo de 36 (precisa de mais de 24 pontos no 3º). ${RP_TINT_NOTE} Literatura não é exibida.</div>`;
-  return `<section class="rp-page">${rpHeader('Relatório da turma', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
+  return rpWrap(rpHeader('Relatório da turma', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd))), parts.join('')+foot);
 }
 
 function repComparativoPage(names, V){
@@ -2931,7 +3131,7 @@ function repComparativoPage(names, V){
     return `<tr><td class="l">${escHtml(shortTurmaLabel(n))}</td><td>${cd.students.length}</td><td>${repTriNome(t).replace(' (todos os trimestres)','')}</td><td>${repFmt(repClassPct(cd,t))}</td><td class="${repTint(p)}"><b>${repFmt(p)}</b></td><td class="${computeRetentionRisk(cd).length?'t-bad':''}">${computeRetentionRisk(cd).length}</td><td class="${cs.atencao.length?'t-mid':''}">${cs.atencao.length}</td><td>${cs.destaques70.length}</td></tr>`;
   });
   const body = rpTable([{t:'Turma',l:1},{t:'Alunos'},{t:'Referência'},{t:'Aproveitamento médio'},{t:'Notas na média'},{t:'Em risco de O.E.R'},{t:'Em acompanhamento'},{t:'Destaques'}], rows, 'rp-list');
-  return `<section class="rp-page">${rpHeader('Quadro comparativo entre as turmas', 'Turmas selecionadas: '+names.length+' · '+escHtml(effectiveMesAno(currentClasses[names[0]])))}${rpSec('Comparativo', body)}<div class="rp-foot"><b>Notas:</b> “Notas na média” = % de notas (alunos × disciplinas) que atingiram a média no trimestre de referência de cada turma. Literatura não é considerada. ${RP_TINT_NOTE}</div></section>`;
+  return rpWrap(rpHeader('Quadro comparativo entre as turmas', 'Turmas selecionadas: '+names.length+' · '+escHtml(effectiveMesAno(currentClasses[names[0]]))), rpSec('Comparativo', body)+`<div class="rp-foot"><b>Notas:</b> “Notas na média” = % de notas (alunos × disciplinas) que atingiram a média no trimestre de referência de cada turma. Literatura não é considerada. ${RP_TINT_NOTE}</div>`);
 }
 
 // ---------- montagem / pré-visualização / impressão ----------
@@ -2954,7 +3154,7 @@ function repBuild(){
   const idxs = [...S.alunos].filter(i=>cd && cd.students[i]).sort((a,b)=>cd.students[a].name.localeCompare(cd.students[b].name));
   if(!cd || !idxs.length){ alert('Selecione ao menos um aluno.'); return null; }
   const t = repRefTri(cd);
-  return idxs.map(i=>repIndividualPage(cd, S.turmaAluno, cd.students[i], V, t)).join('');
+  return idxs.map(i=> S.modo==='ind' ? repFamiliaPage(cd, S.turmaAluno, cd.students[i], t) : repIndividualPage(cd, S.turmaAluno, cd.students[i], V, t)).join('');
 }
 function repPreview(){
   const html = repBuild(); if(!html) return;
@@ -3008,8 +3208,8 @@ function renderReportsTab(){
   let h = `<div class="hdr"><div><h1>Relatórios</h1><div class="hdr-sub">Relatórios por turma ou individuais, sempre com cabeçalho, nome e logo da escola</div></div></div>`;
   h += `<div class="rep-card"><h3>1 · Tipo de relatório</h3><div class="rep-modes">
     ${modeCard('turma','Relatório da turma','Indicadores, resultado por disciplina, alunos em risco de O.E.R, acompanhamento e destaques')}
-    ${modeCard('ind','Individual — modelo padrão','Uma folha A4 por aluno com o conjunto de informações mais indicado para fim de trimestre')}
-    ${modeCard('indp','Individual — escolher variáveis','Uma folha A4 por aluno, só com as informações que você marcar')}
+    ${modeCard('ind','Individual — família e aluno (recomendado)','Uma folha A4 por aluno, em linguagem simples e com gráficos, para a família e o aluno acompanharem e analisarem o trimestre')}
+    ${modeCard('indp','Individual — detalhado (escolher variáveis)','Modelo em tabelas para conselho de classe e coordenação, só com as informações que você marcar')}
   </div></div>`;
 
   if(S.modo==='turma'){
@@ -3035,8 +3235,8 @@ function renderReportsTab(){
     </select></div></div>`;
 
   if(S.modo==='ind'){
-    const inc = REP_IND_VARS.flatMap(g=>g.items).filter(i=>REP_IND_PRESETS.padrao.vars.includes(i[0])).map(i=>i[1]);
-    h += `<div class="rep-card"><h3>4 · O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer outro conjunto? Escolha “Individual — escolher variáveis”.</div></div>`;
+    const inc = ['Resumo: frase de leitura, aproveitamento geral e situação nas disciplinas','Gráfico por disciplina, com a média (60%) e a comparação com a turma','Gráfico de evolução ao longo dos trimestres (aluno × turma)','Gráfico dos pontos necessários no 3º trimestre (O.E.R.), quando houver risco','Leitura do trimestre e orientações em linguagem simples','Espaço para o aluno analisar e planejar; observações do professor; ciência do responsável e assinaturas'];
+    h += `<div class="rep-card"><h3>4 · O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer um modelo em tabelas, escolhendo as informações? Use “Individual — detalhado”.</div></div>`;
   } else {
     const groups = S.modo==='turma' ? REP_TUR_VARS : REP_IND_VARS;
     const presets = S.modo==='turma' ? REP_TUR_PRESETS : REP_IND_PRESETS;
