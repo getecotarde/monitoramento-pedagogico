@@ -240,10 +240,11 @@ body{
 .hdr-info label{font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
 .meta-input{font-family:'Inter',sans-serif; font-size:12px; padding:4px 7px; border:1px solid var(--line); border-radius:6px; width:150px; background:#fff; color:var(--ink);}
 .print-footer{display:none;}
-.print-subject-doc, .print-cards-doc, .print-oer-cards-doc, .print-oer-table-doc{ display:none; }
+.print-subject-doc, .print-cards-doc, .print-oer-cards-doc, .print-oer-table-doc, .print-class-table-doc{ display:none; }
 .risk-actions{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
-@page oertable{ size:A4 landscape; margin:8mm; }
-@page oercards{ size:A4 landscape; margin:8mm; }
+@page oertable{ size:A4 landscape; margin:8mm 7mm; }
+@page oercards{ size:A4 landscape; margin:8mm 7mm; }
+@page classtable{ size:A4 landscape; margin:6mm; }
 
 /* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
 @media print{
@@ -338,6 +339,49 @@ body{
   .print-cards-doc .risk-card .risk-count{ color:#000; }
   .print-cards-doc .risk-subj-row .risk-subj-val{ color:#000; }
   .print-cards-doc .risk-subj-row .risk-ast-note{ color:#000; font-weight:400; }
+
+  /* ---- Paleta de impressão: cores claras e contrastantes (pouca tinta); o texto continua preto/negrito, então também funciona em P&B ---- */
+  html, body, .print-page, .print-class-table-doc, .print-oer-table-doc, .print-subject-doc{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body.print-mode-class-table .app{ display:none !important; }
+  body.print-mode-class-table .print-class-table-doc{ display:block !important; page:classtable; }
+  .ct-page{ page-break-after:always; break-after:page; }
+  .ct-page:last-child{ page-break-after:auto; break-after:auto; }
+  .ct-hdr{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1.5px solid #000; padding-bottom:2px; margin-bottom:3px; }
+  .ct-hdr h1{ font-family:'Fraunces',serif; font-size:14px; margin:0; color:#000; }
+  .ct-hdr .ct-sub{ font-size:9px; color:#222; margin-top:1px; }
+  .ct-hdr .ct-tri{ font-size:9px; font-weight:700; border:1.2px solid #000; padding:1px 6px; }
+  .ct-table{ width:100%; border-collapse:collapse; table-layout:fixed; font-size:var(--fs,7pt); color:#000; border:1.6px solid #000; }
+  .ct-table th, .ct-table td{ border:.5px solid #555; padding:0 1px; text-align:center; height:var(--rh,4.6mm); line-height:1; overflow:hidden; white-space:nowrap; }
+  .ct-table thead{ display:table-header-group; }
+  .ct-table thead th{ font-weight:800; font-size:calc(var(--fs,7pt) - .3pt); border:.8px solid #000; background:#dfe8f3; white-space:normal; line-height:1.05; height:auto; padding:1px; text-transform:uppercase; }
+  .ct-table thead th.alt{ background:#eef0f2; }
+  .ct-table thead tr.sub th{ text-transform:none; font-weight:700; background:#fff; border-bottom:1.2px solid #000; }
+  .ct-table td.nm{ text-align:left; padding-left:2px; text-overflow:ellipsis; font-weight:600; border-right:.8px solid #000; }
+  .ct-table td.n{ color:#222; border-right:.8px solid #000; }
+  .ct-table .gs{ border-left:1.4px solid #000 !important; }
+  .ct-table td.c-ok{ background:#fff; }
+  .ct-table td.c-rec{ background:#ffeaa0; font-weight:700; }
+  .ct-table td.c-bad{ background:#f7b9b0; font-weight:900; color:#6b0d00; }
+  .ct-table td.c-na{ color:#8a8a8a; }
+  .ct-table tr.sum td{ border-top:1.6px solid #000; background:#e9e9e9; font-weight:800; }
+  .ct-table tr.sum td.nm{ text-align:right; padding-right:3px; }
+  .ct-foot{ margin-top:3px; border:.8px solid #000; padding:2px 5px; font-size:7.5pt; line-height:1.25; color:#000; break-inside:avoid; }
+  .ct-foot .sw{ display:inline-block; width:9px; height:7px; border:.6px solid #000; vertical-align:-1px; margin:0 2px 0 4px; }
+  .ct-foot .sw.rec{ background:#ffeaa0; }
+  .ct-foot .sw.bad{ background:#f7b9b0; }
+  .ct-foot .sw.ok{ background:#fff; }
+  .ct-foot .ct-extra{ margin-top:2px; padding-top:2px; border-top:.5px dashed #555; font-weight:600; }
+
+  /* mesmas cores claras nas demais tabelas impressas */
+  .print-subj-table th, .oer-table th, .overview-table th{ background:#dfe8f3 !important; }
+  .print-subj-table, .oer-table{ border:1.6px solid #000; }
+  .print-subj-table th, .print-subj-table td, .oer-table th, .oer-table td{ border:.8px solid #000; }
+  .oer-table td.risk{ background:#f7b9b0 !important; color:#6b0d00; }
+  .tag.ok{ background:#fff !important; }
+  .tag.mid{ background:#ffeaa0 !important; border-style:solid; }
+  .tag.bad{ background:#f7b9b0 !important; color:#6b0d00 !important; }
+  .final-row .val.mid{ background:#ffeaa0; border-style:solid; }
+  .final-row .val.bad{ background:#f7b9b0; color:#6b0d00 !important; }
 
   /* O.E.R: cards para entrega ao aluno e tabela por turma (disciplinas em colunas) */
   body.print-mode-oer-cards .app, body.print-mode-oer-table .app{ display:none !important; }
@@ -478,6 +522,113 @@ body{
   .methodology-popover,.methodology-backdrop{ display:none !important; }
 }
 
+/* ================= LOGO / CABEÇALHO PADRÃO + RELATÓRIOS ================= */
+.overview-btn.rep{background:#35607F;}
+.doc-brand{display:none;}
+.print-report-doc{display:none;}
+@page report{ size:A4 portrait; margin:7mm; }
+
+/* aba Relatórios (tela) */
+.rep-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin:0 0 12px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);}
+.rep-card h3{margin:0 0 8px; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-soft);}
+.rep-modes{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px;}
+.rep-mode{display:flex; flex-direction:column; gap:3px; border:1.5px solid var(--line); border-radius:8px; padding:9px 12px; cursor:pointer; background:#fff;}
+.rep-mode input{display:none;}
+.rep-mode b{font-size:13.5px;}
+.rep-mode span{font-size:12px; color:var(--ink-soft); line-height:1.35;}
+.rep-mode.on{border-color:#35607F; background:#EAF1F7; box-shadow:inset 0 0 0 1px #35607F;}
+.rep-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 8px;}
+.rep-filtro{font-family:'Inter',sans-serif; font-size:13px; padding:5px 9px; border:1px solid var(--line); border-radius:6px; min-width:200px;}
+.rep-count{font-size:12px; color:var(--ink-soft);}
+.rep-alunos{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:2px 10px; max-height:230px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:6px 8px;}
+.rep-al{display:flex; gap:6px; align-items:center; font-size:12.5px; padding:2px 4px; border-radius:4px; cursor:pointer;}
+.rep-al.on{background:#EAF1F7; font-weight:600;}
+.rep-vars{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:10px 18px;}
+.rep-vg-t{font-size:12px; font-weight:700; color:#35607F; margin-bottom:3px;}
+.rep-v{display:flex; gap:7px; align-items:flex-start; font-size:12.5px; padding:2px 0; cursor:pointer; line-height:1.3;}
+.rep-v input{margin-top:2px;}
+.rep-preset.on{background:#35607F; color:#fff; border-color:#35607F;}
+.rep-inc{margin:0; padding-left:18px; font-size:12.5px; line-height:1.5;}
+.rep-hint{font-size:12px; color:var(--ink-soft);}
+.rep-logo-prev{height:56px; width:auto; border:1px solid var(--line); border-radius:6px; padding:4px; background:#fff;}
+.rep-msg-in{width:100%; box-sizing:border-box; font-family:'Inter',sans-serif; font-size:13px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; resize:vertical;}
+.rep-actions{display:flex; gap:10px; margin:6px 0 4px;}
+.rep-preview{margin-top:16px; overflow-x:auto;}
+.rep-preview .rp-page{background:#fff; border:1px solid var(--line); box-shadow:0 2px 10px rgba(0,0,0,.08); padding:8mm; margin:0 auto 16px; width:194mm; box-sizing:border-box; zoom:1.1;}
+
+/* relatórios (tela e papel) */
+.rp-page{font-family:'Inter',sans-serif; font-size:9pt; color:#000; line-height:1.3; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+.rp-hdr{display:flex; align-items:center; gap:10px; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:5px;}
+.rp-logo{height:15mm; width:auto; flex-shrink:0;}
+.rp-hdr-mid{flex:1; min-width:0;}
+.rp-school{font-family:'Fraunces',serif; font-weight:700; font-size:12pt; text-transform:uppercase; letter-spacing:.02em; line-height:1.15;}
+.rp-title{font-size:11pt; font-weight:800; margin-top:2px;}
+.rp-sub{font-size:8.5pt; color:#222;}
+.rp-hdr-right{text-align:right; font-size:8pt; color:#222; white-space:nowrap;}
+.rp-id{width:100%; border-collapse:collapse; margin-bottom:6px;}
+.rp-id td{border:1px solid #000; padding:3px 6px; font-size:9pt;}
+.rp-sec{margin:4.5px 0; border:1px solid #000; break-inside:avoid; page-break-inside:avoid;}
+.rp-sec-t{font-weight:800; font-size:8.5pt; text-transform:uppercase; letter-spacing:.03em; background:#dfe8f3; border-bottom:1px solid #000; padding:2px 6px;}
+.rp-table{width:100%; border-collapse:collapse; table-layout:auto;}
+.rp-table th, .rp-table td{border:.5px solid #555; padding:1.3px 4px; text-align:center; font-size:8.5pt; vertical-align:middle;}
+.rp-table th{background:#eef0f2; font-weight:700; font-size:8pt; line-height:1.15;}
+.rp-table th small{display:block; font-weight:400; font-size:6.8pt; color:#222;}
+.rp-table td.l, .rp-table th.l{text-align:left;}
+.rp-table tr > :first-child{border-left:0;} .rp-table tr > :last-child{border-right:0;}
+.rp-table thead tr:first-child th{border-top:0;} .rp-table tbody tr:last-child td{border-bottom:0;}
+.rp-table td.na{color:#888;}
+.rp-table td.bar{width:70px;}
+.rp-table tr.rp-sum td{border-top:1.4px solid #000; font-weight:800; background:#e9e9e9;}
+.rp-table tr.blank td{height:8mm;}
+.rp-evo td small{font-size:7pt;}
+.t-mid{background:#ffeaa0 !important;}
+.t-bad{background:#f7b9b0 !important; color:#6b0d00; font-weight:700;}
+.rp-bar{height:3px; background:#e3e3e3; margin-top:1px;}
+.rp-bar i{display:block; height:100%; background:#7f9dc4;}
+.rp-boxes{display:flex; gap:6px; padding:5px 6px; flex-wrap:wrap;}
+.rp-box{flex:1; min-width:70px; border:.8px solid #000; padding:3px 5px; text-align:center;}
+.rp-box b{display:block; font-size:14pt; line-height:1.1;}
+.rp-box span{display:block; font-size:7.3pt; line-height:1.15;}
+.rp-ok, .rp-note, .rp-p, .rp-dest, .rp-ol, .rp-two, .rp-lines, .rp-none{padding:3px 7px;}
+.rp-note{font-size:7.5pt; border-top:.5px solid #555;}
+.rp-p{margin:0;}
+.rp-ol{margin:0; padding-left:24px;}
+.rp-two{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.rp-col b{display:block; font-size:8.3pt; padding:1px 4px; border:.6px solid #000; margin-bottom:2px;}
+.rp-col.ok b{background:#e7f1e4;} .rp-col.bad b{background:#f7b9b0;}
+.rp-col ul{margin:0; padding-left:15px;}
+.rp-col li small{color:#222;}
+.rp-none{color:#555; padding:0;}
+.rp-dest p{margin:1px 0;}
+.rp-lines div{height:6mm; border-bottom:1px solid #777;}
+.rp-field{margin:6px 0 2px; font-size:9pt;}
+.rp-msg{margin:6px 0; border:1.2px solid #000; background:#fff6cf; padding:4px 7px; font-size:9pt; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+.rp-sign{display:flex; gap:22mm; margin:8px 6mm 2px; font-size:8.5pt; text-align:center;}
+.rp-sign > div{flex:1;}
+.rp-sign span{display:block; border-bottom:1px solid #000; height:8mm; margin-bottom:2px;}
+.rp-sign small{font-size:7.5pt;}
+.rp-foot{margin-top:5px; border:.8px solid #000; padding:3px 6px; font-size:7.3pt; line-height:1.3;}
+.rp-foot .sw{display:inline-block; width:9px; height:7px; border:.6px solid #000; vertical-align:-1px; margin:0 2px 0 4px;}
+.rp-foot .sw.mid{background:#ffeaa0;} .rp-foot .sw.bad{background:#f7b9b0;}
+
+@media print{
+  /* faixa padrão (logo + nome da escola) no topo de toda folha impressa */
+  .doc-brand{display:flex; align-items:center; gap:8px; border-bottom:2px solid #000; padding-bottom:3px; margin-bottom:5px; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .doc-logo{height:11mm; width:auto; flex-shrink:0;}
+  .doc-brand-txt{flex:1; min-width:0;}
+  .doc-brand-school{font-family:'Fraunces',serif; font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:.02em; color:#000; line-height:1.15;}
+  .doc-brand-date{font-size:9px; color:#222; white-space:nowrap;}
+  .ct-page .doc-brand{margin-bottom:3px; padding-bottom:2px;}
+  .ct-page .doc-logo{height:8mm;}
+  .ct-page .doc-brand-school{font-size:11px;}
+  /* logo dentro de cada card de O.E.R (via da família e via da escola) */
+  .oer-card-logo{float:left; height:11mm; width:auto; margin:0 8px 2px 0;}
+  /* relatórios */
+  body.print-mode-report .app{display:none !important;}
+  body.print-mode-report .print-report-doc{display:block !important; page:report;}
+  .print-report-doc .rp-page{page-break-after:always; break-after:page;}
+  .print-report-doc .rp-page:last-child{page-break-after:auto; break-after:auto;}
+}
 </style>
 </head>
 <body>
@@ -496,9 +647,10 @@ body{
     <div class="status-line" id="statusLine"></div>
     <div class="nav-row">
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
-      <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard</div>
+      <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard - Notas Individuais</div>
       <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
       <div class="overview-btn lib" id="libBtn">📄 Liberação de boletim</div>
+      <div class="overview-btn rep" id="repBtn">📑 Relatórios</div>
     </div>
     <div class="turma-switch">
       <div class="lbl-sm" id="turmaCountLbl">Turmas</div>
@@ -520,7 +672,9 @@ body{
 <div id="printCardsDoc" class="print-cards-doc"></div>
 <div id="printOerCardsDoc" class="print-oer-cards-doc"></div>
 <div id="printOerTableDoc" class="print-oer-table-doc"></div>
+<div id="printClassTableDoc" class="print-class-table-doc"></div>
 <div id="printLibDoc" class="print-lib-doc"></div>
+<div id="printReportDoc" class="print-report-doc"></div>
 
 <script>
 // Worker do pdf.js embutido localmente (base64) para nao depender de nenhum CDN externo.
@@ -974,7 +1128,7 @@ function printRiskBySubject(className){
   let html;
   if(bySubject.length===0){
     html = `<div class="print-page">
-      <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div></div></div>
+      <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${effectiveMesAno(cd)}</div></div></div>
       <p>Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em nenhuma disciplina.</p>
     </div>`;
   } else {
@@ -983,7 +1137,7 @@ function printRiskBySubject(className){
         <div class="print-page-hdr">
           <div>
             <h1>${className} — ${sec.subject}</h1>
-            <div class="print-page-sub">${(cfg.escola||'')} · ${(cd.meta.mesAno||'')}</div>
+            <div class="print-page-sub">${(cfg.escola||'')} · ${effectiveMesAno(cd)}</div>
           </div>
           <div class="print-page-teacher">Professor(a): ______________________________</div>
         </div>
@@ -1030,7 +1184,7 @@ function oerPrintMeta(className){
     cd,
     turma: shortTurmaLabel(className),
     escola: cfg.escola || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA',
-    mesAno: cd.meta.mesAno || '',
+    mesAno: effectiveMesAno(cd),
     prof: cd.meta.professor || ''
   };
 }
@@ -1039,6 +1193,66 @@ function runPrintMode(docId, html, mode){
   document.body.classList.add(mode);
   window.print();
   setTimeout(()=>{ document.body.classList.remove(mode); }, 300);
+}
+
+// Quadro A4 (paisagem) por turma: uma linha por aluno, e para cada disciplina uma coluna por
+// trimestre com a nota. Cores claras: amarelo = recuperou, vermelho = abaixo da média.
+function printClassTable(only){
+  const names = only ? [only] : Object.keys(currentClasses).sort();
+  const cfg = loadGlobalConfig();
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const pages = names.map(className=>{
+    const cd = currentClasses[className];
+    if(!cd) return '';
+    cd.meta = cd.meta || {};
+    const tris = availableTris(cd);
+    if(!tris.length) return '';
+    const idxs = cd.subjects.map((s,i)=>i).filter(i=>!isLiteratura(cd.subjects[i]));
+    const students = cd.students.slice().sort((a,b)=> a.name.localeCompare(b.name));
+    const n = students.length;
+    const rh = Math.max(3.4, Math.min(6.2, 136/(n+2)));
+    const fs = rh>=4.6 ? 8 : (rh>=4 ? 7.4 : 6.8);
+    const nT = tris.length;
+    const colW = `calc((100% - 6mm - 50mm) / ${idxs.length*nT})`;
+    const cols = `<colgroup><col style="width:6mm"><col style="width:50mm">${idxs.map(()=>tris.map(()=>`<col style="width:${colW}">`).join('')).join('')}</colgroup>`;
+    const head1 = `<tr><th rowspan="2">Nº</th><th rowspan="2" style="text-align:left;padding-left:3px">Aluno</th>${idxs.map((i,k)=>`<th colspan="${nT}" class="gs${k%2?' alt':''}">${esc(cd.subjects[i])}</th>`).join('')}</tr>`;
+    const head2 = `<tr class="sub">${idxs.map(()=>tris.map((t,j)=>`<th class="${j===0?'gs':''}">${t+1}ºT</th>`).join('')).join('')}</tr>`;
+    const body = students.map((st,r)=>{
+      const cells = idxs.map(i=>{
+        const calc = subjectCalc(st.subjects[i]);
+        return tris.map((t,j)=>{
+          const x = calc.tris[t];
+          const g = j===0 ? ' gs' : '';
+          if(!x.filled) return `<td class="c-na${g}">–</td>`;
+          const cls = x.status===DIRECT ? 'c-ok' : x.status===RECOVERED ? 'c-rec' : 'c-bad';
+          return `<td class="${cls}${g}">${x.total}</td>`;
+        }).join('');
+      }).join('');
+      return `<tr><td class="n">${r+1}</td><td class="nm">${esc(st.name)}</td>${cells}</tr>`;
+    }).join('');
+    const sum = idxs.map(i=> tris.map((t,j)=>{
+      let ok=0, tot=0;
+      cd.students.forEach(st=>{ const x = subjectCalc(st.subjects[i]).tris[t]; if(x.filled){ tot++; if(x.status!==NOTREC) ok++; } });
+      const p = pct(ok,tot);
+      return `<td class="${j===0?'gs':''}">${p===null?'–':p+'%'}</td>`;
+    }).join('')).join('');
+    const lim = tris.map(t=>`${t+1}º trim.: nota máx. ${TRI_MAX[t]}, média ${TRI_PASS[t]}`).join(' · ');
+    const foot = `<div class="ct-foot"><strong>Como ler:</strong> cada célula é a nota do aluno naquela disciplina e trimestre (${lim}). Quando houve recuperação, vale a maior entre a nota e a recuperação.
+      <span class="sw ok"></span>Branco = atingiu a média direto;
+      <span class="sw rec"></span>Amarelo = atingiu a média após recuperação;
+      <span class="sw bad"></span><strong>Vermelho (negrito)</strong> = abaixo da média, não recuperou;
+      “–” = sem nota lançada. A última linha mostra o % de alunos que atingiu a média (direto ou após recuperação) em cada disciplina e trimestre. Literatura não é exibida.
+      ${cd.meta.notaRodape ? `<div class="ct-extra">${esc(cd.meta.notaRodape)}</div>` : ''}</div>`;
+    return `<div class="ct-page">
+      <div class="ct-hdr"><div><h1>${esc(shortTurmaLabel(className))} — Quadro de notas por aluno, disciplina e trimestre</h1>
+        <div class="ct-sub">${esc(cfg.escola||'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA')}${' · '+esc(effectiveMesAno(cd))}${cd.meta.professor ? ' · Prof. de referência: '+esc(cd.meta.professor) : ''} · ${n} aluno${n>1?'s':''}</div></div>
+        <div class="ct-tri">${esc(className.split(' - ')[0])}</div></div>
+      <table class="ct-table" style="--rh:${rh.toFixed(2)}mm; --fs:${fs}pt">${cols}<thead>${head1}${head2}</thead><tbody>${body}<tr class="sum"><td class="nm" colspan="2">% na média</td>${sum}</tr></tbody></table>
+      ${foot}
+    </div>`;
+  }).filter(Boolean);
+  if(!pages.length){ alert('Nenhuma nota lançada para montar o quadro.'); return; }
+  runPrintMode('printClassTableDoc', pages.join(''), 'print-mode-class-table');
 }
 
 // Cards individuais (um por aluno em risco) para recortar e entregar ao aluno/responsável.
@@ -1055,7 +1269,7 @@ function printOerCards(){
     const dens = st.subjects.length>=8 ? ' d xd' : (st.subjects.length>=6 ? ' d' : '');
     const one = via => `<div class="oer-card${dens}">
       <div class="oer-card-via">${via}</div>
-      <div class="oer-card-school">${m.escola}</div>
+      <img class="oer-card-logo" src="${getLogo()}" alt=""><div class="oer-card-school">${m.escola}</div>
       <div class="oer-card-title">Aviso: risco de O.E.R</div>
       <div class="oer-card-name">${st.name}</div>
       <div class="oer-card-sub">Turma ${m.turma}${m.mesAno ? ' · '+m.mesAno : ''}</div>
@@ -1715,6 +1929,7 @@ function renderMain(){
   if(activeClass==='DASHBOARD') return renderDashboard();
   if(activeClass==='OER') return renderOerTab();
   if(activeClass==='LIBERACAO') return renderLiberacaoTab();
+  if(activeClass==='RELATORIOS') return renderReportsTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
     return;
@@ -1730,7 +1945,6 @@ function renderMain(){
   // Preenche automaticamente (e salva) o Mês/Ano padrão e o professor(a) referência
   // com base na lista de turmas, caso ainda não tenham sido definidos manualmente.
   let metaChanged = false;
-  if(!cd.meta.mesAno){ cd.meta.mesAno = 'Julho/2026'; metaChanged = true; }
   if(!cd.meta.professor){
     const auto = defaultProfessorFor(activeClass);
     if(auto){ cd.meta.professor = auto; metaChanged = true; }
@@ -1743,11 +1957,13 @@ function renderMain(){
       <div class="hdr-sub">${cd.students.length} alunos · ${cd.subjects.filter(s=>!isLiteratura(s)).length} disciplinas</div>
       <div class="hdr-info">
         <label>Escola: <input type="text" class="meta-input" id="metaEscola" value="${(cfg.escola||'').replace(/"/g,'&quot;')}" placeholder="Nome da escola"></label>
-        <label>Mês/Ano: <input type="text" class="meta-input" id="metaMesAno" value="${(cd.meta.mesAno||'').replace(/"/g,'&quot;')}" placeholder="ex: Julho/2026"></label>
+        <label>Mês/Ano: <input type="text" class="meta-input" id="metaMesAno" value="${effectiveMesAno(cd).replace(/"/g,'&quot;')}" placeholder="ex: ${mesAnoAtual()}"></label>
         <label>Prof. de referência: <input type="text" class="meta-input" id="metaProfessor" value="${(cd.meta.professor||'').replace(/"/g,'&quot;')}" placeholder="Nome do professor(a)"></label>
+        <label>Nota de rodapé do quadro: <input type="text" class="meta-input" id="metaNota" style="width:300px" value="${(cd.meta.notaRodape||'').replace(/"/g,'&quot;')}" placeholder="Opcional: observação a imprimir no rodapé"></label>
       </div>
     </div>
     <div class="hdr-actions">
+      <button class="print-btn" onclick="printClassTable('${activeClass.replace(/'/g,"\\'")}')">🖶 Quadro por aluno (A4)</button>
       <button class="print-btn" onclick="window.print()">🖶 Imprimir quadro resumo</button>
       <button class="print-btn" onclick="printRiskBySubject('${activeClass.replace(/'/g,"\\'")}')">🖶 Imprimir por disciplina (professores)</button>
       <button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button>
@@ -1809,10 +2025,17 @@ function renderMain(){
     const c = loadGlobalConfig(); c.escola = e.target.value; saveGlobalConfig(c);
   };
   document.getElementById('metaMesAno').onchange = (e)=>{
-    cd.meta.mesAno = e.target.value; saveClass(activeClass, cd);
+    const v = e.target.value.trim();
+    if(v){ cd.meta.mesAno = v; cd.meta.mesAnoManual = true; }
+    else { delete cd.meta.mesAno; cd.meta.mesAnoManual = false; } // campo vazio volta ao mês corrente
+    saveClass(activeClass, cd);
+    e.target.value = effectiveMesAno(cd);
   };
   document.getElementById('metaProfessor').onchange = (e)=>{
     cd.meta.professor = e.target.value; saveClass(activeClass, cd);
+  };
+  document.getElementById('metaNota').onchange = (e)=>{
+    cd.meta.notaRodape = e.target.value; saveClass(activeClass, cd);
   };
 }
 
@@ -1858,6 +2081,19 @@ function renderDetail(cd, idx){
   panel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+// Mês/Ano que sai nas impressões: por padrão é o mês corrente; se a pessoa digitar outro, vale o digitado.
+function mesAnoAtual(){
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const d=new Date(); return meses[d.getMonth()]+'/'+d.getFullYear();
+}
+function effectiveMesAno(cd){
+  const meta = (cd && cd.meta) || {};
+  const v = (meta.mesAno||'').trim();
+  // 'Julho/2026' sem marcação era o antigo valor automático (não digitado), então é substituído pelo mês corrente
+  const manual = meta.mesAnoManual===true || (meta.mesAnoManual===undefined && v && v!=='Julho/2026');
+  return manual && v ? v : mesAnoAtual();
+}
+let overviewTri = 'ALL'; // 0/1/2 = trimestre específico; 'ALL' = acumulado (Total Anual)
 function renderOverview(){
   const main = document.getElementById('main');
   const names = Object.keys(currentClasses).sort();
@@ -1867,12 +2103,17 @@ function renderOverview(){
   }
   const allSubjects = new Set();
   names.forEach(n=> currentClasses[n].subjects.forEach(s=>{ if(!isLiteratura(s)) allSubjects.add(s); }));
-  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><div class="hdr-actions"><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button><button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button></div></div>`;
-  html += `<div class="section-title">Aprovação final (%) por turma e disciplina</div>`;
+  const triAvail = [0,1,2].filter(i=> names.some(n=>triHasData(currentClasses[n], i)));
+  if(overviewTri!=='ALL' && !triAvail.includes(overviewTri)) overviewTri = 'ALL';
+  const tri = overviewTri;
+  const triTxt = tri==='ALL' ? 'Acumulado (Total Anual)' : (tri+1)+'º trimestre';
+  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><div class="hdr-actions"><button class="print-btn" onclick="printClassTable()">🖶 Quadros por aluno — todas as turmas</button><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button><button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button></div></div>`;
+  html += `<div class="tri-filter-bar"><label>Trimestre: <select id="ovTriSelect" class="tri-select">${triAvail.map(i=>`<option value="${i}" ${tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}<option value="ALL" ${tri==='ALL'?'selected':''}>Acumulado (Total Anual)</option></select></label><span class="tri-filter-hint">Vale para toda a Visão geral</span></div>`;
+  html += `<div class="section-title">${tri==='ALL' ? 'Aprovação final (%)' : 'Aprovação no trimestre (%)'} por turma e disciplina — ${triTxt}</div>`;
   html += `<table class="overview-table"><thead><tr><th>Turma</th>${[...allSubjects].map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
   for(const n of names){
     const cd = currentClasses[n];
-    const {stats} = computeStats(cd);
+    const {stats} = computeStats(cd, tri);
     const map = {}; stats.forEach(s=>map[s.name]=s);
     html += `<tr><td>${n}</td>`;
     for(const subj of allSubjects){
@@ -1880,28 +2121,33 @@ function renderOverview(){
       if(!s){ html+='<td>—</td>'; continue; }
       const p = pct(s.taPass, s.taTotal);
       const cls = statusClass(p);
-      html += `<td><span class="tag ${cls}">${p??'–'}%</span></td>`;
+      html += p===null ? '<td>—</td>' : `<td><span class="tag ${cls}">${p}%</span></td>`;
     }
     html += '</tr>';
   }
   html += `</tbody></table>`;
 
-  html += `<div class="section-title">Destaques gerais por turma</div><div class="highlight-row">`;
+  html += `<div class="section-title">Destaques gerais por turma — ${triTxt}</div><div class="highlight-row">`;
   for(const n of names){
     const cd = currentClasses[n];
-    const {destaques70} = computeStats(cd);
+    const {destaques70} = computeStats(cd, tri);
     html += hlCard(n, destaques70, 'plum');
   }
   html += `</div>`;
 
-  html += `<div class="section-title">Acompanhamento por turma (nota final abaixo da média em 2+ disciplinas)</div><div class="highlight-row">`;
+  html += `<div class="section-title">Acompanhamento por turma (${tri==='ALL' ? 'nota final' : 'nota do trimestre'} abaixo da média em 2+ disciplinas) — ${triTxt}</div><div class="highlight-row">`;
   for(const n of names){
     const cd = currentClasses[n];
-    const {atencao} = computeStats(cd);
+    const {atencao} = computeStats(cd, tri);
     html += `<div class="hl-card attn"><h3>${n}</h3><div class="count">${atencao.length}</div><div class="hl-names">${atencao.length ? atencao.map(s=>`<span class="pill warn">${s.name} <span style="opacity:.75;">(${s.count})</span></span>`).join('') : `<span style="color:var(--ink-soft); font-size:12px;">Nenhum aluno nesta condição</span>`}</div></div>`;
   }
   html += `</div>`;
   main.innerHTML = html;
+  document.getElementById('ovTriSelect').onchange = e=>{
+    const v = e.target.value;
+    overviewTri = (v==='ALL') ? 'ALL' : Number(v);
+    renderOverview();
+  };
 }
 
 // ---------- DASHBOARD ----------
@@ -2003,7 +2249,7 @@ function renderDashboard(){
     return;
   }
   const TRI_COLORS = ['#2F6F63','#B4802A','#6E4A7E']; // 1º, 2º, 3º trimestre
-  let html = `<div class="hdr"><h1>Dashboard</h1></div>`;
+  let html = `<div class="hdr"><h1>Dashboard - Notas Individuais</h1></div>`;
 
   html += `<div class="dash-section">
     <div class="section-title">Rendimento individual por trimestre</div>
@@ -2345,11 +2591,524 @@ function showReview(parsed){
 
 document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; renderSidebar(); renderMain(); };
 document.getElementById('dashboardBtn').onclick = ()=>{ activeClass='DASHBOARD'; renderSidebar(); renderMain(); };
+document.getElementById('repBtn').onclick = ()=>{
+  if(currentClasses[activeClass]){ repState.started = true; repState.turmaAluno = activeClass; repState.turmas = new Set([activeClass]); repState.alunos = new Set(); repState.preview = null; } // abre já na turma que estava sendo vista
+  activeClass='RELATORIOS'; renderSidebar(); renderMain();
+};
 document.getElementById('libBtn').onclick = ()=>{ activeClass='LIBERACAO'; renderSidebar(); renderMain(); };
 document.getElementById('oerBtn').onclick = ()=>{
   if(currentClasses[activeClass]){ oerTurma = activeClass; oerSel = new Set([activeClass]); oerSelTouched = true; } // abre já na turma que estava sendo vista
   activeClass='OER'; renderSidebar(); renderMain();
 };
+
+// ═══════════════════════════════════════════════════════════════════════
+// LOGO E CABEÇALHO PADRÃO DE TODOS OS DOCUMENTOS IMPRESSOS
+// A logo fica embutida no arquivo (funciona offline) e pode ser trocada na aba Relatórios.
+// ═══════════════════════════════════════════════════════════════════════
+const DEFAULT_LOGO = 'data:image/png;base64,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';
+function getLogo(){ const c = loadGlobalConfig(); return c.logo || DEFAULT_LOGO; }
+function schoolName(){ const c = loadGlobalConfig(); return c.escola || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; }
+function escHtml(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+(function preloadLogo(){ try{ const i = new Image(); i.src = getLogo(); }catch(e){} })();
+
+function brandBandHtml(){
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  return `<div class="doc-brand"><img class="doc-logo" src="${getLogo()}" alt="Logo da escola"><div class="doc-brand-txt"><div class="doc-brand-school">${escHtml(schoolName())}</div></div><div class="doc-brand-date">Emitido em ${hoje}</div></div>`;
+}
+// Antes de qualquer impressão (botão ou Ctrl+P) garante a faixa com logo + nome da escola no topo
+// de cada folha dos documentos dedicados e da tela atual. Os cards de O.E.R já trazem a logo no próprio card.
+const BRAND_DOCS = ['printSubjectDoc','printCardsDoc','printOerTableDoc','printClassTableDoc','printLibDoc'];
+function injectBrand(){
+  const mk = ()=>{ const d = document.createElement('div'); d.innerHTML = brandBandHtml(); return d.firstChild; };
+  BRAND_DOCS.forEach(id=>{
+    const root = document.getElementById(id); if(!root) return;
+    root.querySelectorAll(':scope > .print-page, :scope > .ct-page').forEach(pg=>{
+      if(!pg.querySelector(':scope > .doc-brand')) pg.insertBefore(mk(), pg.firstChild);
+    });
+  });
+  const main = document.getElementById('main');
+  if(main && !main.querySelector(':scope > .doc-brand')) main.insertBefore(mk(), main.firstChild);
+}
+function removeBrand(){ document.querySelectorAll('#main > .doc-brand').forEach(e=>e.remove()); }
+window.addEventListener('beforeprint', injectBrand);
+window.addEventListener('afterprint', removeBrand);
+
+// ═══════════════════════════════════════════════════════════════════════
+// ABA RELATÓRIOS
+// Variáveis escolhidas a partir de referências de sistemas de gestão escolar (relatórios de rendimento,
+// atas e totalizadores de conselho de classe, boletins e relatórios individuais): desempenho por disciplina,
+// situação (média direta / recuperação / abaixo da média), comparação com a turma, evolução entre
+// trimestres, risco de O.E.R, alunos em acompanhamento e destaques, mais campos para preencher.
+// ═══════════════════════════════════════════════════════════════════════
+const REP_IND_VARS = [
+  {g:'Desempenho', items:[
+    ['notas','Quadro de notas por disciplina (nota, recuperação e nota final)'],
+    ['situacao','Situação em cada disciplina (média direta, recuperou, abaixo da média)'],
+    ['turma','Comparativo com a média da turma, por disciplina'],
+    ['resumo','Resumo do período (aproveitamento geral e nº de disciplinas abaixo da média)'],
+    ['evolucao','Evolução entre os trimestres (aluno × turma)'],
+    ['acumulado','Total acumulado do ano e pontos que faltam para a média']]},
+  {g:'Recuperação e acompanhamento', items:[
+    ['oer','Risco de O.E.R (pontos necessários no 3º trimestre)'],
+    ['destaques','Pontos fortes e disciplinas de atenção'],
+    ['orient','Orientações à família (texto-base automático)']]},
+  {g:'Campos para preencher e assinaturas', items:[
+    ['freq','Frequência (faltas e %, para preencher à mão)'],
+    ['parecer','Parecer / observações do professor (linhas em branco)'],
+    ['ciencia','Ciência do responsável (assinatura e data)'],
+    ['assin','Assinaturas da coordenação pedagógica e da direção']]}
+];
+const REP_IND_PRESETS = {
+  padrao:   {nome:'Padrão (recomendado)',   vars:['notas','situacao','turma','resumo','evolucao','acumulado','oer','destaques','orient','freq','parecer','assin']},
+  familia:  {nome:'Resumo para a família',  vars:['notas','situacao','resumo','oer','orient','ciencia']},
+  conselho: {nome:'Conselho de classe',     vars:['notas','situacao','turma','resumo','evolucao','acumulado','oer','destaques','freq','parecer','assin']}
+};
+const REP_TUR_VARS = [
+  {g:'Indicadores da turma', items:[
+    ['indicadores','Indicadores gerais (alunos, aproveitamento, % na média, alunos em risco)'],
+    ['disciplinas','Resultado por disciplina (média direta, recuperou, abaixo da média, % na média, média e mediana)'],
+    ['evolucao','Comparativo entre trimestres (% na média por disciplina)'],
+    ['criticas','Disciplinas que exigem atenção (menores % na média)'],
+    ['comparativo','Quadro comparativo entre as turmas selecionadas (2 ou mais turmas)']]},
+  {g:'Alunos', items:[
+    ['oer','Alunos em risco de O.E.R (disciplinas e pontos necessários)'],
+    ['acomp','Alunos em acompanhamento (abaixo da média em 2 ou mais disciplinas)'],
+    ['destaques','Alunos em destaque (≥ 70% em todas; ≥ 90% em Português e Matemática)']]},
+  {g:'Registro e assinaturas', items:[
+    ['parecer','Parecer do conselho de classe (linhas em branco)'],
+    ['plano','Plano de intervenção (ação, responsável e prazo)'],
+    ['assin','Assinaturas da coordenação pedagógica e da direção']]}
+];
+const REP_TUR_ALL = REP_TUR_VARS.flatMap(g=>g.items.map(i=>i[0]));
+const REP_TUR_PRESETS = {
+  completo: {nome:'Completo',            vars:REP_TUR_ALL},
+  conselho: {nome:'Conselho de classe',  vars:['indicadores','disciplinas','evolucao','criticas','oer','acomp','destaques','parecer','plano','assin']},
+  gestao:   {nome:'Resumo para a gestão',vars:['indicadores','disciplinas','criticas','oer','comparativo','assin']}
+};
+const repState = {
+  modo:'turma', turmas:new Set(), turmaAluno:null, alunos:new Set(), filtro:'', tri:'auto',
+  indPreset:'padrao', varsInd:new Set(REP_IND_PRESETS.padrao.vars),
+  turPreset:'completo', varsTur:new Set(REP_TUR_ALL), msg:'', started:false, preview:null
+};
+
+// ---------- cálculos ----------
+const repTriNome = t => t==='ALL' ? 'Acumulado do ano (todos os trimestres)' : (t+1)+'º trimestre';
+function repRefTri(cd){
+  if(repState.tri!=='auto') return repState.tri;
+  const av = availableTris(cd);
+  return av.length ? av[av.length-1] : 'ALL';
+}
+const repStatusTxt = s => s===DIRECT ? 'Média direta' : s===RECOVERED ? 'Recuperou' : s===NOTREC ? 'Abaixo da média' : '—';
+function repTint(p){ if(p===null||p===undefined) return ''; return p>=70 ? '' : (p>=40 ? 't-mid' : 't-bad'); }
+function repSubjPct(calc, t){
+  if(t==='ALL') return calc.filledCount>0 ? calc.ta/calc.taMax*100 : null;
+  const x = calc.tris[t];
+  return x.filled ? x.total/x.max*100 : null;
+}
+function repStudentPct(cd, st, t){
+  const v = [];
+  cd.subjects.forEach((n,idx)=>{ if(isLiteratura(n)) return; const p = repSubjPct(subjectCalc(st.subjects[idx]), t); if(p!==null) v.push(p); });
+  return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null;
+}
+function repClassPct(cd, t){
+  const v = cd.students.map(st=>repStudentPct(cd, st, t)).filter(x=>x!==null);
+  return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null;
+}
+function repClassSubj(cd, idx, t){
+  const vals = []; let direct=0, rec=0, notrec=0, ok=0;
+  cd.students.forEach(st=>{
+    const calc = subjectCalc(st.subjects[idx]);
+    const p = repSubjPct(calc, t); if(p===null) return;
+    vals.push(p);
+    if(t==='ALL'){ if(calc.taStatus==='ok') ok++; else notrec++; }
+    else{
+      const x = calc.tris[t];
+      if(x.status===DIRECT){ direct++; ok++; } else if(x.status===RECOVERED){ rec++; ok++; } else notrec++;
+    }
+  });
+  const n = vals.length; vals.sort((a,b)=>a-b);
+  const mean = n ? vals.reduce((a,b)=>a+b,0)/n : null;
+  const med = n ? (n%2 ? vals[(n-1)/2] : (vals[n/2-1]+vals[n/2])/2) : null;
+  return {n, direct, rec, notrec, ok, pctOk: n ? Math.round(ok/n*100) : null, mean: mean===null?null:Math.round(mean), med: med===null?null:Math.round(med)};
+}
+const repFmt = (p,suf) => (p===null||p===undefined) ? '–' : Math.round(p)+(suf===undefined?'%':suf);
+
+// ---------- blocos de HTML dos relatórios ----------
+function rpHeader(title, sub){
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  return `<div class="rp-hdr"><img class="rp-logo" src="${getLogo()}" alt="Logo da escola"><div class="rp-hdr-mid"><div class="rp-school">${escHtml(schoolName())}</div><div class="rp-title">${title}</div>${sub?`<div class="rp-sub">${sub}</div>`:''}</div><div class="rp-hdr-right">Emitido em<br><b>${hoje}</b></div></div>`;
+}
+const rpSec = (title, body) => `<div class="rp-sec"><div class="rp-sec-t">${title}</div>${body}</div>`;
+function rpTable(heads, rows, cls){
+  return `<table class="rp-table ${cls||''}"><thead><tr>${heads.map(h=>`<th${h.l?' class="l"':''}>${h.t}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+const rpBar = p => p===null ? '' : `<div class="rp-bar"><i style="width:${Math.max(0,Math.min(100,Math.round(p)))}%"></i></div>`;
+function rpLines(n){ return `<div class="rp-lines">${'<div></div>'.repeat(n)}</div>`; }
+function rpMsg(){ return repState.msg.trim() ? `<div class="rp-msg"><b>Recado da coordenação:</b> ${escHtml(repState.msg.trim()).replace(/\n/g,'<br>')}</div>` : ''; }
+function rpAssin(){
+  return `<div class="rp-sign"><div><span></span>Prof. Everton Correa<br><small>Coordenador(a) Pedagógico(a)</small></div><div><span></span>Leila Cardoso<br><small>Coordenadora Geral</small></div></div>`;
+}
+const RP_TINT_NOTE = 'Cores: branco = na média; <span class="sw mid"></span>amarelo = recuperou (ou entre 40% e 69%); <span class="sw bad"></span><b>vermelho</b> = abaixo da média (ou abaixo de 40%).';
+
+// ---------- relatório individual (uma folha A4 por aluno) ----------
+function repIndividualPage(cd, className, st, V, t){
+  cd.meta = cd.meta || {};
+  const turma = shortTurmaLabel(className);
+  const data = cd.subjects.map((name,idx)=>({name, idx})).filter(s=>!isLiteratura(s.name)).map(s=>{
+    const raw = st.subjects[s.idx], calc = subjectCalc(raw);
+    return {name:s.name, idx:s.idx, raw, calc, oer:oerInfo(calc), pct:repSubjPct(calc,t), cls:repClassSubj(cd,s.idx,t)};
+  });
+  const triList = t==='ALL' ? availableTris(cd) : [t];
+  const stOf = d => t==='ALL' ? (d.calc.filledCount>0 ? (d.calc.taStatus==='ok'?DIRECT:NOTREC) : NA) : d.calc.tris[t].status;
+  const parts = [];
+  parts.push(`<table class="rp-id"><tr><td><b>Aluno(a):</b> ${escHtml(st.name)}</td><td><b>Turma:</b> ${escHtml(turma)}</td></tr><tr><td><b>RME:</b> ${escHtml(st.rme||'—')}</td><td><b>Referência:</b> ${repTriNome(t)}${cd.meta.professor?` · <b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}`:''}</td></tr></table>`);
+
+  const abaixo = data.filter(d=>stOf(d)===NOTREC);
+  const pAl = repStudentPct(cd, st, t), pTu = repClassPct(cd, t);
+  if(V.has('resumo')){
+    const rec = t==='ALL' ? null : data.filter(d=>stOf(d)===RECOVERED).length;
+    let varTxt = '–';
+    if(t!=='ALL' && t>0){
+      const prev = repStudentPct(cd, st, t-1);
+      if(prev!==null && pAl!==null){ const dl = Math.round(pAl-prev); varTxt = (dl>0?'▲ +':dl<0?'▼ ':'= ')+dl+' p.p.'; }
+    }
+    const box = (v,l,c) => `<div class="rp-box ${c||''}"><b>${v}</b><span>${l}</span></div>`;
+    parts.push(rpSec('Resumo do período', `<div class="rp-boxes">${box(repFmt(pAl),'Aproveitamento do aluno',repTint(pAl))}${box(repFmt(pTu),'Média da turma')}${box(abaixo.length,'Disciplinas abaixo da média',abaixo.length?'t-bad':'')}${rec===null?'':box(rec,'Disciplinas em que recuperou',rec?'t-mid':'')}${t==='ALL'?'':box(varTxt,'Variação vs. trimestre anterior')}</div>`));
+  }
+
+  if(V.has('notas')||V.has('situacao')||V.has('turma')||V.has('acumulado')){
+    const heads = [{t:'Disciplina',l:1}], cols = [d=>`<td class="l">${escHtml(d.name)}</td>`];
+    if(t==='ALL'){
+      if(V.has('notas')) triList.forEach(i=>{
+        heads.push({t:`${i+1}º trim.<small>máx. ${TRI_MAX[i]}</small>`});
+        cols.push(d=>{ const x=d.calc.tris[i]; return x.filled ? `<td class="${x.status===RECOVERED?'t-mid':x.status===NOTREC?'t-bad':''}">${x.total}</td>` : '<td class="na">–</td>'; });
+      });
+      heads.push({t:'Acumulado<small>pontos</small>'}); cols.push(d=> d.calc.filledCount ? `<td><b>${d.calc.ta}</b>/${d.calc.taMax}</td>` : '<td class="na">–</td>');
+      heads.push({t:'% do máx.'}); cols.push(d=> `<td class="${repTint(d.pct)}">${repFmt(d.pct)}</td>`);
+      if(V.has('acumulado')){ heads.push({t:'Faltam p/ a média'}); cols.push(d=> d.calc.filledCount ? `<td>${d.calc.ta>=d.calc.taPass?'atingida':(d.calc.taPass-d.calc.ta)+' pts'}</td>` : '<td class="na">–</td>'); }
+      if(V.has('situacao')){ heads.push({t:'Situação',l:1}); cols.push(d=> { const s=stOf(d); return `<td class="l ${s===NOTREC?'t-bad':''}">${s===NA?'—':(s===NOTREC?'Abaixo da média':'Na média')}</td>`; }); }
+    } else {
+      const x = d => d.calc.tris[t];
+      if(V.has('notas')){
+        heads.push({t:'Nota'}); cols.push(d=>{ const v=d.raw['n'+(t+1)]; return `<td>${isEmpty(v)?'–':escHtml(v)}</td>`; });
+        heads.push({t:'Recuper.'}); cols.push(d=>{ const v=d.raw['r'+(t+1)]; return `<td>${isEmpty(v)||v==='X'?'–':escHtml(v)}</td>`; });
+      }
+      heads.push({t:`Nota final<small>máx. ${TRI_MAX[t]} · média ${TRI_PASS[t]}</small>`});
+      cols.push(d=> x(d).filled ? `<td class="${x(d).status===RECOVERED?'t-mid':x(d).status===NOTREC?'t-bad':''}"><b>${x(d).total}</b></td>` : '<td class="na">–</td>');
+      if(V.has('acumulado')){
+        heads.push({t:'Acumulado<small>no ano</small>'}); cols.push(d=> d.calc.filledCount ? `<td><b>${d.calc.ta}</b>/${d.calc.taMax}</td>` : '<td class="na">–</td>');
+        heads.push({t:'Faltam p/ a média'}); cols.push(d=> d.calc.filledCount ? `<td>${d.calc.ta>=d.calc.taPass?'atingida':(d.calc.taPass-d.calc.ta)+' pts'}</td>` : '<td class="na">–</td>');
+      }
+      if(V.has('situacao')){ heads.push({t:'Situação',l:1}); cols.push(d=> `<td class="l ${x(d).status===NOTREC?'t-bad':x(d).status===RECOVERED?'t-mid':''}">${repStatusTxt(x(d).status)}</td>`); }
+    }
+    if(V.has('turma')){
+      heads.push({t:'Aluno (%)'}); cols.push(d=> `<td class="${repTint(d.pct)}">${repFmt(d.pct)}</td>`);
+      heads.push({t:'Turma (%)<small>média</small>'}); cols.push(d=> `<td>${repFmt(d.cls.mean)}</td>`);
+    }
+    const rows = data.map(d=>`<tr>${cols.map(f=>f(d)).join('')}</tr>`);
+    parts.push(rpSec('Desempenho por disciplina — '+repTriNome(t), rpTable(heads, rows)));
+  }
+
+  if(V.has('evolucao')){
+    const tris = availableTris(cd);
+    if(tris.length){
+      const heads = [{t:'',l:1}].concat(tris.map(i=>({t:(i+1)+'º trimestre'})));
+      const rowAl = `<tr><td class="l"><b>Aluno(a)</b></td>${tris.map(i=>{ const p=repStudentPct(cd,st,i); return `<td class="${repTint(p)}">${repFmt(p)}</td>`; }).join('')}</tr>`;
+      const rowTu = `<tr><td class="l">Média da turma</td>${tris.map(i=>{ const p=repClassPct(cd,i); return `<td>${repFmt(p)}</td>`; }).join('')}</tr>`;
+      parts.push(rpSec('Evolução do aproveitamento (% do máximo de pontos)', rpTable(heads,[rowAl,rowTu],'rp-evo')));
+    }
+  }
+
+  if(V.has('oer')){
+    const risk = data.filter(d=>d.oer);
+    if(risk.length){
+      const rows = risk.map(d=>{ const o=d.oer; const nv=oerNivel(o.precisa);
+        return `<tr><td class="l">${escHtml(d.name)}</td><td>${oerV(o.t1)}</td><td>${oerV(o.t2)}</td><td>${o.soma}${oerAst(o)}</td><td class="t-bad"><b>${o.precisa}${oerAst(o)}</b></td><td class="l">${nv===3?'Acima de 40 pts (máx. do 3º trim.)':nv===2?'Risco elevadíssimo (mais de 28)':(o.precisa-OER_LIMITE)+' pt'+((o.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</td></tr>`; });
+      parts.push(rpSec('Risco de O.E.R — Oportunidade Especial de Recuperação', rpTable([{t:'Disciplina',l:1},{t:'1º trim.'},{t:'2º trim.'},{t:'Soma<small>máx. 60</small>'},{t:'Precisa no 3º<small>média 24 · máx. 40</small>'},{t:'Observação',l:1}], rows) + (oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '')));
+    } else {
+      parts.push(rpSec('Risco de O.E.R — Oportunidade Especial de Recuperação', `<div class="rp-ok">Nenhuma disciplina com risco de O.E.R com as notas lançadas até o momento.</div>`));
+    }
+  }
+
+  if(V.has('destaques')){
+    const fortes = data.filter(d=>d.pct!==null && d.pct>=70).sort((a,b)=>b.pct-a.pct);
+    const atencao = data.filter(d=>stOf(d)===NOTREC);
+    const inl = (arr,f) => arr.length ? arr.map(d=>`${escHtml(d.name)} <small>(${f(d)})</small>`).join('; ') : 'nenhuma';
+    parts.push(rpSec('Pontos fortes e disciplinas de atenção', `<div class="rp-dest"><p><b>Pontos fortes (70% ou mais do máximo):</b> ${inl(fortes,d=>repFmt(d.pct))}</p><p><b>Disciplinas de atenção (abaixo da média):</b> ${inl(atencao,d=>repFmt(d.pct))}</p></div>`));
+  }
+
+  if(V.has('orient')){
+    const frases = [];
+    if(abaixo.length) frases.push(`Atenção às disciplinas: <b>${abaixo.map(d=>escHtml(d.name)).join(', ')}</b>. Recomenda-se rotina diária de estudos, retomada dos conteúdos e procura pelo(a) professor(a) para orientações e atividades de recuperação.`);
+    const rk = data.filter(d=>d.oer);
+    if(rk.length) frases.push(`Há risco de O.E.R (quadro acima), a última oportunidade de recuperação: é fundamental mudar a rotina de estudos desde já.`);
+    if(!frases.length) frases.push('O desempenho está dentro do esperado nas disciplinas com notas lançadas. Incentive a manutenção da rotina de estudos e o acompanhamento das atividades.');
+    parts.push(rpSec('Orientações à família', `<div class="rp-dest">${frases.map(f=>`<p>${f}</p>`).join('')}</div>`));
+  }
+
+  if(V.has('freq')) parts.push(`<div class="rp-field">Frequência no período: faltas ______ &nbsp;·&nbsp; frequência ______ % &nbsp;·&nbsp; faltas justificadas ______</div>`);
+  const msg = rpMsg(); if(msg) parts.push(msg);
+  if(V.has('parecer')) parts.push(rpSec('Parecer / observações do professor', rpLines(4)));
+  if(V.has('ciencia')) parts.push(`<div class="rp-field">Ciente do responsável: ______________________________________ &nbsp; Data: ____/____/______</div>`);
+  if(V.has('assin')) parts.push(rpAssin());
+
+  const foot = `<div class="rp-foot"><b>Notas:</b> 1º e 2º trim.: até 30 pts (média 18); 3º trim.: até 40 (média 24); média do ano = 60 pts. Nota final = maior entre nota e recuperação. ${RP_TINT_NOTE} “–” = sem nota. Literatura não exibida.</div>`;
+  return `<section class="rp-page">${rpHeader('Relatório individual do aluno', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
+}
+
+// ---------- relatório da turma ----------
+function repTurmaPage(cd, className, V, t){
+  cd.meta = cd.meta || {};
+  const turma = shortTurmaLabel(className);
+  const subs = cd.subjects.map((name,idx)=>({name,idx})).filter(s=>!isLiteratura(s.name));
+  const st = subs.map(s=>({name:s.name, idx:s.idx, ...repClassSubj(cd, s.idx, t)}));
+  const cs = computeStats(cd, t==='ALL' ? undefined : t);
+  const risk = computeRetentionRisk(cd).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const parts = [];
+  parts.push(`<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Referência:</b> ${repTriNome(t)}</td></tr><tr><td><b>Alunos:</b> ${cd.students.length}</td><td>${cd.meta.professor?`<b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}`:'&nbsp;'}</td></tr></table>`);
+
+  const totOk = st.reduce((a,s)=>a+s.ok,0), totN = st.reduce((a,s)=>a+s.n,0);
+  const pClasse = repClassPct(cd, t);
+  if(V.has('indicadores')){
+    const box = (v,l,c) => `<div class="rp-box ${c||''}"><b>${v}</b><span>${l}</span></div>`;
+    const pOk = totN ? Math.round(totOk/totN*100) : null;
+    parts.push(rpSec('Indicadores gerais', `<div class="rp-boxes">${box(cd.students.length,'Alunos')}${box(repFmt(pClasse),'Aproveitamento médio',repTint(pClasse))}${box(repFmt(pOk),'Notas na média<br>(alunos × disciplinas)',repTint(pOk))}${box(risk.length,'Alunos em risco de O.E.R',risk.length?'t-bad':'')}${box(cs.atencao.length,'Alunos em acompanhamento',cs.atencao.length?'t-mid':'')}${box(cs.destaques70.length,'Alunos em destaque')}</div>`));
+  }
+
+  if(V.has('disciplinas')){
+    const heads = [{t:'Disciplina',l:1},{t:'Alunos com nota'}];
+    if(t==='ALL') heads.push({t:'Na média'},{t:'Abaixo da média'}); else heads.push({t:'Média direta'},{t:'Recuperou'},{t:'Abaixo da média'});
+    heads.push({t:'% na média'},{t:'Média (%)'},{t:'Mediana (%)'},{t:''});
+    const rows = st.map(s=>`<tr><td class="l">${escHtml(s.name)}</td><td>${s.n}</td>${t==='ALL'?`<td>${s.ok}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`:`<td>${s.direct}</td><td class="${s.rec?'t-mid':''}">${s.rec}</td><td class="${s.notrec?'t-bad':''}">${s.notrec}</td>`}<td class="${repTint(s.pctOk)}"><b>${repFmt(s.pctOk)}</b></td><td>${repFmt(s.mean)}</td><td>${repFmt(s.med)}</td><td class="bar">${rpBar(s.pctOk)}</td></tr>`);
+    parts.push(rpSec('Resultado por disciplina — '+repTriNome(t), rpTable(heads, rows, 'rp-disc')));
+  }
+
+  if(V.has('evolucao')){
+    const tris = availableTris(cd);
+    if(tris.length){
+      const heads = [{t:'Disciplina',l:1}].concat(tris.map(i=>({t:(i+1)+'º trim.'}))).concat(tris.length>1?[{t:'Variação'}]:[]);
+      const rowOf = (name, ps) => `<tr><td class="l">${escHtml(name)}</td>${ps.map(p=>`<td class="${repTint(p)}">${repFmt(p)}</td>`).join('')}${tris.length>1?(()=>{ const a=ps[0], b=ps[ps.length-1]; if(a===null||b===null) return '<td>–</td>'; const d=Math.round(b-a); return `<td>${d>0?'▲ +':d<0?'▼ ':'= '}${d} p.p.</td>`; })():''}</tr>`;
+      const rows = subs.map(s=>rowOf(s.name, tris.map(i=>repClassSubj(cd,s.idx,i).pctOk)));
+      rows.push(`<tr class="rp-sum">${rowOf('Aproveitamento médio da turma', tris.map(i=>repClassPct(cd,i))).replace('<tr>','').replace('</tr>','')}</tr>`);
+      parts.push(rpSec('Comparativo entre trimestres (% de alunos na média)', rpTable(heads, rows, 'rp-evo')));
+    }
+  }
+
+  if(V.has('criticas')){
+    const crit = st.filter(s=>s.pctOk!==null).sort((a,b)=>a.pctOk-b.pctOk).slice(0,3).filter(s=>s.pctOk<70);
+    parts.push(rpSec('Disciplinas que exigem atenção', crit.length ? `<ol class="rp-ol">${crit.map(s=>`<li><b>${escHtml(s.name)}</b> — ${s.pctOk}% na média (${s.notrec} aluno${s.notrec===1?'':'s'} abaixo da média)</li>`).join('')}</ol>` : `<div class="rp-ok">Todas as disciplinas têm 70% ou mais dos alunos na média.</div>`));
+  }
+
+  if(V.has('oer')){
+    parts.push(rpSec('Alunos em risco de O.E.R ('+risk.length+')', risk.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disciplinas em risco (pontos necessários no 3º trimestre)',l:1}], risk.map((r,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(r.name)}</td><td class="l">${r.subjects.map(s=>escHtml(s.name)+' (<b>'+s.precisa+'</b>'+oerAst(s)+')').join('; ')}</td></tr>`),'rp-list') + (oerTemParcial(risk.flatMap(r=>r.subjects)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '') : `<div class="rp-ok">Nenhum aluno com risco de O.E.R com as notas lançadas.</div>`));
+  }
+
+  if(V.has('acomp')){
+    const a = cs.atencao;
+    parts.push(rpSec('Alunos em acompanhamento — abaixo da média em 2 ou mais disciplinas ('+a.length+')', a.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disc.'},{t:'Disciplinas abaixo da média',l:1}], a.map((s,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(s.name)}</td><td class="t-bad"><b>${s.count}</b></td><td class="l">${s.lowSubjects.map(escHtml).join('; ')}</td></tr>`),'rp-list') : `<div class="rp-ok">Nenhum aluno nesta condição.</div>`));
+  }
+
+  if(V.has('destaques')){
+    const nm = l => l.length ? l.map(s=>escHtml(s.name)).join('; ') : 'Nenhum';
+    parts.push(rpSec('Alunos em destaque', `<div class="rp-dest"><p><b>≥ 70% em todas as disciplinas (${cs.destaques70.length}):</b> ${nm(cs.destaques70)}</p><p><b>≥ 90% em Língua Portuguesa (${cs.destaquesPort.length}):</b> ${nm(cs.destaquesPort)}</p><p><b>≥ 90% em Matemática (${cs.destaquesMat.length}):</b> ${nm(cs.destaquesMat)}</p></div>`));
+  }
+
+  const msg = rpMsg(); if(msg) parts.push(msg);
+  if(V.has('parecer')) parts.push(rpSec('Parecer do conselho de classe', rpLines(5)));
+  if(V.has('plano')) parts.push(rpSec('Plano de intervenção', rpTable([{t:'Ação / encaminhamento',l:1},{t:'Responsável',l:1},{t:'Prazo'}], [1,2,3,4].map(()=>'<tr class="blank"><td></td><td></td><td></td></tr>'),'rp-plan')));
+  if(V.has('assin')) parts.push(rpAssin());
+
+  const foot = `<div class="rp-foot"><b>Notas:</b> “% na média” = alunos que atingiram a média (direto ou após recuperação) ÷ alunos com nota lançada${t==='ALL'?'; no acumulado, a média é 60% do máximo de pontos do ano':'; média do trimestre: '+(TRI_PASS[t])+' de '+TRI_MAX[t]+' pontos'}. “Média (%)” e “Mediana (%)” são calculadas sobre o % de pontos obtidos. Em acompanhamento = abaixo da média em 2 ou mais disciplinas. Risco de O.E.R = soma do 1º+2º trimestres abaixo de 36 (precisa de mais de 24 pontos no 3º). ${RP_TINT_NOTE} Literatura não é exibida.</div>`;
+  return `<section class="rp-page">${rpHeader('Relatório da turma', escHtml(turma)+' · '+repTriNome(t)+' · '+escHtml(effectiveMesAno(cd)))}${parts.join('')}${foot}</section>`;
+}
+
+function repComparativoPage(names, V){
+  const rows = names.map(n=>{
+    const cd = currentClasses[n]; const t = repRefTri(cd);
+    const st = cd.subjects.map((s,idx)=>({s,idx})).filter(x=>!isLiteratura(x.s)).map(x=>repClassSubj(cd,x.idx,t));
+    const ok = st.reduce((a,s)=>a+s.ok,0), tot = st.reduce((a,s)=>a+s.n,0), p = tot?Math.round(ok/tot*100):null;
+    const cs = computeStats(cd, t==='ALL'?undefined:t);
+    return `<tr><td class="l">${escHtml(shortTurmaLabel(n))}</td><td>${cd.students.length}</td><td>${repTriNome(t).replace(' (todos os trimestres)','')}</td><td>${repFmt(repClassPct(cd,t))}</td><td class="${repTint(p)}"><b>${repFmt(p)}</b></td><td class="${computeRetentionRisk(cd).length?'t-bad':''}">${computeRetentionRisk(cd).length}</td><td class="${cs.atencao.length?'t-mid':''}">${cs.atencao.length}</td><td>${cs.destaques70.length}</td></tr>`;
+  });
+  const body = rpTable([{t:'Turma',l:1},{t:'Alunos'},{t:'Referência'},{t:'Aproveitamento médio'},{t:'Notas na média'},{t:'Em risco de O.E.R'},{t:'Em acompanhamento'},{t:'Destaques'}], rows, 'rp-list');
+  return `<section class="rp-page">${rpHeader('Quadro comparativo entre as turmas', 'Turmas selecionadas: '+names.length+' · '+escHtml(effectiveMesAno(currentClasses[names[0]])))}${rpSec('Comparativo', body)}<div class="rp-foot"><b>Notas:</b> “Notas na média” = % de notas (alunos × disciplinas) que atingiram a média no trimestre de referência de cada turma. Literatura não é considerada. ${RP_TINT_NOTE}</div></section>`;
+}
+
+// ---------- montagem / pré-visualização / impressão ----------
+function repCurrentVars(){
+  if(repState.modo==='turma') return repState.varsTur;
+  if(repState.modo==='ind') return new Set(REP_IND_PRESETS.padrao.vars);
+  return repState.varsInd;
+}
+function repBuild(){
+  const S = repState, V = repCurrentVars();
+  if(!V.size){ alert('Marque ao menos uma variável para o relatório.'); return null; }
+  if(S.modo==='turma'){
+    const names = Object.keys(currentClasses).sort().filter(n=>S.turmas.has(n));
+    if(!names.length){ alert('Selecione ao menos uma turma.'); return null; }
+    let html = names.map(n=>repTurmaPage(currentClasses[n], n, V, repRefTri(currentClasses[n]))).join('');
+    if(V.has('comparativo') && names.length>1) html += repComparativoPage(names, V);
+    return html;
+  }
+  const cd = currentClasses[S.turmaAluno];
+  const idxs = [...S.alunos].filter(i=>cd && cd.students[i]).sort((a,b)=>cd.students[a].name.localeCompare(cd.students[b].name));
+  if(!cd || !idxs.length){ alert('Selecione ao menos um aluno.'); return null; }
+  const t = repRefTri(cd);
+  return idxs.map(i=>repIndividualPage(cd, S.turmaAluno, cd.students[i], V, t)).join('');
+}
+function repPreview(){
+  const html = repBuild(); if(!html) return;
+  repState.preview = html;
+  const box = document.getElementById('repPreview');
+  box.innerHTML = html;
+  box.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function repPrint(){
+  const html = repBuild(); if(!html) return;
+  runPrintMode('printReportDoc', html, 'print-mode-report');
+}
+function repLogoUpload(file){
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const k = Math.min(1, 500/img.width);
+      const c = document.createElement('canvas'); c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+      const cfg = loadGlobalConfig(); cfg.logo = c.toDataURL('image/jpeg', 0.9); saveGlobalConfig(cfg);
+      renderReportsTab();
+    };
+    img.onerror = ()=> alert('Não foi possível ler essa imagem. Use um arquivo JPG ou PNG.');
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function renderReportsTab(){
+  const main = document.getElementById('main');
+  const names = Object.keys(currentClasses).sort();
+  if(!names.length){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para gerar relatórios.</p></div>`;
+    return;
+  }
+  const S = repState;
+  if(!S.started){ S.started = true; S.turmas = new Set([names[0]]); S.turmaAluno = names[0]; }
+  S.turmas = new Set([...S.turmas].filter(n=>currentClasses[n]));
+  if(!S.turmaAluno || !currentClasses[S.turmaAluno]) S.turmaAluno = names[0];
+  const cdA = currentClasses[S.turmaAluno];
+  S.alunos = new Set([...S.alunos].filter(i=>cdA.students[i]));
+  const chg = fn => (...a)=>{ fn(...a); S.preview = null; renderReportsTab(); };
+
+  const scopeNames = S.modo==='turma' ? names.filter(n=>S.turmas.has(n)) : [S.turmaAluno];
+  const triUnion = [0,1,2].filter(i=> scopeNames.some(n=>triHasData(currentClasses[n], i)));
+  if(S.tri!=='auto' && S.tri!=='ALL' && !triUnion.includes(S.tri)) S.tri = 'auto';
+
+  const modeCard = (v,t,d)=>`<label class="rep-mode${S.modo===v?' on':''}"><input type="radio" name="repModo" value="${v}" ${S.modo===v?'checked':''}><b>${t}</b><span>${d}</span></label>`;
+  let h = `<div class="hdr"><div><h1>Relatórios</h1><div class="hdr-sub">Relatórios por turma ou individuais, sempre com cabeçalho, nome e logo da escola</div></div></div>`;
+  h += `<div class="rep-card"><h3>1 · Tipo de relatório</h3><div class="rep-modes">
+    ${modeCard('turma','Relatório da turma','Indicadores, resultado por disciplina, alunos em risco de O.E.R, acompanhamento e destaques')}
+    ${modeCard('ind','Individual — modelo padrão','Uma folha A4 por aluno com o conjunto de informações mais indicado para fim de trimestre')}
+    ${modeCard('indp','Individual — escolher variáveis','Uma folha A4 por aluno, só com as informações que você marcar')}
+  </div></div>`;
+
+  if(S.modo==='turma'){
+    const allOn = names.every(n=>S.turmas.has(n));
+    h += `<div class="rep-card"><h3>2 · Turmas</h3><div class="oer-tab-controls" style="margin:0">
+      <label class="oer-chip all${allOn?' on':''}"><input type="checkbox" id="repAllCb" ${allOn?'checked':''}> Todas</label>
+      ${names.map(n=>`<label class="oer-chip${S.turmas.has(n)?' on':''}" title="${escHtml(n)}"><input type="checkbox" class="rep-turma-cb" value="${escHtml(n)}" ${S.turmas.has(n)?'checked':''}> ${escHtml(shortTurmaLabel(n))}</label>`).join('')}
+    </div></div>`;
+  } else {
+    const ord = cdA.students.map((st,i)=>({st,i})).sort((a,b)=>a.st.name.localeCompare(b.st.name));
+    h += `<div class="rep-card"><h3>2 · Turma e aluno(s)</h3>
+      <div class="rep-row"><label>Turma: <select id="repTurmaSel" class="tri-select">${names.map(n=>`<option value="${escHtml(n)}" ${n===S.turmaAluno?'selected':''}>${escHtml(shortTurmaLabel(n))}</option>`).join('')}</select></label>
+      <input type="text" id="repFiltro" class="rep-filtro" placeholder="Buscar aluno…" value="${escHtml(S.filtro)}">
+      <button class="print-btn" id="repMarkAll">Marcar todos</button><button class="print-btn" id="repMarkNone">Limpar</button>
+      <span class="rep-count" id="repCount">${S.alunos.size} selecionado${S.alunos.size===1?'':'s'}</span></div>
+      <div class="rep-alunos" id="repAlunos">${ord.map(o=>`<label class="rep-al${S.alunos.has(o.i)?' on':''}" data-nome="${escHtml(o.st.name.toLowerCase())}"><input type="checkbox" class="rep-al-cb" value="${o.i}" ${S.alunos.has(o.i)?'checked':''}> ${escHtml(o.st.name)}</label>`).join('')}</div></div>`;
+  }
+
+  h += `<div class="rep-card"><h3>3 · Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
+      <option value="auto" ${S.tri==='auto'?'selected':''}>Último trimestre com notas (recomendado para fim de trimestre)</option>
+      ${triUnion.map(i=>`<option value="${i}" ${S.tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}
+      <option value="ALL" ${S.tri==='ALL'?'selected':''}>Acumulado do ano (todos os trimestres lado a lado)</option>
+    </select></div></div>`;
+
+  if(S.modo==='ind'){
+    const inc = REP_IND_VARS.flatMap(g=>g.items).filter(i=>REP_IND_PRESETS.padrao.vars.includes(i[0])).map(i=>i[1]);
+    h += `<div class="rep-card"><h3>4 · O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer outro conjunto? Escolha “Individual — escolher variáveis”.</div></div>`;
+  } else {
+    const groups = S.modo==='turma' ? REP_TUR_VARS : REP_IND_VARS;
+    const presets = S.modo==='turma' ? REP_TUR_PRESETS : REP_IND_PRESETS;
+    const cur = S.modo==='turma' ? S.varsTur : S.varsInd;
+    const curPreset = S.modo==='turma' ? S.turPreset : S.indPreset;
+    h += `<div class="rep-card"><h3>4 · Variáveis do relatório</h3>
+      <div class="rep-row">${Object.entries(presets).map(([k,p])=>`<button class="print-btn rep-preset${curPreset===k?' on':''}" data-p="${k}">${p.nome}</button>`).join('')}
+      <button class="print-btn" id="repVarAll">Marcar tudo</button><button class="print-btn" id="repVarNone">Limpar</button>
+      <span class="rep-count">${curPreset==='custom'?'Personalizado':''}</span></div>
+      <div class="rep-vars">${groups.map(g=>`<div class="rep-vg"><div class="rep-vg-t">${g.g}</div>${g.items.map(i=>`<label class="rep-v"><input type="checkbox" class="rep-var-cb" value="${i[0]}" ${cur.has(i[0])?'checked':''}> ${i[1]}</label>`).join('')}</div>`).join('')}</div></div>`;
+  }
+
+  h += `<div class="rep-card"><h3>${S.modo==='ind'?'5':'5'} · Cabeçalho, nome da escola e logo</h3>
+    <div class="rep-row"><label style="flex:1">Escola: <input type="text" id="repEscola" class="rep-filtro" style="width:100%" value="${escHtml(schoolName())}"></label></div>
+    <div class="rep-row"><img class="rep-logo-prev" src="${getLogo()}" alt="Logo da escola">
+      <label class="print-btn" style="cursor:pointer">Trocar logo<input type="file" id="repLogoFile" accept="image/*" style="display:none"></label>
+      <button class="print-btn" id="repLogoReset">Usar logo padrão</button>
+      <span class="rep-hint">A logo aparece em todos os documentos impressos (relatórios, cards de O.E.R, tabelas e listagens).</span></div></div>`;
+
+  h += `<div class="rep-card"><h3>6 · Recado opcional</h3><textarea id="repMsg" class="rep-msg-in" rows="2" placeholder="Opcional: aviso ou recado da coordenação, impresso em todos os relatórios gerados.">${escHtml(S.msg)}</textarea></div>`;
+  h += `<div class="rep-actions"><button class="print-btn" id="repPreviewBtn">👁 Pré-visualizar</button><button class="print-btn" id="repPrintBtn">🖶 Imprimir relatório</button></div>
+    <div id="repPreview" class="rep-preview"></div>`;
+  main.innerHTML = h;
+  if(S.preview) document.getElementById('repPreview').innerHTML = S.preview;
+
+  // eventos
+  main.querySelectorAll('input[name="repModo"]').forEach(r=> r.onchange = chg(()=>{ S.modo = r.value; }));
+  const all = document.getElementById('repAllCb');
+  if(all) all.onchange = chg(()=>{ S.turmas = all.checked ? new Set(names) : new Set(); });
+  main.querySelectorAll('.rep-turma-cb').forEach(cb=> cb.onchange = chg(()=>{ cb.checked ? S.turmas.add(cb.value) : S.turmas.delete(cb.value); }));
+  const ts = document.getElementById('repTurmaSel');
+  if(ts) ts.onchange = chg(()=>{ S.turmaAluno = ts.value; S.alunos = new Set(); S.filtro = ''; });
+  main.querySelectorAll('.rep-al-cb').forEach(cb=> cb.onchange = ()=>{
+    cb.checked ? S.alunos.add(Number(cb.value)) : S.alunos.delete(Number(cb.value));
+    cb.parentElement.classList.toggle('on', cb.checked);
+    document.getElementById('repCount').textContent = S.alunos.size+' selecionado'+(S.alunos.size===1?'':'s');
+    S.preview = null; document.getElementById('repPreview').innerHTML = '';
+  });
+  const fil = document.getElementById('repFiltro');
+  if(fil && document.getElementById('repAlunos')){
+    const apply = ()=>{ const q = fil.value.trim().toLowerCase(); S.filtro = fil.value;
+      document.querySelectorAll('#repAlunos .rep-al').forEach(l=>{ l.style.display = (!q || l.dataset.nome.includes(q)) ? '' : 'none'; }); };
+    fil.oninput = apply; apply();
+    document.getElementById('repMarkAll').onclick = chg(()=>{ const q = fil.value.trim().toLowerCase();
+      cdA.students.forEach((st,i)=>{ if(!q || st.name.toLowerCase().includes(q)) S.alunos.add(i); }); });
+    document.getElementById('repMarkNone').onclick = chg(()=>{ S.alunos = new Set(); });
+  }
+  const tri = document.getElementById('repTri');
+  tri.onchange = chg(()=>{ S.tri = (tri.value==='auto'||tri.value==='ALL') ? tri.value : Number(tri.value); });
+  main.querySelectorAll('.rep-preset').forEach(b=> b.onclick = chg(()=>{
+    const k = b.dataset.p;
+    if(S.modo==='turma'){ S.turPreset = k; S.varsTur = new Set(REP_TUR_PRESETS[k].vars); }
+    else { S.indPreset = k; S.varsInd = new Set(REP_IND_PRESETS[k].vars); }
+  }));
+  main.querySelectorAll('.rep-var-cb').forEach(cb=> cb.onchange = chg(()=>{
+    const set = S.modo==='turma' ? S.varsTur : S.varsInd;
+    cb.checked ? set.add(cb.value) : set.delete(cb.value);
+    if(S.modo==='turma') S.turPreset = 'custom'; else S.indPreset = 'custom';
+  }));
+  const vAll = document.getElementById('repVarAll');
+  if(vAll){
+    vAll.onclick = chg(()=>{ if(S.modo==='turma'){ S.varsTur = new Set(REP_TUR_ALL); S.turPreset='custom'; } else { S.varsInd = new Set(REP_IND_VARS.flatMap(g=>g.items.map(i=>i[0]))); S.indPreset='custom'; } });
+    document.getElementById('repVarNone').onclick = chg(()=>{ if(S.modo==='turma'){ S.varsTur = new Set(); S.turPreset='custom'; } else { S.varsInd = new Set(); S.indPreset='custom'; } });
+  }
+  document.getElementById('repEscola').onchange = e=>{ const c = loadGlobalConfig(); c.escola = e.target.value.trim() || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(c); S.preview = null; renderReportsTab(); };
+  document.getElementById('repLogoFile').onchange = e=> repLogoUpload(e.target.files[0]);
+  document.getElementById('repLogoReset').onclick = ()=>{ const c = loadGlobalConfig(); delete c.logo; saveGlobalConfig(c); S.preview = null; renderReportsTab(); };
+  document.getElementById('repMsg').oninput = e=>{ S.msg = e.target.value; };
+  document.getElementById('repPreviewBtn').onclick = repPreview;
+  document.getElementById('repPrintBtn').onclick = repPrint;
+}
+
 
 // ---------- INIT ----------
 (async function init(){
