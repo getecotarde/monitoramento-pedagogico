@@ -2280,6 +2280,13 @@
                         <button type="button" class="mod-pill mod-pill-futsal-f" onclick="filtrarGradeModalidade7('Futsal Feminino 7')">⚽ Futsal Fem.</button>
                         <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade7('Queimada Mista 7')">🔥 Queimada</button>
                     </div>
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; margin-top:0.8rem;">
+                        <strong style="font-size:0.9rem;">🖨️ Imprimir cartaz (A4 paisagem):</strong>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Masculino 7')">⚽ Futsal Masc.</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Feminino 7')">⚽ Futsal Fem.</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Queimada Mista 7')">🔥 Queimada</button>
+                        <button type="button" class="btn" style="background:var(--secondary);" onclick="imprimirCartaz7('todas')">📄 Todas (3 folhas)</button>
+                    </div>
                     <div id="placarSaveStatus7" class="alert alert-info" style="display:none; margin-top:0.6rem;"></div>
                 </div>
 
@@ -9951,7 +9958,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // (2) vencedor marcado manualmente em 'nome' (Basquete, Damas, Queimada).
         // Os gols são salvos junto com os nomes dos times (ta/tb); se o confronto
         // mudou depois, o placar antigo é ignorado em vez de ser atribuído ao time errado.
-        function _lerResultadoJogoChave(salvo, nomeA, nomeB) {
+        function _lerResultadoJogoChave(salvo, nomeA, nomeB, apenasPlacar) {
             var r = { vencedor: null, golsA: '', golsB: '', penA: '', penB: '', empate: false, obs: '' };
             if (!salvo || typeof salvo !== 'object') return r;
             r.obs = salvo.obs || '';
@@ -9983,12 +9990,13 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }
                 return r;
             }
+            if (apenasPlacar) return r; // Futsal: sem placar salvo = jogo em aberto (ignora vencedor marcado antes no clique)
             var manual = salvo.nome;
             if (manual === nomeA || manual === nomeB) r.vencedor = manual; // integridade caso a ordem mude
             return r;
         }
 
-        function construirChaveamento(prefixoId, participantesR1, placares) {
+        function construirChaveamento(prefixoId, participantesR1, placares, apenasPlacar) {
             var rodadas = [];
             var participantes = participantesR1.slice();
             var numRodada = 1;
@@ -10009,7 +10017,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     }
                     var idJogo = prefixoId + '_r' + numRodada + '_j' + (jogosRodada.length + 1);
                     var salvo = placares[idJogo];
-                    var resJogo = _lerResultadoJogoChave(salvo, nomeA, nomeB);
+                    var resJogo = _lerResultadoJogoChave(salvo, nomeA, nomeB, apenasPlacar);
                     var vencedor = resJogo.vencedor;
                     jogosRodada.push({ id: idJogo, nomeA: nomeA, nomeB: nomeB, vencedor: vencedor, bye: false, res: resJogo });
                     vencedoresRodada.push(vencedor); // pode ser null (ainda não decidido)
@@ -10025,7 +10033,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     var perdB = jogosRodada[1].vencedor === jogosRodada[1].nomeA ? jogosRodada[1].nomeB : jogosRodada[1].nomeA;
                     var idTerceiro = prefixoId + '_3lugar';
                     var salvoT = placares[idTerceiro];
-                    var resT = _lerResultadoJogoChave(salvoT, perdA, perdB);
+                    var resT = _lerResultadoJogoChave(salvoT, perdA, perdB, apenasPlacar);
                     terceiroLugar = { id: idTerceiro, nomeA: perdA, nomeB: perdB, vencedor: resT.vencedor, res: resT };
                 } else if (jogosRodada.length === 2 && ((jogosRodada[0].bye && !jogosRodada[1].bye) || (!jogosRodada[0].bye && jogosRodada[1].bye))) {
                     // Semifinal com número ímpar de participantes: um dos lados avançou de
@@ -10667,7 +10675,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (statusEl) statusEl.textContent = '✅ Fase de grupos completa — 1º x 3º e 2º x 4º colocado nas semifinais.';
                 var top4 = classificacao.slice(0, 4).map(function (s) { return s.time; });
                 var participantesR1 = [top4[0], top4[2], top4[1], top4[3]]; // 1ºx3º, 2ºx4º
-                var ch = construirChaveamento(cfg.prefixo, participantesR1, placares);
+                var ch = construirChaveamento(cfg.prefixo, participantesR1, placares, cfg.tipo === 'placar');
                 var comPlacar = (cfg.tipo === 'placar');
                 var cartao = function (j) { return comPlacar ? htmlCartaoJogoChavePlacar7(j) : htmlCartaoJogoChave(j, '__marcarVencedorChave7'); };
                 var classeCol = 'chave-coluna' + (comPlacar ? ' chave-coluna-placar' : '');
@@ -10756,6 +10764,131 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             renderNotasDescontos('7', lista);
             renderPenalidadesUI('7');
         }
+
+        // ===== Cartaz para impressão (A4 paisagem) — uma folha por modalidade =====
+        // Mostra a classificação, todos os jogos da chave única com os resultados e o
+        // chaveamento (semifinais, final, 3º lugar e campeão), pronto para colar em cartaz.
+        var COR_CARTAZ_7 = { 'Futsal Masculino 7': '#1d4ed8', 'Futsal Feminino 7': '#0f766e', 'Queimada Mista 7': '#c2410c' };
+        var TITULO_CARTAZ_7 = { 'Futsal Masculino 7': '⚽ Futsal Masculino', 'Futsal Feminino 7': '⚽ Futsal Feminino', 'Queimada Mista 7': '🔥 Queimada Mista' };
+
+        function _golValido7(v) { return v !== undefined && v !== null && v !== '' && !isNaN(parseInt(v, 10)); }
+
+        function linhaJogoCartaz7(g, placares) {
+            var partes = g.confronto.split(' x ');
+            var tA = partes[0].trim(), tB = partes[1].trim();
+            var salvo = placares[g.id];
+            var cA = '', cB = '', clsA = '', clsB = '';
+            if (g.tipo === 'placar') {
+                if (salvo && typeof salvo === 'object' && _golValido7(salvo.a) && _golValido7(salvo.b)) {
+                    var a = parseInt(salvo.a, 10), b = parseInt(salvo.b, 10);
+                    cA = a; cB = b;
+                    if (a > b) { clsA = 'v'; clsB = 'p'; } else if (b > a) { clsB = 'v'; clsA = 'p'; }
+                }
+            } else {
+                var nv = salvo && typeof salvo === 'object' ? salvo.nome : null;
+                if (nv) {
+                    var nn = _normalizarNomeTime(nv);
+                    if (nn === _normalizarNomeTime(tA)) { clsA = 'v'; clsB = 'p'; cA = 'V'; cB = 'D'; }
+                    else if (nn === _normalizarNomeTime(tB)) { clsB = 'v'; clsA = 'p'; cB = 'V'; cA = 'D'; }
+                }
+            }
+            return '<div class="jl"><span class="n">' + g.jogo + '</span>' +
+                '<span class="tA ' + clsA + '">' + escHtml7(tA) + '</span><span class="pl ' + clsA + '">' + cA + '</span><span class="x">x</span><span class="pl ' + clsB + '">' + cB + '</span><span class="tB ' + clsB + '">' + escHtml7(tB) + '</span></div>';
+        }
+
+        function cartaoBracketCartaz7(j, comPlacar, phA, phB) {
+            var tem = !!(j && j.nomeA && j.nomeB);
+            var res = (j && j.res) ? j.res : null;
+            function lado(nome, ph, gols, pen, ehA) {
+                var venceu = tem && j.vencedor === nome, perdeu = tem && j.vencedor && !venceu;
+                var cls = 'bl' + (venceu ? ' v' : (perdeu ? ' p' : ''));
+                var nomeHtml = (tem && nome) ? escHtml7(nome) : '<span class="ph">' + ph + '</span>';
+                var g = '';
+                if (tem && comPlacar && res && _golValido7(gols)) g = String(gols) + ((res.empate && _golValido7(pen)) ? ' <small>(' + pen + ')</small>' : '');
+                else if (tem && !comPlacar && j.vencedor) g = venceu ? 'V' : 'D';
+                return '<div class="' + cls + '"><span>' + (venceu ? '🏆 ' : '') + nomeHtml + '</span><span class="g">' + g + '</span></div>';
+            }
+            return '<div class="bc">' + lado(tem ? j.nomeA : null, phA, res ? res.golsA : '', res ? res.penA : '', true) +
+                lado(tem ? j.nomeB : null, phB, res ? res.golsB : '', res ? res.penB : '', false) + '</div>';
+        }
+
+        function folhaCartaz7(cfg, placares) {
+            var cor = COR_CARTAZ_7[cfg.mod] || '#1e3a8a';
+            var comGols = cfg.tipo === 'placar';
+            var cl = calcularClassificacaoChaveUnica7(cfg.mod, placares);
+            var completo = cl.every(function (x) { return x.pg >= 4; });
+            var linhas = cl.map(function (x, i) {
+                var dest = (completo && i < 4) ? ' class="q"' : '';
+                return '<tr' + dest + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td>' +
+                    (comGols ? '<td>' + x.e + '</td>' : '') + '<td>' + x.d + '</td>' +
+                    (comGols ? '<td>' + x.gp + '</td><td>' + x.gc + '</td><td>' + x.sg + '</td><td><b>' + x.pts + '</b></td>' : '') + '</tr>';
+            }).join('');
+            var cab = '<tr><th>Pos.</th><th class="t">Turma</th><th>PJ</th><th>V</th>' + (comGols ? '<th>E</th>' : '') + '<th>D</th>' + (comGols ? '<th>GP</th><th>GC</th><th>SG</th><th>Pts</th>' : '') + '</tr>';
+            var jogosHtml = JOGOS_7.filter(function (g) { return g.mod === cfg.mod; }).map(function (g) { return linhaJogoCartaz7(g, placares); }).join('');
+
+            // Chaveamento
+            var semi1 = null, semi2 = null, fin = null, terc = null, campeao = null;
+            if (completo) {
+                var top4 = cl.slice(0, 4).map(function (x) { return x.time; });
+                var ch = construirChaveamento(cfg.prefixo, [top4[0], top4[2], top4[1], top4[3]], placares, comGols);
+                if (ch.rodadas[0]) { semi1 = ch.rodadas[0].jogos[0]; semi2 = ch.rodadas[0].jogos[1]; }
+                if (ch.rodadas[1]) fin = ch.rodadas[1].jogos[0];
+                terc = ch.terceiroLugar; campeao = ch.campeao;
+            }
+            var bracket =
+                '<div class="duas"><div><div class="rot">Semifinal 1</div>' + cartaoBracketCartaz7(semi1, comGols, '1º colocado', '3º colocado') + '</div>' +
+                '<div><div class="rot">Semifinal 2</div>' + cartaoBracketCartaz7(semi2, comGols, '2º colocado', '4º colocado') + '</div></div>' +
+                '<div class="duas"><div><div class="rot">Final</div>' + cartaoBracketCartaz7(fin, comGols, 'Vencedor Semi 1', 'Vencedor Semi 2') + '</div>' +
+                '<div><div class="rot">Disputa de 3º lugar</div>' + cartaoBracketCartaz7(terc && terc.nomeB ? terc : null, comGols, 'Perdedor Semi 1', 'Perdedor Semi 2') + '</div></div>' +
+                '<div class="camp">' + (campeao ? '🏆 CAMPEÃO: ' + escHtml7(campeao) : '🏆 Campeão: a definir') + '</div>';
+            var legenda = comGols
+                ? 'Classificação: pontos → saldo de gols → gols pró → vitórias. Em caso de empate no mata-mata, decisão por pênaltis (entre parênteses).'
+                : 'Classificação pelo número de vitórias. V = vitória · D = derrota.';
+            return '<section class="folha" style="--cor:' + cor + ';">' +
+                '<div class="topo"><div><h1>' + TITULO_CARTAZ_7[cfg.mod] + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · Chave única (todos contra todos) + mata-mata</div></div>' +
+                '<div class="sub dt">Atualizado em<br>' + new Date().toLocaleString('pt-BR') + '</div></div>' +
+                '<div class="corpo"><div class="col">' +
+                '<h2>📊 Classificação' + (completo ? ' <small>(verde = semifinais)</small>' : '') + '</h2><table class="cl">' + cab + linhas + '</table>' +
+                '<h2 style="margin-top:7px;">🏆 Chaveamento</h2>' + bracket +
+                '</div><div class="col"><h2>🗓️ Jogos e resultados — Fase classificatória</h2>' + jogosHtml + '</div></div>' +
+                '<div class="rodape">' + legenda + '</div></section>';
+        }
+
+        window.imprimirCartaz7 = function (mod) {
+            var placares = carregarPlacaresSalvos7();
+            var cfgs = (mod === 'todas') ? MODALIDADES_7 : MODALIDADES_7.filter(function (m) { return m.mod === mod; });
+            if (!cfgs.length) return;
+            var css = '@page{size:A4 landscape;margin:7mm}' +
+                '*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+                'body{color:#1e293b;background:#fff}' +
+                '.folha{height:195mm;display:flex;flex-direction:column;page-break-after:always;break-after:page;overflow:hidden}' +
+                '.folha:last-child{page-break-after:auto;break-after:auto}' +
+                '.topo{background:var(--cor);color:#fff;border-radius:8px;padding:5px 14px;display:flex;justify-content:space-between;align-items:center}' +
+                '.topo h1{font-size:27pt;line-height:1.15}.topo .sub{font-size:11pt;opacity:.95}.topo .dt{text-align:right;font-size:9.5pt}' +
+                '.corpo{display:grid;grid-template-columns:.88fr 1.12fr;gap:12px;margin-top:7px;flex:1;min-height:0}' +
+                'h2{font-size:16pt;color:var(--cor);border-bottom:2.5px solid var(--cor);margin-bottom:5px;padding-bottom:1px}h2 small{font-size:10pt;color:#64748b;font-weight:400}' +
+                'table.cl{width:100%;border-collapse:collapse;font-size:14pt}.cl th{background:var(--cor);color:#fff;padding:4px 4px;text-align:center;font-size:12pt}' +
+                '.cl td{padding:6px 4px;text-align:center;border-bottom:1px solid #cbd5e1}.cl .t{text-align:left}.cl tr.q td{background:#d1fae5;font-weight:600}' +
+                '.jl{display:grid;grid-template-columns:28px 1fr 44px 16px 44px 1fr;align-items:center;gap:4px;padding:8px 2px;border-bottom:1px solid #e2e8f0;font-size:13.5pt}' +
+                '.jl .n{font-weight:800;color:var(--cor);text-align:center}.jl .tA{text-align:right}.jl .tB{text-align:left}.jl .x{text-align:center;color:#94a3b8}' +
+                '.jl .pl{text-align:center;font-weight:800;font-size:18pt;border:1.5px solid #cbd5e1;border-radius:6px;min-height:32px;line-height:30px}' +
+                '.jl .v{font-weight:800}.jl .pl.v{background:#d1fae5;border-color:#10b981;color:#065f46}.jl .p{color:#64748b}' +
+                '.duas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:7px}.rot{font-size:10.5pt;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:2px}' +
+                '.bc{border:1.5px solid #94a3b8;border-radius:6px;overflow:hidden}.bl{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;font-size:13pt;border-bottom:1px solid #e2e8f0}.bl:last-child{border-bottom:none}' +
+                '.bl.v{background:#d1fae5;font-weight:700}.bl.p{color:#94a3b8}.bl .g{min-width:30px;text-align:center;font-weight:800}.bl small{font-weight:400}.ph{font-style:italic;color:#94a3b8}' +
+                '.camp{margin-top:4px;text-align:center;font-size:17pt;font-weight:800;background:#fef3c7;border:2px solid #eab308;color:#78350f;border-radius:8px;padding:5px}' +
+                '.rodape{margin-top:5px;font-size:10pt;color:#64748b;text-align:center}';
+            var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Cartaz — Interclasse 7º Anos</title><style>' + css + '</style></head><body>' +
+                cfgs.map(function (c) { return folhaCartaz7(c, placares); }).join('') + '</body></html>';
+            var f = document.createElement('iframe');
+            f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+            document.body.appendChild(f);
+            f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close();
+            setTimeout(function () {
+                f.contentWindow.focus(); f.contentWindow.print();
+                setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 60000);
+            }, 300);
+        };
 
         // ----- Alterna a visualização 6º / 7º Ano dentro de uma mesma aba,
         // sem criar novas abas no menu principal. -----
