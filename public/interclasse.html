@@ -2308,7 +2308,7 @@
 
                 <div class="card">
                     <h2>📊 Classificação — Fase de Grupos (chave única)</h2>
-                    <p style="color: var(--text-muted);">Atualizada automaticamente a partir dos resultados lançados acima. Critérios de desempate: pontos → saldo (Futsal) / vitórias → gols pró.</p>
+                    <p style="color: var(--text-muted);">Atualizada automaticamente a partir dos resultados lançados acima. Critérios de desempate: pontos → saldo → gols pró → vitórias → pênaltis do confronto direto (Futsal) / vitórias (Queimada).</p>
                     <div style="display:flex; flex-direction:column; gap:1.5rem;">
                         <div>
                             <h3><span class="badge badge-blue">⚽ Futsal Masculino</span></h3>
@@ -10409,6 +10409,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ----- Classificação da chave única (5 turmas, todos contra todos) -----
         function calcularClassificacaoChaveUnica7(modLabel, placares) {
             var stats = {};
+            var penVenceu = {}; // 'A>B' = A venceu B nos pênaltis após empate no jogo da chave única
             TIMES_7.forEach(function (t) { stats[t] = { time: t, pg: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 }; });
             JOGOS_7.forEach(function (g) {
                 if (g.mod !== modLabel) return;
@@ -10426,7 +10427,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     stats[timeB].gp += golsB; stats[timeB].gc += golsA;
                     if (golsA > golsB) { stats[timeA].v++; stats[timeB].d++; }
                     else if (golsB > golsA) { stats[timeB].v++; stats[timeA].d++; }
-                    else { stats[timeA].e++; stats[timeB].e++; }
+                    else {
+                        stats[timeA].e++; stats[timeB].e++;
+                        var pA = parseInt(salvo.pa, 10), pB = parseInt(salvo.pb, 10);
+                        if (!isNaN(pA) && !isNaN(pB) && pA !== pB) penVenceu[(pA > pB ? timeA : timeB) + '>' + (pA > pB ? timeB : timeA)] = true;
+                    }
                 } else {
                     var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : null;
                     if (nomeVenc) {
@@ -10443,7 +10448,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             });
             var arr = TIMES_7.map(function (t) { return stats[t]; });
             arr.forEach(function (s) { s.sg = s.gp - s.gc; s.pts = s.v * 3 + s.e; });
-            arr.sort(function (a, b) { return b.pts - a.pts || b.sg - a.sg || b.gp - a.gp || b.v - a.v; });
+            // Último critério: pênaltis do confronto direto (só quando o jogo entre os dois empatou e teve cobranças).
+            arr.sort(function (a, b) {
+                var d = b.pts - a.pts || b.sg - a.sg || b.gp - a.gp || b.v - a.v;
+                if (d) return d;
+                if (penVenceu[a.time + '>' + b.time]) return -1;
+                if (penVenceu[b.time + '>' + a.time]) return 1;
+                return 0;
+            });
             return arr;
         }
 
@@ -10471,14 +10483,23 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (g.tipo === 'placar') {
                 var valA = salvo && salvo.a !== undefined ? salvo.a : '';
                 var valB = salvo && salvo.b !== undefined ? salvo.b : '';
+                var penA = salvo && salvo.pa !== undefined ? salvo.pa : '';
+                var penB = salvo && salvo.pb !== undefined ? salvo.pb : '';
+                var emp = valA !== '' && valB !== '' && parseInt(valA, 10) === parseInt(valB, 10);
+                var tg = 'oninput="window.__togglePenGrupo7(\'' + g.id + '\')"';
                 return '<div style="display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap;">' +
                     '<span>' + timeA + '</span>' +
-                    '<input type="number" min="0" style="width:48px;" value="' + valA + '" id="in_' + g.id + '_a">' +
+                    '<input type="number" min="0" style="width:48px;" value="' + valA + '" id="in_' + g.id + '_a" ' + tg + '>' +
                     '<span>x</span>' +
-                    '<input type="number" min="0" style="width:48px;" value="' + valB + '" id="in_' + g.id + '_b">' +
+                    '<input type="number" min="0" style="width:48px;" value="' + valB + '" id="in_' + g.id + '_b" ' + tg + '>' +
                     '<span>' + timeB + '</span>' +
                     '<button type="button" class="tab-btn" style="width:auto; padding:0.35rem 0.6rem; background:var(--secondary); color:#fff;" onclick="window.__salvarPlacar7(\'' + g.id + '\')">💾</button>' +
-                    '</div>';
+                    '</div>' +
+                    '<div id="penrowg_' + g.id + '" style="display:' + (emp ? 'flex' : 'none') + '; align-items:center; gap:0.4rem; flex-wrap:wrap; margin-top:0.4rem; padding:0.35rem 0.5rem; background:#fffbeb; border:1px solid #fde68a; border-radius:6px; font-size:0.82rem;">' +
+                    '🥅 Empate — pênaltis: ' +
+                    '<input type="number" min="0" style="width:48px;" value="' + penA + '" id="in_' + g.id + '_pa"> <span>x</span> ' +
+                    '<input type="number" min="0" style="width:48px;" value="' + penB + '" id="in_' + g.id + '_pb">' +
+                    '<span style="color:var(--text-muted); font-size:0.75rem;">(opcional — desempata a classificação)</span></div>';
             }
             var nomeVenc = salvo && typeof salvo === 'object' ? salvo.nome : '';
             function ladoBtn(nome) {
@@ -10603,12 +10624,26 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             })();
         };
 
+        // Mostra a linha de pênaltis do jogo da chave única quando o placar digitado é empate.
+        window.__togglePenGrupo7 = function (id) {
+            var a = document.getElementById('in_' + id + '_a'), b = document.getElementById('in_' + id + '_b'), row = document.getElementById('penrowg_' + id);
+            if (!a || !b || !row) return;
+            row.style.display = (a.value !== '' && b.value !== '' && parseInt(a.value, 10) === parseInt(b.value, 10)) ? 'flex' : 'none';
+        };
+
         window.__salvarPlacar7 = function (idJogo) {
             var inA = document.getElementById('in_' + idJogo + '_a');
             var inB = document.getElementById('in_' + idJogo + '_b');
             if (!inA || !inB) return;
+            var inPA = document.getElementById('in_' + idJogo + '_pa'), inPB = document.getElementById('in_' + idJogo + '_pb');
+            var pa = inPA ? inPA.value.trim() : '', pb = inPB ? inPB.value.trim() : '';
+            var empate = inA.value !== '' && inB.value !== '' && parseInt(inA.value, 10) === parseInt(inB.value, 10);
+            if (empate) {
+                if ((pa === '') !== (pb === '')) { mostrarStatusPlacar7('⚠️ Informe os pênaltis dos dois times (ou deixe os dois em branco).'); return; }
+                if (pa !== '' && parseInt(pa, 10) === parseInt(pb, 10)) { mostrarStatusPlacar7('⚠️ Os pênaltis precisam ter um vencedor.'); return; }
+            } else { pa = ''; pb = ''; }
             (async function () {
-                var dados = salvarPlacarNoStorage7(idJogo, { a: inA.value, b: inB.value });
+                var dados = salvarPlacarNoStorage7(idJogo, { a: inA.value, b: inB.value, pa: pa, pb: pb });
                 renderTabelaPlacares7(dados);
                 renderClassificacoes7(dados);
                 renderChaveamento7(dados);
@@ -10783,6 +10818,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     var a = parseInt(salvo.a, 10), b = parseInt(salvo.b, 10);
                     cA = a; cB = b;
                     if (a > b) { clsA = 'v'; clsB = 'p'; } else if (b > a) { clsB = 'v'; clsA = 'p'; }
+                    else if (_golValido7(salvo.pa) && _golValido7(salvo.pb) && parseInt(salvo.pa, 10) !== parseInt(salvo.pb, 10)) {
+                        var qa = parseInt(salvo.pa, 10), qb = parseInt(salvo.pb, 10);
+                        cA = a + ' <small>(' + qa + ')</small>'; cB = b + ' <small>(' + qb + ')</small>';
+                        if (qa > qb) { clsA = 'v'; clsB = 'p'; } else { clsB = 'v'; clsA = 'p'; }
+                    }
                 }
             } else {
                 var nv = salvo && typeof salvo === 'object' ? salvo.nome : null;
@@ -10842,7 +10882,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '<div><div class="rot">Disputa de 3º lugar</div>' + cartaoBracketCartaz7(terc && terc.nomeB ? terc : null, comGols, 'Perdedor Semi 1', 'Perdedor Semi 2') + '</div></div>' +
                 '<div class="camp">' + (campeao ? '🏆 CAMPEÃO: ' + escHtml7(campeao) : '🏆 Campeão: a definir') + '</div>';
             var legenda = comGols
-                ? 'Classificação: pontos → saldo de gols → gols pró → vitórias. Em caso de empate no mata-mata, decisão por pênaltis (entre parênteses).'
+                ? 'Classificação: pontos → saldo → gols pró → vitórias → pênaltis do confronto direto. Pênaltis aparecem entre parênteses.'
                 : 'Classificação pelo número de vitórias. V = vitória · D = derrota.';
             return '<section class="folha" style="--cor:' + cor + ';">' +
                 '<div class="topo"><div><h1>' + TITULO_CARTAZ_7[cfg.mod] + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · Chave única (todos contra todos) + mata-mata</div></div>' +
@@ -10872,7 +10912,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '.jl{display:grid;grid-template-columns:28px 1fr 44px 16px 44px 1fr;align-items:center;gap:4px;padding:8px 2px;border-bottom:1px solid #e2e8f0;font-size:13.5pt}' +
                 '.jl .n{font-weight:800;color:var(--cor);text-align:center}.jl .tA{text-align:right}.jl .tB{text-align:left}.jl .x{text-align:center;color:#94a3b8}' +
                 '.jl .pl{text-align:center;font-weight:800;font-size:18pt;border:1.5px solid #cbd5e1;border-radius:6px;min-height:32px;line-height:30px}' +
-                '.jl .v{font-weight:800}.jl .pl.v{background:#d1fae5;border-color:#10b981;color:#065f46}.jl .p{color:#64748b}' +
+                '.jl .pl small{font-size:9.5pt;font-weight:600;white-space:nowrap}.jl .v{font-weight:800}.jl .pl.v{background:#d1fae5;border-color:#10b981;color:#065f46}.jl .p{color:#64748b}' +
                 '.duas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:7px}.rot{font-size:10.5pt;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:2px}' +
                 '.bc{border:1.5px solid #94a3b8;border-radius:6px;overflow:hidden}.bl{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;font-size:13pt;border-bottom:1px solid #e2e8f0}.bl:last-child{border-bottom:none}' +
                 '.bl.v{background:#d1fae5;font-weight:700}.bl.p{color:#94a3b8}.bl .g{min-width:30px;text-align:center;font-weight:800}.bl small{font-weight:400}.ph{font-style:italic;color:#94a3b8}' +
