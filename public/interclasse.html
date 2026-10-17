@@ -7343,8 +7343,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             const cabecalho = `
                 <div class="roster-print-header">
                     <strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>
-                    <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Resultados</span><br>
-                    <span style="font-size:9px;color:#666;">Impresso em ${new Date().toLocaleDateString('pt-BR')}</span>
+                    <span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Resultados</span>
                 </div>`;
 
             if (gamesData.length === 0) {
@@ -7474,7 +7473,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 html += `
                             </tbody>
                         </table>
-                        <p class="grade-mural-footer">Atualizado em ${new Date().toLocaleDateString('pt-BR')} • Dúvidas: fale com a coordenação/Educação Física.</p>
+                        <p class="grade-mural-footer">Dúvidas: fale com a coordenação/Educação Física.</p>
                         <p style="font-size:8px;color:#999;margin-top:2px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>
                     </div>
                 `;
@@ -7682,7 +7681,6 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
         function gerarHtmlVisualizacaoOnline() {
-            const agora = new Date().toLocaleString('pt-BR');
             return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7721,7 +7719,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 <body>
     <header>
         <h1>🏆 Jogos Estudantis do GETECO 2026</h1>
-        <p>Jogos • Classificação • Chaveamento das Eliminatórias — atualizado em ${agora}</p>
+        <p>Jogos • Classificação • Chaveamento das Eliminatórias</p>
     </header>
     <div class="container">
         <div class="tabs-online">
@@ -9181,7 +9179,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '<tbody>' + linhas + '</tbody></table>' +
                 htmlNotasDescontos(lista, true) +
                 '<p class="nota-rodape"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>' +
-                '<p class="nota-rodape">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado. Gerado em ' + new Date().toLocaleDateString('pt-BR') + '.</p>' +
+                '<p class="nota-rodape">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>' +
                 '<p style="font-size:9px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
                 '</div>';
         }
@@ -9315,8 +9313,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var placares = carregarPlacaresSalvos();
             var cabecalho = '<div class="roster-print-header">' +
                 '<strong style="font-size:14px;">ESCOLA MUNICIPAL GERALDO TEIXEIRA COSTA — GETECO</strong><br>' +
-                '<span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Placares' + (modLabel ? ' — ' + modLabel : ' — Todas as modalidades') + '</span><br>' +
-                '<span style="font-size:9px;color:#666;">Impresso em ' + new Date().toLocaleDateString('pt-BR') + '</span></div>';
+                '<span style="font-size:11px;">Jogos Estudantis do GETECO 2026 — Grade de Horários &amp; Placares' + (modLabel ? ' — ' + modLabel : ' — Todas as modalidades') + '</span></div>';
 
             var creditoHtml = '<p style="font-size:8px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>';
 
@@ -10927,7 +10924,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
             return '<section class="folha" style="--cor:' + cor + ';">' +
                 '<div class="topo"><div><h1>' + TITULO_CARTAZ_7[cfg.mod] + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · Chave única (todos contra todos) + mata-mata</div></div>' +
-                '<div class="sub dt">Atualizado em<br>' + new Date().toLocaleString('pt-BR') + '</div></div>' +
+                '</div>' +
                 '<div class="corpo"><div class="col">' +
                 '<h2>📊 Classificação' + (completo ? ' <small>(verde = semifinais)</small>' : '') + '</h2><table class="cl">' + cab + linhas + '</table>' +
                 '<h2 style="margin-top:7px;">🏆 Chaveamento</h2>' + bracket +
