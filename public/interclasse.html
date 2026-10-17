@@ -9093,8 +9093,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // "Fulano (6º A) — 🇦🇷 Argentina" etc.) — todos trazem "6º <letra>".
         function extrairTurmaDoNomePodio(texto) {
             if (!texto) return null;
-            var m = String(texto).match(/6º\s*([A-Fa-f])\b/);
-            return m ? ('6º ' + m[1].toUpperCase()) : null;
+            // Aceita turmas do 6º e do 7º Ano (ex.: "Senegal (7º A)" -> "7º A")
+            var m = String(texto).match(/([67])º\s*([A-Fa-f])\b/);
+            return m ? (m[1] + 'º ' + m[2].toUpperCase()) : null;
         }
 
         function calcularQuadroGeral() {
