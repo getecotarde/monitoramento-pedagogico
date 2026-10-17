@@ -814,14 +814,17 @@
             body.printing-quadrogeral > .container { display: none !important; }
             body.printing-quadrogeral #quadroGeralPrintContainer.roster-print-only { display: block !important; }
         }
-        .qg-print-page { width: 100%; box-sizing: border-box; }
-        .qg-print-page h1 { font-size: 26px; margin: 0 0 4px; color: #111; }
-        .qg-print-page .qg-print-sub { font-size: 15px; color: #555; margin: 0 0 18px; }
-        .qg-print-page table { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 4px; }
-        .qg-print-page th, .qg-print-page td { border: 1.5px solid #333; padding: 12px 14px; text-align: left; }
-        .qg-print-page thead th { background: #eee; font-size: 15px; }
-        .qg-print-page .qg-sigla { font-size: 12px; color: #555; display: block; margin-top: 2px; }
-        .qg-print-page .nota-rodape { font-size: 12px; color: #555; margin-top: 14px; }
+        /* Tamanhos multiplicados por --qgs: o JS reduz esse fator só o necessário para
+           o quadro caber em UMA página A4 (retrato ou paisagem). */
+        .qg-print-page { --qgs: 1; width: 100%; box-sizing: border-box; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
+        .qg-print-page h1 { font-size: calc(26px * var(--qgs)); margin: 0 0 calc(4px * var(--qgs)); color: #111; }
+        .qg-print-page .qg-print-sub { font-size: calc(15px * var(--qgs)); color: #555; margin: 0 0 calc(18px * var(--qgs)); }
+        .qg-print-page table { width: 100%; border-collapse: collapse; font-size: calc(18px * var(--qgs)); margin-top: 4px; }
+        .qg-print-page th, .qg-print-page td { border: 1.5px solid #333; padding: calc(12px * var(--qgs)) calc(14px * var(--qgs)); text-align: left; }
+        .qg-print-page thead th { background: #eee; font-size: calc(15px * var(--qgs)); }
+        .qg-print-page .qg-sigla { font-size: calc(12px * var(--qgs)); color: #555; display: block; margin-top: 2px; }
+        .qg-print-page .nota-rodape { font-size: calc(12px * var(--qgs)); color: #555; margin-top: calc(14px * var(--qgs)); }
+        .qg-print-page .qg-credito { font-size: calc(9px * var(--qgs)); color: #777; margin-top: calc(10px * var(--qgs)); text-align: center; }
         .resumo-print-stats .label { font-size: 9px; color: #444; }
         .resumo-print-uniforme { border: 1.5px solid #b45309; background: #fffbeb; padding: 7px 9px; margin: 8px 0; border-radius: 3px; }
         .resumo-print-uniforme strong.titulo { font-size: 11px; color: #92400e; display: block; margin-bottom: 3px; }
@@ -2414,8 +2417,8 @@
                     <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral()">🖨️ Imprimir Quadro Geral (PDF A4)</button>
                     <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
                     <div class="grade-orient-toggle" id="quadroGeralOrientToggle">
-                        <button type="button" id="btnQuadroGeralOrientRetrato" class="grade-orient-btn qg-orient-btn active" onclick="definirOrientacaoQuadroGeral('retrato', this)">▯ Retrato</button>
-                        <button type="button" id="btnQuadroGeralOrientPaisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
+                        <button type="button" id="btnQuadroGeralOrientRetrato" data-or="retrato" class="grade-orient-btn qg-orient-btn active" onclick="definirOrientacaoQuadroGeral('retrato', this)">▯ Retrato</button>
+                        <button type="button" id="btnQuadroGeralOrientPaisagem" data-or="paisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
                     </div>
                 </div>
                 <p style="color: var(--text-muted);">Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
@@ -2444,6 +2447,14 @@
 
             <div id="quadrogeralAno7" style="display:none;">
             <div class="card">
+                <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
+                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral('7')">🖨️ Imprimir Quadro Geral (PDF A4)</button>
+                    <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
+                    <div class="grade-orient-toggle" id="quadroGeralOrientToggle7">
+                        <button type="button" id="btnQuadroGeralOrientRetrato7" data-or="retrato" class="grade-orient-btn qg-orient-btn active" onclick="definirOrientacaoQuadroGeral('retrato', this)">▯ Retrato</button>
+                        <button type="button" id="btnQuadroGeralOrientPaisagem7" data-or="paisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
+                    </div>
+                </div>
                 <p style="color: var(--text-muted);">Calculado automaticamente a partir das semifinais/final/3º lugar de Futsal M/F e Queimada Mista lançadas na aba 🗓️ Grade de Horários &amp; Placares (7º Anos).</p>
                 <div class="table-responsive" style="margin-top:0.8rem;">
                     <table>
@@ -8978,7 +8989,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }).join('; ');
                 return '<div style="margin-top:0.25rem;">* <strong>' + l.selecao.bandeira + ' ' + l.selecao.pais + ' (' + l.turma + ')</strong>: ' + motivos + '.</div>';
             }).join('');
-            var estilo = impressao ? 'font-size:10px;margin-top:8px;' : 'font-size:0.82rem; margin-top:0.6rem; padding:0.6rem 0.8rem; border-left:4px solid #d97706; background:rgba(217,119,6,0.08); border-radius:6px;';
+            var estilo = impressao ? 'font-size:calc(10px * var(--qgs, 1));margin-top:calc(8px * var(--qgs, 1));' : 'font-size:0.82rem; margin-top:0.6rem; padding:0.6rem 0.8rem; border-left:4px solid #d97706; background:rgba(217,119,6,0.08); border-radius:6px;';
             return '<div class="nota-rodape nota-descontos" style="' + estilo + '"><strong>* Pontuação com dedução por registro de indisciplina durante o evento:</strong>' + itens + '</div>';
         }
 
@@ -9154,8 +9165,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ---------------------------------------------------------------
         // IMPRESSÃO — Quadro Geral (PDF A4, uma página, retrato)
         // ---------------------------------------------------------------
-        function gerarHtmlQuadroGeralImpressao() {
-            var lista = calcularQuadroGeral();
+        function gerarHtmlQuadroGeralImpressao(ano) {
+            var sete = (ano === '7');
+            var lista = sete ? calcularQuadroGeral7() : calcularQuadroGeral();
             var medalhaPos = ['🥇', '🥈', '🥉'];
             var celula = function (arr) {
                 if (!arr.length) return '—';
@@ -9173,29 +9185,54 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '</tr>';
             }).join('');
             return '<div class="qg-print-page">' +
-                '<h1>🥇 Quadro Geral — Interclasse GETECO 2026</h1>' +
+                '<h1>🥇 Quadro Geral' + (sete ? ' — 7º Anos' : '') + ' — Interclasse GETECO 2026</h1>' +
                 '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Pontuação: 1º lugar = 5 pts · 2º lugar = 3 pts · 3º lugar = 1 pt · * = pontuação com dedução por indisciplina (veja a explicação abaixo da tabela)</p>' +
                 '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
                 htmlNotasDescontos(lista, true) +
-                '<p class="nota-rodape"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>' +
-                '<p class="nota-rodape">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>' +
-                '<p style="font-size:9px;color:#777;margin-top:10px;text-align:center;">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
+                '<p class="nota-rodape"><strong>Siglas:</strong> ' + (sete ? 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista.' : 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.') + '</p>' +
+                '<p class="nota-rodape">⏳ Modalidades ainda sem ' + (sete ? 'Final/3º lugar' : 'Final/pódio') + ' definido não contam pontos até o resultado ser lançado.</p>' +
+                '<p class="qg-credito">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
                 '</div>';
         }
 
         var _orientacaoQuadroGeral = 'retrato';
         window.definirOrientacaoQuadroGeral = function (orientacao, btnEl) {
             _orientacaoQuadroGeral = (orientacao === 'paisagem') ? 'paisagem' : 'retrato';
-            var toggle = document.getElementById('quadroGeralOrientToggle');
-            if (toggle) toggle.querySelectorAll('.grade-orient-btn').forEach(function (b) { b.classList.remove('active'); });
-            if (btnEl) btnEl.classList.add('active');
+            document.querySelectorAll('.qg-orient-btn').forEach(function (b) {
+                b.classList.toggle('active', b.getAttribute('data-or') === _orientacaoQuadroGeral);
+            });
         };
 
-        function imprimirQuadroGeral() {
+        // Reduz o fator de escala (--qgs) só o necessário para o quadro caber em UMA folha A4,
+        // na orientação escolhida. Mede o conteúdo fora da tela, com a largura útil da folha.
+        function ajustarQuadroGeralNaFolha(container, orientacao) {
+            var pagina = container.querySelector('.qg-print-page');
+            if (!pagina) return;
+            var mm = 96 / 25.4;
+            var paisagem = (orientacao === 'paisagem');
+            var largura = (paisagem ? 297 - 24 : 210 - 24) * mm;            // margens do @page
+            var altura = (paisagem ? 210 - 24 : 297 - 28) * mm - 12;        // folga de segurança
+            var estiloOriginal = container.getAttribute('style');
+            container.setAttribute('style', 'display:block !important; position:absolute; left:-10000px; top:0; width:' + largura + 'px; visibility:hidden;');
+            pagina.style.maxHeight = 'none';
+            var fator = 1;
+            pagina.style.setProperty('--qgs', '1');
+            for (var k = 0; k < 10; k++) {
+                var h = pagina.scrollHeight;
+                if (h <= altura || fator <= 0.4) break;
+                fator = Math.max(0.4, fator * (altura / h) * 0.985);
+                pagina.style.setProperty('--qgs', fator.toFixed(3));
+            }
+            if (estiloOriginal === null) container.removeAttribute('style'); else container.setAttribute('style', estiloOriginal);
+            pagina.style.maxHeight = altura + 'px'; // garante que nunca passe de uma página
+        }
+
+        function imprimirQuadroGeral(ano) {
             var container = document.getElementById('quadroGeralPrintContainer');
             if (!container) return;
-            container.innerHTML = gerarHtmlQuadroGeralImpressao();
+            container.innerHTML = gerarHtmlQuadroGeralImpressao(ano === '7' ? '7' : '6');
+            ajustarQuadroGeralNaFolha(container, _orientacaoQuadroGeral);
             document.documentElement.classList.remove('quadrogeral-orient-retrato', 'quadrogeral-orient-paisagem');
             document.documentElement.classList.add('quadrogeral-print-mode', 'quadrogeral-orient-' + _orientacaoQuadroGeral);
             document.body.classList.add('printing-quadrogeral');
