@@ -10808,7 +10808,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         function _golValido7(v) { return v !== undefined && v !== null && v !== '' && !isNaN(parseInt(v, 10)); }
 
-        function linhaJogoCartaz7(g, placares) {
+        function linhaJogoCartaz7(g, placares, marc) {
             var partes = g.confronto.split(' x ');
             var tA = partes[0].trim(), tB = partes[1].trim();
             var salvo = placares[g.id];
@@ -10832,11 +10832,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     else if (nn === _normalizarNomeTime(tB)) { clsB = 'v'; clsA = 'p'; cB = 'V'; cA = 'D'; }
                 }
             }
-            return '<div class="jl"><span class="n">' + g.jogo + '</span>' +
+            return '<div class="jl"><span class="n">' + g.jogo + (marc ? '<sup class="ast">' + marc + '</sup>' : '') + '</span>' +
                 '<span class="tA ' + clsA + '">' + escHtml7(tA) + '</span><span class="pl ' + clsA + '">' + cA + '</span><span class="x">x</span><span class="pl ' + clsB + '">' + cB + '</span><span class="tB ' + clsB + '">' + escHtml7(tB) + '</span></div>';
         }
 
-        function cartaoBracketCartaz7(j, comPlacar, phA, phB) {
+        function cartaoBracketCartaz7(j, comPlacar, phA, phB, marc) {
             var tem = !!(j && j.nomeA && j.nomeB);
             var res = (j && j.res) ? j.res : null;
             function lado(nome, ph, gols, pen, ehA) {
@@ -10846,6 +10846,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 var g = '';
                 if (tem && comPlacar && res && _golValido7(gols)) g = String(gols) + ((res.empate && _golValido7(pen)) ? ' <small>(' + pen + ')</small>' : '');
                 else if (tem && !comPlacar && j.vencedor) g = venceu ? 'V' : 'D';
+                if (tem && marc) g += '<sup class="ast">' + marc + '</sup>';
                 return '<div class="' + cls + '"><span>' + (venceu ? '🏆 ' : '') + nomeHtml + '</span><span class="g">' + g + '</span></div>';
             }
             return '<div class="bc">' + lado(tem ? j.nomeA : null, phA, res ? res.golsA : '', res ? res.penA : '', true) +
@@ -10857,14 +10858,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var comGols = cfg.tipo === 'placar';
             var cl = calcularClassificacaoChaveUnica7(cfg.mod, placares);
             var completo = cl.every(function (x) { return x.pg >= 4; });
-            var linhas = cl.map(function (x, i) {
-                var dest = (completo && i < 4) ? ' class="q"' : '';
-                return '<tr' + dest + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td>' +
-                    (comGols ? '<td>' + x.e + '</td>' : '') + '<td>' + x.d + '</td>' +
-                    (comGols ? '<td>' + x.gp + '</td><td>' + x.gc + '</td><td>' + x.sg + '</td><td><b>' + x.pts + '</b></td>' : '') + '</tr>';
-            }).join('');
-            var cab = '<tr><th>Pos.</th><th class="t">Turma</th><th>PJ</th><th>V</th>' + (comGols ? '<th>E</th>' : '') + '<th>D</th>' + (comGols ? '<th>GP</th><th>GC</th><th>SG</th><th>Pts</th>' : '') + '</tr>';
-            var jogosHtml = JOGOS_7.filter(function (g) { return g.mod === cfg.mod; }).map(function (g) { return linhaJogoCartaz7(g, placares); }).join('');
+            var jogosMod = JOGOS_7.filter(function (g) { return g.mod === cfg.mod; });
 
             // Chaveamento
             var semi1 = null, semi2 = null, fin = null, terc = null, campeao = null;
@@ -10875,15 +10869,61 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (ch.rodadas[1]) fin = ch.rodadas[1].jogos[0];
                 terc = ch.terceiroLugar; campeao = ch.campeao;
             }
+
+            // Observações gerais -> notas de rodapé com asterisco (fase classificatória e, no futsal, mata-mata)
+            var notas = [];
+            function limpa(t) { return String(t || '').replace(/\s+/g, ' ').trim(); }
+            jogosMod.forEach(function (g) {
+                var sv = placares[g.id];
+                var o = (sv && typeof sv === 'object') ? limpa(sv.obs) : '';
+                if (o) notas.push({ id: g.id, rotulo: 'Jogo ' + g.jogo + ' — ' + g.confronto, texto: o, times: g.confronto.split(' x ').map(function (t) { return t.trim(); }), fase: true });
+            });
+            [['Semifinal 1', semi1], ['Semifinal 2', semi2], ['Final', fin], ['Disputa de 3º lugar', terc]].forEach(function (par) {
+                var jg = par[1];
+                var o = (comGols && jg && jg.nomeA && jg.nomeB && jg.res) ? limpa(jg.res.obs) : '';
+                if (o) notas.push({ id: jg.id, rotulo: par[0] + ' — ' + jg.nomeA + ' x ' + jg.nomeB, texto: o, times: [jg.nomeA, jg.nomeB], fase: false });
+            });
+            notas.forEach(function (n, k) { n.marc = notas.length === 1 ? '*' : '*' + (k + 1); });
+            var marcPorJogo = {}, marcPorTime = {};
+            notas.forEach(function (n) {
+                marcPorJogo[n.id] = n.marc;
+                if (n.fase) n.times.forEach(function (t) { (marcPorTime[t] = marcPorTime[t] || []).push(n.marc); });
+            });
+
+            var linhas = cl.map(function (x, i) {
+                var dest = (completo && i < 4) ? ' class="q"' : '';
+                var ms = marcPorTime[x.time] ? '<sup class="ast">' + marcPorTime[x.time].join(' ') + '</sup>' : '';
+                var vCel = '<td>' + x.v + (comGols ? '' : ms) + '</td>';
+                return '<tr' + dest + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td>' + vCel +
+                    (comGols ? '<td>' + x.e + '</td>' : '') + '<td>' + x.d + '</td>' +
+                    (comGols ? '<td>' + x.gp + '</td><td>' + x.gc + '</td><td>' + x.sg + '</td><td><b>' + x.pts + '</b>' + ms + '</td>' : '') + '</tr>';
+            }).join('');
+            var cab = '<tr><th>Pos.</th><th class="t">Turma</th><th>PJ</th><th>V</th>' + (comGols ? '<th>E</th>' : '') + '<th>D</th>' + (comGols ? '<th>GP</th><th>GC</th><th>SG</th><th>Pts</th>' : '') + '</tr>';
+            var jogosHtml = jogosMod.map(function (g) { return linhaJogoCartaz7(g, placares, marcPorJogo[g.id]); }).join('');
+
+            var vice = (fin && fin.vencedor) ? (fin.vencedor === fin.nomeA ? fin.nomeB : fin.nomeA) : null;
+            var terceiro = (terc && terc.vencedor) ? terc.vencedor : null;
             var bracket =
-                '<div class="duas"><div><div class="rot">Semifinal 1</div>' + cartaoBracketCartaz7(semi1, comGols, '1º colocado', '3º colocado') + '</div>' +
-                '<div><div class="rot">Semifinal 2</div>' + cartaoBracketCartaz7(semi2, comGols, '2º colocado', '4º colocado') + '</div></div>' +
-                '<div class="duas"><div><div class="rot">Final</div>' + cartaoBracketCartaz7(fin, comGols, 'Vencedor Semi 1', 'Vencedor Semi 2') + '</div>' +
-                '<div><div class="rot">Disputa de 3º lugar</div>' + cartaoBracketCartaz7(terc && terc.nomeB ? terc : null, comGols, 'Perdedor Semi 1', 'Perdedor Semi 2') + '</div></div>' +
-                '<div class="camp">' + (campeao ? '🏆 CAMPEÃO: ' + escHtml7(campeao) : '🏆 Campeão: a definir') + '</div>';
+                '<div class="duas"><div><div class="rot">Semifinal 1</div>' + cartaoBracketCartaz7(semi1, comGols, '1º colocado', '3º colocado', semi1 && marcPorJogo[semi1.id]) + '</div>' +
+                '<div><div class="rot">Semifinal 2</div>' + cartaoBracketCartaz7(semi2, comGols, '2º colocado', '4º colocado', semi2 && marcPorJogo[semi2.id]) + '</div></div>' +
+                '<div class="duas"><div><div class="rot">Final</div>' + cartaoBracketCartaz7(fin, comGols, 'Vencedor Semi 1', 'Vencedor Semi 2', fin && marcPorJogo[fin.id]) + '</div>' +
+                '<div><div class="rot">Disputa de 3º lugar</div>' + cartaoBracketCartaz7(terc && terc.nomeB ? terc : null, comGols, 'Perdedor Semi 1', 'Perdedor Semi 2', terc && marcPorJogo[terc.id]) + '</div></div>' +
+                '<div class="camp">' + (campeao ? '🏆 CAMPEÃO: ' + escHtml7(campeao) : '🏆 Campeão: a definir') + '</div>' +
+                '<div class="pod"><div>' + (vice ? '🥈 2º lugar: ' + escHtml7(vice) : '<span class="ph">🥈 2º lugar: a definir</span>') + '</div>' +
+                '<div>' + (terceiro ? '🥉 3º lugar: ' + escHtml7(terceiro) : '<span class="ph">🥉 3º lugar: a definir</span>') + '</div></div>';
             var legenda = comGols
                 ? 'Classificação: pontos → saldo → gols pró → vitórias → pênaltis do confronto direto. Pênaltis aparecem entre parênteses.'
                 : 'Classificação pelo número de vitórias. V = vitória · D = derrota.';
+
+            // Rodapé com as observações (fonte reduz conforme o volume de texto para caber na folha)
+            var notasHtml = '';
+            if (notas.length) {
+                var total = notas.reduce(function (a, n) { return a + n.texto.length + n.rotulo.length; }, 0);
+                var fs = total > 1600 ? 7 : (total > 1000 ? 8 : (total > 600 ? 9 : 10));
+                notasHtml = '<div class="notas" style="font-size:' + fs + 'pt;"><div class="notas-tit">Observações</div><div class="notas-col">' +
+                    notas.map(function (n) { return '<div class="nota"><b>' + n.marc + '</b> <span class="nr">' + escHtml7(n.rotulo) + ':</span> ' + escHtml7(n.texto) + '</div>'; }).join('') +
+                    '</div></div>';
+            }
             return '<section class="folha" style="--cor:' + cor + ';">' +
                 '<div class="topo"><div><h1>' + TITULO_CARTAZ_7[cfg.mod] + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · Chave única (todos contra todos) + mata-mata</div></div>' +
                 '<div class="sub dt">Atualizado em<br>' + new Date().toLocaleString('pt-BR') + '</div></div>' +
@@ -10891,7 +10931,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '<h2>📊 Classificação' + (completo ? ' <small>(verde = semifinais)</small>' : '') + '</h2><table class="cl">' + cab + linhas + '</table>' +
                 '<h2 style="margin-top:7px;">🏆 Chaveamento</h2>' + bracket +
                 '</div><div class="col"><h2>🗓️ Jogos e resultados — Fase classificatória</h2>' + jogosHtml + '</div></div>' +
-                '<div class="rodape">' + legenda + '</div></section>';
+                notasHtml + '<div class="rodape">' + legenda + '</div></section>';
         }
 
         window.imprimirCartaz7 = function (mod) {
@@ -10917,6 +10957,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '.bc{border:1.5px solid #94a3b8;border-radius:6px;overflow:hidden}.bl{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;font-size:13pt;border-bottom:1px solid #e2e8f0}.bl:last-child{border-bottom:none}' +
                 '.bl.v{background:#d1fae5;font-weight:700}.bl.p{color:#94a3b8}.bl .g{min-width:30px;text-align:center;font-weight:800}.bl small{font-weight:400}.ph{font-style:italic;color:#94a3b8}' +
                 '.camp{margin-top:4px;text-align:center;font-size:17pt;font-weight:800;background:#fef3c7;border:2px solid #eab308;color:#78350f;border-radius:8px;padding:5px}' +
+                '.pod{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}.pod div{text-align:center;font-size:11.5pt;font-weight:700;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:6px;padding:4px}'+
+                'sup.ast{font-size:9pt;font-weight:800;color:#b91c1c;margin-left:1px;vertical-align:top;line-height:1}' +
+                '.notas{border-top:1.5px solid #94a3b8;margin-top:4px;padding-top:3px;line-height:1.3;color:#334155}.notas-tit{font-weight:800;color:var(--cor);font-size:1.05em;margin-bottom:1px}.notas-col{column-count:2;column-gap:16px}.nota{break-inside:avoid;margin-bottom:2px}.nota b{color:#b91c1c}.nota .nr{font-weight:600;color:#475569}' +
                 '.rodape{margin-top:5px;font-size:10pt;color:#64748b;text-align:center}';
             var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Cartaz — Interclasse 7º Anos</title><style>' + css + '</style></head><body>' +
                 cfgs.map(function (c) { return folhaCartaz7(c, placares); }).join('') + '</body></html>';
