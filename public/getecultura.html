@@ -159,6 +159,22 @@
   .qg-status{padding:36px 20px;text-align:center;color:var(--muted);font-size:13px;}
   .qg-status.err{color:#c0392b;}
 
+  /* RELATÓRIOS */
+  .rel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gold);}
+  .rel-head h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--ink);line-height:1.15;}
+  .rel-head .rel-meta{font-size:11px;color:var(--muted);text-align:right;line-height:1.4;}
+  .rel-desc{font-size:12px;color:var(--muted);margin-bottom:12px;}
+  .rel-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--divider);}
+  .rel-table thead th{background:var(--ink);color:var(--paper);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:10px 12px;text-align:left;}
+  .rel-table td{padding:9px 12px;font-size:12.5px;border-bottom:1px solid var(--divider);vertical-align:top;line-height:1.45;word-wrap:break-word;}
+  .rel-table tr.rel-group td{background:var(--cream);font-family:'Playfair Display',serif;font-weight:700;font-size:13.5px;color:var(--ink);border-top:2px solid var(--gold);padding:8px 12px;}
+  .rel-table tr.rel-group td span{font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:var(--muted);margin-left:8px;}
+  .rel-cell-list{display:flex;flex-direction:column;gap:2px;}
+  .rel-cell-list div::before{content:'• ';color:var(--gold);}
+  .rel-muted{color:var(--muted);}
+  .rel-opt{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:var(--muted);line-height:1.35;}
+  .rel-opt input{width:auto !important;margin-top:2px;}
+
   @media(max-width:900px){
     .qg-layout{flex-direction:column;}
     .qg-sidebar{width:100%;position:static;}
@@ -169,7 +185,9 @@
   .reg-card{border:1px solid var(--divider);border-radius:5px;overflow:hidden;background:#fff;}
   .reg-card.editing{border-color:var(--gold);box-shadow:0 0 0 2px rgba(184,135,42,.15);}
   .reg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--cream);cursor:pointer;}
-  .reg-head-main{min-width:0;}
+  .reg-head-main{min-width:0;flex:1;}
+  .reg-sel{width:16px;height:16px;flex-shrink:0;accent-color:var(--rust);cursor:pointer;}
+  .reg-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .reg-head .rh-title{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .reg-head .rh-sub{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .reg-head-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
@@ -193,26 +211,24 @@
   .edit-banner.show{display:flex;}
   .edit-banner button{flex-shrink:0;}
 
+  .print-title{display:none;}
   @media print{
-    /* margem superior de página reservada para o cabeçalho fixo — vale para TODAS as páginas, não só a primeira */
-    @page{ size: landscape; margin: 10mm; margin-top: 20mm; }
-
-    /* título GETECULTURA fixo, repetindo em todas as páginas impressas.
-       altura em "auto" (sem height fixo) para o conteúdo nunca ultrapassar
-       a caixa e invadir a margem reservada — isso é o que causava a
-       sobreposição com o cabeçalho da tabela. */
-    header{
-      background:transparent;color:var(--ink);padding:5px 0;margin:0;
-      border-bottom:2px solid var(--gold);position:fixed;top:0;left:0;right:0;
-      display:flex;align-items:center;line-height:1.15;min-height:0;
+    /* Sem cabeçalho fixo (ele sobrepunha a tabela). O título agora é uma linha do
+       <thead> (.print-title), que o navegador repete sozinho em todas as páginas. */
+    @page{ size: landscape; margin: 10mm; }
+    header{display:none;}
+    .print-title{display:table-row;}
+    .qg-board-table thead tr.print-title th,
+    .rel-table thead tr.print-title th{
+      background:transparent !important;color:var(--ink) !important;
+      border:none !important;border-bottom:2px solid var(--gold) !important;
+      padding:0 0 6px !important;width:auto !important;text-transform:none;letter-spacing:0;
     }
-    header::before{display:none;}
-    .header-inner{max-width:none;align-items:center;gap:12px;}
-    .event-badge{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;padding:3px 8px;line-height:1.2;}
-    .header-text h1{color:var(--ink);font-size:15px;line-height:1;}
-    .header-text h1 span{color:var(--gold);}
-    .header-text p{display:none;}
-    .tabs{display:none;}
+    .pt-in{display:flex;justify-content:space-between;align-items:baseline;gap:14px;}
+    .pt-in b{font-family:'Playfair Display',serif;font-size:15px;font-weight:900;color:var(--ink);}
+    .pt-in b i{font-style:normal;color:var(--gold);}
+    .pt-in small{font-size:10.5px;font-weight:700;letter-spacing:.04em;color:var(--ink);text-align:right;}
+    .pt-in small u{text-decoration:none;color:var(--gold);margin-right:10px;}
     main{max-width:none;padding:0;}
 
     /* texto introdutório do quadro não sai na impressão */
@@ -223,15 +239,21 @@
     .qg-main{width:100%;}
     .qg-board{box-shadow:none;}
 
-    /* respiro extra entre o cabeçalho fixo e a primeira linha da tabela,
-       garantindo folga mesmo se o cabeçalho variar de altura entre navegadores */
-    .qg-board{margin-top:5mm;}
 
     /* grade completa (linhas e colunas) levemente marcada */
     .qg-board-table{font-size:11px;border:1px solid var(--divider);}
     .qg-board-table th,.qg-board-table td{border:1px solid var(--divider);padding:8px 10px;}
     .qg-board-table thead th{border-color:#5a4e3e;}
     .qg-board-table tr{break-inside:avoid;}
+
+    /* relatórios */
+    #viewRelatorios{max-width:none !important;}
+    .rel-head,.rel-desc{display:none;}
+    .rel-table{font-size:11px;border:1px solid var(--divider);}
+    .rel-table th,.rel-table td{border:1px solid var(--divider);padding:6px 8px;}
+    .rel-table thead th{border-color:#5a4e3e;}
+    .rel-table tr{break-inside:avoid;}
+    .rel-table tr.rel-group{break-after:avoid;}
   }
 </style>
 </head>
@@ -246,6 +268,7 @@
       <div class="tabs">
         <button class="tab-btn active" id="tabFormBtn" onclick="mudarAba('form')">Formulário</button>
         <button class="tab-btn" id="tabQuadroBtn" onclick="mudarAba('quadro')">Quadro Geral</button>
+        <button class="tab-btn" id="tabRelBtn" onclick="mudarAba('rel')">Relatórios</button>
       </div>
     </div>
   </div>
@@ -360,7 +383,13 @@
   <!-- 6 Registros salvos nesta sessão -->
   <div class="form-section">
     <div class="sec-head"><div class="sec-num">6</div><h2>Registros Salvos no Sistema</h2></div>
-    <p style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Clique em um registro para ver os itens 1 a 5 completos, editar ou excluir.</p>
+    <p style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Clique em um registro para ver os itens 1 a 5 completos, editar, excluir ou imprimir a ficha. Marque as caixas para imprimir várias fichas de uma vez (2 atividades por folha A4).</p>
+    <div class="reg-toolbar">
+      <button class="btn-tiny" onclick="selecionarTodosRegistros(true)">☑ Marcar todos</button>
+      <button class="btn-tiny" onclick="selecionarTodosRegistros(false)">☐ Desmarcar</button>
+      <button class="btn-tiny edit" id="btnImprSel" onclick="imprimirFichasPreenchidas(true)">🖶 Imprimir selecionadas (0)</button>
+      <button class="btn-tiny edit" onclick="imprimirFichasPreenchidas(false)">🖶 Imprimir todas</button>
+    </div>
     <div id="registros-lista" style="display:flex;flex-direction:column;gap:8px">
       <p style="font-size:12px;color:var(--muted)">Carregando registros…</p>
     </div>
@@ -399,7 +428,9 @@
     <section class="qg-main">
       <div class="qg-board">
         <table class="qg-board-table">
+          <colgroup><col style="width:19%"><col style="width:17%"><col style="width:24%"><col style="width:16%"><col style="width:24%"></colgroup>
           <thead>
+            <tr class="print-title"><th colspan="5"><div class="pt-in"><b>GETE<i>CULTURA</i> 2026 · Quadro Geral</b><small><u>OUTUBRO 2026</u>DATA DE REALIZAÇÃO 07/11/2026</small></div></th></tr>
             <tr>
               <th>Título</th>
               <th>Professores Responsáveis</th>
@@ -414,6 +445,39 @@
       <div id="qgStatus" class="qg-status">Carregando atividades registradas…</div>
     </section>
 
+  </div>
+</main>
+
+<!-- RELATÓRIOS — listagens-resumo por critério / demanda -->
+<main id="viewRelatorios" style="display:none;max-width:1200px">
+  <div class="intro">
+    <p>Escolha o tipo de relatório na barra lateral. As listagens são geradas a partir das atividades registradas e podem ser <strong>impressas</strong> ou <strong>baixadas em CSV</strong> (abre no Excel).</p>
+  </div>
+
+  <div class="qg-layout">
+    <aside class="qg-sidebar">
+      <div class="qg-filters-side no-print">
+        <input type="text" id="relBusca" placeholder="Filtrar por texto…">
+        <select id="relModalidade"><option value="">— Modalidade —</option></select>
+        <label class="rel-opt"><input type="checkbox" id="relVirgula" checked> Separar itens de materialidade também por vírgula</label>
+        <div class="qg-filters-side-btns">
+          <button class="btn-secondary" onclick="carregarQuadro()">↻ Atualizar</button>
+          <button class="btn-secondary" onclick="baixarRelatorioCSV()">⬇ CSV</button>
+        </div>
+        <div class="qg-filters-side-btns">
+          <button class="btn-primary" onclick="window.print()">🖶 Imprimir</button>
+        </div>
+      </div>
+
+      <div class="qg-prof-nav">
+        <div class="qg-prof-nav-head" style="cursor:default"><span style="margin-left:0;color:var(--paper);font-family:'Playfair Display',serif;font-weight:700;font-size:13px">Tipo de relatório</span></div>
+        <div id="relNav"></div>
+      </div>
+    </aside>
+
+    <section class="qg-main">
+      <div id="relOut" class="rel-out"></div>
+    </section>
   </div>
 </main>
 
@@ -563,7 +627,7 @@ function limparCamposSemConfirmar(){
 async function carregarRegistros(){
   const box = document.getElementById('registros-lista');
   try{
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc&limit=50`, { headers: sbHeaders() });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${GETECULTURA_TABLE}?select=*&order=created_at.desc&limit=300`, { headers: sbHeaders() });
     const rows = await r.json();
     if(!r.ok) throw new Error(rows.message || 'Erro ao carregar');
     REGISTROS_DATA = Array.isArray(rows) ? rows : [];
@@ -572,6 +636,7 @@ async function carregarRegistros(){
       return;
     }
     box.innerHTML = REGISTROS_DATA.map(row => renderRegistroCard(row)).join('');
+    atualizarSelecao();
   }catch(err){
     console.error(err);
     box.innerHTML = `<p style="font-size:12px;color:#c0392b">Não foi possível carregar os registros salvos.</p>`;
@@ -587,6 +652,7 @@ function renderRegistroCard(row){
 
   return `<div class="reg-card collapsed" id="reg-${row.id}">
     <div class="reg-head" onclick="document.getElementById('reg-${row.id}').classList.toggle('collapsed')">
+      <input type="checkbox" class="reg-sel" data-id="${row.id}" title="Selecionar para impressão em lote" onclick="event.stopPropagation(); atualizarSelecao()">
       <div class="reg-head-main">
         <div class="rh-title">${escHtml(row.titulo || '(sem título)')}</div>
         <div class="rh-sub">${[row.disciplina, row.modalidade].filter(Boolean).map(escHtml).join(' · ') || '—'}${row.turmas && row.turmas.length ? ' — ' + row.turmas.map(escHtml).join(', ') : ''}</div>
@@ -608,6 +674,7 @@ function renderRegistroCard(row){
         <tr><th>5 · Professores</th><td>${listVal(row.professores)}</td></tr>
       </table>
       <div class="reg-body-actions">
+        <button class="btn-tiny" onclick="event.stopPropagation(); imprimirFichaRegistro('${row.id}')">🖶 Imprimir ficha</button>
         <button class="btn-tiny edit" onclick="event.stopPropagation(); editarRegistro('${row.id}')">✎ Editar</button>
         <button class="btn-tiny del" onclick="event.stopPropagation(); excluirRegistro('${row.id}')">✕ Excluir</button>
       </div>
@@ -687,7 +754,7 @@ function fichaHTML(d, isBlank){
     <div class="ficha-header">
       <div><div class="fh-title">GETE<span>CULTURA</span> <span style="font-size:12px;color:#b8872a">2026</span></div>
       <div class="fh-sub">Mostra Cultural · Registro de Atividade do Professor</div></div>
-      <div class="fh-right">OUTUBRO 2026</div>
+      <div class="fh-right">OUTUBRO 2026<div style="font-size:9px;margin-top:3px;color:#1a1612;letter-spacing:.3px">DATA DE REALIZAÇÃO 07/11/2026</div></div>
     </div>
     <table>
       <tr><th>Nome do Professor</th>${isBlank?blankCell:`<td>${esc(d.profs&&d.profs[0]||'')}</td>`}</tr>
@@ -728,124 +795,195 @@ function limpar(){
    PDF RETRATO — 2 fichas por folha A4
    Econômico: sem fundos escuros, só linhas
 ════════════════════════════════════════ */
+/* converte um registro salvo (Supabase) no formato usado pelas fichas */
+function registroParaDados(row){
+  return {
+    titulo:row.titulo||'', descricao:row.descricao||'', disciplina:row.disciplina||'',
+    modalidade:row.modalidade||'', turmas:row.turmas||[], local:row.local||'',
+    obsLocal:row.obs_local||'', materiais:row.materiais||'', profs:row.professores||[]
+  };
+}
+
+/* desenha UMA ficha na metade da folha (oy = 0 → topo; oy = 148.5 → base).
+   As linhas crescem conforme o texto; se não couber, a fonte reduz um pouco. */
+function drawFicha(doc, d, blank, oy, showCut){
+  const PW=210, ml=10, mr=10, cw=PW-ml-mr;
+  const fichaH=148.5, lbW=42, valW=cw-lbW;
+  const y0 = oy + 7;
+
+  // cabeçalho
+  doc.setDrawColor(184,135,42); doc.setLineWidth(0.9);
+  doc.line(ml, y0, PW-mr, y0);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,22,18);
+  doc.text('GETECULTURA 2026', ml, y0+7);
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(90,82,72);
+  doc.text('Mostra Cultural · Registro de Atividade do Professor', ml, y0+12);
+  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(184,135,42);
+  doc.text('OUTUBRO 2026', PW-mr, y0+7, {align:'right'});
+  doc.setTextColor(26,22,18);
+  doc.text('DATA DE REALIZAÇÃO 07/11/2026', PW-mr, y0+12, {align:'right'});
+  doc.setDrawColor(200,190,178); doc.setLineWidth(0.25);
+  doc.line(ml, y0+15, PW-mr, y0+15);
+
+  const rows = [
+    {label:'Nome do Professor',  val: blank?'':(d.profs&&d.profs[0]||''), h:10},
+    {label:'Título / Atividade', val: blank?'':(d.titulo||''), h:10},
+    {label:'Descrição',          val: blank?'':(d.descricao||''), h:14},
+    {label:'Área · Modalidade',  val: blank?'':([d.disciplina,d.modalidade].filter(Boolean).join(' · ')), h:10},
+    {label:'Turmas / Alunos',    val: blank?'':(d.turmas||[]).join(', '), h:10},
+    {label:'Local da Instalação',val: blank?'':([d.local,d.obsLocal].filter(Boolean).join(' — ')), h:10},
+    {label:'Materialidade',      val: blank?'':(d.materiais||''), h:18},
+    {label:'Prof. Responsáveis', val: blank?'':(d.profs||[]).join(' / '), h:10},
+  ];
+
+  // dimensionamento: tenta fontes 8 → 6 pt até caber no espaço disponível
+  const budget = fichaH - 7 - 18 - 16 - 2;
+  const tamanhos = [[8,4.5],[7.2,3.9],[6.5,3.5],[6,3.2]];
+  let fs=8, step=4.5, medidas=[];
+  const medir = ()=> rows.map(r=>{
+    const lines = (!blank && r.val) ? doc.splitTextToSize(r.val, valW-4) : [];
+    return {lines, h: Math.max(r.h, lines.length ? 6+(lines.length-1)*step+2.5 : 0)};
+  });
+  for(const [f,st] of tamanhos){
+    fs=f; step=st;
+    doc.setFont('helvetica','normal'); doc.setFontSize(fs);
+    medidas = medir();
+    if(medidas.reduce((t,m)=>t+m.h,0) <= budget) break;
+  }
+  // último recurso: corta linhas da célula mais longa e marca com reticências
+  let guarda=0;
+  while(medidas.reduce((t,m)=>t+m.h,0) > budget && guarda++<200){
+    let k=-1, mx=1;
+    medidas.forEach((m,i)=>{ if(m.lines.length>mx){mx=m.lines.length;k=i;} });
+    if(k<0) break;
+    medidas[k].lines.pop();
+    const ult = medidas[k].lines.length-1;
+    medidas[k].lines[ult] = medidas[k].lines[ult].replace(/\s*$/,'') + ' …';
+    medidas[k].h = Math.max(rows[k].h, 6+(medidas[k].lines.length-1)*step+2.5);
+  }
+
+  let y = y0 + 18;
+  rows.forEach((row,i)=>{
+    const h = medidas[i].h;
+    doc.setFillColor(248,245,241);
+    doc.rect(ml, y, lbW, h, 'F');
+    doc.setDrawColor(185,175,163); doc.setLineWidth(0.28);
+    doc.rect(ml, y, cw, h, 'D');
+    doc.line(ml+lbW, y, ml+lbW, y+h);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(70,58,46);
+    doc.text(row.label.toUpperCase(), ml+2.5, y+6);
+
+    if(!blank && medidas[i].lines.length){
+      doc.setFont('helvetica','normal'); doc.setFontSize(fs); doc.setTextColor(26,22,18);
+      let ty = y+6;
+      medidas[i].lines.forEach(ln=>{ doc.text(ln, ml+lbW+3, ty); ty+=step; });
+    } else if(blank){
+      doc.setDrawColor(205,198,188); doc.setLineWidth(0.18);
+      const nL = Math.max(1, Math.floor((h-6)/5));
+      for(let li=0;li<nL;li++) doc.line(ml+lbW+3, y+5+li*5, ml+cw-3, y+5+li*5);
+    }
+    y += h;
+  });
+
+  // rodapé
+  const footY = y + 3;
+  doc.setDrawColor(185,135,42); doc.setLineWidth(0.35);
+  doc.line(ml, footY, PW-mr, footY);
+  doc.setDrawColor(175,167,156); doc.setLineWidth(0.22);
+  doc.rect(ml, footY+1.5, 90, 8, 'D');
+  doc.rect(ml+92, footY+1.5, 50, 8, 'D');
+  doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(110,100,88);
+  doc.text('Assinatura do(a) professor(a) responsável', ml+2, footY+7);
+  doc.text('Data: _____ / _____ / 2026', ml+94, footY+7);
+  doc.setTextColor(155,145,133);
+  doc.text('GETECULTURA 2026 · Mostra Cultural', PW-mr, footY+7, {align:'right'});
+
+  // linha de corte
+  if(showCut){
+    const cutY = fichaH - 1;
+    doc.setDrawColor(190,183,173); doc.setLineWidth(0.2);
+    doc.setLineDash([2,2], 0);
+    doc.line(ml, cutY, PW-mr, cutY);
+    doc.setLineDash([], 0);
+    doc.setFontSize(6); doc.setTextColor(180,172,162);
+    doc.text('✂', PW/2, cutY+2.5, {align:'center'});
+  }
+}
+
+function nomeArquivoPDF(t){
+  return (t||'atividade').replace(/[^a-zA-Z0-9À-ú\s]/g,'').replace(/\s+/g,'_').substring(0,38);
+}
+
+/* abre o PDF numa nova aba já com a janela de impressão; se o navegador bloquear, baixa o arquivo */
+function imprimirOuBaixar(doc, nome){
+  try{
+    doc.autoPrint();
+    const w = window.open(doc.output('bloburl'), '_blank');
+    if(w) return true;
+  }catch(e){ console.error(e); }
+  doc.save(nome);
+  return false;
+}
+
+/* formulário atual da tela: 2 cópias idênticas por folha (comportamento original) */
 function gerarPDF(blank){
   const d = blank ? {} : dados();
   const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
-  // A4 retrato: 210 × 297
-  const PW=210, PH=297;
-  const ml=10, mr=10;
-  const cw = PW-ml-mr; // 190mm
-
-  // Cada ficha ocupa metade da folha
-  // Duas fichas: topo 0→148, base 149→297 (com margens internas)
-  const fichaH = PH/2; // 148.5mm
-
-  for(let fi=0; fi<2; fi++){
-    const oy = fi * fichaH; // offset vertical da ficha
-
-    /* ─ cabeçalho da ficha ─ */
-    const mt = 7;
-    const y0 = oy + mt;
-
-    // linha dourada topo
-    doc.setDrawColor(184,135,42); doc.setLineWidth(0.9);
-    doc.line(ml, y0, PW-mr, y0);
-
-    // título
-    doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(26,22,18);
-    doc.text('GETECULTURA 2026', ml, y0+7);
-    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(90,82,72);
-    doc.text('Mostra Cultural · Registro de Atividade do Professor', ml, y0+12);
-
-    // data direita
-    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(184,135,42);
-    doc.text('OUTUBRO 2026', PW-mr, y0+7, {align:'right'});
-
-    // linha divisória fina
-    doc.setDrawColor(200,190,178); doc.setLineWidth(0.25);
-    doc.line(ml, y0+15, PW-mr, y0+15);
-
-    /* ─ tabela de linhas ─ */
-    // largura col rótulo: 42mm; col valor: restante
-    const lbW = 42;
-    const valW = cw - lbW;
-    const rowH = 10; // altura padrão de linha
-    const bigH = 18; // materialidade (pode ter mais texto)
-
-    const rows = [
-      {label:'Nome do Professor',    val: blank?'': (d.profs&&d.profs[0]||''),  h:rowH},
-      {label:'Título / Atividade',   val: blank?'': (d.titulo||''),         h:rowH},
-      {label:'Descrição',            val: blank?'': (d.descricao||''),       h:14},
-      {label:'Área · Modalidade',    val: blank?'': ([d.disciplina,d.modalidade].filter(Boolean).join(' · ')), h:rowH},
-      {label:'Turmas / Alunos',      val: blank?'': (d.turmas||[]).join(', '), h:rowH},
-      {label:'Local da Instalação',   val: blank?'': ([d.local, d.obsLocal].filter(Boolean).join(' — ')), h:rowH},
-      {label:'Materialidade',        val: blank?'': (d.materiais||''),       h:bigH},
-      {label:'Prof. Responsáveis',   val: blank?'': (d.profs||[]).join(' / '), h:rowH},
-    ];
-
-    let y = y0 + 18;
-    rows.forEach((row,ri)=>{
-      // fundo alternado claro no rótulo — econômico (apenas a célula do rótulo)
-      doc.setFillColor(248,245,241);
-      doc.rect(ml, y, lbW, row.h, 'F');
-
-      // bordas
-      doc.setDrawColor(185,175,163); doc.setLineWidth(0.28);
-      doc.rect(ml, y, cw, row.h, 'D');
-      doc.line(ml+lbW, y, ml+lbW, y+row.h);
-
-      // rótulo
-      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(70,58,46);
-      doc.text(row.label.toUpperCase(), ml+2.5, y+6);
-
-      // valor
-      if(!blank && row.val){
-        doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(26,22,18);
-        const wrapped = doc.splitTextToSize(row.val, valW-4);
-        let ty = y+6;
-        wrapped.forEach(ln=>{ if(ty < y+row.h-2){ doc.text(ln, ml+lbW+3, ty); ty+=4.5; } });
-      } else if(blank){
-        // linha de escrita manual
-        doc.setDrawColor(205,198,188); doc.setLineWidth(0.18);
-        const nL = Math.max(1, Math.floor((row.h-6)/5));
-        for(let li=0;li<nL;li++) doc.line(ml+lbW+3, y+5+li*5, ml+cw-3, y+5+li*5);
-      }
-
-      y += row.h;
-    });
-
-    /* ─ rodapé da ficha ─ */
-    const footY = y + 3;
-    doc.setDrawColor(185,135,42); doc.setLineWidth(0.35);
-    doc.line(ml, footY, PW-mr, footY);
-
-    doc.setDrawColor(175,167,156); doc.setLineWidth(0.22);
-    doc.rect(ml, footY+1.5, 90, 8, 'D');
-    doc.rect(ml+92, footY+1.5, 50, 8, 'D');
-    doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(110,100,88);
-    doc.text('Assinatura do(a) professor(a) responsável', ml+2, footY+7);
-    doc.text('Data: _____ / _____ / 2026', ml+94, footY+7);
-    doc.setFontSize(6); doc.setTextColor(155,145,133);
-    doc.text('GETECULTURA 2026 · Mostra Cultural', PW-mr, footY+7, {align:'right'});
-
-    /* ─ linha de corte entre fichas ─ */
-    if(fi===0){
-      const cutY = fichaH - 1;
-      doc.setDrawColor(190,183,173); doc.setLineWidth(0.2);
-      doc.setLineDash([2,2], 0);
-      doc.line(ml, cutY, PW-mr, cutY);
-      doc.setLineDash([], 0);
-      doc.setFontSize(6); doc.setTextColor(180,172,162);
-      doc.text('✂', PW/2, cutY+2.5, {align:'center'});
-    }
-  }
-
+  drawFicha(doc, d, blank, 0, true);
+  drawFicha(doc, d, blank, 148.5, false);
   const nome = blank
     ? 'GETECULTURA2026_Formulario_Branco.pdf'
-    : `GETECULTURA2026_${(d.titulo||'atividade').replace(/[^a-zA-Z0-9À-ú\s]/g,'').replace(/\s+/g,'_').substring(0,38)}.pdf`;
+    : `GETECULTURA2026_${nomeArquivoPDF(d.titulo)}.pdf`;
   doc.save(nome);
   fecharModal();
   toast(blank?'✓ Formulário em branco gerado!':'✓ PDF gerado com sucesso!');
+}
+
+/* um registro salvo: 2 cópias idênticas na folha */
+function imprimirFichaRegistro(id){
+  const row = REGISTROS_DATA.find(r=>String(r.id)===String(id));
+  if(!row){ toast('Registro não encontrado.'); return; }
+  const d = registroParaDados(row);
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  drawFicha(doc, d, false, 0, true);
+  drawFicha(doc, d, false, 148.5, false);
+  imprimirOuBaixar(doc, `GETECULTURA2026_${nomeArquivoPDF(d.titulo)}.pdf`);
+}
+
+/* vários registros: uma ficha por atividade, 2 fichas (atividades diferentes) por folha */
+function imprimirFichasPreenchidas(somenteSelecionadas){
+  let lista = REGISTROS_DATA.slice();
+  if(somenteSelecionadas){
+    const ids = [...document.querySelectorAll('.reg-sel:checked')].map(c=>String(c.dataset.id));
+    lista = lista.filter(r=>ids.includes(String(r.id)));
+  }
+  if(!lista.length){ toast(somenteSelecionadas ? 'Marque ao menos um registro.' : 'Não há registros salvos.'); return; }
+
+  // ordem: professor (A–Z) e depois título — facilita colher assinaturas
+  const prof = r => ((r.professores||[])[0]||'').split(' — ')[0].trim();
+  lista.sort((a,b)=> prof(a).localeCompare(prof(b),'pt-BR',{sensitivity:'base'}) || (a.titulo||'').localeCompare(b.titulo||'','pt-BR',{sensitivity:'base'}));
+
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  lista.forEach((row,i)=>{
+    if(i>0 && i%2===0) doc.addPage();
+    drawFicha(doc, registroParaDados(row), false, (i%2)*148.5, i%2===0);
+  });
+  if(lista.length%2===1){
+    // folha ímpar: mantém a linha de corte para a metade vazia
+  }
+  imprimirOuBaixar(doc, `GETECULTURA2026_Fichas_${lista.length}_atividades.pdf`);
+  toast(`✓ ${lista.length} ficha(s) preparada(s) — ${Math.ceil(lista.length/2)} folha(s).`);
+}
+
+function selecionarTodosRegistros(marcar){
+  document.querySelectorAll('.reg-sel').forEach(c=>c.checked=marcar);
+  atualizarSelecao();
+}
+function atualizarSelecao(){
+  const n = document.querySelectorAll('.reg-sel:checked').length;
+  const b = document.getElementById('btnImprSel');
+  if(b) b.textContent = `🖶 Imprimir selecionadas (${n})`;
 }
 
 function toast(msg){
@@ -862,12 +1000,14 @@ let QG_CARREGADO = false;
 let QG_PROF_ATIVO = null; // nome do professor selecionado na barra lateral (null = todos)
 
 function mudarAba(aba){
-  const isForm = aba==='form';
-  document.getElementById('viewForm').style.display = isForm ? '' : 'none';
-  document.getElementById('viewQuadro').style.display = isForm ? 'none' : '';
-  document.getElementById('tabFormBtn').classList.toggle('active', isForm);
-  document.getElementById('tabQuadroBtn').classList.toggle('active', !isForm);
-  if(!isForm && !QG_CARREGADO) carregarQuadro();
+  document.getElementById('viewForm').style.display      = aba==='form'   ? '' : 'none';
+  document.getElementById('viewQuadro').style.display    = aba==='quadro' ? '' : 'none';
+  document.getElementById('viewRelatorios').style.display = aba==='rel'   ? '' : 'none';
+  document.getElementById('tabFormBtn').classList.toggle('active', aba==='form');
+  document.getElementById('tabQuadroBtn').classList.toggle('active', aba==='quadro');
+  document.getElementById('tabRelBtn').classList.toggle('active', aba==='rel');
+  if(aba!=='form' && !QG_CARREGADO) carregarQuadro();
+  else if(aba==='rel') renderRelatorio();
 }
 
 async function carregarQuadro(){
@@ -883,6 +1023,8 @@ async function carregarQuadro(){
     QG_CARREGADO = true;
     montarFiltroModalidadeQG();
     renderQuadro();
+    montarFiltroModalidadeRel();
+    renderRelatorio();
   }catch(err){
     console.error(err);
     status.className='qg-status err';
@@ -1011,6 +1153,191 @@ function montarProfNav(filtradas){
 
 document.getElementById('qgBusca').addEventListener('input', renderQuadro);
 document.getElementById('qgModalidade').addEventListener('change', renderQuadro);
+
+/* ════════════════════════════════════════
+   RELATÓRIOS — listagens-resumo
+   Cada gerador devolve { cols, rows, groupCol }:
+   - cols: títulos das colunas
+   - rows: linhas; cada célula é string ou array de strings
+   - groupCol: índice da coluna usada para agrupar (ou null)
+════════════════════════════════════════ */
+const SEM = {local:'— Sem local informado —', prof:'— Sem professor indicado —', turma:'— Sem turma informada —', mod:'— Sem modalidade —'};
+let REL_ATIVO = 'mat';
+let REL_ATUAL = null; // último relatório gerado (para CSV)
+
+const nomeProf = p => (p.split(' — ')[0].trim());
+const ptSort = (a,b)=> String(a).localeCompare(String(b),'pt-BR',{sensitivity:'base',numeric:true});
+const normKey = t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+
+function splitItens(txt, porVirgula){
+  if(!txt) return [];
+  const sep = porVirgula ? /\r?\n|;|,/ : /\r?\n|;/;
+  return txt.split(sep)
+    .map(x=>x.replace(/^\s*(?:[-–—•*·]+|\d+[.)])\s*/,'').trim())
+    .filter(Boolean);
+}
+const profsDe = r => (r.professores||[]).map(nomeProf).filter(Boolean);
+
+const REL_TIPOS = [
+  { id:'mat', nome:'Listagem de materialidade', desc:'Materialidade demandada por cada atividade, com professor e local de instalação.',
+    gerar:(L)=>({
+      cols:['Atividade','Professores','Local','Materialidade demandada'],
+      groupCol:null,
+      rows:L.slice().sort((a,b)=>ptSort(a.titulo||'',b.titulo||'')).map(r=>[
+        r.titulo||'(sem título)', profsDe(r), r.local||'—',
+        r.materiais ? splitItens(r.materiais, relPorVirgula()) : '—'
+      ])
+    })},
+  { id:'matcons', nome:'Materialidade — lista consolidada', desc:'Cada item de material uma única vez, com as atividades que o demandam. Útil para compras e separação. As quantidades escritas no texto não são somadas.',
+    gerar:(L)=>{
+      const mapa = new Map();
+      L.forEach(r=>{
+        splitItens(r.materiais, relPorVirgula()).forEach(it=>{
+          const k = normKey(it); if(!k) return;
+          if(!mapa.has(k)) mapa.set(k,{item:it, ats:new Set()});
+          mapa.get(k).ats.add(r.titulo||'(sem título)');
+        });
+      });
+      const rows=[...mapa.values()].sort((a,b)=>ptSort(a.item,b.item))
+        .map(o=>[o.item,[...o.ats].sort(ptSort),String(o.ats.size)]);
+      return {cols:['Item','Atividades que demandam','Nº de atividades'], groupCol:null, rows};
+    }},
+  { id:'local', nome:'Atividades por local', desc:'Atividades agrupadas pelo local de instalação.',
+    gerar:(L)=>({
+      cols:['Local','Atividade','Professores','Modalidade','Observação do local'], groupCol:0,
+      rows:L.map(r=>[r.local||SEM.local, r.titulo||'(sem título)', profsDe(r), r.modalidade||'—', r.obs_local||'—'])
+            .sort((a,b)=>ptSort(a[0],b[0])||ptSort(a[1],b[1]))
+    })},
+  { id:'prof', nome:'Atividades por professor', desc:'Cada professor com as atividades em que é responsável.',
+    gerar:(L)=>{
+      const rows=[];
+      L.forEach(r=>{
+        const ps=profsDe(r); (ps.length?ps:[SEM.prof]).forEach(p=>rows.push([p, r.titulo||'(sem título)', r.local||'—', r.modalidade||'—', r.turmas||[]]));
+      });
+      rows.sort((a,b)=>ptSort(a[0],b[0])||ptSort(a[1],b[1]));
+      return {cols:['Professor','Atividade','Local','Modalidade','Turmas'], groupCol:0, rows};
+    }},
+  { id:'turma', nome:'Atividades por turma', desc:'Cada turma com as atividades de que participa.',
+    gerar:(L)=>{
+      const rows=[];
+      L.forEach(r=>{
+        const ts=(r.turmas||[]).filter(Boolean); (ts.length?ts:[SEM.turma]).forEach(t=>rows.push([t, r.titulo||'(sem título)', profsDe(r), r.local||'—']));
+      });
+      rows.sort((a,b)=>ptSort(a[0],b[0])||ptSort(a[1],b[1]));
+      return {cols:['Turma','Atividade','Professores','Local'], groupCol:0, rows};
+    }},
+  { id:'mod', nome:'Atividades por modalidade', desc:'Atividades agrupadas por modalidade, com a área/disciplina.',
+    gerar:(L)=>({
+      cols:['Modalidade','Atividade','Área / Disciplina','Professores','Local'], groupCol:0,
+      rows:L.map(r=>[r.modalidade||SEM.mod, r.titulo||'(sem título)', r.disciplina||'—', profsDe(r), r.local||'—'])
+            .sort((a,b)=>ptSort(a[0],b[0])||ptSort(a[1],b[1]))
+    })},
+  { id:'pend', nome:'Pendências de cadastro', desc:'Atividades com informação faltando (local, materialidade, descrição, turmas ou professor).',
+    gerar:(L)=>{
+      const rows=[];
+      L.forEach(r=>{
+        const f=[];
+        if(!r.local) f.push('local');
+        if(!(r.materiais||'').trim()) f.push('materialidade');
+        if(!(r.descricao||'').trim()) f.push('descrição');
+        if(!(r.turmas||[]).length) f.push('turmas');
+        if(!profsDe(r).length) f.push('professor');
+        if(f.length) rows.push([r.titulo||'(sem título)', profsDe(r), f]);
+      });
+      rows.sort((a,b)=>ptSort(a[0],b[0]));
+      return {cols:['Atividade','Professores','Falta informar'], groupCol:null, rows};
+    }}
+];
+
+function relPorVirgula(){ return document.getElementById('relVirgula').checked; }
+
+function montarFiltroModalidadeRel(){
+  const sel=document.getElementById('relModalidade');
+  const atual=sel.value;
+  const mods=[...new Set(QG_DATA.map(r=>r.modalidade).filter(Boolean))].sort(ptSort);
+  sel.innerHTML='<option value="">— Modalidade —</option>'+mods.map(m=>`<option>${escHtml(m)}</option>`).join('');
+  sel.value=atual;
+}
+
+function relFiltrados(){
+  const busca=document.getElementById('relBusca').value.trim().toLowerCase();
+  const mod=document.getElementById('relModalidade').value;
+  return QG_DATA.filter(r=>{
+    if(mod && r.modalidade!==mod) return false;
+    if(!busca) return true;
+    return [r.titulo,r.descricao,(r.professores||[]).join(' '),(r.turmas||[]).join(' '),r.local,r.obs_local,r.disciplina,r.modalidade,r.materiais]
+      .filter(Boolean).join(' ').toLowerCase().includes(busca);
+  });
+}
+
+function relCelaHTML(v){
+  if(Array.isArray(v)){
+    if(!v.length) return '<span class="rel-muted">—</span>';
+    return `<div class="rel-cell-list">${v.map(x=>`<div>${escHtml(x)}</div>`).join('')}</div>`;
+  }
+  const t=(v==null||v==='')?'—':String(v);
+  return t==='—' ? '<span class="rel-muted">—</span>' : escHtml(t).replace(/\n/g,'<br>');
+}
+
+function renderRelatorio(){
+  // navegação
+  const nav=document.getElementById('relNav');
+  nav.innerHTML=REL_TIPOS.map(t=>`<div class="qg-prof-item${t.id===REL_ATIVO?' active':''}" data-rel="${t.id}"><span>${escHtml(t.nome)}</span></div>`).join('');
+  nav.querySelectorAll('.qg-prof-item').forEach(el=>el.addEventListener('click',()=>{REL_ATIVO=el.dataset.rel;renderRelatorio();}));
+
+  const out=document.getElementById('relOut');
+  const tipo=REL_TIPOS.find(t=>t.id===REL_ATIVO);
+  if(!QG_CARREGADO){ out.innerHTML='<div class="qg-status">Carregando atividades registradas…</div>'; return; }
+  if(QG_DATA.length===0){ REL_ATUAL=null; out.innerHTML='<div class="qg-status">Nenhuma atividade registrada ainda. Preencha e salve pelo Formulário para gerar relatórios.</div>'; return; }
+
+  const L=relFiltrados();
+  const rel=tipo.gerar(L);
+  REL_ATUAL={nome:tipo.nome, ...rel};
+  const agora=new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+  const cabecalho=`<div class="rel-head"><h2>${escHtml(tipo.nome)}</h2><div class="rel-meta">${L.length} atividade(s) considerada(s)<br>Gerado em ${agora}</div></div>
+    <p class="rel-desc no-print-desc">${escHtml(tipo.desc)}</p>`;
+
+  if(rel.rows.length===0){
+    out.innerHTML=cabecalho+'<div class="qg-status">Nada a listar neste relatório com o filtro atual.</div>'; return;
+  }
+
+  const g=rel.groupCol;
+  const colsVis=rel.cols.filter((_,i)=>i!==g);
+  const ncols=colsVis.length;
+  const tituloPrint=`<tr class="print-title"><th colspan="${ncols}"><div class="pt-in"><b>GETE<i>CULTURA</i> 2026 · ${escHtml(tipo.nome)}</b><small><u>OUTUBRO 2026</u>DATA DE REALIZAÇÃO 07/11/2026</small></div></th></tr>`;
+  let html=`<table class="rel-table"><thead>${tituloPrint}<tr>${colsVis.map(c=>`<th>${escHtml(c)}</th>`).join('')}</tr></thead><tbody>`;
+  if(g==null){
+    html+=rel.rows.map(r=>`<tr>${r.map(c=>`<td>${relCelaHTML(c)}</td>`).join('')}</tr>`).join('');
+  }else{
+    const cont={}; rel.rows.forEach(r=>cont[r[g]]=(cont[r[g]]||0)+1);
+    let ult=null;
+    rel.rows.forEach(r=>{
+      if(r[g]!==ult){ ult=r[g]; html+=`<tr class="rel-group"><td colspan="${ncols}">${escHtml(r[g])}<span>${cont[r[g]]} atividade(s)</span></td></tr>`; }
+      html+=`<tr>${r.filter((_,i)=>i!==g).map(c=>`<td>${relCelaHTML(c)}</td>`).join('')}</tr>`;
+    });
+  }
+  html+='</tbody></table>';
+  out.innerHTML=cabecalho+html;
+}
+
+function baixarRelatorioCSV(){
+  if(!REL_ATUAL || !REL_ATUAL.rows.length){ toast('Não há dados para exportar neste relatório.'); return; }
+  const q=v=>{
+    const t=Array.isArray(v)?v.join(' | '):(v==null?'':String(v));
+    return '"'+t.replace(/"/g,'""').replace(/\r?\n/g,' / ')+'"';
+  };
+  const linhas=[REL_ATUAL.cols.map(q).join(';'), ...REL_ATUAL.rows.map(r=>r.map(q).join(';'))];
+  const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='getecultura_'+REL_ATIVO+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+document.getElementById('relBusca').addEventListener('input', renderRelatorio);
+document.getElementById('relModalidade').addEventListener('change', renderRelatorio);
+document.getElementById('relVirgula').addEventListener('change', renderRelatorio);
 </script>
 </body>
 </html>
