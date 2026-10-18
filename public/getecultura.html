@@ -254,6 +254,18 @@
     .rel-table thead th{border-color:#5a4e3e;}
     .rel-table tr{break-inside:avoid;}
     .rel-table tr.rel-group{break-after:avoid;}
+
+    /* ECONOMIA DE TINTA: nenhum fundo (escuro ou claro) na impressão — só linhas e texto */
+    body,main,.qg-board,.rel-table,.qg-board-table td,.rel-table td{background:#fff !important;box-shadow:none !important;}
+    .qg-board-table thead tr:not(.print-title) th,
+    .rel-table thead tr:not(.print-title) th{
+      background:#fff !important;color:#000 !important;
+      border:1px solid #000 !important;border-bottom:2px solid #000 !important;
+    }
+    .rel-table tr.rel-group td{background:#fff !important;border-top:2px solid #000 !important;border-bottom:1px solid #000 !important;}
+    .qg-tag,.qg-tag-mod{background:transparent !important;border:none !important;padding:0 !important;color:#000 !important;}
+    .qg-board-prof-tag::before,.rel-cell-list div::before{color:#000 !important;}
+    .qg-board-table tbody tr:hover td{background:#fff !important;}
   }
 </style>
 </head>
@@ -865,8 +877,6 @@ function drawFicha(doc, d, blank, oy, showCut){
   let y = y0 + 18;
   rows.forEach((row,i)=>{
     const h = medidas[i].h;
-    doc.setFillColor(248,245,241);
-    doc.rect(ml, y, lbW, h, 'F');
     doc.setDrawColor(185,175,163); doc.setLineWidth(0.28);
     doc.rect(ml, y, cw, h, 'D');
     doc.line(ml+lbW, y, ml+lbW, y+h);
