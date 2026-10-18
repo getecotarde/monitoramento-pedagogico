@@ -816,6 +816,11 @@
         }
         /* Tamanhos multiplicados por --qgs: o JS reduz esse fator só o necessário para
            o quadro caber em UMA página A4 (retrato ou paisagem). */
+        .dupla7-form { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.6rem 0; }
+        .dupla7-form select, .dupla7-form input { padding: 0.45rem; }
+        .dupla7-form input { flex: 1; min-width: 220px; }
+        .dupla7-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.3rem; }
+        .dupla7-item button { border: none; background: none; color: var(--danger); cursor: pointer; font-size: 0.9rem; }
         .qg-print-page { --qgs: 1; width: 100%; box-sizing: border-box; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
         .qg-print-page h1 { font-size: calc(26px * var(--qgs)); margin: 0 0 calc(4px * var(--qgs)); color: #111; }
         .qg-print-page .qg-print-sub { font-size: calc(15px * var(--qgs)); color: #555; margin: 0 0 calc(18px * var(--qgs)); }
@@ -2288,7 +2293,7 @@
                         <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Masculino 7')">⚽ Futsal Masc.</button>
                         <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Feminino 7')">⚽ Futsal Fem.</button>
                         <button type="button" class="btn" onclick="imprimirCartaz7('Queimada Mista 7')">🔥 Queimada</button>
-                        <button type="button" class="btn" style="background:var(--secondary);" onclick="imprimirCartaz7('todas')">📄 Todas (3 folhas)</button>
+                        <button type="button" class="btn" style="background:var(--secondary);" onclick="imprimirCartaz7('todas')">📄 Todas as modalidades</button>
                     </div>
                     <div id="placarSaveStatus7" class="alert alert-info" style="display:none; margin-top:0.6rem;"></div>
                 </div>
@@ -2363,7 +2368,13 @@
 
         <!-- TAB 6c: CHAVEAMENTO DINÂMICO — BASQUETE DE TRILHA E DAMAS -->
         <div id="chaveamento" class="tab-content">
-            <div class="alert alert-info">🎓 Esta aba é exclusiva do <strong>6º Ano</strong> (Basquete de Trilha e Damas não existem entre as modalidades do 7º Ano). As semifinais/final/3º lugar de Futsal M/F e Queimada do <strong>7º Ano</strong> ficam na aba 🗓️ Grade de Horários &amp; Placares.</div>
+            <div class="card">
+                <div class="view-toggle-bar" id="chaveamentoAnoToggle">
+                    <button type="button" class="view-toggle-btn active" id="chaveamentoBtn6" onclick="switchAno('chaveamento','6')">🎓 6º Anos</button>
+                    <button type="button" class="view-toggle-btn" id="chaveamentoBtn7" onclick="switchAno('chaveamento','7')">🎓 7º Anos</button>
+                </div>
+            </div>
+            <div id="chaveamentoAno6">
             <div class="mod-pill-nav" id="chaveamentoModPillNav">
                 <button type="button" class="mod-pill mod-pill-geral active" onclick="filtrarChaveamentoModalidade('todas')">📋 Todos</button>
                 <button type="button" class="mod-pill mod-pill-basquete" onclick="filtrarChaveamentoModalidade('basquete')">🏀 Basquete Trilha</button>
@@ -2397,6 +2408,57 @@
                     <span id="statusPodioDamas" style="display:none; font-size:0.85rem; color:var(--text-muted);"></span>
                 </div>
             </div>
+            </div><!-- fim #chaveamentoAno6 -->
+
+            <div id="chaveamentoAno7" style="display:none;">
+                <div class="alert alert-info">🎓 <strong>7º Anos</strong> — Basquete de Trilha (M e F) e Damas, igual aos 6º Anos. Cadastre as duplas de cada modalidade (turma + nomes); o chaveamento, a classificação e o pódio são montados automaticamente e entram no 🥇 Quadro Geral.</div>
+                <div id="statusExtra7" class="alert alert-info" style="display:none;"></div>
+
+                <div class="card" id="chaveamentoCardBq7m">
+                    <h2>🏀 Chaveamento — Basquete de Trilha (Masculino) — 7º Anos</h2>
+                    <p style="color: var(--text-muted);">Eliminatória simples: a Rodada 1 emparelha as duplas na ordem do cadastro (1ª x 2ª, 3ª x 4ª…; se sobrar uma, ela avança por bye). Marque o vencedor de cada confronto clicando no nome — as fases seguintes, o campeão e a disputa de 3º lugar se formam sozinhos.</p>
+                    <div class="dupla7-form">
+                        <select id="duplaTurma7_bq7m_lista"></select>
+                        <input type="text" id="duplaNomes7_bq7m_lista" placeholder="Nomes da dupla (ex.: Ana Souza / Maria Lima)">
+                        <button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__adicionarDupla7('bq7m_lista')">➕ Adicionar dupla</button>
+                    </div>
+                    <div id="listaDuplas7_bq7m_lista"></div>
+                    <p id="statusChaveBq7m" class="alert alert-info" style="margin-top:0.6rem;"></p>
+                    <div id="chaveamentoBq7m"></div>
+                    <div style="margin-top:0.8rem;"><button type="button" class="btn" onclick="imprimirCartaz7('Basquete de Trilha (M) 7')">🖨️ Imprimir cartaz (A4 paisagem)</button></div>
+                </div>
+
+                <div class="card" id="chaveamentoCardBq7f">
+                    <h2>🏀 Classificação — Basquete de Trilha (Feminino) — 7º Anos</h2>
+                    <p style="color: var(--text-muted);">Turno único, todas contra todas entre as duplas cadastradas. Marque o vencedor de cada confronto clicando no nome — a classificação e o pódio são recalculados automaticamente.</p>
+                    <div class="dupla7-form">
+                        <select id="duplaTurma7_bq7f_lista"></select>
+                        <input type="text" id="duplaNomes7_bq7f_lista" placeholder="Nomes da dupla (ex.: Ana Souza / Maria Lima)">
+                        <button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__adicionarDupla7('bq7f_lista')">➕ Adicionar dupla</button>
+                    </div>
+                    <div id="listaDuplas7_bq7f_lista"></div>
+                    <div id="jogosBq7f" style="margin-top:0.8rem;"></div>
+                    <div class="table-responsive" style="margin-top:0.6rem;">
+                        <table>
+                            <thead><tr><th>Pos.</th><th>Dupla</th><th>PJ</th><th>V</th><th>D</th></tr></thead>
+                            <tbody id="classBq7f"></tbody>
+                        </table>
+                    </div>
+                    <p id="avisoEmpateBq7f" style="display:none; font-size:0.85rem; color:var(--danger); margin-top:0.4rem;"></p>
+                    <div style="margin-top:0.8rem;"><button type="button" class="btn" onclick="imprimirCartaz7('Basquete de Trilha (F) 7')">🖨️ Imprimir cartaz (A4 paisagem)</button></div>
+                </div>
+
+                <div class="card" id="chaveamentoCardDamas7">
+                    <h2>♟️ Damas — Pódio — 7º Anos</h2>
+                    <p style="color: var(--text-muted);">Para Damas, registre apenas a colocação final: nome do aluno(a), turma e a seleção correspondente de cada posição do pódio.</p>
+                    <div id="podioDamas7Form" style="margin-top:0.8rem; display:flex; flex-direction:column; gap:0.6rem; max-width:680px;"></div>
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-top:0.8rem;">
+                        <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPodioDamas7()">💾 Salvar pódio</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Damas 7')">🖨️ Imprimir cartaz (A4 paisagem)</button>
+                        <span id="statusPodioDamas7" style="display:none; font-size:0.85rem; color:var(--text-muted);"></span>
+                    </div>
+                </div>
+            </div><!-- fim #chaveamentoAno7 -->
         </div>
 
 
@@ -2455,7 +2517,7 @@
                         <button type="button" id="btnQuadroGeralOrientPaisagem7" data-or="paisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
                     </div>
                 </div>
-                <p style="color: var(--text-muted);">Calculado automaticamente a partir das semifinais/final/3º lugar de Futsal M/F e Queimada Mista lançadas na aba 🗓️ Grade de Horários &amp; Placares (7º Anos).</p>
+                <p style="color: var(--text-muted);">Calculado automaticamente a partir das semifinais/final/3º lugar de Futsal M/F e Queimada Mista (aba 🗓️ Grade de Horários &amp; Placares) e dos pódios de Basquete de Trilha M/F e Damas (aba 🏆 Chaveamento), todos dos 7º Anos.</p>
                 <div class="table-responsive" style="margin-top:0.8rem;">
                     <table>
                         <thead>
@@ -2475,7 +2537,7 @@
                 <div id="penalidadesForm7"></div>
                 <div id="penalidadesLista7"></div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/3º lugar definido não contam pontos até o resultado ser lançado.</p>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista.</p>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.3rem;"><strong>Siglas:</strong> FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.</p>
             </div>
             </div><!-- fim #quadrogeralAno7 -->
         </div>
@@ -9190,7 +9252,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
                 htmlNotasDescontos(lista, true) +
-                '<p class="nota-rodape"><strong>Siglas:</strong> ' + (sete ? 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista.' : 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.') + '</p>' +
+                '<p class="nota-rodape"><strong>Siglas:</strong> ' + (sete ? 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.' : 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.') + '</p>' +
                 '<p class="nota-rodape">⏳ Modalidades ainda sem ' + (sete ? 'Final/3º lugar' : 'Final/pódio') + ' definido não contam pontos até o resultado ser lançado.</p>' +
                 '<p class="qg-credito">Organização e Execução: Prof. Dênis; Profa. Jane; Coordenação — Apoio: Professores/Coordenação/Direção/Oficineiros</p>' +
                 '</div>';
@@ -10804,6 +10866,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     if (turma && tabela[turma]) { tabela[turma][pos].push(sigla); tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos]; }
                 });
             });
+            // Basquete de Trilha (M/F) e Damas dos 7º Anos
+            var placaresExtra7 = carregarPlacaresSalvos7();
+            MODALIDADES_EXTRA_7.forEach(function (cfgE) {
+                var rE = calcularPodioExtra7(cfgE, placaresExtra7);
+                if (!rE) return;
+                ['ouro', 'prata', 'bronze'].forEach(function (pos) {
+                    var turma = extrairTurmaDoNomePodio(rE[pos]);
+                    if (turma && tabela[turma]) { tabela[turma][pos].push(cfgE.sigla); tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos]; }
+                });
+            });
             var lista = turmasOrdem.map(function (t) { return tabela[t]; });
             aplicarPenalidadesNoQuadro(lista, '7');
             lista.sort(function (a, b) {
@@ -10833,6 +10905,323 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }).join('');
             renderNotasDescontos('7', lista);
             renderPenalidadesUI('7');
+        }
+
+        // ================================================================
+        // ===== 7º ANO — BASQUETE DE TRILHA (M/F) E DAMAS =====
+        // Mesmo funcionamento dos 6º Anos: Basquete M em eliminatória simples,
+        // Basquete F em turno único todas-contra-todas e Damas com pódio direto.
+        // Como as duplas dos 7º Anos são cadastradas aqui, tudo fica no armazenamento
+        // do 7º Ano (local + ano '7' no Supabase), junto dos demais placares.
+        // ================================================================
+        var MODALIDADES_EXTRA_7 = [
+            { mod: 'Basquete de Trilha (M) 7', rotulo: 'Basquete de Trilha (M)', sigla: 'BQ-M', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7m_lista', prefixo: 'bq7m', chave: 'chaveamentoBq7m', status: 'statusChaveBq7m', cor: '#b45309' },
+            { mod: 'Basquete de Trilha (F) 7', rotulo: 'Basquete de Trilha (F)', sigla: 'BQ-F', icone: '🏀', tipo: 'todos', lista: 'bq7f_lista', prefixo: 'bq7f', chave: 'jogosBq7f', cor: '#be185d' },
+            { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'podio', registro: 'damas7_podio', cor: '#475569' }
+        ];
+        var POSICOES_PODIO_7 = [
+            { key: 'ouro', medalha: '🥇', rotulo: '1º lugar' },
+            { key: 'prata', medalha: '🥈', rotulo: '2º lugar' },
+            { key: 'bronze', medalha: '🥉', rotulo: '3º lugar' }
+        ];
+
+        function listaDuplas7(cfg) {
+            var d = carregarPlacaresSalvos7()[cfg.lista];
+            return (d && Array.isArray(d.participantes)) ? d.participantes : [];
+        }
+
+        // Jogos todos-contra-todos (Basquete F): o vencedor salvo só vale se for uma das duas duplas do confronto.
+        function jogosTodosContraTodos7(cfg, placares) {
+            var part = listaDuplas7(cfg), jogos = [];
+            for (var i = 0; i < part.length; i++) {
+                for (var k = i + 1; k < part.length; k++) {
+                    var id = cfg.prefixo + '_' + (i + 1) + '_' + (k + 1);
+                    var sv = placares[id];
+                    var venc = (sv && typeof sv === 'object') ? sv.nome : null;
+                    if (venc !== part[i] && venc !== part[k]) venc = null;
+                    jogos.push({ id: id, nomeA: part[i], nomeB: part[k], vencedor: venc, bye: false });
+                }
+            }
+            return jogos;
+        }
+
+        function classificacaoTodos7(cfg, placares) {
+            var part = listaDuplas7(cfg), st = {};
+            part.forEach(function (n) { st[n] = { time: n, pg: 0, v: 0, d: 0 }; });
+            jogosTodosContraTodos7(cfg, placares).forEach(function (j) {
+                if (!j.vencedor) return;
+                var perd = (j.vencedor === j.nomeA) ? j.nomeB : j.nomeA;
+                st[j.vencedor].pg++; st[perd].pg++; st[j.vencedor].v++; st[perd].d++;
+            });
+            var arr = part.map(function (n) { return st[n]; });
+            arr.sort(function (a, b) { return b.v - a.v; });
+            return arr;
+        }
+
+        // Campeão / vice / 3º de cada modalidade extra (strings com a turma, ex.: "(7º A) Ana / Maria").
+        function calcularPodioExtra7(cfg, placares) {
+            if (cfg.tipo === 'podio') {
+                var reg = (placares[cfg.registro] && typeof placares[cfg.registro] === 'object') ? placares[cfg.registro] : {};
+                var fmt = function (pos) {
+                    var r = reg[pos];
+                    if (!r || !r.nome || !r.turma) return null;
+                    return r.nome + ' (' + r.turma + ')';
+                };
+                return { ouro: fmt('ouro'), prata: fmt('prata'), bronze: fmt('bronze') };
+            }
+            var part = listaDuplas7(cfg);
+            if (part.length < 2) return { ouro: null, prata: null, bronze: null };
+            if (cfg.tipo === 'todos') {
+                var jogos = jogosTodosContraTodos7(cfg, placares);
+                if (!jogos.length || jogos.some(function (j) { return !j.vencedor; })) return { ouro: null, prata: null, bronze: null };
+                var c = classificacaoTodos7(cfg, placares);
+                return { ouro: c[0] ? c[0].time : null, prata: c[1] ? c[1].time : null, bronze: c[2] ? c[2].time : null };
+            }
+            var ch = construirChaveamento(cfg.prefixo, part, placares);
+            var prata = null;
+            if (ch.rodadas.length) {
+                var ult = ch.rodadas[ch.rodadas.length - 1];
+                if (ult.nome === 'Final' && ult.jogos.length === 1 && ult.jogos[0].vencedor) {
+                    var jf = ult.jogos[0];
+                    prata = (jf.vencedor === jf.nomeA) ? jf.nomeB : jf.nomeA;
+                }
+            }
+            return { ouro: ch.campeao || null, prata: prata, bronze: (ch.terceiroLugar && ch.terceiroLugar.vencedor) || null };
+        }
+
+        function mostrarStatusExtra7(msg) {
+            var el = document.getElementById('statusExtra7');
+            if (!el) return;
+            el.style.display = 'block'; el.textContent = msg;
+        }
+
+        async function sincronizarExtra7(dados, msgOk) {
+            mostrarStatusExtra7('💾 Salvando...');
+            var ok = await salvarPlacaresNoSupabase7(dados);
+            mostrarStatusExtra7(ok ? '✅ ' + msgOk + ' e sincronizado.' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.');
+        }
+
+        function preencherTurmasExtra7() {
+            ['bq7m_lista', 'bq7f_lista'].forEach(function (k) {
+                var sel = document.getElementById('duplaTurma7_' + k);
+                if (sel && !sel.options.length) {
+                    sel.innerHTML = '<option value="">Turma...</option>' + Object.keys(SELECOES_TURMA_7).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
+                }
+            });
+        }
+
+        window.__adicionarDupla7 = function (chaveLista) {
+            var selT = document.getElementById('duplaTurma7_' + chaveLista), inp = document.getElementById('duplaNomes7_' + chaveLista);
+            if (!selT || !inp) return;
+            var turma = selT.value, nomes = inp.value.trim().replace(/\s+/g, ' ');
+            if (!turma || !nomes) { mostrarStatusExtra7('⚠️ Escolha a turma e informe os nomes da dupla.'); return; }
+            var cfg = MODALIDADES_EXTRA_7.filter(function (m) { return m.lista === chaveLista; })[0];
+            var lista = listaDuplas7(cfg).slice();
+            var nome = '(' + turma + ') ' + nomes;
+            if (lista.indexOf(nome) !== -1) { mostrarStatusExtra7('⚠️ Essa dupla já está cadastrada.'); return; }
+            lista.push(nome);
+            inp.value = '';
+            var dados = salvarPlacarNoStorage7(chaveLista, { participantes: lista });
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Dupla adicionada');
+        };
+
+        window.__removerDupla7 = function (chaveLista, idx) {
+            var cfg = MODALIDADES_EXTRA_7.filter(function (m) { return m.lista === chaveLista; })[0];
+            var lista = listaDuplas7(cfg).slice();
+            if (idx < 0 || idx >= lista.length) return;
+            var dados0 = carregarPlacaresSalvos7();
+            var temResultado = Object.keys(dados0).some(function (k) { return k.indexOf(cfg.prefixo + '_') === 0 && k !== chaveLista; });
+            if (temResultado && !window.confirm('Remover esta dupla apaga TODOS os resultados já lançados de ' + cfg.rotulo + ' (7º Anos), porque os confrontos mudam. Continuar?')) return;
+            lista.splice(idx, 1);
+            var dados = carregarPlacaresSalvos7();
+            Object.keys(dados).forEach(function (k) { if (k.indexOf(cfg.prefixo + '_') === 0 && k !== chaveLista) delete dados[k]; });
+            dados[chaveLista] = { participantes: lista };
+            try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Dupla removida');
+        };
+
+        window.__marcarVencedorExtra7 = function (idJogo, nome) {
+            var dados = salvarPlacarNoStorage7(idJogo, { nome: nome });
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Vencedor salvo');
+        };
+        window.__marcarVencedorExtra7_desfazer = function (idJogo) {
+            var dados = carregarPlacaresSalvos7();
+            delete dados[idJogo];
+            try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Resultado desfeito');
+        };
+
+        function htmlListaDuplas7(cfg) {
+            var part = listaDuplas7(cfg);
+            if (!part.length) return '<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma dupla cadastrada ainda.</p>';
+            return part.map(function (n, i) {
+                return '<div class="dupla7-item"><span>' + (i + 1) + '. ' + escHtml7(n) + '</span><button type="button" title="Remover" onclick="window.__removerDupla7(\'' + cfg.lista + '\',' + i + ')">✖</button></div>';
+            }).join('');
+        }
+
+        function renderPodioDamas7() {
+            var box = document.getElementById('podioDamas7Form');
+            if (!box) return;
+            var cfg = MODALIDADES_EXTRA_7[2];
+            var reg = carregarPlacaresSalvos7()[cfg.registro] || {};
+            box.innerHTML = POSICOES_PODIO_7.map(function (p) {
+                var r = reg[p.key] || {};
+                var ops = '<option value="">Turma...</option>' + Object.keys(SELECOES_TURMA_7).map(function (t) { return '<option value="' + t + '"' + (r.turma === t ? ' selected' : '') + '>' + t + '</option>'; }).join('');
+                var sel = (r.turma && SELECOES_TURMA_7[r.turma]) ? (SELECOES_TURMA_7[r.turma].bandeira + ' ' + SELECOES_TURMA_7[r.turma].pais) : '—';
+                return '<div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; padding:0.6rem; border:1px solid var(--border); border-radius:8px;">' +
+                    '<div style="font-weight:700; min-width:90px;">' + p.medalha + ' ' + p.rotulo + '</div>' +
+                    '<input type="text" id="podioDamas7Nome_' + p.key + '" placeholder="Nome do aluno(a)" value="' + escHtml7(r.nome || '') + '" style="flex:1; min-width:180px; padding:0.4rem;">' +
+                    '<select id="podioDamas7Turma_' + p.key + '" onchange="window.__atualizarSelecaoDamas7(\'' + p.key + '\')" style="padding:0.4rem;">' + ops + '</select>' +
+                    '<span id="podioDamas7Selecao_' + p.key + '" style="font-weight:600; min-width:150px;">' + sel + '</span></div>';
+            }).join('');
+        }
+
+        window.__atualizarSelecaoDamas7 = function (key) {
+            var sel = document.getElementById('podioDamas7Turma_' + key), span = document.getElementById('podioDamas7Selecao_' + key);
+            if (!sel || !span) return;
+            span.textContent = (sel.value && SELECOES_TURMA_7[sel.value]) ? (SELECOES_TURMA_7[sel.value].bandeira + ' ' + SELECOES_TURMA_7[sel.value].pais) : '—';
+        };
+
+        window.__salvarPodioDamas7 = async function () {
+            var reg = {};
+            POSICOES_PODIO_7.forEach(function (p) {
+                var n = document.getElementById('podioDamas7Nome_' + p.key), t = document.getElementById('podioDamas7Turma_' + p.key);
+                reg[p.key] = { nome: n ? n.value.trim() : '', turma: t ? t.value : '' };
+            });
+            var st = document.getElementById('statusPodioDamas7');
+            var dados = carregarPlacaresSalvos7();
+            dados[MODALIDADES_EXTRA_7[2].registro] = reg;
+            try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+            renderQuadroGeral7();
+            if (st) { st.style.display = 'inline'; st.textContent = '💾 Salvando...'; }
+            var ok = await salvarPlacaresNoSupabase7(dados);
+            if (st) st.textContent = ok ? '✅ Pódio de Damas salvo e sincronizado.' : '⚠️ Salvo apenas neste navegador — não foi possível sincronizar com o servidor agora.';
+        };
+
+        function renderExtra7() {
+            preencherTurmasExtra7();
+            var placares = carregarPlacaresSalvos7();
+            MODALIDADES_EXTRA_7.forEach(function (cfg) {
+                if (cfg.tipo === 'podio') { renderPodioDamas7(); return; }
+                var elLista = document.getElementById('listaDuplas7_' + cfg.lista);
+                if (elLista) elLista.innerHTML = htmlListaDuplas7(cfg);
+                var cont = document.getElementById(cfg.chave);
+                if (!cont) return;
+                var part = listaDuplas7(cfg);
+                if (cfg.tipo === 'eliminatoria') {
+                    var stEl = document.getElementById(cfg.status);
+                    if (part.length < 2) {
+                        if (stEl) stEl.textContent = '⏳ Cadastre pelo menos 2 duplas para gerar o chaveamento.';
+                        cont.innerHTML = '';
+                        return;
+                    }
+                    var ch = construirChaveamento(cfg.prefixo, part, placares);
+                    var r1 = ch.rodadas[0] ? ch.rodadas[0].jogos.filter(function (j) { return !j.bye; }) : [];
+                    var dec = r1.filter(function (j) { return j.vencedor; }).length;
+                    if (stEl) stEl.textContent = '✅ ' + part.length + ' duplas · ' + dec + ' de ' + r1.length + ' confrontos da Rodada 1 já têm vencedor' + (ch.campeao ? ' · campeão definido.' : '.');
+                    var colunas = ch.rodadas.map(function (r, idx) {
+                        var titulo = (r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome;
+                        return '<div class="chave-coluna"><h4>' + titulo + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
+                    }).join('');
+                    var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div></div>' : '';
+                    var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar') + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
+                    cont.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
+                } else { // todos contra todos (Basquete F)
+                    var jogos = jogosTodosContraTodos7(cfg, placares);
+                    cont.innerHTML = part.length < 2 ? '<div class="alert alert-info">Cadastre pelo menos 2 duplas para gerar os confrontos.</div>' :
+                        '<div class="chave-wrap"><div class="chave-coluna"><h4>Confrontos (' + jogos.length + ')</h4>' + jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div></div>';
+                    var classif = classificacaoTodos7(cfg, placares);
+                    var tb = document.getElementById('classBq7f');
+                    if (tb) tb.innerHTML = classif.map(function (x, i) { return '<tr><td>' + (i + 1) + 'º</td><td>' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>'; }).join('');
+                    var av = document.getElementById('avisoEmpateBq7f');
+                    if (av) {
+                        var completo = jogos.length > 0 && jogos.every(function (j) { return j.vencedor; });
+                        var empate = completo && classif.some(function (x, i) { return i < 2 && classif[i + 1] && x.v === classif[i + 1].v; });
+                        av.style.display = empate ? 'block' : 'none';
+                        av.textContent = empate ? '⚠️ Há empate em número de vitórias entre posições do pódio — defina o desempate (ex.: confronto direto) antes de divulgar; a ordem acima segue o cadastro.' : '';
+                    }
+                }
+            });
+        }
+
+        // ----- Cartaz (A4 paisagem) das modalidades extras -----
+        function blocoPodioExtra7(pod, comSelecao) {
+            function sel(nome) {
+                if (!comSelecao || !nome) return '';
+                var m = String(nome).match(/\(([67]º [A-F])\)/);
+                var s = m && SELECOES_TURMA_7[m[1]];
+                return s ? ' — ' + escHtml7(s.pais) : '';
+            }
+            pod = pod || {};
+            return '<div class="camp">' + (pod.ouro ? '🏆 CAMPEÃO: ' + escHtml7(pod.ouro) + sel(pod.ouro) : '🏆 Campeão: a definir') + '</div>' +
+                '<div class="pod"><div>' + (pod.prata ? '🥈 2º lugar: ' + escHtml7(pod.prata) + sel(pod.prata) : '<span class="ph">🥈 2º lugar: a definir</span>') + '</div>' +
+                '<div>' + (pod.bronze ? '🥉 3º lugar: ' + escHtml7(pod.bronze) + sel(pod.bronze) : '<span class="ph">🥉 3º lugar: a definir</span>') + '</div></div>';
+        }
+
+        function colExtra7(titulo, cartoes) {
+            return '<div class="chave-col"><div class="rot">' + titulo + '</div><div class="cc">' + cartoes + '</div></div>';
+        }
+
+        function cartaoExtra7(j) {
+            if (j.bye) return '<div class="bc"><div class="bl v"><span>🎟️ ' + escHtml7(j.nomeA) + '</span><span class="g">bye</span></div></div>';
+            return cartaoBracketCartaz7(j, false, 'a definir', 'a definir', null);
+        }
+
+        function folhaCartazExtra7(cfg, placares) {
+            var pod = calcularPodioExtra7(cfg, placares);
+            var corpo = '';
+            var legenda = '';
+            if (cfg.tipo === 'eliminatoria') {
+                var part = listaDuplas7(cfg);
+                var ch = part.length >= 2 ? construirChaveamento(cfg.prefixo, part, placares) : { rodadas: [], campeao: null, terceiroLugar: null };
+                var cols = ch.rodadas.map(function (r, idx) {
+                    return colExtra7((r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome, r.jogos.map(cartaoExtra7).join(''));
+                });
+                // colunas das próximas fases ainda sem times definidos
+                var p = ch.rodadas.length ? ch.rodadas[ch.rodadas.length - 1].jogos.length : part.length;
+                var k = ch.rodadas.length;
+                while (p > 1 && cols.length < 8) {
+                    var g = Math.ceil(p / 2), ph = '';
+                    for (var q = 0; q < Math.floor(p / 2) || q < 1; q++) ph += '<div class="bc"><div class="bl p"><span class="ph">a definir</span></div><div class="bl p"><span class="ph">a definir</span></div></div>';
+                    if (k >= ch.rodadas.length && ch.rodadas.length && ch.rodadas[ch.rodadas.length - 1].jogos.some(function (j) { return !j.vencedor; })) {
+                        cols.push(colExtra7(g === 1 ? 'Final' : (g === 2 ? 'Semifinal' : 'Rodada ' + (cols.length + 1)), ph));
+                    } else if (!ch.rodadas.length) {
+                        cols.push(colExtra7(g === 1 ? 'Final' : (g === 2 ? 'Semifinal' : 'Rodada ' + (cols.length + 1)), ph));
+                    } else break;
+                    p = g; k++;
+                }
+                if (ch.terceiroLugar) {
+                    cols.push(colExtra7('Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">auto</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
+                }
+                corpo = '<div class="chave-linha">' + (cols.length ? cols.join('') : '<div class="ph" style="margin:auto;font-size:14pt;">Duplas ainda não cadastradas</div>') + '</div>';
+                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye.';
+            } else if (cfg.tipo === 'todos') {
+                var cl = classificacaoTodos7(cfg, placares);
+                var linhas = cl.map(function (x, i) { return '<tr' + ((pod && pod.ouro && i < 3) ? ' class="q"' : '') + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>'; }).join('');
+                var jg = jogosTodosContraTodos7(cfg, placares).map(function (j, i) {
+                    var a = j.vencedor === j.nomeA ? 'v' : (j.vencedor ? 'p' : ''), b = j.vencedor === j.nomeB ? 'v' : (j.vencedor ? 'p' : '');
+                    return '<div class="jl"><span class="n">' + (i + 1) + '</span><span class="tA ' + a + '">' + escHtml7(j.nomeA) + '</span><span class="pl ' + a + '">' + (j.vencedor ? (a === 'v' ? 'V' : 'D') : '') + '</span><span class="x">x</span><span class="pl ' + b + '">' + (j.vencedor ? (b === 'v' ? 'V' : 'D') : '') + '</span><span class="tB ' + b + '">' + escHtml7(j.nomeB) + '</span></div>';
+                }).join('');
+                corpo = '<div class="corpo"><div class="col"><h2>📊 Classificação</h2><table class="cl"><tr><th>Pos.</th><th class="t">Dupla</th><th>PJ</th><th>V</th><th>D</th></tr>' + linhas + '</table></div>' +
+                    '<div class="col"><h2>🗓️ Confrontos e resultados</h2>' + (jg || '<div class="ph" style="padding:10px;">Duplas ainda não cadastradas</div>') + '</div></div>';
+                legenda = 'Turno único, todas contra todas. Classificação pelo número de vitórias. V = vitória · D = derrota.';
+            } else { // Damas: pódio direto
+                var reg = (placares[cfg.registro] && typeof placares[cfg.registro] === 'object') ? placares[cfg.registro] : {};
+                corpo = '<div class="chave-linha" style="align-items:center;">' + POSICOES_PODIO_7.map(function (pp) {
+                    var r = reg[pp.key] || {}, s = r.turma && SELECOES_TURMA_7[r.turma];
+                    return '<div class="chave-col" style="justify-content:center;"><div class="bc" style="padding:14px;text-align:center;"><div style="font-size:30pt;">' + pp.medalha + '</div><div style="font-size:13pt;font-weight:800;margin:4px 0;">' + pp.rotulo + '</div>' +
+                        (r.nome ? '<div style="font-size:17pt;font-weight:800;">' + escHtml7(r.nome) + '</div><div style="font-size:13pt;color:#475569;">' + escHtml7(r.turma || '') + (s ? ' — ' + escHtml7(s.pais) : '') + '</div>' : '<div class="ph" style="font-size:14pt;">a definir</div>') + '</div></div>';
+                }).join('') + '</div>';
+                legenda = 'Damas — pódio final dos 7º Anos.';
+            }
+            return '<section class="folha ext" style="--cor:' + cfg.cor + ';">' +
+                '<div class="topo"><div><h1>' + cfg.icone + ' ' + cfg.rotulo + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026</div></div></div>' +
+                corpo + (cfg.tipo === 'podio' ? '' : blocoPodioExtra7(pod, false)) +
+                '<div class="rodape">' + legenda + '</div></section>';
         }
 
         // ===== Cartaz para impressão (A4 paisagem) — uma folha por modalidade =====
@@ -10972,7 +11361,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         window.imprimirCartaz7 = function (mod) {
             var placares = carregarPlacaresSalvos7();
             var cfgs = (mod === 'todas') ? MODALIDADES_7 : MODALIDADES_7.filter(function (m) { return m.mod === mod; });
-            if (!cfgs.length) return;
+            var extras = (mod === 'todas')
+                ? MODALIDADES_EXTRA_7.filter(function (m) { var pd = calcularPodioExtra7(m, placares); return m.tipo === 'podio' ? !!(pd.ouro || pd.prata || pd.bronze) : listaDuplas7(m).length >= 2; })
+                : MODALIDADES_EXTRA_7.filter(function (m) { return m.mod === mod; });
+            if (!cfgs.length && !extras.length) return;
             var css = '@page{size:A4 landscape;margin:7mm}' +
                 '*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
                 'body{color:#1e293b;background:#fff}' +
@@ -10995,9 +11387,12 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '.pod{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}.pod div{text-align:center;font-size:11.5pt;font-weight:700;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:6px;padding:4px}'+
                 'sup.ast{font-size:9pt;font-weight:800;color:#b91c1c;margin-left:1px;vertical-align:top;line-height:1}' +
                 '.notas{border-top:1.5px solid #94a3b8;margin-top:4px;padding-top:3px;line-height:1.3;color:#334155}.notas-tit{font-weight:800;color:var(--cor);font-size:1.05em;margin-bottom:1px}.notas-col{column-count:2;column-gap:16px}.nota{break-inside:avoid;margin-bottom:2px}.nota b{color:#b91c1c}.nota .nr{font-weight:600;color:#475569}' +
+                '.chave-linha{display:flex;gap:10px;height:118mm;flex:none;align-items:stretch;margin-top:8px}.chave-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}.chave-col .rot{flex:none}.chave-col .cc{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:6px;min-height:0}' +
+                '.ext .bl{font-size:10.5pt;padding:5px 7px;overflow-wrap:anywhere}.ext .bl>span:first-child{min-width:0}.ext .rot{font-size:10pt;text-align:center}' +
                 '.rodape{margin-top:5px;font-size:10pt;color:#64748b;text-align:center}';
             var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Cartaz — Interclasse 7º Anos</title><style>' + css + '</style></head><body>' +
-                cfgs.map(function (c) { return folhaCartaz7(c, placares); }).join('') + '</body></html>';
+                cfgs.map(function (c) { return folhaCartaz7(c, placares); }).join('') +
+                extras.map(function (c) { return folhaCartazExtra7(c, placares); }).join('') + '</body></html>';
             var f = document.createElement('iframe');
             f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
             document.body.appendChild(f);
@@ -11031,6 +11426,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     renderTabelaPlacares7();
                     renderClassificacoes7();
                     renderChaveamento7();
+                    renderExtra7();
                     renderQuadroGeral7();
                 })();
             }
