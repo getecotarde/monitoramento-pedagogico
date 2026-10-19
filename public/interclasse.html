@@ -2411,7 +2411,7 @@
             </div><!-- fim #chaveamentoAno6 -->
 
             <div id="chaveamentoAno7" style="display:none;">
-                <div class="alert alert-info">🎓 <strong>7º Anos</strong> — Basquete de Trilha (M e F) e Damas, igual aos 6º Anos. Cadastre as duplas de cada modalidade (turma + nomes); o chaveamento, a classificação e o pódio são montados automaticamente e entram no 🥇 Quadro Geral.</div>
+                <div class="alert alert-info">🎓 <strong>7º Anos</strong> — Basquete de Trilha (M e F) e Damas, igual aos 6º Anos. Cadastre as duplas/participantes de cada modalidade (turma + nomes); os confrontos são sempre eliminatórios, e o chaveamento e o pódio são montados automaticamente e entram no 🥇 Quadro Geral.</div>
                 <div id="statusExtra7" class="alert alert-info" style="display:none;"></div>
 
                 <div class="card" id="chaveamentoCardBq7m">
@@ -2429,34 +2429,39 @@
                 </div>
 
                 <div class="card" id="chaveamentoCardBq7f">
-                    <h2>🏀 Classificação — Basquete de Trilha (Feminino) — 7º Anos</h2>
-                    <p style="color: var(--text-muted);">Turno único, todas contra todas entre as duplas cadastradas. Marque o vencedor de cada confronto clicando no nome — a classificação e o pódio são recalculados automaticamente.</p>
+                    <h2>🏀 Chaveamento — Basquete de Trilha (Feminino) — 7º Anos</h2>
                     <div class="dupla7-form">
                         <select id="duplaTurma7_bq7f_lista"></select>
                         <input type="text" id="duplaNomes7_bq7f_lista" placeholder="Nomes da dupla (ex.: Ana Souza / Maria Lima)">
                         <button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__adicionarDupla7('bq7f_lista')">➕ Adicionar dupla</button>
                     </div>
                     <div id="listaDuplas7_bq7f_lista"></div>
-                    <div id="jogosBq7f" style="margin-top:0.8rem;"></div>
-                    <div class="table-responsive" style="margin-top:0.6rem;">
-                        <table>
-                            <thead><tr><th>Pos.</th><th>Dupla</th><th>PJ</th><th>V</th><th>D</th></tr></thead>
-                            <tbody id="classBq7f"></tbody>
-                        </table>
-                    </div>
-                    <p id="avisoEmpateBq7f" style="display:none; font-size:0.85rem; color:var(--danger); margin-top:0.4rem;"></p>
+                    <p id="statusChaveBq7f" class="alert alert-info" style="margin-top:0.6rem;"></p>
+                    <div id="chaveamentoBq7f"></div>
                     <div style="margin-top:0.8rem;"><button type="button" class="btn" onclick="imprimirCartaz7('Basquete de Trilha (F) 7')">🖨️ Imprimir cartaz (A4 paisagem)</button></div>
                 </div>
 
                 <div class="card" id="chaveamentoCardDamas7">
-                    <h2>♟️ Damas — Pódio — 7º Anos</h2>
-                    <p style="color: var(--text-muted);">Para Damas, registre apenas a colocação final: nome do aluno(a), turma e a seleção correspondente de cada posição do pódio.</p>
-                    <div id="podioDamas7Form" style="margin-top:0.8rem; display:flex; flex-direction:column; gap:0.6rem; max-width:680px;"></div>
-                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-top:0.8rem;">
-                        <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPodioDamas7()">💾 Salvar pódio</button>
-                        <button type="button" class="btn" onclick="imprimirCartaz7('Damas 7')">🖨️ Imprimir cartaz (A4 paisagem)</button>
-                        <span id="statusPodioDamas7" style="display:none; font-size:0.85rem; color:var(--text-muted);"></span>
+                    <h2>♟️ Chaveamento — Damas — 7º Anos</h2>
+                    <p style="color: var(--text-muted);">Confrontos sempre eliminatórios. Cadastre os participantes (turma + nome); o chaveamento é montado automaticamente e o pódio sai do mata-mata.</p>
+                    <div class="dupla7-form">
+                        <select id="duplaTurma7_damas7_lista"></select>
+                        <input type="text" id="duplaNomes7_damas7_lista" placeholder="Nome do aluno(a) (ex.: Ana Souza)">
+                        <button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__adicionarDupla7('damas7_lista')">➕ Adicionar participante</button>
                     </div>
+                    <div id="listaDuplas7_damas7_lista"></div>
+                    <p id="statusChaveDamas7" class="alert alert-info" style="margin-top:0.6rem;"></p>
+                    <div id="chaveamentoDamas7"></div>
+                    <div style="margin-top:0.8rem;"><button type="button" class="btn" onclick="imprimirCartaz7('Damas 7')">🖨️ Imprimir cartaz (A4 paisagem)</button></div>
+                    <details style="margin-top:1rem;">
+                        <summary style="cursor:pointer; font-weight:600;">Pódio lançado manualmente (opcional / anterior)</summary>
+                        <p style="color: var(--text-muted); margin-top:0.5rem;">Usado apenas quando não há participantes cadastrados no chaveamento.</p>
+                        <div id="podioDamas7Form" style="margin-top:0.8rem; display:flex; flex-direction:column; gap:0.6rem; max-width:680px;"></div>
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.6rem; margin-top:0.8rem;">
+                            <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="window.__salvarPodioDamas7()">💾 Salvar pódio</button>
+                            <span id="statusPodioDamas7" style="display:none; font-size:0.85rem; color:var(--text-muted);"></span>
+                        </div>
+                    </details>
                 </div>
             </div><!-- fim #chaveamentoAno7 -->
         </div>
@@ -10909,15 +10914,15 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         // ================================================================
         // ===== 7º ANO — BASQUETE DE TRILHA (M/F) E DAMAS =====
-        // Mesmo funcionamento dos 6º Anos: Basquete M em eliminatória simples,
-        // Basquete F em turno único todas-contra-todas e Damas com pódio direto.
+        // 7º Anos: Basquete de Trilha (M e F) e Damas são sempre eliminatórios
+        // (mata-mata simples); o pódio sai do chaveamento.
         // Como as duplas dos 7º Anos são cadastradas aqui, tudo fica no armazenamento
         // do 7º Ano (local + ano '7' no Supabase), junto dos demais placares.
         // ================================================================
         var MODALIDADES_EXTRA_7 = [
             { mod: 'Basquete de Trilha (M) 7', rotulo: 'Basquete de Trilha (M)', sigla: 'BQ-M', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7m_lista', prefixo: 'bq7m', chave: 'chaveamentoBq7m', status: 'statusChaveBq7m', cor: '#b45309' },
-            { mod: 'Basquete de Trilha (F) 7', rotulo: 'Basquete de Trilha (F)', sigla: 'BQ-F', icone: '🏀', tipo: 'todos', lista: 'bq7f_lista', prefixo: 'bq7f', chave: 'jogosBq7f', cor: '#be185d' },
-            { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'podio', registro: 'damas7_podio', cor: '#475569' }
+            { mod: 'Basquete de Trilha (F) 7', rotulo: 'Basquete de Trilha (F)', sigla: 'BQ-F', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7f_lista', prefixo: 'bq7f', chave: 'chaveamentoBq7f', status: 'statusChaveBq7f', cor: '#be185d' },
+            { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'eliminatoria', lista: 'damas7_lista', prefixo: 'damas7', chave: 'chaveamentoDamas7', status: 'statusChaveDamas7', registro: 'damas7_podio', cor: '#475569' }
         ];
         var POSICOES_PODIO_7 = [
             { key: 'ouro', medalha: '🥇', rotulo: '1º lugar' },
@@ -10958,17 +10963,23 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return arr;
         }
 
+        function podioManualExtra7(cfg, placares) {
+            var reg = (placares[cfg.registro] && typeof placares[cfg.registro] === 'object') ? placares[cfg.registro] : {};
+            var fmt = function (pos) {
+                var r = reg[pos];
+                if (!r || !r.nome || !r.turma) return null;
+                return '(' + r.turma + ') ' + r.nome;
+            };
+            return { ouro: fmt('ouro'), prata: fmt('prata'), bronze: fmt('bronze') };
+        }
+
         // Campeão / vice / 3º de cada modalidade extra (strings com a turma, ex.: "(7º A) Ana / Maria").
         function calcularPodioExtra7(cfg, placares) {
             if (cfg.tipo === 'podio') {
-                var reg = (placares[cfg.registro] && typeof placares[cfg.registro] === 'object') ? placares[cfg.registro] : {};
-                var fmt = function (pos) {
-                    var r = reg[pos];
-                    if (!r || !r.nome || !r.turma) return null;
-                    return r.nome + ' (' + r.turma + ')';
-                };
-                return { ouro: fmt('ouro'), prata: fmt('prata'), bronze: fmt('bronze') };
+                return podioManualExtra7(cfg, placares);
             }
+            var part = listaDuplas7(cfg);
+            if (part.length < 2 && cfg.registro) return podioManualExtra7(cfg, placares);
             var part = listaDuplas7(cfg);
             if (part.length < 2) return { ouro: null, prata: null, bronze: null };
             if (cfg.tipo === 'todos') {
@@ -11002,7 +11013,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
 
         function preencherTurmasExtra7() {
-            ['bq7m_lista', 'bq7f_lista'].forEach(function (k) {
+            ['bq7m_lista', 'bq7f_lista', 'damas7_lista'].forEach(function (k) {
                 var sel = document.getElementById('duplaTurma7_' + k);
                 if (sel && !sel.options.length) {
                     sel.innerHTML = '<option value="">Turma...</option>' + Object.keys(SELECOES_TURMA_7).map(function (t) { return '<option value="' + t + '">' + t + '</option>'; }).join('');
@@ -11106,7 +11117,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             preencherTurmasExtra7();
             var placares = carregarPlacaresSalvos7();
             MODALIDADES_EXTRA_7.forEach(function (cfg) {
-                if (cfg.tipo === 'podio') { renderPodioDamas7(); return; }
+                if (cfg.registro) renderPodioDamas7();
                 var elLista = document.getElementById('listaDuplas7_' + cfg.lista);
                 if (elLista) elLista.innerHTML = htmlListaDuplas7(cfg);
                 var cont = document.getElementById(cfg.chave);
@@ -11220,7 +11231,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }
             return '<section class="folha ext" style="--cor:' + cfg.cor + ';">' +
                 '<div class="topo"><div><h1>' + cfg.icone + ' ' + cfg.rotulo + ' — 7º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · Realizado de 08/09 a 11/09</div></div></div>' +
-                corpo + (cfg.tipo === 'podio' ? '' : blocoPodioExtra7(pod, false)) +
+                corpo + blocoPodioExtra7(pod, false) +
                 '<div class="rodape">' + legenda + '</div></section>';
         }
 
@@ -11362,7 +11373,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var placares = carregarPlacaresSalvos7();
             var cfgs = (mod === 'todas') ? MODALIDADES_7 : MODALIDADES_7.filter(function (m) { return m.mod === mod; });
             var extras = (mod === 'todas')
-                ? MODALIDADES_EXTRA_7.filter(function (m) { var pd = calcularPodioExtra7(m, placares); return m.tipo === 'podio' ? !!(pd.ouro || pd.prata || pd.bronze) : listaDuplas7(m).length >= 2; })
+                ? MODALIDADES_EXTRA_7.filter(function (m) { var pd = calcularPodioExtra7(m, placares); return listaDuplas7(m).length >= 2 || !!(pd.ouro || pd.prata || pd.bronze); })
                 : MODALIDADES_EXTRA_7.filter(function (m) { return m.mod === mod; });
             if (!cfgs.length && !extras.length) return;
             var css = '@page{size:A4 landscape;margin:7mm}' +
