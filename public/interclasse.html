@@ -11174,13 +11174,56 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             sincronizarExtra7(dados, 'Resultado desfeito');
         };
 
+        var _edit7 = null; // { lista, idx } da dupla em edição
+
         function htmlListaDuplas7(cfg) {
             var part = listaDuplas7(cfg);
             if (!part.length) return '<p style="color:var(--text-muted); font-size:0.85rem;">Nenhuma dupla cadastrada ainda.</p>';
             return part.map(function (n, i) {
-                return '<div class="dupla7-item"><span>' + (i + 1) + '. ' + escHtml7(n) + '</span><button type="button" title="Remover" onclick="window.__removerDupla7(\'' + cfg.lista + '\',' + i + ')">✖</button></div>';
+                if (_edit7 && _edit7.lista === cfg.lista && _edit7.idx === i) {
+                    var m = String(n).match(/^\((.+?)\)\s*(.*)$/), turmaAtual = m ? m[1] : '', nomesAtual = m ? m[2] : n;
+                    var ops = '<option value="">Turma...</option>' + Object.keys(SELECOES_TURMA_7).map(function (t) { return '<option value="' + t + '"' + (t === turmaAtual ? ' selected' : '') + '>' + t + '</option>'; }).join('');
+                    return '<div class="dupla7-item" style="flex-wrap:wrap;"><span>' + (i + 1) + '.</span>' +
+                        '<select id="editTurma7_' + cfg.lista + '" style="padding:0.4rem;">' + ops + '</select>' +
+                        '<input type="text" id="editNomes7_' + cfg.lista + '" value="' + escHtml7(nomesAtual) + '" style="flex:1; min-width:200px; padding:0.4rem;">' +
+                        '<button type="button" title="Salvar" style="color:var(--secondary);" onclick="window.__salvarEdicaoDupla7(\'' + cfg.lista + '\',' + i + ')">💾 Salvar</button>' +
+                        '<button type="button" title="Cancelar" style="color:var(--text-muted);" onclick="window.__cancelarEdicaoDupla7()">Cancelar</button></div>';
+                }
+                return '<div class="dupla7-item"><span>' + (i + 1) + '. ' + escHtml7(n) + '</span><span>' +
+                    '<button type="button" title="Editar nome/turma" style="color:var(--secondary);" onclick="window.__editarDupla7(\'' + cfg.lista + '\',' + i + ')">✏️</button> ' +
+                    '<button type="button" title="Remover" onclick="window.__removerDupla7(\'' + cfg.lista + '\',' + i + ')">✖</button></span></div>';
             }).join('');
         }
+
+        window.__editarDupla7 = function (chaveLista, idx) { _edit7 = { lista: chaveLista, idx: idx }; renderExtra7(); };
+        window.__cancelarEdicaoDupla7 = function () { _edit7 = null; renderExtra7(); };
+
+        // Corrige turma/nomes de uma dupla já cadastrada. Os resultados já lançados
+        // (vencedores, desempate) que citam o nome antigo são atualizados para o novo.
+        window.__salvarEdicaoDupla7 = function (chaveLista, idx) {
+            var selT = document.getElementById('editTurma7_' + chaveLista), inp = document.getElementById('editNomes7_' + chaveLista);
+            if (!selT || !inp) return;
+            var turma = selT.value, nomes = inp.value.trim().replace(/\s+/g, ' ');
+            if (!turma || !nomes) { mostrarStatusExtra7('⚠️ Escolha a turma e informe os nomes.'); return; }
+            var cfg = MODALIDADES_EXTRA_7.filter(function (m) { return m.lista === chaveLista; })[0];
+            var lista = listaDuplas7(cfg).slice();
+            if (idx < 0 || idx >= lista.length) return;
+            var antigo = lista[idx], novo = '(' + turma + ') ' + nomes;
+            if (novo === antigo) { _edit7 = null; renderExtra7(); return; }
+            if (lista.indexOf(novo) !== -1) { mostrarStatusExtra7('⚠️ Já existe uma dupla cadastrada com esse nome e turma.'); return; }
+            lista[idx] = novo;
+            var dados = carregarPlacaresSalvos7();
+            Object.keys(dados).forEach(function (k) {
+                if (k.indexOf(cfg.prefixo + '_') !== 0 || k === chaveLista) return;
+                var v = dados[k];
+                if (v && typeof v === 'object') Object.keys(v).forEach(function (pp) { if (v[pp] === antigo) v[pp] = novo; });
+            });
+            dados[chaveLista] = { participantes: lista };
+            try { localStorage.setItem(LS_KEY_PLACARES_7, JSON.stringify(dados)); } catch (e) { }
+            _edit7 = null;
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Dupla corrigida');
+        };
 
         function renderPodioDamas7() {
             var box = document.getElementById('podioDamas7Form');
