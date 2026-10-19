@@ -2293,6 +2293,9 @@
                         <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Masculino 7')">⚽ Futsal Masc.</button>
                         <button type="button" class="btn" onclick="imprimirCartaz7('Futsal Feminino 7')">⚽ Futsal Fem.</button>
                         <button type="button" class="btn" onclick="imprimirCartaz7('Queimada Mista 7')">🔥 Queimada</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Basquete de Trilha (M) 7')">🏀 Basquete Trilha Masc.</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Basquete de Trilha (F) 7')">🏀 Basquete Trilha Fem.</button>
+                        <button type="button" class="btn" onclick="imprimirCartaz7('Damas 7')">♟️ Damas</button>
                         <button type="button" class="btn" style="background:var(--secondary);" onclick="imprimirCartaz7('todas')">📄 Todas as modalidades</button>
                     </div>
                     <div id="placarSaveStatus7" class="alert alert-info" style="display:none; margin-top:0.6rem;"></div>
@@ -11337,9 +11340,13 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         var titulo = (r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome;
                         return '<div class="chave-coluna"><h4>' + titulo + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
                     }).join('');
-                    var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div></div>' : '';
+                    var podE = calcularPodioExtra7(cfg, placares);
+                    var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div>' +
+                        (podE.prata ? '<div class="chave-jogo" style="margin-top:0.4rem;">🥈 Vice: ' + escHtml7(podE.prata) + '</div>' : '') +
+                        (podE.bronze ? '<div class="chave-jogo" style="margin-top:0.4rem;">🥉 3º: ' + escHtml7(podE.bronze) + '</div>' : (cfg.terceiroManual ? '<div class="chave-jogo" style="margin-top:0.4rem; color:var(--text-muted);">🥉 3º: a definir (marque abaixo)</div>' : '')) +
+                        '</div>' : '';
                     var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.rotulo || (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar')) + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
-                    if (cfg.terceiroManual) terceiroHtml = htmlTerceiroManual7(cfg, part, ch);
+                    terceiroHtml = cfg.terceiroManual ? htmlTerceiroManual7(cfg, part, ch) : '';
                     cont.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
                 } else { // todos contra todos (Basquete F)
                     var jogos = jogosTodosContraTodos7(cfg, placares);
@@ -11409,7 +11416,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     cols.push(colExtra7(ch.terceiroLugar.rotulo ? '3º lugar' : 'Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">' + (ch.terceiroLugar.manual ? 'manual' : (ch.terceiroLugar.rotulo ? 'perdeu p/ campeão' : 'auto')) + '</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
                 }
                 corpo = '<div class="chave-linha">' + (cols.length ? cols.join('') : '<div class="ph" style="margin:auto;font-size:14pt;">Duplas ainda não cadastradas</div>') + '</div>';
-                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. 3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).' + (cfg.terceiroManual ? ' Em Damas, o 3º lugar é definido manualmente.' : '');
+                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. ' + (cfg.terceiroManual ? '3º lugar definido manualmente (sem disputa de 3º lugar).' : '3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).');
                 var triP = cfg.triangular ? dadosTriangular7(cfg, part, placares) : { ativo: false };
                 if (triP.ativo) {
                     var colsP = triP.rodadas.map(function (r, idx) {
