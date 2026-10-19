@@ -2503,6 +2503,7 @@
                     </div>
                 </div>
                 <p style="color: var(--text-muted);">Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
+                <div id="avisoAnalise6"></div>
                 <div class="table-responsive" style="margin-top:0.8rem;">
                     <table>
                         <thead>
@@ -9235,6 +9236,37 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return m ? (m[1] + 'º ' + m[2].toUpperCase()) : null;
         }
 
+        // ===== TURMAS EM ANÁLISE (possível desclassificação) =====
+        // Turmas listadas aqui recebem destaque no Quadro Geral (tela e impressão).
+        // Para retirar o destaque após a decisão do Comitê, basta esvaziar este objeto.
+        var TURMAS_EM_ANALISE = {
+            '6º F': 'Em análise para possível desclassificação — aguardando decisão do Comitê de Interclasse.'
+        };
+        function _selosAnalise(linha, impressao) {
+            if (!TURMAS_EM_ANALISE[linha.turma]) return '';
+            return impressao
+                ? ' <span style="display:inline-block;margin-left:4px;padding:1px 6px;border:1px solid #b45309;border-radius:10px;background:#fef3c7;color:#92400e;font-size:calc(9px * var(--qgs, 1));font-weight:700;white-space:nowrap;">⚠️ Em análise †</span>'
+                : ' <span style="display:inline-block;margin-left:6px;padding:1px 8px;border:1px solid #b45309;border-radius:10px;background:#fef3c7;color:#92400e;font-size:0.72rem;font-weight:700;white-space:nowrap;">⚠️ Em análise †</span>';
+        }
+        function _estiloLinhaAnalise(linha) {
+            return TURMAS_EM_ANALISE[linha.turma] ? ' style="background:#fef3c7;color:#1f2937;"' : '';
+        }
+        function htmlAvisoAnalise(lista, impressao) {
+            var em = lista.filter(function (l) { return TURMAS_EM_ANALISE[l.turma]; });
+            if (!em.length) return '';
+            var itens = em.map(function (l) {
+                return '<div style="margin-top:0.2rem;">† <strong>' + l.selecao.bandeira + ' ' + l.selecao.pais + ' (' + l.turma + ')</strong>: ' + TURMAS_EM_ANALISE[l.turma] + '</div>';
+            }).join('');
+            var estilo = impressao
+                ? 'font-size:calc(10.5px * var(--qgs, 1));margin:calc(8px * var(--qgs, 1)) 0;padding:calc(6px * var(--qgs, 1)) calc(10px * var(--qgs, 1));border:1.5px solid #b45309;border-left:calc(6px * var(--qgs, 1)) solid #b45309;background:#fef3c7;color:#78350f;'
+                : 'font-size:0.9rem;margin:0.8rem 0;padding:0.7rem 0.9rem;border:1px solid #b45309;border-left:6px solid #b45309;background:#fef3c7;color:#78350f;border-radius:6px;';
+            return '<div class="qg-aviso-analise" style="' + estilo + '"><strong>⚠️ ATENÇÃO — Turma em análise:</strong>' + itens + '</div>';
+        }
+        function renderAvisoAnalise(ano, lista) {
+            var el = document.getElementById('avisoAnalise' + ano);
+            if (el) el.innerHTML = htmlAvisoAnalise(lista, false);
+        }
+
         function calcularQuadroGeral() {
             var placares = carregarPlacaresSalvos();
             var turmasOrdem = Object.keys(SELECOES_TURMA);
@@ -9280,15 +9312,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             };
             corpo.innerHTML = lista.map(function (linha, i) {
                 var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
-                return '<tr>' +
+                return '<tr' + _estiloLinhaAnalise(linha) + '>' +
                     '<td style="font-weight:700;">' + posicao + '</td>' +
-                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
+                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span>' + _selosAnalise(linha, false) + '</td>' +
                     '<td>' + celulaMedalha(linha.ouro) + '</td>' +
                     '<td>' + celulaMedalha(linha.prata) + '</td>' +
                     '<td>' + celulaMedalha(linha.bronze) + '</td>' +
                     '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td>' +
                     '</tr>';
             }).join('');
+            renderAvisoAnalise('6', lista);
             renderLegendaEObs('6', lista);
             renderNotasDescontos('6', lista);
             renderPenalidadesUI('6');
@@ -9307,9 +9340,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             };
             var linhas = lista.map(function (linha, i) {
                 var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
-                return '<tr>' +
+                return '<tr' + _estiloLinhaAnalise(linha) + '>' +
                     '<td><b>' + posicao + '</b></td>' +
-                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' (' + linha.turma + ')</td>' +
+                    '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' (' + linha.turma + ')' + _selosAnalise(linha, true) + '</td>' +
                     '<td>' + celula(linha.ouro) + '</td>' +
                     '<td>' + celula(linha.prata) + '</td>' +
                     '<td>' + celula(linha.bronze) + '</td>' +
@@ -9319,6 +9352,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return '<div class="qg-print-page">' +
                 '<h1>🥇 Quadro Geral — ' + (sete ? '7º Anos' : '6º Anos') + ' — Interclasse GETECO 2026</h1>' +
                 '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Realizado de 08/09 a 11/09</p>' +
+                (sete ? '' : htmlAvisoAnalise(lista, true)) +
                 '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>' + _marcasCabecalho(lista).ouro + '</th><th>' + _marcasCabecalho(lista).prata + '</th><th>' + _marcasCabecalho(lista).bronze + '</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
                 htmlLegendaPontuacao() +
