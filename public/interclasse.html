@@ -2251,13 +2251,15 @@
                     <button type="button" class="mod-pill mod-pill-damas" onclick="filtrarGradeModalidade('Damas')">♟️ Damas</button>
                     <button type="button" class="mod-pill mod-pill-queimada" onclick="filtrarGradeModalidade('Queimada Mista')">🔥 Queimada</button>
                 </div>
-                <div style="margin-top:0.6rem; display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
-                    <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirGradeModalidade()">🖨️ Imprimir Grade + Pódio (modalidade selecionada)</button>
-                    <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
-                    <div class="grade-orient-toggle" id="gradePodioOrientToggle">
-                        <button type="button" id="btnGradePodioOrientRetrato" class="grade-orient-btn active" onclick="definirOrientacaoGradePodio('retrato', this)">▯ Retrato</button>
-                        <button type="button" id="btnGradePodioOrientPaisagem" class="grade-orient-btn" onclick="definirOrientacaoGradePodio('paisagem', this)">▭ Paisagem</button>
-                    </div>
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; margin-top:0.8rem;">
+                    <strong style="font-size:0.9rem;">🖨️ Imprimir cartaz (A4 paisagem):</strong>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Futsal Masculino')">⚽ Futsal Masc.</button>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Futsal Feminino')">⚽ Futsal Fem.</button>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Queimada Mista')">🔥 Queimada</button>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Basquete de Trilha (M)')">🏀 Basquete Trilha Masc.</button>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Basquete de Trilha (F)')">🏀 Basquete Trilha Fem.</button>
+                    <button type="button" class="btn" onclick="imprimirCartaz6('Damas')">♟️ Damas</button>
+                    <button type="button" class="btn" style="background:var(--secondary);" onclick="imprimirCartaz6('todas')">📄 Todas as modalidades</button>
                 </div>
                 <div id="placarSaveStatus" class="alert alert-info" style="display:none;"></div>
             </div>
@@ -11698,14 +11700,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 notasHtml + '<div class="rodape">' + legenda + '</div></section>';
         }
 
-        window.imprimirCartaz7 = function (mod) {
-            var placares = carregarPlacaresSalvos7();
-            var cfgs = (mod === 'todas') ? MODALIDADES_7 : MODALIDADES_7.filter(function (m) { return m.mod === mod; });
-            var extras = (mod === 'todas')
-                ? MODALIDADES_EXTRA_7.filter(function (m) { var pd = calcularPodioExtra7(m, placares); return listaDuplas7(m).length >= 2 || !!(pd.ouro || pd.prata || pd.bronze); })
-                : MODALIDADES_EXTRA_7.filter(function (m) { return m.mod === mod; });
-            if (!cfgs.length && !extras.length) return;
-            var css = '@page{size:A4 landscape;margin:7mm}' +
+        // CSS único do cartaz (A4 paisagem) — usado pelos cartazes dos 6º e dos 7º Anos.
+        function cssCartazImpressao() {
+            return '@page{size:A4 landscape;margin:7mm}' +
                 '*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
                 'body{color:#1e293b;background:#fff}' +
                 '.folha{height:195mm;display:flex;flex-direction:column;page-break-after:always;break-after:page;overflow:hidden}' +
@@ -11730,6 +11727,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '.chave-linha{display:flex;gap:10px;height:118mm;flex:none;align-items:stretch;margin-top:8px}.chave-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}.chave-col .rot{flex:none}.chave-col .cc{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:6px;min-height:0}' +
                 '.ext .bl{font-size:10.5pt;padding:5px 7px;overflow-wrap:anywhere}.ext .bl>span:first-child{min-width:0}.ext .rot{font-size:10pt;text-align:center}' +
                 '.rodape{margin-top:5px;font-size:10pt;color:#64748b;text-align:center}';
+        }
+
+        window.imprimirCartaz7 = function (mod) {
+            var placares = carregarPlacaresSalvos7();
+            var cfgs = (mod === 'todas') ? MODALIDADES_7 : MODALIDADES_7.filter(function (m) { return m.mod === mod; });
+            var extras = (mod === 'todas')
+                ? MODALIDADES_EXTRA_7.filter(function (m) { var pd = calcularPodioExtra7(m, placares); return listaDuplas7(m).length >= 2 || !!(pd.ouro || pd.prata || pd.bronze); })
+                : MODALIDADES_EXTRA_7.filter(function (m) { return m.mod === mod; });
+            if (!cfgs.length && !extras.length) return;
+            var css = cssCartazImpressao();
             var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Cartaz — Interclasse 7º Anos</title><style>' + css + '</style></head><body>' +
                 cfgs.map(function (c) { return folhaCartaz7(c, placares); }).join('') +
                 extras.map(function (c) { return folhaCartazExtra7(c, placares); }).join('') + '</body></html>';
@@ -11740,6 +11747,198 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             setTimeout(function () {
                 f.contentWindow.focus(); f.contentWindow.print();
                 setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 60000);
+            }, 300);
+        };
+
+
+        // ===== Cartaz para impressão dos 6º Anos (A4 paisagem) — mesmo layout do 7º Ano =====
+        // Uma folha por modalidade: classificação dos grupos, jogos/resultados, chaveamento e pódio.
+        var CARTAZ_6 = [
+            { mod: 'Futsal Masculino', rotulo: 'Futsal Masculino', icone: '⚽', cor: '#1d4ed8', tipo: 'grupos', comGols: true },
+            { mod: 'Futsal Feminino', rotulo: 'Futsal Feminino', icone: '⚽', cor: '#0f766e', tipo: 'grupos', comGols: true },
+            { mod: 'Queimada Mista', rotulo: 'Queimada Mista', icone: '🔥', cor: '#c2410c', tipo: 'grupos', comGols: false },
+            { mod: 'Basquete de Trilha (M)', rotulo: 'Basquete de Trilha (M)', icone: '🏀', cor: '#b45309', tipo: 'eliminatoria' },
+            { mod: 'Basquete de Trilha (F)', rotulo: 'Basquete de Trilha (F)', icone: '🏀', cor: '#be185d', tipo: 'todos' },
+            { mod: 'Damas', rotulo: 'Damas', icone: '♟️', cor: '#475569', tipo: 'damas' }
+        ];
+
+        function jogoBracketCartaz6(g, placares) {
+            if (!g) return null;
+            var info = resolverConfronto(g, placares);
+            if (!info.pronto) return null;
+            var res = _lerResultadoJogoChave(placares[g.id], info.timeA, info.timeB, g.tipo === 'placar');
+            return { id: g.id, nomeA: info.timeA, nomeB: info.timeB, vencedor: res.vencedor, res: res };
+        }
+
+        function tabelaGrupoCartaz6(mod, times, placares, comGols) {
+            var cl = calcularClassificacaoGrupo(mod, times, placares);
+            var completo = cl.length > 0 && cl.every(function (x) { return x.pg >= 2; });
+            var linhas = cl.map(function (x, i) {
+                var dest = (completo && i < 2) ? ' class="q"' : '';
+                return '<tr' + dest + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td>' +
+                    (comGols ? '<td>' + x.e + '</td>' : '') + '<td>' + x.d + '</td>' +
+                    (comGols ? '<td>' + x.gp + '</td><td>' + x.gc + '</td><td>' + x.sg + '</td><td><b>' + x.pts + '</b></td>' : '') + '</tr>';
+            }).join('');
+            var cab = '<tr><th>Pos.</th><th class="t">Turma</th><th>PJ</th><th>V</th>' + (comGols ? '<th>E</th>' : '') + '<th>D</th>' + (comGols ? '<th>GP</th><th>GC</th><th>SG</th><th>Pts</th>' : '') + '</tr>';
+            return '<table class="cl">' + cab + linhas + '</table>';
+        }
+
+        function folhaCartaz6(cfg, placares) {
+            var mod = cfg.mod, pod = calcularPodioModalidade(mod, placares) || {};
+            var jogosMod = JOGOS_0809.filter(function (g) { return g.mod === mod; });
+            var corpo = '', legenda = '';
+
+            if (cfg.tipo === 'grupos') {
+                var gr = GRUPOS_ESPORTES_COLETIVOS[mod], comGols = cfg.comGols;
+                var semis = jogosMod.filter(function (g) { return g.fase === 'Semi-final'; });
+                var fin = jogosMod.filter(function (g) { return g.fase === 'Final'; })[0];
+                var terc = jogosMod.filter(function (g) { return g.fase === 'Disputa de 3º Lugar'; })[0];
+                function ph(g, lado) { return (g && g.dinamico) ? g.dinamico[lado].rotulo : 'a definir'; }
+                function card(g, jg) { return cartaoBracketCartaz7(jg, comGols, ph(g, 'a'), ph(g, 'b'), null); }
+                var s1 = semis[0], s2 = semis[1];
+                var terceiroHtml = terc
+                    ? '<div class="rot">Disputa de 3º lugar</div>' + card(terc, jogoBracketCartaz6(terc, placares))
+                    : '<div class="rot">3º lugar</div><div class="bc"><div class="bl"><span>Perdedores das semifinais (empatados em 3º)</span></div></div>';
+                var bracket =
+                    '<div class="duas"><div><div class="rot">Semifinal 1</div>' + card(s1, jogoBracketCartaz6(s1, placares)) + '</div>' +
+                    '<div><div class="rot">Semifinal 2</div>' + card(s2, jogoBracketCartaz6(s2, placares)) + '</div></div>' +
+                    '<div class="duas"><div><div class="rot">Final</div>' + card(fin, jogoBracketCartaz6(fin, placares)) + '</div>' +
+                    '<div>' + terceiroHtml + '</div></div>' +
+                    blocoPodioExtra7(pod, false);
+                var jogosGrupo = function (n) {
+                    return jogosMod.filter(function (g) { return g.fase === 'Grupos (Grupo ' + n + ')'; })
+                        .map(function (g) { return linhaJogoCartaz7(g, placares, null); }).join('');
+                };
+                corpo = '<div class="corpo"><div class="col">' +
+                    '<h2>📊 Classificação — Grupo 1 <small>(verde = semifinais)</small></h2>' + tabelaGrupoCartaz6(mod, gr.grupo1, placares, comGols) +
+                    '<h2 style="margin-top:7px;">📊 Classificação — Grupo 2</h2>' + tabelaGrupoCartaz6(mod, gr.grupo2, placares, comGols) +
+                    '<h2 style="margin-top:7px;">🏆 Chaveamento</h2>' + bracket +
+                    '</div><div class="col"><h2>🗓️ Jogos e resultados — Fase de grupos</h2>' +
+                    '<div class="rot" style="margin-top:2px;">Grupo 1</div>' + jogosGrupo(1) +
+                    '<div class="rot" style="margin-top:8px;">Grupo 2</div>' + jogosGrupo(2) + '</div></div>';
+                legenda = comGols
+                    ? 'Fase de grupos (2 grupos de 3) → semifinais cruzadas → final e disputa de 3º lugar. Classificação: pontos → saldo → gols pró. Pênaltis aparecem entre parênteses.'
+                    : 'Fase de grupos (2 grupos de 3) → semifinais cruzadas → final; os perdedores das semifinais ficam em 3º lugar. Classificação pelo número de vitórias. V = vitória · D = derrota.';
+            } else if (cfg.tipo === 'todos') {
+                var parts = CONFIG_PODIO[mod].participantes;
+                var cl = calcularClassificacaoGrupo(mod, parts, placares);
+                var linhas = cl.map(function (x, i) {
+                    return '<tr' + ((pod && pod.ouro && i < 3) ? ' class="q"' : '') + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>';
+                }).join('');
+                var jg = jogosMod.map(function (g) { return linhaJogoCartaz7(g, placares, null); }).join('');
+                corpo = '<div class="corpo"><div class="col"><h2>📊 Classificação</h2><table class="cl"><tr><th>Pos.</th><th class="t">Dupla</th><th>PJ</th><th>V</th><th>D</th></tr>' + linhas + '</table></div>' +
+                    '<div class="col"><h2>🗓️ Confrontos e resultados</h2>' + jg + '</div></div>' + blocoPodioExtra7(pod, true);
+                legenda = 'Rodada única, todas contra todas. Classificação pelo número de vitórias. V = vitória · D = derrota.';
+            } else if (cfg.tipo === 'eliminatoria') {
+                var idsR1 = ['r03', 'r04', 'r07', 'r08', 'r10', 'r11'];
+                var jogosR1 = idsR1.map(function (id) {
+                    var g = JOGOS_0809.filter(function (x) { return x.id === id; })[0];
+                    var p = g.confronto.split(' x ');
+                    var sv = placares[id];
+                    var nome = (sv && typeof sv === 'object') ? sv.nome : null;
+                    var nA = p[0].trim(), nB = p[1].trim();
+                    var venc = (nome === nA || nome === nB) ? nome : null;
+                    return { id: id, nomeA: nA, nomeB: nB, vencedor: venc, res: null };
+                });
+                var cols = [colExtra7('Rodada 1', jogosR1.map(cartaoExtra7).join(''))];
+                var winners = jogosR1.map(function (j) { return j.vencedor; });
+                var ch = { rodadas: [], campeao: null, terceiroLugar: null };
+                if (winners.indexOf(null) === -1) ch = construirChaveamento('bq', winners, placares);
+                ch.rodadas.forEach(function (r) {
+                    cols.push(colExtra7(r.nome === 'Rodada' ? 'Rodada ' + (cols.length + 1) : r.nome, r.jogos.map(cartaoExtra7).join('')));
+                });
+                if (!ch.rodadas.length) {
+                    var phB = '<div class="bc"><div class="bl p"><span class="ph">a definir</span></div><div class="bl p"><span class="ph">a definir</span></div></div>';
+                    cols.push(colExtra7('Próximas fases', phB + phB + phB));
+                }
+                if (ch.terceiroLugar) {
+                    cols.push(colExtra7('3º lugar', ch.terceiroLugar.automatico
+                        ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">auto</span></div></div>'
+                        : cartaoExtra7(ch.terceiroLugar)));
+                }
+                corpo = '<div class="chave-linha">' + cols.join('') + '</div>' + blocoPodioExtra7(pod, true);
+                legenda = 'Eliminatória simples: V = vitória · D = derrota. Quem fica sem par avança por bye; 3º lugar definido na disputa das semifinais.';
+            } else { // Damas: pódio direto
+                var reg = (placares[ID_DAMAS_PODIO] && typeof placares[ID_DAMAS_PODIO] === 'object') ? placares[ID_DAMAS_PODIO] : {};
+                corpo = '<div class="chave-linha" style="align-items:center;">' + POSICOES_PODIO_DAMAS.map(function (pp) {
+                    var r = reg[pp.key] || {}, sel = r.turma && SELECOES_TURMA[r.turma];
+                    return '<div class="chave-col" style="justify-content:center;"><div class="bc" style="padding:14px;text-align:center;"><div style="font-size:30pt;">' + pp.medalha + '</div><div style="font-size:13pt;font-weight:800;margin:4px 0;">' + pp.rotulo + '</div>' +
+                        (r.nome ? '<div style="font-size:17pt;font-weight:800;">' + escHtml7(r.nome) + '</div><div style="font-size:13pt;color:#475569;">' + escHtml7(r.turma || '') + (sel ? ' — ' + escHtml7(sel.pais) : '') + '</div>' : '<div class="ph" style="font-size:14pt;">a definir</div>') + '</div></div>';
+                }).join('') + '</div>' + blocoPodioExtra7(pod, true);
+                legenda = 'Damas — pódio final dos 6º Anos.';
+            }
+            var extraCls = (cfg.tipo === 'grupos') ? '' : ' ext';
+            return '<section class="folha' + extraCls + '" style="--cor:' + cfg.cor + ';">' +
+                '<div class="topo"><div><h1>' + cfg.icone + ' ' + cfg.rotulo + ' — 6º Anos</h1><div class="sub">Jogos Estudantis do GETECO 2026 · ' + (cfg.tipo === 'grupos' ? 'Fase de grupos + mata-mata · ' : '') + 'Realizado de 08/09 a 11/09</div></div></div>' +
+                corpo + '<div class="rodape">' + legenda + '</div></section>';
+        }
+
+        window.imprimirCartaz6 = function (mod) {
+            var placares = carregarPlacaresSalvos();
+            var cfgs = (mod === 'todas') ? CARTAZ_6 : CARTAZ_6.filter(function (m) { return m.mod === mod; });
+            if (!cfgs.length) return;
+            // Ajustes só dos 6º Anos: nomes quebram linha (nunca cortam) e o conteúdo
+            // da folha é reduzido automaticamente para caber inteiro (pódio completo).
+            var cssExtra6 =
+                '.fit{display:flex;flex-direction:column;flex:none;transform-origin:0 0}' +
+                '.corpo>.col{min-width:0}' +
+                '.cl .t,.jl .tA,.jl .tB,.bl>span,.pod div,.camp,.rot,.ph{overflow-wrap:anywhere;word-break:break-word;min-width:0}' +
+                '.cl .t{white-space:normal}' +
+                '.pod div{white-space:normal}' +
+                '.pod div:first-child,.pod div:last-child{font-size:12pt!important}' +
+                '.jl{grid-template-columns:28px minmax(0,1fr) 44px 16px 44px minmax(0,1fr)}';
+            var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Cartaz — Interclasse 6º Anos</title><style>' + cssCartazImpressao() + cssExtra6 + '</style></head><body>' +
+                cfgs.map(function (c) { return folhaCartaz6(c, placares); }).join('') + '</body></html>';
+            var fr = document.createElement('iframe');
+            fr.style.cssText = 'position:fixed;left:-10000px;top:0;width:283mm;height:196mm;border:0;visibility:hidden;';
+            document.body.appendChild(fr);
+            fr.contentDocument.open(); fr.contentDocument.write(html); fr.contentDocument.close();
+
+            // Confere se nada transborda: nem a folha, nem as colunas (que invadiriam o rodapé).
+            function cabeNaFolha6(fit) {
+                if (fit.scrollHeight > fit.clientHeight + 1 || fit.scrollWidth > fit.clientWidth + 1) return false;
+                var rod = fit.querySelector('.rodape');
+                var limite = rod ? rod.getBoundingClientRect().top - 2 : fit.getBoundingClientRect().bottom;
+                var els = fit.querySelectorAll('.corpo *, .chave-linha *, .camp, .pod, .pod *');
+                for (var q = 0; q < els.length; q++) {
+                    if (els[q].getBoundingClientRect().bottom > limite + 0.5) return false;
+                }
+                return true;
+            }
+
+            // Para cada modalidade (folha), acha a MAIOR escala em que nada transborda.
+            function ajustarFolhas6(doc) {
+                var folhas = doc.querySelectorAll('.folha');
+                for (var k = 0; k < folhas.length; k++) {
+                    var folha = folhas[k];
+                    var fit = doc.createElement('div');
+                    fit.className = 'fit';
+                    while (folha.firstChild) fit.appendChild(folha.firstChild);
+                    folha.appendChild(fit);
+                    var W = folha.clientWidth, H = folha.clientHeight;
+                    // Se a janela do iframe (0x0) não der largura, usa a largura útil A4 paisagem (283mm).
+                    if (!W) W = 283 * 96 / 25.4;
+                    var z = 1, ok = false;
+                    while (z >= 0.4) {
+                        fit.style.width = (W / z) + 'px';
+                        fit.style.height = (H / z) + 'px';
+                        fit.style.transform = 'scale(' + z + ')';
+                        if (cabeNaFolha6(fit) ) { ok = true; break; }
+                        z = Math.round((z - 0.02) * 100) / 100;
+                    }
+                    if (!ok) {
+                        z = 0.4;
+                        fit.style.width = (W / z) + 'px';
+                        fit.style.height = (H / z) + 'px';
+                        fit.style.transform = 'scale(' + z + ')';
+                    }
+                }
+            }
+
+            setTimeout(function () {
+                try { ajustarFolhas6(fr.contentDocument); } catch (e) { console.error('ajuste cartaz 6º', e); }
+                fr.contentWindow.focus(); fr.contentWindow.print();
+                setTimeout(function () { if (fr.parentNode) fr.parentNode.removeChild(fr); }, 60000);
             }, 300);
         };
 
