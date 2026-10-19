@@ -1903,6 +1903,11 @@
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
       Ata do Conselho
     </button>
+    <button class="nav-item" onclick="showView('fica', this)" id="navFica">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>
+      Projeto FICA
+      <span class="nav-badge" id="nb-fica" style="display:none">—</span>
+    </button>
     <button class="nav-item" onclick="showView('pipleitura', this)" id="navPipleitura">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       Fluência de Leitura
@@ -2933,8 +2938,55 @@
         <a href="ata.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
       </div>
     </div>
+    <details id="ataFicaPanel" style="margin-bottom:1rem;background:#fff;border:var(--border);border-radius:12px;box-shadow:var(--shadow)">
+      <summary style="cursor:pointer;padding:.9rem 1.2rem;font-size:13px;font-weight:700;list-style:none">Projeto FICA — estudantes por turma para registro em ata <span id="ataFicaResumo" style="font-weight:400;color:#999;font-size:12px"></span></summary>
+      <div style="padding:0 1.2rem 1rem">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <select id="ataFicaTurma" onchange="ficaRenderAta()" style="padding:6px 10px;border:1px solid #E8E7E3;border-radius:8px;font:inherit;font-size:12.5px"><option value="">Todas as turmas</option></select>
+          <button class="action-btn" onclick="ficaCopiarAta()">Copiar texto para a ata</button>
+        </div>
+        <div id="ataFicaCorpo" style="font-size:12.5px;line-height:1.7;color:#333"></div>
+      </div>
+    </details>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
       <iframe id="ataIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Ata do Conselho de Classe"></iframe>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: PROJETO FICA ─────────────────────────────────── -->
+  <style>
+    .fica-tabs{display:flex;gap:6px;margin-bottom:1rem}
+    .fica-tab{padding:7px 14px;border:1px solid #E8E7E3;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit;color:#555}
+    .fica-tab.on{background:var(--verde-bg);border-color:var(--verde);color:var(--verde-dark);font-weight:600}
+    .fica-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+    .fica-card{background:#fff;border:var(--border);border-radius:12px;padding:1rem 1.1rem;box-shadow:var(--shadow)}
+    .fica-card h3{font-size:13px;font-weight:700;color:var(--verde-dark);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+    .fica-card ul{padding-left:16px;font-size:13px;line-height:1.6;color:#333} .fica-card p{font-size:13px;line-height:1.6;color:#333}
+    .fica-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+    .fica-tbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#999;padding:8px 6px;border-bottom:1px solid #E8E7E3}
+    .fica-tbl td{padding:6px;border-bottom:1px solid #F0EFEA;vertical-align:middle}
+    .fica-tbl tr.fica-turma td{background:#F8F7F4;font-weight:700;color:var(--verde-dark);font-size:12px}
+    .fica-tbl select,.fica-tbl input[type=text],.fica-tbl input[type=number]{font:inherit;font-size:12px;padding:4px 6px;border:1px solid #E8E7E3;border-radius:6px;background:#FAFAF8;max-width:100%}
+    .fica-pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
+  </style>
+  <div id="view-fica" class="view">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div><h1>Projeto FICA</h1><p>Frequência Integral com Aprendizagem — SMED/BH (2026) · 6º e 7º anos</p></div>
+      <div id="ficaResumoChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="fica-tabs">
+      <button class="fica-tab on" id="ficaTabApres" onclick="ficaTab('apres')">Apresentação do projeto</button>
+      <button class="fica-tab" id="ficaTabEst" onclick="ficaTab('est')">Estudantes do FICA</button>
+    </div>
+    <div id="ficaPaneApres" class="fica-grid"><div class="fica-card"><h3>Objetivo</h3><ul><li>Garantir <b>permanência, frequência e aprendizagem</b>.</li><li>Evitar evasão e reprovação por faltas.</li><li>Promover a <b>recomposição de aprendizagens essenciais</b>.</li></ul></div><div class="fica-card"><h3>Base legal</h3><ul><li><b>LDB (Lei 9.394/96):</b> frequência vinculada à avaliação.</li><li><b>Res. CNE/CEB 7/2010 e 2/2010:</b> reposição + avaliação diagnóstica.</li><li><b>ECA (Lei 8.069/90):</b> direito à educação integral.</li></ul></div><div class="fica-card"><h3>Quem entra no FICA?</h3><ul><li>Estudantes com <b>20% a 24% de faltas</b>.</li><li>Estudantes com <b>25% ou mais</b> de infrequência.</li><li>Estudantes que <b>entraram após o início do ano letivo</b>.</li><li>Todos, mesmo quem tem <b>boas notas</b>.</li><li>Pode acumular com <b>PIP/PAR</b>.</li></ul></div><div class="fica-card"><h3>Pilares</h3><ul><li>Reconhecimento individual</li><li>Diagnóstico e planejamento</li><li>Recomposição das aprendizagens</li><li>Articulação escola–família–rede de apoio</li></ul></div><div class="fica-card"><h3>Plano de Estudos</h3><ul><li><b>Individualizado:</b> diagnóstico das dificuldades reais.</li><li><b>Foco:</b> habilidades essenciais dos componentes curriculares.</li><li><b>Metodologia:</b> roteiros, oficinas, recursos digitais, tutoria entre pares.</li><li><b>Espaço/tempo:</b> preferencialmente contraturno ou 5º horário.</li><li><b>Registro:</b> Sistema de Monitoramento + pasta do estudante (com assinaturas).</li><li><b>Reincidência:</b> novo plano se voltar a ter infrequência.</li></ul></div><div class="fica-card"><h3>Responsabilidades</h3><ul><li><b>Gestão/Coordenação:</b> identificar, orientar, monitorar e articular reuniões.</li><li><b>Professores regentes:</b> diagnóstico, atividades, registros.</li><li><b>Monitores Busca Ativa:</b> contato com famílias, registro de motivos, visitas.</li><li><b>Assistente social:</b> apoio em vulnerabilidades e vínculo escolar.</li></ul></div><div class="fica-card"><h3>Avaliação e reclassificação</h3><ul><li>Avaliação <b>formativa e contínua</b>.</li><li>Reclassificação: atingir <b>mínimo de 60%</b> da pontuação dos trimestres afetados.</li><li><b>SGE não muda</b>: notas/faltas permanecem, mas o Conselho de Classe pode atribuir a <b>melhor pontuação alcançada</b> no FICA.</li><li>Documentação essencial: Termo de Compromisso, Plano, relatórios, atas e registros.</li></ul></div><div class="fica-card"><h3>Possíveis caminhos</h3><ul><li><b>Engajamento:</b> recomposição + reclassificação → progressão escolar.</li><li><b>Pouco tempo:</b> plano intensivo para alcançar metas mínimas.</li><li><b>Não engajamento:</b> reprovação por frequência (com registros como respaldo).</li></ul></div><div class="fica-card"><h3>Sobre as atividades</h3><p>10 questões de cada disciplina. Os professores encaminham à coordenação pedagógica, que compila as atividades e entrega ao estudante para fazer com um professor em horário de substituição livre ou com o professor do PIP.</p></div></div>
+    <div id="ficaPaneEst" style="display:none">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+        <input type="text" id="ficaBusca" placeholder="Buscar estudante…" oninput="ficaRender()" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #E8E7E3;border-radius:8px;font:inherit;font-size:13px;background:#FAFAF8">
+        <select id="ficaTurma" onchange="ficaRender()" style="padding:8px 10px;border:1px solid #E8E7E3;border-radius:8px;font:inherit;font-size:13px"><option value="">Todas as turmas</option></select>
+        <button class="action-btn" id="ficaBtnAdd" onclick="ficaAdicionar()">+ Adicionar estudante</button>
+      </div>
+      <div id="ficaAviso" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--amber-bg);color:var(--amber-dark);border-radius:8px;font-size:12.5px"></div>
+      <div class="table-wrap"><div class="table-scroll" id="ficaEstBody"></div></div>
     </div>
   </div>
 
@@ -8960,7 +9012,9 @@ function showView(id, btn){
     const f=document.getElementById('analiseTrimestralIframe');
     if(f && !f.src) f.src='analise-trimestral.html';
   }
+  if(id === 'fica') ficaAbrir();
   if(id === 'ata'){
+    ficaGarantir().then(ficaRenderAta);
     const f=document.getElementById('ataIframe');
     if(f && !f.src) f.src='ata.html';
   }
@@ -10505,8 +10559,8 @@ function ltFiltrarAtaPorAluno(rows, x){
 // leitura e da Ata do Conselho, já mesclados e ordenados cronologicamente.
 async function montarEventosLinhaDoTempoCompleto(x){
   const sincronos = montarEventosLinhaDoTempo(x);
-  const [pipEventos, ataEventos] = await Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x)]);
-  const eventos = sincronos.concat(pipEventos, ataEventos);
+  const [pipEventos, ataEventos, ficaEventos] = await Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x), buscarEventosFicaLT(x)]);
+  const eventos = sincronos.concat(pipEventos, ataEventos, ficaEventos);
   eventos.sort((a,b)=>{
     const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
     const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
@@ -10711,6 +10765,7 @@ const LT_SECOES = [
   { categoria:'rotina',       titulo:'Rotina Escolar' },
   { categoria:'fluencia',     titulo:'Fluência de Leitura' },
   { categoria:'advertencias', titulo:'Síntese de Advertências' },
+  { categoria:'fica',         titulo:'Projeto FICA' },
   { categoria:'ata',          titulo:'Ata de Conselho' },
   { categoria:'materiais',    titulo:'Materiais' },
   { categoria:'relatorios',   titulo:'Relatórios Escolares' },
@@ -10754,6 +10809,8 @@ function ltRenderEventos(eventos, carregando){
         </div>`).join('');
     } else if(sec.categoria==='ata' && sec.itens.length){
       linhas = ltRenderAtaBloco(sec.itens, false);
+    } else if(sec.categoria==='fica' && sec.itens.length){
+      linhas = sec.itens.map(ev=>ltRenderFicaBloco(ev.fica,false)).join('');
     } else if(sec.categoria==='materiais' && sec.itens.length){
       linhas = ltRenderMateriaisBloco(sec.itens, false);
     } else if(sec.itens.length){
@@ -10843,10 +10900,10 @@ function renderLinhaDoTempoPreview(){
 
   // 2ª passada: busca fluência de leitura e Ata do Conselho de cada estudante e injeta no bloco correspondente
   selecionados.forEach(x=>{
-    Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x)]).then(([pipEventos, ataEventos])=>{
+    Promise.all([buscarEventosPipLeituraLT(x), buscarEventosAtaLT(x), buscarEventosFicaLT(x)]).then(([pipEventos, ataEventos, ficaEventos])=>{
       if(token !== _ltRenderToken) return; // seleção mudou nesse meio-tempo, ignora
       const sincronos = montarEventosLinhaDoTempo(x);
-      const completos = sincronos.concat(pipEventos, ataEventos).sort((a,b)=>{
+      const completos = sincronos.concat(pipEventos, ataEventos, ficaEventos).sort((a,b)=>{
         const da = a.data ? new Date(a.data.length>10?a.data:a.data+'T12:00:00').getTime() : Infinity;
         const db = b.data ? new Date(b.data.length>10?b.data:b.data+'T12:00:00').getTime() : Infinity;
         return da - db;
@@ -10907,6 +10964,8 @@ function ltMontarPaginaHtml(x, eventos, notasRows, opts){
         </div>`).join('');
     } else if(sec.categoria==='ata' && sec.itens.length){
       itensHtml = `<div style="padding:7px 9px">${ltRenderAtaBloco(sec.itens, true)}</div>`;
+    } else if(sec.categoria==='fica' && sec.itens.length){
+      itensHtml = `<div style="padding:7px 9px">${sec.itens.map(ev=>ltRenderFicaBloco(ev.fica,true)).join('')}</div>`;
     } else if(sec.categoria==='materiais' && sec.itens.length){
       itensHtml = `<div style="padding:0 9px">${ltRenderMateriaisBloco(sec.itens, true)}</div>`;
     } else if(sec.itens.length){
@@ -11847,5 +11906,119 @@ function relEncamImprimir(){
     </div>
   </div>
 </div>
+<script>
+/* ═══ PROJETO FICA ═══ tabela Supabase: fica_estudantes (ver fica_supabase.sql) */
+const FICA_DATA_REF='2026-10-13';
+const FICA_SEED=[{"turma": "6B", "nome": "ARTHUR OLIVEIRA DE FREITAS", "faltas": 32}, {"turma": "6B", "nome": "KAILLANY EVILLYN FLORENÇO LABOURE DA SILVA", "faltas": 38}, {"turma": "6B", "nome": "SOFIA ESTER ALMEIDA DE MENEZES", "faltas": 32}, {"turma": "6B", "nome": "DAVI VILAS BOAS MORAIS", "faltas": 49}, {"turma": "6C", "nome": "ANA BEATRIZ CASTRO APOSTOLO", "faltas": 32}, {"turma": "6C", "nome": "GUSTAVO FELIPE CAETANO MIRANDA", "faltas": 35}, {"turma": "6C", "nome": "AGATHA RAFAELLY VIEIRA DE SOUZA", "faltas": 58}, {"turma": "6D", "nome": "DAVI KENEDY DO ESPIRITO SANTO AZEVEDO", "faltas": 39}, {"turma": "6E", "nome": "HENRIQUE DA SILVA JARDIM", "faltas": 38}, {"turma": "6E", "nome": "SOPHIA VICTORIA SANTOS DO NASCIMENTO", "faltas": 35}, {"turma": "6F", "nome": "SAMUEL LUCCA DE SOUSA PEREIRA", "faltas": 38}, {"turma": "6F", "nome": "KETULLY GABRIELLA RAMALHO GOMES", "faltas": 53}, {"turma": "7A", "nome": "NIKOLAS MATHEUS NUNES CURVELANO", "faltas": 42}, {"turma": "7A", "nome": "VITORIA HANNA CASTRO APOSTOLO", "faltas": 56}, {"turma": "7B", "nome": "JOSE GABRIEL MENEZES GUERRA", "faltas": 35}, {"turma": "7B", "nome": "DERICK ALEJANDRO DOS SANTOS", "faltas": 41}, {"turma": "7B", "nome": "SOPHYA GABRIELLY VIEIRA SOUZA", "faltas": 47}, {"turma": "7C", "nome": "JOAO LUCAS SOARES ALVES", "faltas": 41}, {"turma": "7D", "nome": "DAVI SOARES DE SOUSA", "faltas": 33}, {"turma": "7D", "nome": "MARCELLO HENRIQUE FORTES COSTA", "faltas": 36}, {"turma": "7E", "nome": "GIOVANNA VITORIA RODRIGUES DE FREITAS", "faltas": 34}];
+const FICA_STATUS={em_acompanhamento:['Em acompanhamento','#EFF6FF','#1E3A8A'],engajado:['Engajado','#E6FFFA','#0F766E'],plano_intensivo:['Plano intensivo','#FEF3DC','#7A4A08'],nao_engajado:['Não engajado','#FAECE7','#7A2E10'],reclassificado:['Reclassificado','#EEEDFE','#3C3489']};
+const FICA_ATIV={nao_iniciada:'Não iniciadas',em_andamento:'Em andamento',entregue:'Entregues',corrigida:'Corrigidas'};
+let FICA=[],_ficaOk=false,_ficaPromise=null;
+function ficaPodeEditar(){return _ficaOk && !!currentRole;}
+function ficaGarantir(force){
+  if(_ficaPromise&&!force) return _ficaPromise;
+  _ficaPromise=(async()=>{
+    try{
+      const r=await fetch(`${SUPABASE_URL}/rest/v1/fica_estudantes?select=*&order=turma.asc,nome.asc`,{headers:sbHeaders()});
+      const rows=await r.json();
+      if(!r.ok||!Array.isArray(rows)) throw new Error('tabela indisponível');
+      FICA=rows;_ficaOk=true;
+    }catch(e){
+      FICA=FICA_SEED.map(s=>({id:null,ativo:true,status:'em_acompanhamento',faltas_data_ref:FICA_DATA_REF,...s}));_ficaOk=false;
+    }
+    const nb=document.getElementById('nb-fica');
+    if(nb){nb.textContent=FICA.filter(f=>f.ativo!==false).length;nb.style.display='';}
+    return FICA;
+  })();
+  return _ficaPromise;
+}
+async function ficaAbrir(){await ficaGarantir();ficaRender();}
+function ficaTab(t){
+  document.getElementById('ficaPaneApres').style.display=t==='apres'?'':'none';
+  document.getElementById('ficaPaneEst').style.display=t==='est'?'':'none';
+  document.getElementById('ficaTabApres').classList.toggle('on',t==='apres');
+  document.getElementById('ficaTabEst').classList.toggle('on',t==='est');
+}
+function ficaPill(st){const s=FICA_STATUS[st]||FICA_STATUS.em_acompanhamento;return `<span class="fica-pill" style="background:${s[1]};color:${s[2]}">${s[0]}</span>`;}
+function ficaTurmas(){return [...new Set(FICA.filter(f=>f.ativo!==false).map(f=>f.turma))].sort();}
+function ficaRender(){
+  const body=document.getElementById('ficaEstBody');if(!body)return;
+  const sel=document.getElementById('ficaTurma'),atual=sel.value,ts=ficaTurmas();
+  sel.innerHTML='<option value="">Todas as turmas</option>'+ts.map(t=>`<option ${t===atual?'selected':''}>${ltEsc(t)}</option>`).join('');
+  const q=normalizarNomeAluno(document.getElementById('ficaBusca').value),ed=ficaPodeEditar();
+  const rows=FICA.filter(f=>f.ativo!==false&&(!sel.value||f.turma===sel.value)&&(!q||normalizarNomeAluno(f.nome).includes(q)));
+  document.getElementById('ficaResumoChips').innerHTML=`<span class="fica-pill" style="background:var(--verde-bg);color:var(--verde-dark)">${FICA.filter(f=>f.ativo!==false).length} estudantes</span>`+ts.map(t=>`<span class="fica-pill" style="background:#F3F2EF;color:#4A4946">${ltEsc(t)}: ${FICA.filter(f=>f.ativo!==false&&f.turma===t).length}</span>`).join('');
+  const av=document.getElementById('ficaAviso');
+  av.style.display=(!_ficaOk||!currentRole)?'':'none';
+  av.textContent=!_ficaOk?'Tabela fica_estudantes não encontrada no Supabase — exibindo a lista do documento (somente leitura). Execute o arquivo fica_supabase.sql.':'Entre com seu perfil de acesso para editar o acompanhamento.';
+  const dis=ed?'':'disabled';let turmaAtual=null,html='';
+  html+=`<table class="fica-tbl"><thead><tr><th>Estudante</th><th>Faltas (13/10)</th><th>Situação</th><th>Termo</th><th>Plano</th><th>Atividades</th><th>Reclass. %</th><th>Observações</th><th></th></tr></thead><tbody>`;
+  rows.forEach(f=>{
+    if(f.turma!==turmaAtual){turmaAtual=f.turma;html+=`<tr class="fica-turma"><td colspan="9">Turma ${ltEsc(f.turma)}</td></tr>`;}
+    const id=f.id||'';
+    html+=`<tr><td><b>${ltEsc(f.nome)}</b></td><td>${f.faltas??'—'}</td>
+    <td>${ed?`<select onchange="ficaSet('${id}','status',this.value)">${Object.entries(FICA_STATUS).map(([k,v])=>`<option value="${k}" ${f.status===k?'selected':''}>${v[0]}</option>`).join('')}</select>`:ficaPill(f.status)}</td>
+    <td><input type="checkbox" ${dis} ${f.termo_compromisso?'checked':''} onchange="ficaSet('${id}','termo_compromisso',this.checked)"></td>
+    <td><input type="checkbox" ${dis} ${f.plano_estudos?'checked':''} onchange="ficaSet('${id}','plano_estudos',this.checked)"></td>
+    <td><select ${dis} onchange="ficaSet('${id}','atividades_status',this.value)">${Object.entries(FICA_ATIV).map(([k,v])=>`<option value="${k}" ${(f.atividades_status||'nao_iniciada')===k?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td><input type="number" min="0" max="100" step="1" style="width:64px" ${dis} value="${f.percentual_reclassificacao??''}" onchange="ficaSet('${id}','percentual_reclassificacao',this.value===''?null:+this.value)"></td>
+    <td><input type="text" style="width:190px" ${dis} value="${ltEsc(f.observacoes||'')}" onchange="ficaSet('${id}','observacoes',this.value)"></td>
+    <td>${ed?`<button class="action-btn" title="Remover do FICA" onclick="ficaRemover('${id}')">✕</button>`:''}</td></tr>`;
+  });
+  body.innerHTML=html+'</tbody></table>'+(rows.length?'':'<div style="padding:1.5rem;text-align:center;color:#999">Nenhum estudante encontrado.</div>');
+}
+async function ficaSet(id,campo,valor){
+  const f=FICA.find(x=>x.id===id);if(!f)return;const ant=f[campo];f[campo]=valor;
+  const r=await sbPatch('fica_estudantes',{[campo]:valor},['id=eq.'+encodeURIComponent(id)]);
+  if(r.error){f[campo]=ant;showToast('Erro ao salvar no servidor.','coral');ficaRender();}else showToast('Salvo.');
+}
+async function ficaAdicionar(){
+  if(!ficaPodeEditar()){showToast('Entre com seu perfil e execute o SQL para editar.','amber');return;}
+  const turma=(prompt('Turma (ex.: 6B):')||'').trim().toUpperCase();if(!turma)return;
+  const nome=(prompt('Nome completo do estudante:')||'').trim().toUpperCase();if(!nome)return;
+  const faltas=parseInt(prompt('Quantidade de faltas:')||'',10);
+  const est=(typeof S!=='undefined'?S:[]).find(x=>normalizarNomeAluno(x.n)===normalizarNomeAluno(nome));
+  const r=await sbPost('fica_estudantes',{turma,nome,faltas:isNaN(faltas)?null:faltas,faltas_data_ref:new Date().toISOString().slice(0,10),estudante_matricula:est?.matricula||null});
+  if(r.error){showToast('Erro ao adicionar.','coral');return;}
+  await ficaGarantir(true);ficaRender();showToast('Estudante adicionado.');
+}
+async function ficaRemover(id){
+  const f=FICA.find(x=>x.id===id);if(!f||!confirm('Remover '+f.nome+' do FICA?'))return;
+  await ficaSet(id,'ativo',false);ficaRender();
+}
+/* Ata do Conselho — painel FICA */
+function ficaTextoAta(turma){
+  const ts=turma?[turma]:ficaTurmas();
+  return ts.map(t=>{const l=FICA.filter(f=>f.ativo!==false&&f.turma===t);
+    return `Turma ${t} (Projeto FICA): `+l.map(f=>`${f.nome} (${f.faltas??'—'} faltas em ${new Date(FICA_DATA_REF+'T12:00:00').toLocaleDateString('pt-BR')}; ${(FICA_STATUS[f.status]||FICA_STATUS.em_acompanhamento)[0]}${f.termo_compromisso?'; termo assinado':''}${f.plano_estudos?'; plano elaborado':''}${f.percentual_reclassificacao!=null?'; reclassificação '+f.percentual_reclassificacao+'%':''})`).join('; ')+'.';
+  }).join('\n\n');
+}
+function ficaRenderAta(){
+  const c=document.getElementById('ataFicaCorpo');if(!c||!FICA.length)return;
+  const sel=document.getElementById('ataFicaTurma'),atual=sel.value;
+  sel.innerHTML='<option value="">Todas as turmas</option>'+ficaTurmas().map(t=>`<option ${t===atual?'selected':''}>${ltEsc(t)}</option>`).join('');
+  document.getElementById('ataFicaResumo').textContent='· '+FICA.filter(f=>f.ativo!==false).length+' estudantes';
+  c.innerHTML=ltEsc(ficaTextoAta(sel.value)).replace(/\n\n/g,'<br><br>');
+}
+function ficaCopiarAta(){navigator.clipboard.writeText(ficaTextoAta(document.getElementById('ataFicaTurma').value)).then(()=>showToast('Texto copiado.'));}
+/* Perfil Individual */
+async function buscarEventosFicaLT(x){
+  await ficaGarantir();const n=normalizarNomeAluno(x.n);
+  const f=FICA.find(r=>r.ativo!==false&&((r.estudante_matricula&&x.matricula&&String(r.estudante_matricula)===String(x.matricula))||normalizarNomeAluno(r.nome)===n));
+  return f?[{data:f.faltas_data_ref||FICA_DATA_REF,tipo:'Projeto FICA',desc:'Projeto FICA',por:'—',categoria:'fica',fica:f}]:[];
+}
+function ltRenderFicaBloco(f,imp){
+  const ok=v=>v?'Sim':'Pendente',s=(FICA_STATUS[f.status]||FICA_STATUS.em_acompanhamento)[0];
+  const linha=(k,v)=>`<li><b>${k}:</b> ${ltEsc(v)}</li>`;
+  return `<div style="margin-bottom:9px;padding:8px 10px;${imp?'border:1px solid #E2E1DC;page-break-inside:avoid;':'background:#F8F7F4;border:1px solid #E8E7E3;'}border-left:3px solid #0D9488;border-radius:4px">
+    <ul style="margin:0;padding-left:16px;font-size:${imp?'10.5':'12'}px;line-height:1.6;color:#1F2937">
+      ${linha('Faltas em '+new Date((f.faltas_data_ref||FICA_DATA_REF)+'T12:00:00').toLocaleDateString('pt-BR'),f.faltas??'—')}
+      ${linha('Situação no FICA',s)}${linha('Termo de compromisso',ok(f.termo_compromisso))}${linha('Plano de estudos',ok(f.plano_estudos))}
+      ${linha('Atividades (10 questões/disciplina)',FICA_ATIV[f.atividades_status||'nao_iniciada'])}
+      ${f.percentual_reclassificacao!=null?linha('Aproveitamento p/ reclassificação (mín. 60%)',f.percentual_reclassificacao+'%'):''}
+      ${f.observacoes?linha('Observações',f.observacoes):''}
+    </ul></div>`;
+}
+ficaGarantir();
+</script>
 </body>
 </html>
