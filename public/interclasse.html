@@ -10920,7 +10920,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // do 7º Ano (local + ano '7' no Supabase), junto dos demais placares.
         // ================================================================
         var MODALIDADES_EXTRA_7 = [
-            { mod: 'Basquete de Trilha (M) 7', rotulo: 'Basquete de Trilha (M)', sigla: 'BQ-M', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7m_lista', prefixo: 'bq7m', chave: 'chaveamentoBq7m', status: 'statusChaveBq7m', cor: '#b45309' },
+            { mod: 'Basquete de Trilha (M) 7', rotulo: 'Basquete de Trilha (M)', sigla: 'BQ-M', icone: '🏀', tipo: 'eliminatoria', triangular: true, lista: 'bq7m_lista', prefixo: 'bq7m', chave: 'chaveamentoBq7m', status: 'statusChaveBq7m', cor: '#b45309' },
             { mod: 'Basquete de Trilha (F) 7', rotulo: 'Basquete de Trilha (F)', sigla: 'BQ-F', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7f_lista', prefixo: 'bq7f', chave: 'chaveamentoBq7f', status: 'statusChaveBq7f', cor: '#be185d' },
             { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'eliminatoria', lista: 'damas7_lista', prefixo: 'damas7', chave: 'chaveamentoDamas7', status: 'statusChaveDamas7', registro: 'damas7_podio', cor: '#475569' }
         ];
@@ -10988,6 +10988,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 var c = classificacaoTodos7(cfg, placares);
                 return { ouro: c[0] ? c[0].time : null, prata: c[1] ? c[1].time : null, bronze: c[2] ? c[2].time : null };
             }
+            if (cfg.triangular) { var triC = dadosTriangular7(cfg, part, placares); if (triC.ativo) return triC.podio; }
             var ch = construirChaveExtra7(cfg, part, placares);
             var prata = null;
             if (ch.rodadas.length) {
@@ -10998,6 +10999,97 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }
             }
             return { ouro: ch.campeao || null, prata: prata, bronze: (ch.terceiroLugar && ch.terceiroLugar.vencedor) || null };
+        }
+
+        // ----- Basquete de Trilha (M) — 7º Anos: mata-mata até restarem 3 duplas, depois TRIANGULAR -----
+        // Campeão, vice e 3º saem do triangular (todas contra todas entre as 3 duplas),
+        // classificados pelo número de vitórias. Em caso de empate (1 vitória cada), o
+        // pódio é definido manualmente. Se o nº de duplas nunca chega a 3 no mata-mata
+        // (ex.: 4 ou 8), vale o mata-mata normal até a final.
+        function passaPorTres7(n) { while (n > 3) n = Math.ceil(n / 2); return n === 3; }
+
+        function dadosTriangular7(cfg, part, placares) {
+            if (!cfg.triangular || part.length < 3 || !passaPorTres7(part.length)) return { ativo: false };
+            var ch = construirChaveamento(cfg.prefixo, part, placares);
+            var rodadas = [], trio = null;
+            if (part.length === 3) {
+                trio = part.slice();
+            } else {
+                var idx = -1;
+                ch.rodadas.forEach(function (r, i) { if (idx < 0 && r.jogos.length === 3) idx = i; });
+                if (idx < 0) {
+                    rodadas = ch.rodadas; // fase com 3 vencedores ainda não montada
+                } else {
+                    rodadas = ch.rodadas.slice(0, idx + 1);
+                    var ult = rodadas[idx];
+                    if (ult.jogos.every(function (j) { return j.vencedor; })) trio = ult.jogos.map(function (j) { return j.vencedor; });
+                }
+            }
+            var jogos = [], st = {};
+            if (trio) {
+                trio.forEach(function (n) { st[n] = { time: n, pg: 0, v: 0, d: 0 }; });
+                for (var i = 0; i < trio.length; i++) {
+                    for (var k = i + 1; k < trio.length; k++) {
+                        var id = cfg.prefixo + '_tri_' + (i + 1) + '_' + (k + 1);
+                        var sv = placares[id], venc = (sv && typeof sv === 'object') ? sv.nome : null;
+                        if (venc !== trio[i] && venc !== trio[k]) venc = null;
+                        jogos.push({ id: id, nomeA: trio[i], nomeB: trio[k], vencedor: venc, bye: false });
+                        if (venc) {
+                            var perd = (venc === trio[i]) ? trio[k] : trio[i];
+                            st[venc].pg++; st[perd].pg++; st[venc].v++; st[perd].d++;
+                        }
+                    }
+                }
+            }
+            var classif = trio ? trio.map(function (n) { return st[n]; }).sort(function (a, b) { return b.v - a.v; }) : [];
+            var completo = jogos.length === 3 && jogos.every(function (j) { return j.vencedor; });
+            var empate = completo && !(classif[0].v > classif[1].v && classif[1].v > classif[2].v);
+            var chManual = cfg.prefixo + '_tri_manual';
+            var man = (placares[chManual] && typeof placares[chManual] === 'object') ? placares[chManual] : null;
+            var manualOk = !!(man && trio && man.ouro && man.prata && man.bronze &&
+                [man.ouro, man.prata, man.bronze].every(function (n) { return trio.indexOf(n) !== -1; }) &&
+                man.ouro !== man.prata && man.ouro !== man.bronze && man.prata !== man.bronze);
+            var podio = { ouro: null, prata: null, bronze: null };
+            if (completo && !empate) podio = { ouro: classif[0].time, prata: classif[1].time, bronze: classif[2].time };
+            else if (completo && empate && manualOk) podio = { ouro: man.ouro, prata: man.prata, bronze: man.bronze };
+            return { ativo: true, rodadas: rodadas, trio: trio, jogos: jogos, classif: classif, completo: completo,
+                empate: empate, manualOk: manualOk, chManual: chManual, podio: podio };
+        }
+
+        window.__salvarDesempateTri7 = function (prefixo) {
+            var cfg = MODALIDADES_EXTRA_7.filter(function (m) { return m.prefixo === prefixo; })[0];
+            if (!cfg) return;
+            var v = {};
+            ['ouro', 'prata', 'bronze'].forEach(function (k) { var el = document.getElementById('triMan_' + prefixo + '_' + k); v[k] = el ? el.value : ''; });
+            if (!v.ouro || !v.prata || !v.bronze || v.ouro === v.prata || v.ouro === v.bronze || v.prata === v.bronze) {
+                mostrarStatusExtra7('⚠️ Escolha uma dupla diferente para cada posição do pódio.'); return;
+            }
+            var dados = salvarPlacarNoStorage7(prefixo + '_tri_manual', v);
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, 'Desempate do triangular salvo');
+        };
+
+        function htmlTriangular7(cfg, tri) {
+            var html = '<div class="chave-coluna"><h4>🔺 Triangular (todas contra todas)</h4>';
+            if (!tri.trio) {
+                html += '<div class="alert alert-info">⏳ O triangular começa quando as 3 duplas classificadas estiverem definidas.</div></div>';
+                return html;
+            }
+            html += tri.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
+            var linhas = tri.classif.map(function (x, i) { return '<tr><td>' + (i + 1) + 'º</td><td>' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>'; }).join('');
+            html += '<div class="table-responsive" style="margin-top:0.6rem;"><table><thead><tr><th>Pos.</th><th>Dupla</th><th>PJ</th><th>V</th><th>D</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+            if (tri.empate) {
+                var ops = function (sel) { return '<option value="">Escolha...</option>' + tri.trio.map(function (n) { return '<option value="' + escHtml7(n) + '"' + (sel === n ? ' selected' : '') + '>' + escHtml7(n) + '</option>'; }).join(''); };
+                var man = carregarPlacaresSalvos7()[tri.chManual] || {};
+                html += '<div class="alert alert-info" style="margin-top:0.6rem;">⚖️ Empate em vitórias (1 a 1 a 1) — defina o pódio manualmente:' +
+                    '<div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.5rem; max-width:560px;">' +
+                    [['ouro', '🥇 Campeão'], ['prata', '🥈 Vice'], ['bronze', '🥉 3º lugar']].map(function (p) {
+                        return '<label style="display:flex; align-items:center; gap:0.5rem;"><span style="min-width:90px; font-weight:700;">' + p[1] + '</span><select id="triMan_' + cfg.prefixo + '_' + p[0] + '" style="flex:1; padding:0.4rem;">' + ops(man[p[0]]) + '</select></label>';
+                    }).join('') +
+                    '<div><button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__salvarDesempateTri7(\'' + cfg.prefixo + '\')">💾 Salvar desempate</button>' +
+                    (tri.manualOk ? ' <button type="button" class="chave-desfazer" onclick="window.__marcarVencedorExtra7_desfazer(\'' + tri.chManual + '\')">↩️ limpar desempate</button>' : '') + '</div></div></div>';
+            }
+            return html;
         }
 
         // Basquete de Trilha e Damas (7º Anos): não há disputa de 3º lugar —
@@ -11146,6 +11238,16 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         cont.innerHTML = '';
                         return;
                     }
+                    var tri = cfg.triangular ? dadosTriangular7(cfg, part, placares) : { ativo: false };
+                    if (tri.ativo) {
+                        var colsT = tri.rodadas.map(function (r, idx) {
+                            return '<div class="chave-coluna"><h4>' + ((r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome) + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
+                        }).join('');
+                        var campT = tri.podio.ouro ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(tri.podio.ouro) + '</div><div class="chave-jogo" style="margin-top:0.4rem;">🥈 Vice: ' + escHtml7(tri.podio.prata) + '</div><div class="chave-jogo" style="margin-top:0.4rem;">🥉 3º: ' + escHtml7(tri.podio.bronze) + '</div></div>' : '';
+                        if (stEl) stEl.textContent = '✅ ' + part.length + ' duplas · mata-mata até restarem 3 duplas, depois triangular (campeão, vice e 3º por número de vitórias).' + (tri.completo ? (tri.empate && !tri.manualOk ? ' Triangular empatado — defina o pódio manualmente.' : ' Pódio definido.') : '');
+                        cont.innerHTML = '<div class="chave-wrap">' + colsT + '<div class="chave-coluna" style="min-width:260px;">' + htmlTriangular7(cfg, tri) + '</div>' + campT + '</div>';
+                        return;
+                    }
                     var ch = construirChaveExtra7(cfg, part, placares);
                     var r1 = ch.rodadas[0] ? ch.rodadas[0].jogos.filter(function (j) { return !j.bye; }) : [];
                     var dec = r1.filter(function (j) { return j.vencedor; }).length;
@@ -11226,6 +11328,21 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }
                 corpo = '<div class="chave-linha">' + (cols.length ? cols.join('') : '<div class="ph" style="margin:auto;font-size:14pt;">Duplas ainda não cadastradas</div>') + '</div>';
                 legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. 3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).';
+                var triP = cfg.triangular ? dadosTriangular7(cfg, part, placares) : { ativo: false };
+                if (triP.ativo) {
+                    var colsP = triP.rodadas.map(function (r, idx) {
+                        return colExtra7((r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome, r.jogos.map(cartaoExtra7).join(''));
+                    });
+                    var phTri = '<div class="bc"><div class="bl p"><span class="ph">a definir</span></div><div class="bl p"><span class="ph">a definir</span></div></div>';
+                    colsP.push(colExtra7('Triangular', triP.trio ? triP.jogos.map(cartaoExtra7).join('') : phTri + phTri + phTri));
+                    if (triP.trio) {
+                        colsP.push(colExtra7('Classificação (vitórias)', triP.classif.map(function (x, i) {
+                            return '<div class="bc"><div class="bl' + (triP.podio.ouro ? ' v' : '') + '"><span>' + (i + 1) + 'º ' + escHtml7(x.time) + '</span><span class="g">' + x.v + 'V ' + x.d + 'D</span></div></div>';
+                        }).join('')));
+                    }
+                    corpo = '<div class="chave-linha">' + colsP.join('') + '</div>';
+                    legenda = 'Mata-mata até restarem 3 duplas; depois triangular (todas contra todas). Campeão, vice e 3º por número de vitórias; empate definido manualmente. V = vitória · D = derrota.';
+                }
             } else if (cfg.tipo === 'todos') {
                 var cl = classificacaoTodos7(cfg, placares);
                 var linhas = cl.map(function (x, i) { return '<tr' + ((pod && pod.ouro && i < 3) ? ' class="q"' : '') + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>'; }).join('');
