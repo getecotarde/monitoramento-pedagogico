@@ -830,6 +830,17 @@
         .qg-print-page .qg-sigla { font-size: calc(12px * var(--qgs)); color: #555; display: block; margin-top: 2px; }
         .qg-print-page .nota-rodape { font-size: calc(12px * var(--qgs)); color: #555; margin-top: calc(14px * var(--qgs)); }
         .qg-print-page .qg-credito { font-size: calc(9px * var(--qgs)); color: #777; margin-top: calc(10px * var(--qgs)); text-align: center; }
+        .qg-legenda { margin-top: 0.8rem; font-size: 0.82rem; }
+        .qg-legenda table { width: auto; font-size: 0.82rem; margin: 0.3rem 0; }
+        .qg-legenda th, .qg-legenda td { padding: 0.3rem 0.7rem; }
+        .qg-legenda .qg-leg-nota { color: var(--text-muted); margin-top: 0.25rem; }
+        .qg-obs { margin-top: 0.8rem; padding: 0.6rem 0.8rem; border: 1px solid var(--border); border-left: 4px solid var(--primary-light); border-radius: 6px; background: #f8fafc; font-size: 0.85rem; }
+        .qg-obs ul { margin: 0.25rem 0 0 1.2rem; }
+        .qg-print-page .qg-legenda { font-size: calc(12px * var(--qgs)); margin-top: calc(14px * var(--qgs)); color: #111; }
+        .qg-print-page .qg-legenda table { width: auto; font-size: calc(12px * var(--qgs)); margin: calc(4px * var(--qgs)) 0; }
+        .qg-print-page .qg-legenda th, .qg-print-page .qg-legenda td { padding: calc(4px * var(--qgs)) calc(10px * var(--qgs)); border-width: 1px; font-size: calc(12px * var(--qgs)); }
+        .qg-print-page .qg-legenda .qg-leg-nota { color: #555; margin-top: calc(4px * var(--qgs)); }
+        .qg-print-page .qg-obs { font-size: calc(12px * var(--qgs)); margin-top: calc(10px * var(--qgs)); padding: calc(6px * var(--qgs)) calc(10px * var(--qgs)); border: 1px solid #333; border-left-width: 4px; background: #fff; color: #111; }
         .resumo-print-stats .label { font-size: 9px; color: #444; }
         .resumo-print-uniforme { border: 1.5px solid #b45309; background: #fffbeb; padding: 7px 9px; margin: 8px 0; border-radius: 3px; }
         .resumo-print-uniforme strong.titulo { font-size: 11px; color: #92400e; display: block; margin-bottom: 3px; }
@@ -2474,7 +2485,7 @@
         <div id="quadrogeral" class="tab-content">
             <div class="card">
                 <h2>🥇 Quadro Geral — Pontuação por Colocação</h2>
-                <p style="color: var(--text-muted);">Classificação geral, somando os pontos de cada turma em todas as modalidades do seu ano: <strong>🥇 1º lugar = 5 pts</strong>, <strong>🥈 2º lugar = 3 pts</strong>, <strong>🥉 3º lugar = 1 pt</strong>. 6º e 7º Anos disputam quadros separados, já que competem em campeonatos distintos. Registros de indisciplina durante o evento podem gerar <strong>dedução de pontos</strong>; a nota descontada aparece com asterisco (*) e a explicação logo abaixo do quadro.</p>
+                <p style="color: var(--text-muted);">Classificação geral, somando os pontos de cada turma em todas as modalidades do seu ano, conforme a <strong>legenda de pontuação</strong> exibida abaixo do quadro (as <strong>Damas</strong> têm pontuação própria: 🥇 3 · 🥈 2 · 🥉 1). 6º e 7º Anos disputam quadros separados, já que competem em campeonatos distintos. Registros de indisciplina durante o evento podem gerar <strong>dedução de pontos</strong>; a nota descontada aparece com asterisco (*) e a explicação logo abaixo do quadro.</p>
                 <div class="view-toggle-bar" id="quadrogeralAnoToggle">
                     <button type="button" class="view-toggle-btn active" id="quadrogeralBtn6" onclick="switchAno('quadrogeral','6')">🎓 6º Anos</button>
                     <button type="button" class="view-toggle-btn" id="quadrogeralBtn7" onclick="switchAno('quadrogeral','7')">🎓 7º Anos</button>
@@ -2498,16 +2509,14 @@
                             <tr>
                                 <th>Pos.</th>
                                 <th>Seleção / Turma</th>
-                                <th>🥇</th>
-                                <th>🥈</th>
-                                <th>🥉</th>
+                                <th id="thOuro6">🥇</th><th id="thPrata6">🥈</th><th id="thBronze6">🥉</th>
                                 <th>Pontos</th>
                             </tr>
                         </thead>
                         <tbody id="corpoQuadroGeral"></tbody>
                     </table>
                 </div>
-                <div id="notaDescontos6"></div>
+                <div id="legendaQuadro6"></div><div id="obsQuadro6"></div><div id="notaDescontos6"></div>
                 <div id="penalidadesForm6"></div>
                 <div id="penalidadesLista6"></div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/pódio definido não contam pontos até o resultado ser lançado.</p>
@@ -2532,16 +2541,14 @@
                             <tr>
                                 <th>Pos.</th>
                                 <th>Seleção / Turma</th>
-                                <th>🥇</th>
-                                <th>🥈</th>
-                                <th>🥉</th>
+                                <th id="thOuro7">🥇</th><th id="thPrata7">🥈</th><th id="thBronze7">🥉</th>
                                 <th>Pontos</th>
                             </tr>
                         </thead>
                         <tbody id="corpoQuadroGeral7"></tbody>
                     </table>
                 </div>
-                <div id="notaDescontos7"></div>
+                <div id="legendaQuadro7"></div><div id="obsQuadro7"></div><div id="notaDescontos7"></div>
                 <div id="penalidadesForm7"></div>
                 <div id="penalidadesLista7"></div>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem;">⏳ Modalidades ainda sem Final/3º lugar definido não contam pontos até o resultado ser lançado.</p>
@@ -9002,6 +9009,57 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ===== QUADRO GERAL — pontuação por colocação (1º=5, 2º=3, 3º=1),
         // somada em todas as modalidades e agrupada por turma/seleção. =====
         var PONTOS_QUADRO_GERAL = { ouro: 5, prata: 3, bronze: 1 };
+        // Damas tem pontuação própria: 1º = 3 pts, 2º = 2 pts, 3º = 1 pt.
+        var PONTOS_DAMAS = { ouro: 3, prata: 2, bronze: 1 };
+        function pontosDaColocacao(sigla, pos) {
+            return (sigla === 'DAMAS' ? PONTOS_DAMAS : PONTOS_QUADRO_GERAL)[pos];
+        }
+        var NOME_POR_SIGLA_QUADRO = { 'FUT-M': 'Futsal Masculino', 'FUT-F': 'Futsal Feminino', 'QUE': 'Queimada Mista', 'BQ-M': 'Basquete de Trilha (M)', 'BQ-F': 'Basquete de Trilha (F)', 'DAMAS': 'Damas' };
+        var ORDEM_SIGLAS_QUADRO = ['FUT-M', 'FUT-F', 'QUE', 'BQ-M', 'BQ-F', 'DAMAS'];
+        // Registra as posições (1º/2º/3º) ainda sem definição de uma modalidade.
+        function _registrarPendencias(pend, sigla, r) {
+            var faltam = ['ouro', 'prata', 'bronze'].filter(function (p) { return !r || !r[p]; });
+            if (faltam.length) pend.push({ sigla: sigla, pos: faltam });
+        }
+        function _textoPosicoes(pos) {
+            var n = { ouro: '1º', prata: '2º', bronze: '3º' };
+            var l = pos.map(function (p) { return n[p]; });
+            if (l.length === 1) return l[0] + ' lugar';
+            return l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1] + ' lugares';
+        }
+        // Legenda com a pontuação de cada modalidade (abaixo do quadro).
+        function htmlLegendaPontuacao() {
+            return '<div class="qg-legenda"><strong>Legenda — pontuação por colocação:</strong>' +
+                '<table><thead><tr><th>Modalidade</th><th>🥇 1º lugar</th><th>🥈 2º lugar</th><th>🥉 3º lugar</th></tr></thead><tbody>' +
+                '<tr><td>Futsal M/F · Queimada Mista · Basquete de Trilha M/F</td><td>' + PONTOS_QUADRO_GERAL.ouro + ' pts</td><td>' + PONTOS_QUADRO_GERAL.prata + ' pts</td><td>' + PONTOS_QUADRO_GERAL.bronze + ' pt</td></tr>' +
+                '<tr><td>Damas</td><td>' + PONTOS_DAMAS.ouro + ' pts</td><td>' + PONTOS_DAMAS.prata + ' pts</td><td>' + PONTOS_DAMAS.bronze + ' pt</td></tr>' +
+                '</tbody></table>' +
+                '<div class="qg-leg-nota">* = pontuação com dedução por indisciplina · ** = pódio ainda não definido (veja a Observação).</div></div>';
+        }
+        // Cabeçalho das colunas de medalha: ** nas posições que ainda têm modalidade sem pódio.
+        function _marcasCabecalho(lista) {
+            var pend = lista.pendencias || [];
+            var tem = function (p) { return pend.some(function (x) { return x.pos.indexOf(p) !== -1; }); };
+            return { ouro: '🥇' + (tem('ouro') ? '**' : ''), prata: '🥈' + (tem('prata') ? '**' : ''), bronze: '🥉' + (tem('bronze') ? '**' : '') };
+        }
+        // Campo de observação: modalidades sem pódio definido, marcadas com **.
+        function htmlObservacaoQuadro(lista) {
+            var pend = (lista.pendencias || []).slice().sort(function (a, b) { return ORDEM_SIGLAS_QUADRO.indexOf(a.sigla) - ORDEM_SIGLAS_QUADRO.indexOf(b.sigla); });
+            if (!pend.length) return '<div class="qg-obs"><strong>Observação:</strong> todas as modalidades já têm o pódio (1º, 2º e 3º lugares) definido.</div>';
+            var itens = pend.map(function (p) {
+                return '<li>** <strong>' + (NOME_POR_SIGLA_QUADRO[p.sigla] || p.sigla) + '</strong> (' + p.sigla + '): ' + _textoPosicoes(p.pos) + ' ainda não definido' + (p.pos.length > 1 ? 's' : '') + ' — sem pontos até o resultado ser lançado.</li>';
+            }).join('');
+            return '<div class="qg-obs"><strong>Observação — modalidades sem pódio definido (**):</strong><ul>' + itens + '</ul></div>';
+        }
+        function renderLegendaEObs(ano, lista) {
+            var leg = document.getElementById('legendaQuadro' + ano);
+            var obs = document.getElementById('obsQuadro' + ano);
+            if (leg) leg.innerHTML = htmlLegendaPontuacao();
+            if (obs) obs.innerHTML = htmlObservacaoQuadro(lista);
+            var m = _marcasCabecalho(lista);
+            var o = document.getElementById('thOuro' + ano), p = document.getElementById('thPrata' + ano), b = document.getElementById('thBronze' + ano);
+            if (o) o.textContent = m.ouro; if (p) p.textContent = m.prata; if (b) b.textContent = m.bronze;
+        }
 
         // ===== DEDUÇÃO DE PONTOS POR INDISCIPLINA =====
         // Guardadas junto dos placares (mesma linha do Supabase / mesmo localStorage),
@@ -9180,19 +9238,21 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function calcularQuadroGeral() {
             var placares = carregarPlacaresSalvos();
             var turmasOrdem = Object.keys(SELECOES_TURMA);
+            var pendencias = [];
             var tabela = {};
             turmasOrdem.forEach(function (t) {
                 tabela[t] = { turma: t, selecao: SELECOES_TURMA[t], ouro: [], prata: [], bronze: [], pontos: 0 };
             });
             Object.keys(CONFIG_PODIO).forEach(function (mod) {
                 var r = calcularPodioModalidade(mod, placares);
+                _registrarPendencias(pendencias, SIGLA_MODALIDADE[mod] || mod, r);
                 if (!r) return;
                 var sigla = SIGLA_MODALIDADE[mod] || mod;
                 ['ouro', 'prata', 'bronze'].forEach(function (pos) {
                     var turma = extrairTurmaDoNomePodio(r[pos]);
                     if (turma && tabela[turma]) {
                         tabela[turma][pos].push(sigla);
-                        tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos];
+                        tabela[turma].pontos += pontosDaColocacao(sigla, pos);
                     }
                 });
             });
@@ -9204,6 +9264,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
                 return b.bronze.length - a.bronze.length;
             });
+            lista.pendencias = pendencias;
             return lista;
         }
 
@@ -9228,6 +9289,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td>' +
                     '</tr>';
             }).join('');
+            renderLegendaEObs('6', lista);
             renderNotasDescontos('6', lista);
             renderPenalidadesUI('6');
         }
@@ -9256,9 +9318,11 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             }).join('');
             return '<div class="qg-print-page">' +
                 '<h1>🥇 Quadro Geral' + (sete ? ' — 7º Anos' : '') + ' — Interclasse GETECO 2026</h1>' +
-                '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Realizado de 08/09 a 11/09 • Pontuação: 1º lugar = 5 pts · 2º lugar = 3 pts · 3º lugar = 1 pt · * = pontuação com dedução por indisciplina (veja a explicação abaixo da tabela)</p>' +
-                '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Pontos</th></tr></thead>' +
+                '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Realizado de 08/09 a 11/09</p>' +
+                '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>' + _marcasCabecalho(lista).ouro + '</th><th>' + _marcasCabecalho(lista).prata + '</th><th>' + _marcasCabecalho(lista).bronze + '</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
+                htmlLegendaPontuacao() +
+                htmlObservacaoQuadro(lista) +
                 htmlNotasDescontos(lista, true) +
                 '<p class="nota-rodape"><strong>Siglas:</strong> ' + (sete ? 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.' : 'FUT-M = Futsal Masculino · FUT-F = Futsal Feminino · QUE = Queimada Mista · BQ-M = Basquete de Trilha (M) · BQ-F = Basquete de Trilha (F) · DAMAS = Damas.') + '</p>' +
                 '<p class="nota-rodape">⏳ Modalidades ainda sem ' + (sete ? 'Final/3º lugar' : 'Final/pódio') + ' definido não contam pontos até o resultado ser lançado.</p>' +
@@ -10863,25 +10927,28 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
 
         function calcularQuadroGeral7() {
             var turmasOrdem = Object.keys(SELECOES_TURMA_7);
+            var pendencias = [];
             var tabela = {};
             turmasOrdem.forEach(function (t) { tabela[t] = { turma: t, selecao: SELECOES_TURMA_7[t], ouro: [], prata: [], bronze: [], pontos: 0 }; });
             MODALIDADES_7.forEach(function (cfg) {
                 var r = _resultadosBracket7[cfg.mod];
+                _registrarPendencias(pendencias, SIGLA_MODALIDADE_7[cfg.mod] || cfg.mod, r);
                 if (!r) return;
                 var sigla = SIGLA_MODALIDADE_7[cfg.mod] || cfg.mod;
                 ['ouro', 'prata', 'bronze'].forEach(function (pos) {
                     var turma = extrairTurmaDoNomePodio(r[pos]);
-                    if (turma && tabela[turma]) { tabela[turma][pos].push(sigla); tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos]; }
+                    if (turma && tabela[turma]) { tabela[turma][pos].push(sigla); tabela[turma].pontos += pontosDaColocacao(sigla, pos); }
                 });
             });
             // Basquete de Trilha (M/F) e Damas dos 7º Anos
             var placaresExtra7 = carregarPlacaresSalvos7();
             MODALIDADES_EXTRA_7.forEach(function (cfgE) {
                 var rE = calcularPodioExtra7(cfgE, placaresExtra7);
+                _registrarPendencias(pendencias, cfgE.sigla, rE);
                 if (!rE) return;
                 ['ouro', 'prata', 'bronze'].forEach(function (pos) {
                     var turma = extrairTurmaDoNomePodio(rE[pos]);
-                    if (turma && tabela[turma]) { tabela[turma][pos].push(cfgE.sigla); tabela[turma].pontos += PONTOS_QUADRO_GERAL[pos]; }
+                    if (turma && tabela[turma]) { tabela[turma][pos].push(cfgE.sigla); tabela[turma].pontos += pontosDaColocacao(cfgE.sigla, pos); }
                 });
             });
             var lista = turmasOrdem.map(function (t) { return tabela[t]; });
@@ -10892,6 +10959,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
                 return b.bronze.length - a.bronze.length;
             });
+            lista.pendencias = pendencias;
             return lista;
         }
 
@@ -10911,6 +10979,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<td>' + celulaMedalha(linha.ouro) + '</td><td>' + celulaMedalha(linha.prata) + '</td><td>' + celulaMedalha(linha.bronze) + '</td>' +
                     '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td></tr>';
             }).join('');
+            renderLegendaEObs('7', lista);
             renderNotasDescontos('7', lista);
             renderPenalidadesUI('7');
         }
