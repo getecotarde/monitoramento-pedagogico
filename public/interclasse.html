@@ -10922,7 +10922,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         var MODALIDADES_EXTRA_7 = [
             { mod: 'Basquete de Trilha (M) 7', rotulo: 'Basquete de Trilha (M)', sigla: 'BQ-M', icone: '🏀', tipo: 'eliminatoria', triangular: true, lista: 'bq7m_lista', prefixo: 'bq7m', chave: 'chaveamentoBq7m', status: 'statusChaveBq7m', cor: '#b45309' },
             { mod: 'Basquete de Trilha (F) 7', rotulo: 'Basquete de Trilha (F)', sigla: 'BQ-F', icone: '🏀', tipo: 'eliminatoria', lista: 'bq7f_lista', prefixo: 'bq7f', chave: 'chaveamentoBq7f', status: 'statusChaveBq7f', cor: '#be185d' },
-            { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'eliminatoria', lista: 'damas7_lista', prefixo: 'damas7', chave: 'chaveamentoDamas7', status: 'statusChaveDamas7', registro: 'damas7_podio', cor: '#475569' }
+            { mod: 'Damas 7', rotulo: 'Damas', sigla: 'DAMAS', icone: '♟️', tipo: 'eliminatoria', terceiroManual: true, lista: 'damas7_lista', prefixo: 'damas7', chave: 'chaveamentoDamas7', status: 'statusChaveDamas7', registro: 'damas7_podio', cor: '#475569' }
         ];
         var POSICOES_PODIO_7 = [
             { key: 'ouro', medalha: '🥇', rotulo: '1º lugar' },
@@ -11097,6 +11097,19 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         function construirChaveExtra7(cfg, part, placares) {
             var ch = construirChaveamento(cfg.prefixo, part, placares);
             var terc = null;
+            if (cfg.terceiroManual) {
+                // Damas (7º Anos): o 3º lugar é marcado manualmente.
+                var man = placares[cfg.prefixo + '_terceiro'];
+                var nm = (man && typeof man === 'object') ? man.nome : null;
+                var vice = null;
+                if (ch.rodadas.length) {
+                    var uf = ch.rodadas[ch.rodadas.length - 1];
+                    if (uf.nome === 'Final' && uf.jogos.length === 1 && uf.jogos[0].vencedor) vice = (uf.jogos[0].vencedor === uf.jogos[0].nomeA) ? uf.jogos[0].nomeB : uf.jogos[0].nomeA;
+                }
+                var okNm = nm && part.indexOf(nm) !== -1 && nm !== ch.campeao && nm !== vice;
+                ch.terceiroLugar = okNm ? { id: null, nomeA: nm, nomeB: null, vencedor: nm, automatico: true, manual: true, rotulo: '🥉 3º Lugar (definido manualmente)' } : null;
+                return ch;
+            }
             if (ch.campeao && ch.rodadas.length > 1) {
                 for (var r = ch.rodadas.length - 2; r >= 0 && !terc; r--) {
                     ch.rodadas[r].jogos.forEach(function (j) {
@@ -11194,6 +11207,31 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<button type="button" title="Remover" onclick="window.__removerDupla7(\'' + cfg.lista + '\',' + i + ')">✖</button></span></div>';
             }).join('');
         }
+
+        // Damas (7º Anos): escolha manual do 3º lugar entre os participantes cadastrados.
+        function htmlTerceiroManual7(cfg, part, ch) {
+            var man = carregarPlacaresSalvos7()[cfg.prefixo + '_terceiro'];
+            var atual = (man && typeof man === 'object') ? man.nome : '';
+            var ops = '<option value="">Escolha...</option>' + part.map(function (n) { return '<option value="' + escHtml7(n) + '"' + (n === atual ? ' selected' : '') + '>' + escHtml7(n) + '</option>'; }).join('');
+            return '<div class="alert alert-info" style="margin-top:0.8rem; max-width:640px;"><strong>🥉 3º lugar (marcado manualmente)</strong>' +
+                '<div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">' +
+                '<select id="terceiroMan_' + cfg.prefixo + '" style="flex:1; min-width:220px; padding:0.4rem;">' + ops + '</select>' +
+                '<button type="button" class="tab-btn" style="width:auto; background:var(--secondary); color:#fff;" onclick="window.__salvarTerceiro7(\'' + cfg.prefixo + '\')">💾 Salvar 3º lugar</button>' +
+                (ch.terceiroLugar ? '<button type="button" class="chave-desfazer" onclick="window.__marcarVencedorExtra7_desfazer(\'' + cfg.prefixo + '_terceiro\')">↩️ limpar</button>' : '') +
+                '</div></div>';
+        }
+
+        window.__salvarTerceiro7 = function (prefixo) {
+            var cfg = MODALIDADES_EXTRA_7.filter(function (m) { return m.prefixo === prefixo; })[0];
+            var el = document.getElementById('terceiroMan_' + prefixo);
+            if (!cfg || !el) return;
+            if (!el.value) { mostrarStatusExtra7('⚠️ Escolha quem ficou em 3º lugar.'); return; }
+            var pod = calcularPodioExtra7(cfg, carregarPlacaresSalvos7());
+            if (el.value === pod.ouro || el.value === pod.prata) { mostrarStatusExtra7('⚠️ Essa dupla/participante já é campeão ou vice — escolha outro para o 3º lugar.'); return; }
+            var dados = salvarPlacarNoStorage7(prefixo + '_terceiro', { nome: el.value });
+            renderExtra7(); renderQuadroGeral7();
+            sincronizarExtra7(dados, '3º lugar salvo');
+        };
 
         window.__editarDupla7 = function (chaveLista, idx) { _edit7 = { lista: chaveLista, idx: idx }; renderExtra7(); };
         window.__cancelarEdicaoDupla7 = function () { _edit7 = null; renderExtra7(); };
@@ -11301,6 +11339,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     }).join('');
                     var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div></div>' : '';
                     var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.rotulo || (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar')) + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
+                    if (cfg.terceiroManual) terceiroHtml = htmlTerceiroManual7(cfg, part, ch);
                     cont.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
                 } else { // todos contra todos (Basquete F)
                     var jogos = jogosTodosContraTodos7(cfg, placares);
@@ -11367,10 +11406,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     p = g; k++;
                 }
                 if (ch.terceiroLugar) {
-                    cols.push(colExtra7(ch.terceiroLugar.rotulo ? '3º lugar' : 'Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">' + (ch.terceiroLugar.rotulo ? 'perdeu p/ campeão' : 'auto') + '</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
+                    cols.push(colExtra7(ch.terceiroLugar.rotulo ? '3º lugar' : 'Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">' + (ch.terceiroLugar.manual ? 'manual' : (ch.terceiroLugar.rotulo ? 'perdeu p/ campeão' : 'auto')) + '</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
                 }
                 corpo = '<div class="chave-linha">' + (cols.length ? cols.join('') : '<div class="ph" style="margin:auto;font-size:14pt;">Duplas ainda não cadastradas</div>') + '</div>';
-                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. 3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).';
+                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. 3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).' + (cfg.terceiroManual ? ' Em Damas, o 3º lugar é definido manualmente.' : '');
                 var triP = cfg.triangular ? dadosTriangular7(cfg, part, placares) : { ativo: false };
                 if (triP.ativo) {
                     var colsP = triP.rodadas.map(function (r, idx) {
