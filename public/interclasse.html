@@ -10988,7 +10988,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 var c = classificacaoTodos7(cfg, placares);
                 return { ouro: c[0] ? c[0].time : null, prata: c[1] ? c[1].time : null, bronze: c[2] ? c[2].time : null };
             }
-            var ch = construirChaveamento(cfg.prefixo, part, placares);
+            var ch = construirChaveExtra7(cfg, part, placares);
             var prata = null;
             if (ch.rodadas.length) {
                 var ult = ch.rodadas[ch.rodadas.length - 1];
@@ -10998,6 +10998,22 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 }
             }
             return { ouro: ch.campeao || null, prata: prata, bronze: (ch.terceiroLugar && ch.terceiroLugar.vencedor) || null };
+        }
+
+        // Basquete de Trilha e Damas (7º Anos): não há disputa de 3º lugar —
+        // o 3º colocado é quem perdeu para o campeão antes da final.
+        function construirChaveExtra7(cfg, part, placares) {
+            var ch = construirChaveamento(cfg.prefixo, part, placares);
+            var terc = null;
+            if (ch.campeao && ch.rodadas.length > 1) {
+                for (var r = ch.rodadas.length - 2; r >= 0 && !terc; r--) {
+                    ch.rodadas[r].jogos.forEach(function (j) {
+                        if (!terc && !j.bye && j.vencedor === ch.campeao) terc = (j.vencedor === j.nomeA) ? j.nomeB : j.nomeA;
+                    });
+                }
+            }
+            ch.terceiroLugar = terc ? { id: null, nomeA: terc, nomeB: null, vencedor: terc, automatico: true, rotulo: '🥉 3º Lugar (perdeu para o campeão)' } : null;
+            return ch;
         }
 
         function mostrarStatusExtra7(msg) {
@@ -11130,7 +11146,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         cont.innerHTML = '';
                         return;
                     }
-                    var ch = construirChaveamento(cfg.prefixo, part, placares);
+                    var ch = construirChaveExtra7(cfg, part, placares);
                     var r1 = ch.rodadas[0] ? ch.rodadas[0].jogos.filter(function (j) { return !j.bye; }) : [];
                     var dec = r1.filter(function (j) { return j.vencedor; }).length;
                     if (stEl) stEl.textContent = '✅ ' + part.length + ' duplas · ' + dec + ' de ' + r1.length + ' confrontos da Rodada 1 já têm vencedor' + (ch.campeao ? ' · campeão definido.' : '.');
@@ -11139,7 +11155,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         return '<div class="chave-coluna"><h4>' + titulo + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
                     }).join('');
                     var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div></div>' : '';
-                    var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar') + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
+                    var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.rotulo || (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar')) + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
                     cont.innerHTML = '<div class="chave-wrap">' + colunas + finalHtml + '</div>' + terceiroHtml;
                 } else { // todos contra todos (Basquete F)
                     var jogos = jogosTodosContraTodos7(cfg, placares);
@@ -11188,7 +11204,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var legenda = '';
             if (cfg.tipo === 'eliminatoria') {
                 var part = listaDuplas7(cfg);
-                var ch = part.length >= 2 ? construirChaveamento(cfg.prefixo, part, placares) : { rodadas: [], campeao: null, terceiroLugar: null };
+                var ch = part.length >= 2 ? construirChaveExtra7(cfg, part, placares) : { rodadas: [], campeao: null, terceiroLugar: null };
                 var cols = ch.rodadas.map(function (r, idx) {
                     return colExtra7((r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome, r.jogos.map(cartaoExtra7).join(''));
                 });
@@ -11206,10 +11222,10 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     p = g; k++;
                 }
                 if (ch.terceiroLugar) {
-                    cols.push(colExtra7('Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">auto</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
+                    cols.push(colExtra7(ch.terceiroLugar.rotulo ? '3º lugar' : 'Disputa de 3º lugar', ch.terceiroLugar.automatico ? '<div class="bc"><div class="bl v"><span>🥉 ' + escHtml7(ch.terceiroLugar.vencedor) + '</span><span class="g">' + (ch.terceiroLugar.rotulo ? 'perdeu p/ campeão' : 'auto') + '</span></div></div>' : cartaoExtra7(ch.terceiroLugar)));
                 }
                 corpo = '<div class="chave-linha">' + (cols.length ? cols.join('') : '<div class="ph" style="margin:auto;font-size:14pt;">Duplas ainda não cadastradas</div>') + '</div>';
-                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye.';
+                legenda = 'Eliminatória simples: V = vitória · D = derrota. A Rodada 1 segue a ordem de cadastro; quem fica sem par avança por bye. 3º lugar: quem perdeu para o campeão (sem disputa de 3º lugar).';
             } else if (cfg.tipo === 'todos') {
                 var cl = classificacaoTodos7(cfg, placares);
                 var linhas = cl.map(function (x, i) { return '<tr' + ((pod && pod.ouro && i < 3) ? ' class="q"' : '') + '><td>' + (i + 1) + 'º</td><td class="t">' + escHtml7(x.time) + '</td><td>' + x.pg + '</td><td>' + x.v + '</td><td>' + x.d + '</td></tr>'; }).join('');
