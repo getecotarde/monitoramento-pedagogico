@@ -11327,7 +11327,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         var colsT = tri.rodadas.map(function (r, idx) {
                             return '<div class="chave-coluna"><h4>' + ((r.nome === 'Rodada') ? 'Rodada ' + (idx + 1) : r.nome) + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
                         }).join('');
-                        var campT = tri.podio.ouro ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(tri.podio.ouro) + '</div><div class="chave-jogo" style="margin-top:0.4rem;">🥈 Vice: ' + escHtml7(tri.podio.prata) + '</div><div class="chave-jogo" style="margin-top:0.4rem;">🥉 3º: ' + escHtml7(tri.podio.bronze) + '</div></div>' : '';
+                        var campT = tri.podio.ouro ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao" style="font-size:1.25rem;">🥇 ' + escHtml7(tri.podio.ouro) + '</div><div class="chave-jogo" style="margin-top:0.4rem; font-size:1rem; font-weight:700;">🥈 Vice: ' + escHtml7(tri.podio.prata) + '</div><div class="chave-jogo" style="margin-top:0.4rem; font-size:0.82rem;">🥉 3º: ' + escHtml7(tri.podio.bronze) + '</div></div>' : '';
                         if (stEl) stEl.textContent = '✅ ' + part.length + ' duplas · mata-mata até restarem 3 duplas, depois triangular (campeão, vice e 3º por número de vitórias).' + (tri.completo ? (tri.empate && !tri.manualOk ? ' Triangular empatado — defina o pódio manualmente.' : ' Pódio definido.') : '');
                         cont.innerHTML = '<div class="chave-wrap">' + colsT + '<div class="chave-coluna" style="min-width:260px;">' + htmlTriangular7(cfg, tri) + '</div>' + campT + '</div>';
                         return;
@@ -11341,9 +11341,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                         return '<div class="chave-coluna"><h4>' + titulo + '</h4>' + r.jogos.map(function (j) { return htmlCartaoJogoChave(j, '__marcarVencedorExtra7'); }).join('') + '</div>';
                     }).join('');
                     var podE = calcularPodioExtra7(cfg, placares);
-                    var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao">🥇 ' + escHtml7(ch.campeao) + '</div>' +
-                        (podE.prata ? '<div class="chave-jogo" style="margin-top:0.4rem;">🥈 Vice: ' + escHtml7(podE.prata) + '</div>' : '') +
-                        (podE.bronze ? '<div class="chave-jogo" style="margin-top:0.4rem;">🥉 3º: ' + escHtml7(podE.bronze) + '</div>' : (cfg.terceiroManual ? '<div class="chave-jogo" style="margin-top:0.4rem; color:var(--text-muted);">🥉 3º: a definir (marque abaixo)</div>' : '')) +
+                    var finalHtml = ch.campeao ? '<div class="chave-coluna chave-coluna-campeao"><h4>🏆 Campeão</h4><div class="chave-jogo chave-campeao" style="font-size:1.25rem;">🥇 ' + escHtml7(ch.campeao) + '</div>' +
+                        (podE.prata ? '<div class="chave-jogo" style="margin-top:0.4rem; font-size:1rem; font-weight:700;">🥈 Vice: ' + escHtml7(podE.prata) + '</div>' : '') +
+                        (podE.bronze ? '<div class="chave-jogo" style="margin-top:0.4rem; font-size:0.82rem;">🥉 3º: ' + escHtml7(podE.bronze) + '</div>' : (cfg.terceiroManual ? '<div class="chave-jogo" style="margin-top:0.4rem; font-size:0.82rem; color:var(--text-muted);">🥉 3º: a definir (marque abaixo)</div>' : '')) +
                         '</div>' : '';
                     var terceiroHtml = ch.terceiroLugar ? '<div class="chave-coluna"><h4>' + (ch.terceiroLugar.rotulo || (ch.terceiroLugar.automatico ? '🥉 3º Lugar (definido automaticamente)' : '🥉 Disputa de 3º Lugar')) + '</h4>' + htmlCartaoJogoChave(ch.terceiroLugar, '__marcarVencedorExtra7') + '</div>' : '';
                     terceiroHtml = cfg.terceiroManual ? htmlTerceiroManual7(cfg, part, ch) : '';
@@ -11617,7 +11617,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 '.bc{border:1.5px solid #94a3b8;border-radius:6px;overflow:hidden}.bl{display:flex;justify-content:space-between;gap:6px;padding:6px 8px;font-size:13pt;border-bottom:1px solid #e2e8f0}.bl:last-child{border-bottom:none}' +
                 '.bl.v{background:#d1fae5;font-weight:700}.bl.p{color:#94a3b8}.bl .g{min-width:30px;text-align:center;font-weight:800}.bl small{font-weight:400}.ph{font-style:italic;color:#94a3b8}' +
                 '.camp{margin-top:4px;text-align:center;font-size:17pt;font-weight:800;background:#fef3c7;border:2px solid #eab308;color:#78350f;border-radius:8px;padding:5px}' +
-                '.pod{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px}.pod div{text-align:center;font-size:11.5pt;font-weight:700;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:6px;padding:4px}'+
+                '.pod{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px;align-items:stretch}.pod div:first-child{font-size:13.5pt!important}.pod div:last-child{font-size:10.5pt!important}.pod div{text-align:center;font-size:11.5pt;font-weight:700;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:6px;padding:4px}'+
                 'sup.ast{font-size:9pt;font-weight:800;color:#b91c1c;margin-left:1px;vertical-align:top;line-height:1}' +
                 '.notas{border-top:1.5px solid #94a3b8;margin-top:4px;padding-top:3px;line-height:1.3;color:#334155}.notas-tit{font-weight:800;color:var(--cor);font-size:1.05em;margin-bottom:1px}.notas-col{column-count:2;column-gap:16px}.nota{break-inside:avoid;margin-bottom:2px}.nota b{color:#b91c1c}.nota .nr{font-weight:600;color:#475569}' +
                 '.chave-linha{display:flex;gap:10px;height:118mm;flex:none;align-items:stretch;margin-top:8px}.chave-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}.chave-col .rot{flex:none}.chave-col .cc{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:6px;min-height:0}' +
