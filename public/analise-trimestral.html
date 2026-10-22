@@ -2891,9 +2891,9 @@ function repIndividualPage(cd, className, st, V, t){
     if(risk.length){
       const rows = risk.map(d=>{ const o=d.oer; const nv=oerNivel(o.precisa);
         return `<tr><td class="l">${escHtml(d.name)}</td><td>${oerV(o.t1)}</td><td>${oerV(o.t2)}</td><td>${o.soma}${oerAst(o)}</td><td class="t-bad"><b>${o.precisa}${oerAst(o)}</b></td><td class="l">${nv===3?'Acima de 40 pts (máx. do 3º trim.)':nv===2?'Risco elevadíssimo (mais de 28)':(o.precisa-OER_LIMITE)+' pt'+((o.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</td></tr>`; });
-      parts.push(rpSec('Risco de O.E.R — Oportunidade Especial de Recuperação', rpTable([{t:'Disciplina',l:1},{t:'1º trim.'},{t:'2º trim.'},{t:'Soma<small>máx. 60</small>'},{t:'Precisa no 3º<small>média 24 · máx. 40</small>'},{t:'Observação',l:1}], rows) + (oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '')));
+      parts.push(rpSec('Disciplinas em risco de Recuperação Final (O.E.R.)', rpTable([{t:'Disciplina',l:1},{t:'1º trim.'},{t:'2º trim.'},{t:'Soma<small>máx. 60</small>'},{t:'Precisa no 3º<small>média 24 · máx. 40</small>'},{t:'Observação',l:1}], rows) + `<div class="rp-note"><b>Atenção:</b> demanda de notas superior a 40 pontos no 3º trimestre já coloca o aluno em Recuperação Final. Mesmo assim, ele deve continuar se empenhando, pois a recuperação será em paralelo ao 3º trimestre.</div>` + (oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '')));
     } else {
-      parts.push(rpSec('Risco de O.E.R — Oportunidade Especial de Recuperação', `<div class="rp-ok">Nenhuma disciplina com risco de O.E.R com as notas lançadas até o momento.</div>`));
+      parts.push(rpSec('Disciplinas em risco de Recuperação Final (O.E.R.)', `<div class="rp-ok">Nenhuma disciplina com risco de O.E.R com as notas lançadas até o momento.</div>`));
     }
   }
 
@@ -3033,7 +3033,7 @@ function repFamiliaPage(cd, className, st, t){
   const oerBox = risk.length
     ? `<div class="fm-pad">${famChartOer(risk)}<div class="fm-leg"><span>Pontos necessários no 3º trim. (máx. 40) para fechar o ano com 60.</span>${risk.some(d=>oerNivel(d.oer.precisa)===3)?'<span>! = acima do máximo do trimestre</span>':''}</div></div>`
     : `<div class="rp-ok" style="padding:10px 8px">Nenhuma disciplina em risco de O.E.R. com as notas lançadas até agora.</div>`;
-  parts.push(`<div class="fm-two">${evo}<div class="rp-sec"><div class="rp-sec-t">O que será preciso no 3º trimestre (O.E.R.)</div>${oerBox}${risk.length && oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : ''}</div></div>`);
+  parts.push(`<div class="fm-two">${evo}<div class="rp-sec"><div class="rp-sec-t">Disciplinas em risco de Recuperação Final (O.E.R.)</div>${oerBox}${risk.length ? `<div class="rp-note"><b>Atenção:</b> demanda de notas superior a 40 pontos no 3º trimestre já coloca o aluno em Recuperação Final. Mesmo assim, ele deve continuar se empenhando, pois a recuperação será em paralelo ao 3º trimestre.</div>` : ''}${risk.length && oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : ''}</div></div>`);
 
   // leitura em linguagem simples (substitui "pontos fortes", "disciplinas de atenção" e "orientações")
   const fortes = com.filter(d=>d.pct!==null && d.pct>=70).sort((a,b)=>b.pct-a.pct).slice(0,4);
@@ -3047,7 +3047,7 @@ function repFamiliaPage(cd, className, st, t){
   parts.push(rpSec('Leitura do trimestre e orientações', `<div class="fm-read">${lei.join('')}</div>`));
 
   const ln = n>=11 ? 2 : 3;
-  parts.push(`<div class="fm-two"><div class="rp-sec"><div class="rp-sec-t">Minha análise e meu plano (aluno)</div><div class="fm-q">O que percebo neste resultado? O que vou fazer no próximo trimestre?</div>${rpLines(ln)}</div><div class="rp-sec"><div class="rp-sec-t">Observações do professor / coordenação</div>${rpLines(ln+1)}</div></div>`);
+  parts.push(`<div class="rp-sec" style="margin:4.5px 0; break-inside:avoid; page-break-inside:avoid;"><div class="rp-sec-t">Minha análise e meu plano (aluno)</div><div class="fm-q">O que percebo neste resultado? O que vou fazer no próximo trimestre?</div>${rpLines(ln+2)}</div>`);
   const msg = rpMsg(); if(msg) parts.push(msg);
   parts.push(`<div class="rp-field">Faltas: ____ · Frequência: ____ % &nbsp;&nbsp; Ciente do responsável: ____________________________ Data: ___/___/_____</div>`);
   parts.push(rpAssin());
