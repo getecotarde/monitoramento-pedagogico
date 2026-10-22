@@ -694,6 +694,28 @@ body{
   .print-report-doc .rp-page{page-break-after:always; break-after:page;}
   .print-report-doc .rp-page:last-child{page-break-after:auto; break-after:auto;}
 }
+
+/* ===== selo "sem nota" nas disciplinas em risco ===== */
+.oer-semnota{display:inline-block; font-size:.82em; font-weight:700; line-height:1.25; padding:0 6px; margin-top:1px; border:.8px solid #8a5a00; border-radius:999px; background:#fff1c9; color:#6b4200; white-space:nowrap; font-family:'Inter',sans-serif; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+.oer-card td.l .oer-semnota{font-size:10px; font-weight:700; margin-top:2px;}
+.rp-table td.l .oer-semnota{font-size:6.8pt;}
+
+/* ===== todos os relatórios: linhas de borda arredondadas ===== */
+.rp-page .rp-hdr{border:1.3px solid #222; border-radius:14px; padding:5px 12px; margin-bottom:5px; gap:12px;}
+.rp-page .rp-hdr-right{border:1px solid #222; border-radius:999px; padding:3px 13px; text-align:center; line-height:1.25; background:#f6f6f6;}
+.rp-page .rp-id{border-collapse:separate; border-spacing:0; border:1px solid #000; border-radius:10px; overflow:hidden;}
+.rp-page .rp-id td{border:0; border-right:1px solid #000; border-bottom:1px solid #000;}
+.rp-page .rp-id td:last-child{border-right:0;}
+.rp-page .rp-id tr:last-child td{border-bottom:0;}
+.rp-page .rp-sec{border-radius:12px; overflow:hidden; background:#fff;}
+.rp-page .rp-box{border-radius:10px;}
+.rp-page .rp-col b{border-radius:6px;}
+.rp-page .rp-msg{border-radius:10px;}
+.rp-page .rp-foot{border-radius:10px;}
+.rp-page .fm-big{border-radius:14px;}
+.rp-page .fm-stk{border-radius:999px;}
+.rp-page .rp-bar, .rp-page .rp-bar i{border-radius:3px;}
+.rep-preview .rp-page{border-radius:10px;}
 </style>
 </head>
 <body>
@@ -788,6 +810,10 @@ const oerTemParcial = list => list.some(x => x.parcial);
 const OER_ASTERISCO_TXT = '* Falta lançar a nota do 1º ou do 2º trimestre: a soma considera só a nota existente. Quando a nota ausente for lançada, o aluno pode deixar de estar em risco de O.E.R.';
 function oerRowNote(s){
   return s.parcial ? `<span class="risk-ast-note">* sem nota no ${s.faltaTri}º trim. — o risco pode deixar de existir quando for lançada</span>` : '';
+}
+// Selo visível "sem nota no Xº trim." para disciplinas em risco que têm 1º ou 2º trimestre sem nota.
+function oerBadge(s){
+  return (s && s.parcial) ? `<span class="oer-semnota" title="Falta lançar a nota do ${s.faltaTri}º trimestre; o risco pode deixar de existir quando ela for lançada">⚠ sem nota no ${s.faltaTri}º trim.</span>` : '';
 }
 function oerLegendHtml(list, extra){
   return oerTemParcial(list) ? `<div class="oer-legend">${OER_ASTERISCO_TXT}${extra||''}</div>` : '';
@@ -1329,7 +1355,7 @@ function printOerCards(){
   const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
   return risk.map(st=>{
     const rows = st.subjects.map(s=>
-      `<tr><td class="l">${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need n${oerNivel(s.precisa)}">${s.precisa}${oerAst(s)}<small>${oerNivel(s.precisa)===3 ? 'acima de 40 pts' : oerNivel(s.precisa)===2 ? 'risco elevadíssimo' : (s.precisa-OER_LIMITE)+' pt'+((s.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</small></td></tr>`
+      `<tr><td class="l">${s.name}${s.parcial ? '<br>'+oerBadge(s) : ''}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td class="need n${oerNivel(s.precisa)}">${s.precisa}${oerAst(s)}<small>${oerNivel(s.precisa)===3 ? 'acima de 40 pts' : oerNivel(s.precisa)===2 ? 'risco elevadíssimo' : (s.precisa-OER_LIMITE)+' pt'+((s.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</small></td></tr>`
     ).join('');
     const dens = st.subjects.length>=8 ? ' d xd' : (st.subjects.length>=6 ? ' d' : '');
     const one = via => `<div class="oer-card${dens}">
@@ -2890,7 +2916,7 @@ function repIndividualPage(cd, className, st, V, t){
     const risk = data.filter(d=>d.oer);
     if(risk.length){
       const rows = risk.map(d=>{ const o=d.oer; const nv=oerNivel(o.precisa);
-        return `<tr><td class="l">${escHtml(d.name)}</td><td>${oerV(o.t1)}</td><td>${oerV(o.t2)}</td><td>${o.soma}${oerAst(o)}</td><td class="t-bad"><b>${o.precisa}${oerAst(o)}</b></td><td class="l">${nv===3?'Acima de 40 pts (máx. do 3º trim.)':nv===2?'Risco elevadíssimo (mais de 28)':(o.precisa-OER_LIMITE)+' pt'+((o.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</td></tr>`; });
+        return `<tr><td class="l">${escHtml(d.name)}${o.parcial ? '<br>'+oerBadge(o) : ''}</td><td>${oerV(o.t1)}</td><td>${oerV(o.t2)}</td><td>${o.soma}${oerAst(o)}</td><td class="t-bad"><b>${o.precisa}${oerAst(o)}</b></td><td class="l">${nv===3?'Acima de 40 pts (máx. do 3º trim.)':nv===2?'Risco elevadíssimo (mais de 28)':(o.precisa-OER_LIMITE)+' pt'+((o.precisa-OER_LIMITE)===1?'':'s')+' acima da média'}</td></tr>`; });
       parts.push(rpSec('Disciplinas em risco de Recuperação Final (O.E.R.)', rpTable([{t:'Disciplina',l:1},{t:'1º trim.'},{t:'2º trim.'},{t:'Soma<small>máx. 60</small>'},{t:'Precisa no 3º<small>média 24 · máx. 40</small>'},{t:'Observação',l:1}], rows) + `<div class="rp-note"><b>Atenção:</b> demanda de notas superior a 40 pontos no 3º trimestre já coloca o aluno em Recuperação Final. Mesmo assim, ele deve continuar se empenhando, pois a recuperação será em paralelo ao 3º trimestre.</div>` + (oerTemParcial(risk.map(d=>d.oer)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '')));
     } else {
       parts.push(rpSec('Disciplinas em risco de Recuperação Final (O.E.R.)', `<div class="rp-ok">Nenhuma disciplina com risco de O.E.R com as notas lançadas até o momento.</div>`));
@@ -2979,7 +3005,7 @@ function famChartEvo(cd, st){
 
 // Gráfico 3: pontos necessários no 3º trimestre nas disciplinas em risco de O.E.R.
 function famChartOer(risk){
-  const n = risk.length, rh = n>8 ? 15 : 20, W = 340, bx = 112, bw = 150, top = 22, H = top + n*rh + 4;
+  const n = risk.length, rh = n>8 ? 15 : 20, W = risk.some(d=>d.oer.parcial) ? 375 : 340, bx = 112, bw = 150, top = 22, H = top + n*rh + 4;
   const X = v => bx + bw*Math.min(v, OER_MAX_3TRI)/OER_MAX_3TRI;
   let g = '';
   [0, OER_MAX_3TRI].forEach(v=>{ g += `<line x1="${X(v)}" y1="${top-4}" x2="${X(v)}" y2="${H-2}" stroke="#bbb" stroke-width=".7"/><text x="${X(v)}" y="${top-9}" font-size="9" fill="#444" text-anchor="middle">${v}</text>`; });
@@ -2989,7 +3015,7 @@ function famChartOer(risk){
     const col = nv===3 ? '#e07a6b' : nv===2 ? '#f2a597' : '#fde7a0';
     g += `<text x="0" y="${cy+3.5}" font-size="10" font-weight="600">${escHtml(titleCase(d.name).slice(0,20))}</text>`;
     g += `<rect x="${bx}" y="${y+3}" width="${X(o.precisa)-bx}" height="${rh-6}" rx="3" fill="${col}" stroke="${nv>=2?'#7a1a10':'#444'}" stroke-width="${nv===3?1.6:(nv===2?1.1:.7)}"/>`;
-    g += `<text x="${bx+bw+8}" y="${cy+3.5}" font-size="10" font-weight="800">${o.precisa}${oerAst(o)}${nv===3?' !':''}</text>`;
+    g += `<text x="${bx+bw+8}" y="${cy+3.5}" font-size="10" font-weight="800">${o.precisa}${oerAst(o)}${nv===3?' !':''}${o.parcial ? `<tspan font-size="7.5" font-weight="700" fill="#8a5a00" dx="5">⚠ sem nota ${o.faltaTri}º trim.</tspan>` : ''}</text>`;
   });
   return famSvg(W, H, g, 'Pontos necessários no 3º trimestre');
 }
@@ -3100,7 +3126,7 @@ function repTurmaPage(cd, className, V, t){
   }
 
   if(V.has('oer')){
-    parts.push(rpSec('Alunos em risco de O.E.R ('+risk.length+')', risk.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disciplinas em risco (pontos necessários no 3º trimestre)',l:1}], risk.map((r,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(r.name)}</td><td class="l">${r.subjects.map(s=>escHtml(s.name)+' (<b>'+s.precisa+'</b>'+oerAst(s)+')').join('; ')}</td></tr>`),'rp-list') + (oerTemParcial(risk.flatMap(r=>r.subjects)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '') : `<div class="rp-ok">Nenhum aluno com risco de O.E.R com as notas lançadas.</div>`));
+    parts.push(rpSec('Alunos em risco de O.E.R ('+risk.length+')', risk.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disciplinas em risco (pontos necessários no 3º trimestre)',l:1}], risk.map((r,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(r.name)}</td><td class="l">${r.subjects.map(s=>escHtml(s.name)+' (<b>'+s.precisa+'</b>'+oerAst(s)+')'+(s.parcial ? ' '+oerBadge(s) : '')).join('; ')}</td></tr>`),'rp-list') + (oerTemParcial(risk.flatMap(r=>r.subjects)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '') : `<div class="rp-ok">Nenhum aluno com risco de O.E.R com as notas lançadas.</div>`));
   }
 
   if(V.has('acomp')){
