@@ -1112,15 +1112,17 @@
         .grade-mural-footer { text-align: center; font-size: 11px; color: #666; margin-top: 12px; }
 
         /* ---- Impressão do Quadro Resumo (versão colorida, estilo esportivo) ---- */
-        @page quadroResumo { size: A4 portrait; margin: 7mm 9mm; }
+        @page quadroResumo { size: A4 portrait; margin: 0; } /* margem 0 = o navegador não imprime URL/data/título nas bordas */
         html.quadro-print-mode { page: quadroResumo; }
         #quadroResumoPrintContainer.roster-print-only { display: none; }
         @media print {
             body.printing-quadro header,
             body.printing-quadro > .container { display: none !important; }
             body.printing-quadro #quadroResumoPrintContainer.roster-print-only { display: block !important; }
+            body.printing-quadro #quadroResumoPrintContainer { padding: 7mm 9mm; box-sizing: border-box; }
             .qrp-page * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
         }
+        #quadroResumoPrintContainer { break-after: avoid; page-break-after: avoid; }
         .qrp-page { width: 100%; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.2; }
         .qrp-hero {
             background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; border-radius: 10px;
@@ -8395,11 +8397,40 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 </div>`;
         }
 
+        // Ajusta o Quadro Resumo para caber em UMA folha A4 retrato (margens 7mm/9mm):
+        // mede o conteúdo na largura útil da folha e reduz a escala só o necessário.
+        function ajustarQuadroResumoNaFolha(container) {
+            const pagina = container.querySelector('.qrp-page');
+            if (!pagina) return;
+            const mm = 96 / 25.4;
+            const largura = (210 - 18) * mm;
+            const altura = (297 - 14) * mm - 14; // folga de segurança
+            const estiloOriginal = container.getAttribute('style');
+            container.setAttribute('style', 'display:block !important; position:absolute; left:-10000px; top:0; width:' + largura + 'px; visibility:hidden;');
+            pagina.style.zoom = '1';
+            pagina.style.width = '100%';
+            let fator = 1;
+            if (pagina.getBoundingClientRect().height > altura) {
+                let lo = 0.4, hi = 1;
+                for (let k = 0; k < 14; k++) {
+                    const meio = (lo + hi) / 2;
+                    pagina.style.zoom = meio.toFixed(3);
+                    pagina.style.width = (100 / meio).toFixed(3) + '%';
+                    if (pagina.getBoundingClientRect().height <= altura) { lo = meio; } else { hi = meio; }
+                }
+                fator = lo;
+                pagina.style.zoom = fator.toFixed(3);
+                pagina.style.width = (100 / fator).toFixed(3) + '%';
+            }
+            if (estiloOriginal === null) container.removeAttribute('style'); else container.setAttribute('style', estiloOriginal);
+        }
+
         function imprimirQuadroResumo() {
             const container = document.getElementById('quadroResumoPrintContainer');
             if (!container) return;
 
             container.innerHTML = gerarHtmlQuadroResumoImpressao(false);
+            ajustarQuadroResumoNaFolha(container);
             document.documentElement.classList.add('quadro-print-mode');
             document.body.classList.add('printing-quadro');
             setTimeout(() => window.print(), 50);
@@ -8410,6 +8441,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (!container) return;
 
             container.innerHTML = gerarHtmlQuadroResumoImpressao(true);
+            ajustarQuadroResumoNaFolha(container);
             document.documentElement.classList.add('quadro-print-mode');
             document.body.classList.add('printing-quadro');
             setTimeout(() => window.print(), 50);
