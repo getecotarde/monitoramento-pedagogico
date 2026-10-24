@@ -6138,6 +6138,12 @@ const pvCan=()=>['coord-ped','coord-turno'].includes(currentRole);
 const pvEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pvFmt=d=>{if(!d)return '—';const p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
 const pvDow=d=>d?['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(d+'T12:00:00').getDay()]:'';
+/* Ordem do horário: 1ª a 5ª aula (aceita "2ª aula", "2a", "segunda aula" ou hora "13:30"); sem horário vai por último */
+const pvAula=h=>{const t=String(h==null?'':h).toLowerCase().trim();if(!t)return 999;
+  const hm=t.match(/(\d{1,2})\s*(?:h|:)\s*(\d{2})?/);if(hm&&!/aula|ª|º/.test(t))return 100+(+hm[1])*60+(+(hm[2]||0));
+  const n=t.match(/[1-9]/);if(n)return +n[0];
+  const w=['primeira','segunda','terceira','quarta','quinta'].findIndex(x=>t.includes(x));return w>=0?w+1:999;};
+const pvCmpAula=(a,b)=>pvAula(a.horario)-pvAula(b.horario);
 const pvTurmas=()=>[...new Set((typeof S!=='undefined'?S:[]).filter(x=>!x._transferido).map(x=>x.t))].sort();
 async function provasCarregar(){
   try{const r=await fetch(SUPABASE_URL+'/rest/v1/provas?select=*&order=data.asc,turma.asc',{headers:sbHeaders()});const rows=await r.json();
@@ -6158,7 +6164,7 @@ async function provasAbrir(){
 function provasFiltradas(){
   const v=id=>document.getElementById(id).value,q=v('pvBusca').toLowerCase();
   return provasLog.filter(p=>(!v('pvFTipo')||p.tipo===v('pvFTipo'))&&(!v('pvFTri')||String(p.trimestre)===v('pvFTri'))&&(!v('pvFTurma')||p.turma===v('pvFTurma'))&&(!v('pvFDisc')||p.disciplina===v('pvFDisc'))&&(!v('pvFStatus')||p.status===v('pvFStatus'))&&(!q||((p.conteudo||'')+' '+(p.obs||'')).toLowerCase().includes(q)))
-    .sort((a,b)=>(a.data||'9').localeCompare(b.data||'9')||String(a.turma).localeCompare(String(b.turma)));
+    .sort((a,b)=>(a.data||'9').localeCompare(b.data||'9')||pvCmpAula(a,b)||String(a.turma).localeCompare(String(b.turma),'pt-BR',{numeric:true}));
 }
 function provasRender(){
   const all=provasLog,hoje=new Date().toISOString().slice(0,10),em7=new Date(Date.now()+7*864e5).toISOString().slice(0,10);
@@ -6173,7 +6179,7 @@ function provasRender(){
 }
 function provasSub(w){const c=w==='cron';document.getElementById('pvPaneReg').style.display=c?'none':'';document.getElementById('pvPaneCron').style.display=c?'':'none';document.getElementById('pvSubReg').classList.toggle('active',!c);document.getElementById('pvSubCron').classList.toggle('active',c);}
 /* ── Cronograma ── */
-function pvCronDados(){const f=provasFiltradas().filter(p=>p.status!=='cancelada');return document.getElementById('pvCronAgrupar').value==='turma'?f.sort((a,b)=>String(a.turma).localeCompare(String(b.turma))||(a.data||'').localeCompare(b.data||'')):f;}
+function pvCronDados(){const f=provasFiltradas().filter(p=>p.status!=='cancelada');return document.getElementById('pvCronAgrupar').value==='turma'?f.sort((a,b)=>String(a.turma).localeCompare(String(b.turma),'pt-BR',{numeric:true})||(a.data||'9').localeCompare(b.data||'9')||pvCmpAula(a,b)):f;}
 function pvCronHTML(){
   const por=document.getElementById('pvCronAgrupar').value,f=pvCronDados();if(!f.length)return '<div style="padding:2rem;text-align:center;color:#BBB">Nenhuma prova para o cronograma com os filtros atuais.</div>';
   const th=por==='data'?['Turma','Disciplina','Horário','Tipo','Conteúdo']:['Data','Disciplina','Horário','Tipo','Conteúdo'];
