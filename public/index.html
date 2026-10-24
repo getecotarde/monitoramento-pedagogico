@@ -6186,7 +6186,7 @@ function pvCronHTML(imp,titulo){
   const th=imp?['Data','Turma','Disciplina','Horário','Tipo','Conteúdo']:por==='data'?['Turma','Disciplina','Horário','Tipo','Conteúdo']:['Data','Disciplina','Horário','Tipo','Conteúdo'],n=th.length;
   let h='<table class="pv-table"><thead>'+(imp?`<tr class="pv-tit"><th colspan="${n}"><div class="pv-t1">${titulo}</div><div class="pv-t2">E. M. Geraldo Teixeira da Costa · Turno Tarde · 2026</div></th></tr>`:'')+'<tr>'+th.map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>',ult=null;
   f.forEach(p=>{const k=por==='data'?p.data:p.turma;
-    if(k!==ult){ult=k;h+=`<tr class="pv-grp"><td colspan="${n}" style="background:#F3F2EF;font-weight:700;color:#333">${por==='data'?pvDow(p.data)+', '+pvFmt(p.data):'Turma '+pvEsc(p.turma)}</td></tr>`;}
+    if(k!==ult){ult=k;h+=`<tr class="pv-grp"><td colspan="${n}" style="background:#F3F2EF;font-weight:700;color:#333">${por==='data'?pvDow(p.data)+', '+pvFmt(p.data):'Turma '+pvEsc(p.turma)}</td></tr>`+(imp?'<tr class="pv-colh">'+th.map(x=>`<th>${x}</th>`).join('')+'</tr>':'');}
     const dt=pvDow(p.data)+' '+pvFmt(p.data),tp=`${p.tipo==='trimestral'?'Trimestral':'Mensal'} (${pvEsc(p.trimestre)}º tri)`;
     const cols=imp?[dt,'<b>'+pvEsc(p.turma)+'</b>',pvEsc(p.disciplina),pvEsc(p.horario)||'—',tp,pvEsc(p.conteudo)||'—']:[por==='data'?pvEsc(p.turma):dt,pvEsc(p.disciplina),pvEsc(p.horario)||'—',tp,pvEsc(p.conteudo)||'—'];
     h+='<tr>'+cols.map(c=>`<td>${c}</td>`).join('')+'</tr>';});
@@ -6196,7 +6196,7 @@ function provasCronRender(){const w=document.getElementById('pvCronWrap');if(w)w
 function provasImprimir(){
   const t=pvEsc(document.getElementById('pvCronTitulo').value||'Cronograma de Provas');
   const w=window.open('','_blank');if(!w){alert('Permita pop-ups para imprimir.');return;}
-  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${t}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #999;padding:5px 8px;text-align:left}th{background:#e5e5e5}thead{display:table-header-group}tbody{display:table-row-group}.pv-tit th{background:#fff;border:none;padding:0 0 10px}.pv-t1{font-size:18px;font-weight:700}.pv-t2{font-size:12px;font-weight:400;color:#555;margin-top:2px}.pv-grp td{background:#f0f0f0;font-weight:700}tr{page-break-inside:avoid}.pv-grp{page-break-after:avoid}@page{margin:14mm}</style></head><body>${pvCronHTML(true,t)}<script>window.onload=function(){window.print();}<\/script></body></html>`);w.document.close();
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${t}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #999;padding:5px 8px;text-align:left}th{background:#e5e5e5}thead{display:table-header-group}tbody{display:table-row-group}.pv-tit th{background:#fff;border:none;padding:0 0 10px}.pv-t1{font-size:18px;font-weight:700}.pv-t2{font-size:12px;font-weight:400;color:#555;margin-top:2px}.pv-grp td{background:#f0f0f0;font-weight:700}tr{page-break-inside:avoid}.pv-grp,.pv-colh{page-break-after:avoid}.pv-colh th{background:#e5e5e5}@page{margin:14mm}</style></head><body>${pvCronHTML(true,t)}<script>window.onload=function(){window.print();}<\/script></body></html>`);w.document.close();
 }
 function provasCSV(){
   const f=pvCronDados();if(!f.length){alert('Nada para exportar.');return;}
