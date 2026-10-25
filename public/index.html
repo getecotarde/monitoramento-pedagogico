@@ -1933,6 +1933,10 @@
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14l2 2 4-4"/></svg>
       SMAE — Planejamentos
     </button>
+    <button class="nav-item" onclick="showView('reunioes', this)" id="navReunioes">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Reuniões GETECO
+    </button>
     <button class="nav-item" onclick="showView('materiais', this)" id="navMateriais">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
       Materiais
@@ -3042,6 +3046,23 @@
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
       <iframe id="smaeIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="SMAE — Planejamentos"></iframe>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: REUNIÕES GETECO — PAUTAS, SUGESTÕES E ENCAMINHAMENTOS ─────────────────────────────────── -->
+  <div id="view-reunioes" class="view">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h1>Reuniões GETECO</h1>
+        <p>Pautas apresentadas, pautas sugeridas e encaminhamentos das reuniões pedagógicas, de conselho e de entrega de resultados</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="recarregarReunioesIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
+        <a href="reunioes.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
+      </div>
+    </div>
+    <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
+      <iframe id="reunioesIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Reuniões GETECO"></iframe>
     </div>
   </div>
 
@@ -9229,6 +9250,10 @@ function showView(id, btn){
     const f=document.getElementById('smaeIframe');
     if(f && !f.src) f.src='smae.html';
   }
+  if(id === 'reunioes'){
+    const f=document.getElementById('reunioesIframe');
+    if(f && !f.src) f.src='reunioes.html';
+  }
   if(id === 'eventos'){
     const f=document.getElementById('eventosGeteculturaIframe');
     if(f && !f.src) f.src='getecultura.html';
@@ -9269,6 +9294,11 @@ function recarregarPipleituraIframe(){
 function recarregarSmaeIframe(){
   const f=document.getElementById('smaeIframe');
   if(f) f.src='smae.html?_='+Date.now();
+}
+
+function recarregarReunioesIframe(){
+  const f=document.getElementById('reunioesIframe');
+  if(f) f.src='reunioes.html?_='+Date.now();
 }
 
 function recarregarGeradorCSVIframe(){
