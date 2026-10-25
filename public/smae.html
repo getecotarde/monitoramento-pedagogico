@@ -108,12 +108,18 @@ td.prof{font-weight:600;white-space:nowrap}
 td.turmas{font-size:11.5px;color:var(--tx2);min-width:120px}
 td.obs{font-size:12px;font-weight:600;text-align:left;min-width:170px}
 td.obs.red{color:#D92D20}
+.obs-in{width:100%;min-width:200px;min-height:38px;resize:vertical;padding:5px 7px;border:1px solid transparent;border-radius:6px;background:transparent;font:inherit;font-size:12px;font-weight:600;color:inherit;line-height:1.35}
+.obs-in::placeholder{color:var(--tx3);font-weight:400}
+td.obs.red .obs-in{color:#D92D20}
+.obs-in:hover{border-color:var(--line);background:var(--card)}
+.obs-in:focus{outline:2px solid var(--verde);outline-offset:0;background:var(--card);border-color:transparent}
 .mcell{width:44px;min-width:44px;padding:4px 2px!important}
 .mbtn{width:100%;padding:3px 0;border-radius:99px;border:0;font-size:11px;font-weight:700;cursor:default;background:transparent}
 .mbtn.OK{background:#DDF3E4;color:#17653F}.mbtn.PD{background:#FDBA5A;color:#5a2e00}.mbtn.NA{color:var(--tx3)}
 [data-theme="dark"] .mbtn.OK{background:rgba(34,160,107,.22);color:#7BE0AE}
 [data-theme="dark"] .mbtn.PD{background:rgba(249,115,22,.3);color:#FDBA74}
 .mbtn.edit{cursor:pointer}.mbtn.edit:hover{outline:2px solid var(--verde);outline-offset:1px}
+.req{box-shadow:inset 0 -4px 0 var(--verde)}
 .qtd{font-weight:700;color:#D92D20}.qtd.z{color:var(--tx3)}
 .empty{padding:40px 20px;text-align:center;color:var(--tx2)}
 .notice{background:var(--amber-bg);color:var(--amber-dark);padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -190,6 +196,7 @@ td.obs.red{color:#D92D20}
     <div class="top-l">
       <span class="chip" id="chipModo"><span class="dot"></span><span id="chipModoTxt">Carregando…</span></span>
       <span class="chip" id="chipPerfil">—</span>
+      <select id="refMes" class="chip" onchange="renderTudo()" title="Mês usado para calcular a situação (Em dia / Pendente)" style="cursor:pointer"></select>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn" onclick="recarregar()">↻ Atualizar</button>
@@ -360,7 +367,7 @@ function seedRows(){
   return SEED.map((s,i)=>{
     const meses={};MESES.forEach((m,j)=>{meses[m]={O:'OK',P:'PD',N:'N/A'}[s[5][j]];});
     const r={professor:s[0],disciplina:s[1],turmas:s[2],turma_ref:s[3],dia_acepat:s[4],meses,
-      situacao_manual:s[6]||null,obs_mensal:s[7],obs_plano:s[9],ordem:i+1};
+      situacao_manual:null,obs_mensal:s[7],obs_plano:s[9],ordem:i+1};
     CAMPOS.forEach((c,j)=>r[c.k]=s[8][j]);
     return r;
   });
@@ -379,7 +386,12 @@ const pct=(a,b)=>b?Math.round(a*100/b):0;
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2200);}
 const pend=r=>MESES.filter(m=>(r.meses||{})[m]==='PD');
-const sit=r=>r.situacao_manual||(pend(r).length?'Pendente':'Em dia');
+const NOMES_MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+/* mês de referência: o do relógio, ou o escolhido no seletor do topo (1–12) */
+const refNum=()=>{const v=$('refMes')&&$('refMes').value;return v?+v:(new Date().getMonth()+1);};
+/* Regra: em dia = mês ANTERIOR ao atual lançado (OK). Em dezembro: novembro e dezembro. Jan/Fev: nada exigido. */
+function mesesExigidos(){const n=refNum();if(n===12)return['NOV','DEZ'];if(n>=3)return[MESES[n-3]];return[];}
+const sit=r=>mesesExigidos().every(m=>(r.meses||{})[m]==='OK')?'Em dia':'Pendente';
 const planoCompleto=r=>CAMPOS.every(c=>r[c.k]===c.opts[0]);
 const cls=(c,v)=>v===c.opts[0]?'good':(v==='PENDENTE'?'bad':'warn');
 const disciplinas=()=>[...new Set(rows.map(r=>r.disciplina).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
@@ -448,6 +460,8 @@ function renderTudo(){
   ({apr:renderApresentacao,pla:renderPlano,men:renderMensal,cad:renderCadastro,rel:renderRelatorio})[aba]();
 }
 function renderTopo(){
+  const rs=$('refMes');
+  if(!rs.options.length){rs.innerHTML='<option value="">Mês de referência: automático</option>'+NOMES_MES.map((n,i)=>`<option value="${i+1}">Simular: ${n}</option>`).join('');}
   const c=$('chipModo');
   c.className='chip '+(modo==='supabase'?'ok':'warn');
   $('chipModoTxt').textContent=modo==='supabase'?'Sincronizado (Supabase)':'Modo local (sem tabela no Supabase)';
@@ -526,6 +540,19 @@ function renderApresentacao(){
   <div class="card"><h3>Pontos de atenção</h3><div class="sub">Professores com pendências no plano anual ou nos conteúdos mensais</div><div class="ts" style="max-height:none">${tabelaAtencao(rows,12)}</div></div>`;
 }
 
+/* ═══ OBSERVAÇÕES — editáveis direto na tabela para quem tem permissão ═══ */
+function obsCell(r,campo){
+  const v=r[campo]||'';
+  if(!podeEditar())return `<td class="obs ${v?'red':''}">${esc(v)}</td>`;
+  return `<td class="obs ${v?'red':''}"><textarea class="obs-in" rows="2" placeholder="Adicionar observação…" onchange="salvarObs(${r.id},'${campo}',this)">${esc(v)}</textarea></td>`;
+}
+async function salvarObs(id,campo,el){
+  const r=rows.find(x=>x.id===id);if(!r||!podeEditar())return;
+  r[campo]=el.value.trim();
+  el.closest('td').classList.toggle('red',!!r[campo]);
+  if(await persistir(r))toast('Observação salva — '+r.professor);
+}
+
 /* ═══ PLANO ANUAL ═══ */
 function celPlano(r,c){
   const v=r[c.k]||c.opts[2],k=cls(c,v);
@@ -538,7 +565,7 @@ function renderPlano(){
   const l=rows.filter(r=>(!d||r.disciplina===d)&&(!q||norm([r.professor,r.disciplina,r.turmas,r.turma_ref,r.obs_plano].join(' ')).includes(q))&&(!s||(s==='c')===planoCompleto(r)));
   $('plaCount').textContent=l.length+' de '+rows.length+' professores';
   $('plaTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia de ACEPAT</th>${CAMPOS.map(c=>`<th>${esc(c.l)}</th>`).join('')}<th class="l">Observações</th></tr></thead><tbody>${
-    l.map(r=>`<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td>${CAMPOS.map(c=>`<td>${celPlano(r,c)}</td>`).join('')}<td class="obs ${r.obs_plano?'red':''}">${esc(r.obs_plano)}</td></tr>`).join('')||`<tr><td colspan="11" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
+    l.map(r=>`<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td>${CAMPOS.map(c=>`<td>${celPlano(r,c)}</td>`).join('')}${obsCell(r,'obs_plano')}</tr>`).join('')||`<tr><td colspan="11" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
 }
 async function setCampo(id,k,v){
   const r=rows.find(x=>x.id===id);if(!r)return;r[k]=v;
@@ -551,10 +578,11 @@ function renderMensal(){
   const q=norm($('menBusca').value),d=$('menDisc').value,s=$('menSt').value;
   const l=rows.filter(r=>(!d||r.disciplina===d)&&(!q||norm([r.professor,r.disciplina,r.turmas,r.turma_ref,r.obs_mensal].join(' ')).includes(q))&&(!s||sit(r)===s));
   $('menCount').textContent=l.length+' de '+rows.length+' professores';
-  $('menDica').textContent=podeEditar()?'Clique em uma célula para alternar OK → PD → N/A':'';
-  $('menTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia ACEPAT</th>${MESES.map(m=>`<th class="mcell">${m}</th>`).join('')}<th>Situação</th><th>Qtd</th><th class="l">Observações</th></tr></thead><tbody>${
+  const ex=mesesExigidos();
+  $('menDica').textContent=(podeEditar()?'Clique em uma célula para alternar OK → PD → N/A · ':'')+'Em dia em '+NOMES_MES[refNum()-1]+': '+(ex.length?ex.join(' e ')+' lançado(s) (OK)':'nenhum mês exigido ainda');
+  $('menTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia ACEPAT</th>${MESES.map(m=>`<th class="mcell ${mesesExigidos().includes(m)?'req':''}">${m}</th>`).join('')}<th>Situação<br>(automática)</th><th>Qtd</th><th class="l">Observações</th></tr></thead><tbody>${
     l.map(r=>{const p=pend(r).length,s2=sit(r);return `<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td>${
-      MESES.map(m=>{const v=(r.meses||{})[m]||'N/A';return `<td class="mcell"><button class="mbtn ${v==='N/A'?'NA':v} ${podeEditar()?'edit':''}" ${podeEditar()?`onclick="ciclarMes(${r.id},'${m}')"`:''}>${v}</button></td>`;}).join('')}<td><span class="sit ${s2==='Em dia'?'ok':'pd'}">${s2}</span></td><td class="qtd ${p?'':'z'}">${p}</td><td class="obs ${r.obs_mensal?'red':''}">${esc(r.obs_mensal)}</td></tr>`;}).join('')||`<tr><td colspan="19" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
+      MESES.map(m=>{const v=(r.meses||{})[m]||'N/A';return `<td class="mcell"><button class="mbtn ${v==='N/A'?'NA':v} ${podeEditar()?'edit':''}" ${podeEditar()?`onclick="ciclarMes(${r.id},'${m}')"`:''}>${v}</button></td>`;}).join('')}<td><span class="sit ${s2==='Em dia'?'ok':'pd'}">${s2}</span></td><td class="qtd ${p?'':'z'}">${p}</td>${obsCell(r,'obs_mensal')}</tr>`;}).join('')||`<tr><td colspan="19" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
 }
 async function ciclarMes(id,m){
   const r=rows.find(x=>x.id===id);if(!r||!podeEditar())return;
@@ -592,9 +620,7 @@ function abrirModal(id){
    <div class="fs"><h4>Plano Anual (SMAE)</h4><div class="fg">${CAMPOS.map(c=>`<div class="fld"><label>${esc(c.l)}</label>${sel('f_'+c.k,c.opts,r[c.k]||c.opts[2])}</div>`).join('')}</div>
      <div class="fld" style="margin-top:10px"><label>Observações do plano anual</label><textarea id="fObsP">${esc(r.obs_plano)}</textarea></div></div>
    <div class="fs"><h4>Conteúdos mensais</h4><div class="mg">${MESES.map(m=>`<div class="fld"><label>${m}</label>${sel('m_'+m,ESTADOS,(r.meses||{})[m]||'N/A')}</div>`).join('')}</div>
-     <div class="fg" style="margin-top:10px">
-       <div class="fld"><label>Situação</label>${sel('fSit',['Automática','Em dia','Pendente'],r.situacao_manual||'Automática')}</div>
-     </div>
+     <div class="sub" style="font-size:12px;color:var(--tx2);margin-top:8px">A situação (Em dia / Pendente) é calculada automaticamente: o mês anterior ao atual precisa estar OK (em dezembro, novembro e dezembro).</div>
      <div class="fld" style="margin-top:10px"><label>Observações dos conteúdos mensais</label><textarea id="fObsM">${esc(r.obs_mensal)}</textarea></div></div>`;
   $('ovModal').classList.add('show');
 }
@@ -608,7 +634,7 @@ async function salvarModal(){
   CAMPOS.forEach(c=>r[c.k]=$('f_'+c.k).value);
   r.obs_plano=$('fObsP').value.trim();r.obs_mensal=$('fObsM').value.trim();
   r.meses={};MESES.forEach(m=>r.meses[m]=$('m_'+m).value);
-  const s=$('fSit').value;r.situacao_manual=s==='Automática'?null:s;
+  r.situacao_manual=null;
   if(await persistir(r)){fecharModal();toast('Professor salvo.');renderTudo();}
 }
 async function excluirAtual(){
