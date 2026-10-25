@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMAE — Planejamentos Anual e de Conteúdos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#0D9488;--verde-bg:#E6FFFA;--verde-dark:#0F766E;
+  --coral:#D85A30;--coral-bg:#FAECE7;--coral-dark:#7A2E10;
+  --amber:#BA7517;--amber-bg:#FEF3DC;--amber-dark:#7A4A08;
+  --azul:#2563EB;--azul-bg:#EFF6FF;--azul-dark:#1E3A8A;
+  --laranja:#F97316;--laranja-bg:#FFF1E6;--laranja-dark:#C2410C;
+  --cinza:#888780;--cinza-bg:#F3F2EF;--cinza-dark:#4A4946;
+  --bg:#F8F9FA;--card:#fff;--hover:#FAFAF8;--muted:#F3F2EF;--line:#E8E7E3;
+  --tx:#1F2937;--tx2:#6B7280;--tx3:#9CA3AF;
+  --radius:10px;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --verde-bg:rgba(13,148,136,.16);--coral-bg:rgba(216,90,48,.16);--amber-bg:rgba(186,117,23,.2);
+  --azul-bg:rgba(37,99,235,.16);--laranja-bg:rgba(249,115,22,.16);--cinza-bg:#2A2A28;
+  --verde-dark:#5EEAD4;--coral-dark:#F4A58A;--amber-dark:#F2C879;--azul-dark:#93B4FB;--laranja-dark:#FDBA74;--cinza-dark:#BDBCB6;
+  --bg:#111110;--card:#1C1C1A;--hover:#252523;--muted:#2A2A28;--line:#2E2E2B;
+  --tx:#F0EFE9;--tx2:#A8A7A0;--tx3:#6F6E69;--shadow:none;
+}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:13.5px;line-height:1.5}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.app{padding:16px 18px 40px;max-width:1500px;margin:0 auto}
+
+/* topo */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.top-l{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--tx2)}
+.chip.ok{background:var(--verde-bg);color:var(--verde-dark);border-color:transparent}
+.chip.warn{background:var(--amber-bg);color:var(--amber-dark);border-color:transparent}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.btn{padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:var(--card);cursor:pointer;font-size:12.5px;color:var(--tx2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--hover);color:var(--tx)}
+.btn.pri{background:var(--verde);border-color:var(--verde);color:#fff}
+.btn.pri:hover{background:var(--verde-dark)}
+.btn.danger{color:var(--coral)}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* abas */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.tab{padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px;color:var(--tx2)}
+.tab:hover{background:var(--hover);color:var(--tx)}
+.tab.active{background:var(--verde-bg);border-color:var(--verde);color:var(--verde-dark);font-weight:600}
+.pane{display:none}.pane.active{display:block}
+
+/* cartões e KPIs */
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:2px}
+.card .sub{font-size:12px;color:var(--tx2);margin-bottom:12px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.kpi{padding:14px 16px}
+.kpi .n{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kpi .l{font-size:12px;color:var(--tx2);margin-top:2px}
+.kpi .s{font-size:11.5px;margin-top:6px;color:var(--tx3)}
+.kpi.good .n{color:var(--verde-dark)}.kpi.bad .n{color:var(--laranja-dark)}.kpi.blue .n{color:var(--azul)}
+
+/* barras */
+.bar-row{display:grid;grid-template-columns:190px 1fr 64px;gap:10px;align-items:center;margin:9px 0;font-size:12.5px}
+.bar{height:12px;border-radius:99px;background:var(--muted);overflow:hidden;display:flex}
+.bar>i{display:block;height:100%}
+.c-good{background:#22A06B}.c-warn{background:#E5A800}.c-bad{background:#F97316}.c-na{background:#C9C8C2}
+[data-theme="dark"] .c-na{background:#4A4946}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--tx2);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.mcols{display:flex;gap:8px;align-items:flex-end;height:190px;padding-top:6px}
+.mcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.mstack{width:100%;max-width:46px;display:flex;flex-direction:column-reverse;border-radius:6px;overflow:hidden;height:150px;background:var(--muted)}
+.mstack>i{display:flex;align-items:center;justify-content:center;font-size:10px;font-style:normal;color:#fff;font-weight:600}
+.mcol b{font-size:11px;color:var(--tx2);font-weight:600}
+
+/* pílulas */
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-align:center;min-width:84px;border:0;white-space:nowrap}
+.pill.good{background:#DDF3E4;color:#17653F}.pill.warn{background:#FFF1B8;color:#7A5B00}.pill.bad{background:#FFD9B8;color:#9A3F05}.pill.na{background:var(--muted);color:var(--cinza-dark)}
+.pill.solid-good{background:#2FBF5B;color:#fff}.pill.solid-warn{background:#F4E04D;color:#4a3d00}.pill.solid-bad{background:#F97316;color:#fff}
+[data-theme="dark"] .pill.good{background:rgba(34,160,107,.22);color:#7BE0AE}
+[data-theme="dark"] .pill.warn{background:rgba(229,168,0,.22);color:#F2D062}
+[data-theme="dark"] .pill.bad{background:rgba(249,115,22,.22);color:#FDBA74}
+select.pill{appearance:none;-webkit-appearance:none;cursor:pointer;text-align-last:center;padding:3px 10px}
+.sit{display:inline-block;padding:2px 12px;border-radius:99px;font-size:11px;font-weight:700}
+.sit.ok{background:#0F766E;color:#fff}.sit.pd{background:#F59E0B;color:#2b1d00}
+
+/* tabelas */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters input,.filters select{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);min-width:150px}
+.filters .count{margin-left:auto;font-size:12px;color:var(--tx3)}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.ts{overflow:auto;max-height:calc(100vh - 290px)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;z-index:2;background:#F3C99B;color:#4A2E0B;text-align:center;font-weight:700;padding:9px 8px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:normal;line-height:1.25}
+[data-theme="dark"] thead th{background:#3A2E1E;color:#F2D3AB}
+tbody td{padding:8px 8px;border-bottom:1px solid var(--line);vertical-align:middle;text-align:center}
+tbody td.l,thead th.l{text-align:left}
+tbody tr:nth-child(even) td{background:rgba(120,140,170,.07)}
+tbody tr:hover td{background:var(--hover)}
+td.prof{font-weight:600;white-space:nowrap}
+td.turmas{font-size:11.5px;color:var(--tx2);min-width:120px}
+td.obs{font-size:12px;font-weight:600;text-align:left;min-width:170px}
+td.obs.red{color:#D92D20}
+.mcell{width:44px;min-width:44px;padding:4px 2px!important}
+.mbtn{width:100%;padding:3px 0;border-radius:99px;border:0;font-size:11px;font-weight:700;cursor:default;background:transparent}
+.mbtn.OK{background:#DDF3E4;color:#17653F}.mbtn.PD{background:#FDBA5A;color:#5a2e00}.mbtn.NA{color:var(--tx3)}
+[data-theme="dark"] .mbtn.OK{background:rgba(34,160,107,.22);color:#7BE0AE}
+[data-theme="dark"] .mbtn.PD{background:rgba(249,115,22,.3);color:#FDBA74}
+.mbtn.edit{cursor:pointer}.mbtn.edit:hover{outline:2px solid var(--verde);outline-offset:1px}
+.qtd{font-weight:700;color:#D92D20}.qtd.z{color:var(--tx3)}
+.empty{padding:40px 20px;text-align:center;color:var(--tx2)}
+.notice{background:var(--amber-bg);color:var(--amber-dark);padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice.info{background:var(--azul-bg);color:var(--azul-dark)}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto;z-index:50}
+.ov.show{display:flex}
+.modal{background:var(--card);border-radius:14px;max-width:820px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.mh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.mh h2{font-size:16px}
+.mb{padding:16px 18px}
+.mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:var(--hover)}
+.fs{margin-bottom:16px}
+.fs h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);margin-bottom:8px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.fld label{display:block;font-size:11.5px;color:var(--tx2);margin-bottom:3px;font-weight:600}
+.fld input,.fld select,.fld textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--card)}
+.fld textarea{min-height:60px;resize:vertical}
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.mg .fld select{padding:6px 4px}
+
+/* relatórios */
+.rep-out{background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:var(--shadow);overflow:auto}
+.rep-out h1{font-size:18px;margin-bottom:2px}
+.rep-out .meta{font-size:12px;color:#666;margin-bottom:14px}
+.rep-out table{font-size:12px;margin-bottom:14px}
+.rep-out th{position:static;background:#F3C99B;color:#4A2E0B}
+.rep-out td{border:1px solid #E5E5E5;color:#111}
+.rep-out tbody tr:nth-child(even) td{background:#FAFAF8}
+.rep-out h2{font-size:14px;margin:14px 0 6px}
+.rep-out ul{padding-left:18px;margin-bottom:8px}
+.rep-out .kv{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.rep-out .kv div{border:1px solid #E5E5E5;border-radius:8px;padding:8px 12px;min-width:130px}
+.rep-out .kv b{display:block;font-size:20px}
+
+/* apresentação (slides) */
+.slides{position:fixed;inset:0;background:#0B1F1D;color:#fff;z-index:80;display:none;flex-direction:column}
+.slides.show{display:flex}
+.sl-top{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;font-size:12.5px;color:#9FD6CF}
+.sl-top button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:7px;padding:6px 12px;cursor:pointer}
+.sl-body{flex:1;overflow:auto;padding:10px 6vw 30px;display:flex;flex-direction:column;justify-content:center}
+.sl-body h1{font-size:clamp(28px,4.4vw,54px);letter-spacing:-.02em;line-height:1.1;margin-bottom:10px}
+.sl-body h2{font-size:clamp(22px,3vw,36px);margin-bottom:6px;letter-spacing:-.01em}
+.sl-body .lead{font-size:clamp(14px,1.6vw,20px);color:#9FD6CF;margin-bottom:22px}
+.sl-body .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.sl-body .k{background:rgba(255,255,255,.07);border-radius:14px;padding:18px}
+.sl-body .k b{font-size:clamp(30px,4vw,52px);display:block;line-height:1}
+.sl-body .k span{font-size:13px;color:#9FD6CF}
+.sl-body .bar{background:rgba(255,255,255,.12);height:16px}
+.sl-body .bar-row{grid-template-columns:260px 1fr 70px;font-size:clamp(13px,1.4vw,17px)}
+.sl-body .mstack{background:rgba(255,255,255,.1);height:230px;max-width:60px}
+.sl-body .mcols{height:280px}
+.sl-body .mcol b{color:#9FD6CF}
+.sl-body .legend{color:#9FD6CF}
+.sl-body table{font-size:clamp(12px,1.25vw,15px)}
+.sl-body thead th{background:rgba(255,255,255,.12);color:#fff;position:static}
+.sl-body tbody td{border-color:rgba(255,255,255,.1);background:transparent!important;color:#fff}
+.sl-body ul{font-size:clamp(14px,1.7vw,22px);padding-left:22px;line-height:1.7}
+.sl-body li b{color:#5EEAD4}
+.sl-nav{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;gap:10px}
+.sl-dots{display:flex;gap:6px}.sl-dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}.sl-dots i.on{background:#5EEAD4}
+.sl-nav button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer}
+
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media(max-width:700px){.bar-row,.sl-body .bar-row{grid-template-columns:110px 1fr 52px}.ts{max-height:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="top-l">
+      <span class="chip" id="chipModo"><span class="dot"></span><span id="chipModoTxt">Carregando…</span></span>
+      <span class="chip" id="chipPerfil">—</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="recarregar()">↻ Atualizar</button>
+      <button class="btn pri" onclick="abrirSlides()">▶ Modo apresentação</button>
+    </div>
+  </div>
+
+  <div id="avisos"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-p="apr" onclick="irAba('apr')">Apresentação</button>
+    <button class="tab" data-p="pla" onclick="irAba('pla')">Plano Anual</button>
+    <button class="tab" data-p="men" onclick="irAba('men')">Conteúdos Mensais</button>
+    <button class="tab" data-p="cad" onclick="irAba('cad')">Cadastro / Inserção de dados</button>
+    <button class="tab" data-p="rel" onclick="irAba('rel')">Relatórios</button>
+  </div>
+
+  <!-- APRESENTAÇÃO -->
+  <section class="pane active" id="p-apr"></section>
+
+  <!-- PLANO ANUAL -->
+  <section class="pane" id="p-pla">
+    <div class="filters">
+      <input type="text" id="plaBusca" placeholder="Buscar professor, turma ou observação…" oninput="renderPlano()">
+      <select id="plaDisc" onchange="renderPlano()"></select>
+      <select id="plaSt" onchange="renderPlano()">
+        <option value="">Todas as situações</option>
+        <option value="c">Plano completo</option>
+        <option value="p">Com itens pendentes / em andamento</option>
+      </select>
+      <span class="count" id="plaCount"></span>
+    </div>
+    <div class="tw"><div class="ts"><table id="plaTab"></table></div></div>
+  </section>
+
+  <!-- CONTEÚDOS MENSAIS -->
+  <section class="pane" id="p-men">
+    <div class="filters">
+      <input type="text" id="menBusca" placeholder="Buscar professor, turma ou observação…" oninput="renderMensal()">
+      <select id="menDisc" onchange="renderMensal()"></select>
+      <select id="menSt" onchange="renderMensal()">
+        <option value="">Todas as situações</option>
+        <option value="Em dia">Em dia</option>
+        <option value="Pendente">Pendente</option>
+      </select>
+      <span class="count" id="menCount"></span>
+    </div>
+    <div class="legend" style="margin:-4px 0 10px">
+      <span><i class="c-good"></i>OK = conteúdo lançado</span><span><i class="c-bad"></i>PD = pendente</span><span><i class="c-na"></i>N/A = não se aplica / mês ainda não letivo</span>
+      <span id="menDica" style="margin-left:auto"></span>
+    </div>
+    <div class="tw"><div class="ts"><table id="menTab"></table></div></div>
+  </section>
+
+  <!-- CADASTRO -->
+  <section class="pane" id="p-cad">
+    <div class="filters">
+      <input type="text" id="cadBusca" placeholder="Buscar professor…" oninput="renderCadastro()">
+      <button class="btn pri" id="btnNovo" onclick="abrirModal(null)">+ Novo professor</button>
+      <button class="btn" id="btnImport" onclick="importarSeed()">⇪ Importar dados iniciais dos PDFs</button>
+      <span class="count" id="cadCount"></span>
+    </div>
+    <div class="tw"><div class="ts"><table id="cadTab"></table></div></div>
+  </section>
+
+  <!-- RELATÓRIOS -->
+  <section class="pane" id="p-rel">
+    <div class="card" style="margin-bottom:14px">
+      <h3>Gerar relatório</h3>
+      <div class="sub">Escolha o tipo, aplique filtros e use imprimir / PDF, CSV ou copiar texto.</div>
+      <div class="filters" style="margin-bottom:0">
+        <select id="repTipo" onchange="renderRelatorio()">
+          <option value="resumo">Resumo executivo</option>
+          <option value="plano">Plano Anual — situação por professor</option>
+          <option value="mensal">Conteúdos Mensais — matriz por professor</option>
+          <option value="pend">Pendências por professor</option>
+          <option value="disc">Panorama por disciplina</option>
+        </select>
+        <select id="repDisc" onchange="renderRelatorio()"></select>
+        <select id="repSt" onchange="renderRelatorio()">
+          <option value="">Todas as situações</option>
+          <option value="Pendente">Somente pendentes</option>
+          <option value="Em dia">Somente em dia</option>
+        </select>
+        <input type="text" id="repTitulo" placeholder="Título (opcional)" oninput="renderRelatorio()" style="min-width:220px">
+        <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn pri" onclick="repImprimir()">🖨 Imprimir / PDF</button>
+          <button class="btn" onclick="repCSV()">⬇ CSV</button>
+          <button class="btn" onclick="repCopiar()">⧉ Copiar texto</button>
+        </span>
+      </div>
+    </div>
+    <div class="rep-out" id="repOut"></div>
+  </section>
+</div>
+
+<!-- modal professor -->
+<div class="ov" id="ovModal" onclick="if(event.target===this)fecharModal()">
+  <div class="modal">
+    <div class="mh"><h2 id="mTitulo">Professor</h2><button class="btn sm" onclick="fecharModal()">✕</button></div>
+    <div class="mb" id="mCorpo"></div>
+    <div class="mf">
+      <button class="btn danger" id="mExcluir" onclick="excluirAtual()" style="margin-right:auto">Excluir</button>
+      <button class="btn" onclick="fecharModal()">Cancelar</button>
+      <button class="btn pri" onclick="salvarModal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- slides -->
+<div class="slides" id="slides">
+  <div class="sl-top"><span id="slInfo"></span><span><button onclick="fullscreenSlides()">⛶ Tela cheia</button> <button onclick="fecharSlides()">✕ Fechar (Esc)</button></span></div>
+  <div class="sl-body" id="slBody"></div>
+  <div class="sl-nav"><button onclick="slideIr(-1)">← Anterior</button><div class="sl-dots" id="slDots"></div><button onclick="slideIr(1)">Próximo →</button></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SMAE — Planejamento Anual e Conteúdos Mensais
+   Tabela Supabase: smae_professores (ver smae_supabase.sql).
+   Sem a tabela, funciona em localStorage (aviso na tela).
+   ═══════════════════════════════════════════════════════════ */
+const SUPABASE_URL='https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+const TABELA='smae_professores', LS_KEY='smae_local_v1';
+const sbH=(x={})=>({'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation',...x});
+
+const MESES=['FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+const DIAS=['SEGUNDA','TERÇA','QUARTA','QUINTA','SEXTA','—'];
+const CAMPOS=[
+  {k:'plano_anual', l:'Plano Anual',                opts:['REALIZADO','EM ANDAMENTO','PENDENTE']},
+  {k:'perfil_turma',l:'Perfil da Turma',            opts:['PRONTO','EM ANDAMENTO','PENDENTE']},
+  {k:'proposta',    l:'Proposta Pedagógica',        opts:['PRONTO','EM ANDAMENTO','PENDENTE']},
+  {k:'habilidades', l:'Habilidades por ano / componente', opts:['INTEGRAL','PARCIAL','PENDENTE']},
+  {k:'descritores', l:'Descritores por habilidade', opts:['INTEGRAL','PARCIAL','PENDENTE']},
+];
+const ESTADOS=['OK','PD','N/A'];
+
+/* ── dados iniciais (transcritos dos PDFs "SMAE_Plano_Anual" e "SMAE_Conteúdos_Mensais") ──
+   meses: O = OK, P = PD (pendente), N = N/A — FEV…DEZ */
+const P_OK=['REALIZADO','PRONTO','PRONTO','INTEGRAL','INTEGRAL'];
+const SEED=[
+ ['Fabiana','ARTES','7ºD/E','7ºE','SEXTA','OOOOOOONNNN','','Maio: GREVE.',P_OK,''],
+ ['Fabiana (João Marcelo)','ARTES','6º A/B/C/D/E/F - 7º A/B/C','—','QUINTA','OOOOOOOOOOO','','Preenchido até dezembro.',P_OK,''],
+ ['Juscele Silva','CIÊNCIAS','6º A/B/C/D/E/F','6ºC','QUARTA','OOOOPPPNNNN','','',P_OK,''],
+ ['Marcelo Soares (JHOW)','CIÊNCIAS','7º A/B/C/D/E','—','QUARTA','OOOOOOOOOOO','','Preenchido até dezembro.',P_OK,''],
+ ['Jane','E. FÍSICA','7ºD/E','—','—','PPPPPPNNNNN','','Jane entrou em Agosto()',['EM ANDAMENTO','PENDENTE','PENDENTE','PENDENTE','PENDENTE'],'Coordenação Pedagógica.'],
+ ['Marcelo José','E. FÍSICA','6º A/B/C/D/E/F - 7º A/B/C','—','SEXTA','PPPPPPNNNNN','Pendente','Em LM desde Julho.',P_OK,''],
+ ['Marcelo Cafiero','G. ATIVA','8ºX','8ºX','TERÇA','NNNNNNNNNNN','Pendente','Lançou apenas Matemática, até JUNHO.',['EM ANDAMENTO','PENDENTE','PENDENTE','PENDENTE','PENDENTE'],'Professor fará lançamentos de P/C/G/H/A.'],
+ ['Leidiane de Paula','GEOGRAFIA','6º A/B/C/D/E/F','6ºF','QUINTA','OOOOOONNNNN','','',P_OK,''],
+ ['Marcia Peifer Martins','GEOGRAFIA','7º A/B/C/D/E','—','QUINTA','OOOOOONNNNN','','',P_OK,''],
+ ['Ailson Eustáquio','HISTÓRIA','6º A/B/C/D/E/F','6ºD','SEXTA','OOOOOPNNNNN','','',P_OK,''],
+ ['Juliana Cristie','HISTÓRIA','7º A/B/C/D/E','7ºB','SEXTA','OOOOOONNNNN','','',P_OK,''],
+ ['Magner (Claudete)','INGLÊS','7ºD/E 8ºX','—','QUARTA','PPPPPPNNNNN','','Aposentou em JULHO.',P_OK,''],
+ ['Ronei','INGLÊS','6º A/B/C/D/E/F - 7º A/B/C','—','QUARTA','OOOOOONNNNN','Pendente','Preenchido até dezembro.',P_OK,''],
+ ['Alexandra Ferreira','MATEMÁTICA','7º A/B/C','7ºA','TERÇA','OOOOOOONNNN','','',P_OK,''],
+ ['Fernanda Carolina','MATEMÁTICA','6º D/E/F','—','TERÇA','PPPPPPNNNNN','','',P_OK,''],
+ ['Gislaine Diniz','MATEMÁTICA','6º A/B/C','6ºB','TERÇA','PPPPPPNNNNN','','',P_OK,''],
+ ['Wander (Magna)','MATEMÁTICA','7º D/E 8ºX','7ºD','SEGUNDA','OOOOOPNNNNN','','Maio: GREVE.',['EM ANDAMENTO','PENDENTE','PENDENTE','PARCIAL','PARCIAL'],'Faltam os itens apenas para o 8ºX(M)'],
+ ['Alessandra Dantas','PORTUGUÊS','6º A/B/C','6ºA','SEGUNDA','OOOOOOOOOOO','','Preenchido até dezembro.',P_OK,''],
+ ['Guilherme Nicácio','PORTUGUÊS','7º A/B/C','7ºC','SEGUNDA','PPPPPPNNNNN','','',P_OK,''],
+ ['Joadne Ridicchi','PORTUGUÊS','6º D/E/F','6ºE','QUARTA','OOOOOPNNNNN','','Maio: GREVE.',P_OK,''],
+ ['Maria do Carmo','PORTUGUÊS','7º D/E','—','SEGUNDA','OOOOOOOOOOO','','Preenchido até dezembro.',P_OK,''],
+ ['Gilce','E. FÍSICA','8ºX','—','SEGUNDA','PPNNNNNNNNN','','A confirmar!',P_OK,'Professora dos Anos Iniciais.'],
+];
+function seedRows(){
+  return SEED.map((s,i)=>{
+    const meses={};MESES.forEach((m,j)=>{meses[m]={O:'OK',P:'PD',N:'N/A'}[s[5][j]];});
+    const r={professor:s[0],disciplina:s[1],turmas:s[2],turma_ref:s[3],dia_acepat:s[4],meses,
+      situacao_manual:s[6]||null,obs_mensal:s[7],obs_plano:s[9],ordem:i+1};
+    CAMPOS.forEach((c,j)=>r[c.k]=s[8][j]);
+    return r;
+  });
+}
+
+/* ── estado ── */
+let rows=[],modo='local',editId=null,aba='apr',carregado=false;
+let role=null;try{role=sessionStorage.getItem('monit_role');}catch(e){}
+const ROLE_LBL={'coord-ped':'Coord. Pedagógico','coord-turno':'Coord. de Turno','pip':'PIP','aee':'AEE'};
+const podeEditar=()=>['coord-ped','coord-turno'].includes(role);
+
+/* ── utilidades ── */
+const esc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+const pct=(a,b)=>b?Math.round(a*100/b):0;
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2200);}
+const pend=r=>MESES.filter(m=>(r.meses||{})[m]==='PD');
+const sit=r=>r.situacao_manual||(pend(r).length?'Pendente':'Em dia');
+const planoCompleto=r=>CAMPOS.every(c=>r[c.k]===c.opts[0]);
+const cls=(c,v)=>v===c.opts[0]?'good':(v==='PENDENTE'?'bad':'warn');
+const disciplinas=()=>[...new Set(rows.map(r=>r.disciplina).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+const hoje=()=>new Date().toLocaleDateString('pt-BR');
+
+/* ── persistência ── */
+async function carregar(){
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?select=*&order=ordem.asc,id.asc`,{headers:sbH()});
+    const d=await r.json();
+    if(r.ok&&Array.isArray(d)){modo='supabase';rows=d.map(x=>({...x,meses:x.meses||{}}));return;}
+  }catch(e){}
+  modo='local';
+  try{rows=JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){rows=null;}
+  if(!Array.isArray(rows)){rows=seedRows().map((r,i)=>({...r,id:i+1}));gravarLocal();}
+}
+const gravarLocal=()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(rows));}catch(e){}};
+const limpar=r=>{const o={};Object.keys(r).forEach(k=>{if(!k.startsWith('_')&&k!=='updated_at')o[k]=r[k];});return o;};
+
+async function persistir(r){
+  if(modo==='local'){
+    if(!r.id)r.id=(Math.max(0,...rows.map(x=>x.id||0))+1);
+    if(!rows.includes(r))rows.push(r);
+    gravarLocal();return true;
+  }
+  try{
+    const body=limpar(r);
+    let resp;
+    if(r.id){delete body.id;resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?id=eq.${r.id}`,{method:'PATCH',headers:sbH(),body:JSON.stringify(body)});}
+    else{delete body.id;resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}`,{method:'POST',headers:sbH(),body:JSON.stringify(body)});}
+    if(!resp.ok)throw new Error(await resp.text());
+    const d=await resp.json();
+    if(!r.id&&d[0]){r.id=d[0].id;rows.push(r);}
+    return true;
+  }catch(e){console.error(e);toast('Erro ao salvar no Supabase — veja o console.');return false;}
+}
+async function remover(r){
+  if(modo==='local'){rows=rows.filter(x=>x!==r);gravarLocal();return true;}
+  try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?id=eq.${r.id}`,{method:'DELETE',headers:sbH()});
+    if(!resp.ok)throw 0;rows=rows.filter(x=>x!==r);return true;}
+  catch(e){toast('Erro ao excluir.');return false;}
+}
+async function importarSeed(){
+  if(!podeEditar())return;
+  if(rows.length&&!confirm('Já existem professores cadastrados. Importar os dados dos PDFs ADICIONA 22 registros novos (pode duplicar). Continuar?'))return;
+  const novos=seedRows();
+  if(modo==='local'){novos.forEach((r,i)=>{r.id=Math.max(0,...rows.map(x=>x.id||0))+1;rows.push(r);});gravarLocal();}
+  else{
+    try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}`,{method:'POST',headers:sbH(),body:JSON.stringify(novos)});
+      if(!resp.ok)throw new Error(await resp.text());await carregar();}
+    catch(e){console.error(e);toast('Erro ao importar.');return;}
+  }
+  toast('Dados dos PDFs importados.');renderTudo();
+}
+async function recarregar(){await carregar();renderTudo();toast('Dados atualizados.');}
+
+/* ── abas ── */
+function irAba(a){
+  aba=a;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p===a));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='p-'+a));
+  renderTudo();
+}
+function renderTudo(){
+  renderTopo();
+  ({apr:renderApresentacao,pla:renderPlano,men:renderMensal,cad:renderCadastro,rel:renderRelatorio})[aba]();
+}
+function renderTopo(){
+  const c=$('chipModo');
+  c.className='chip '+(modo==='supabase'?'ok':'warn');
+  $('chipModoTxt').textContent=modo==='supabase'?'Sincronizado (Supabase)':'Modo local (sem tabela no Supabase)';
+  const p=$('chipPerfil');
+  p.textContent=podeEditar()?('Perfil: '+ROLE_LBL[role]+' · edição liberada'):(role?('Perfil: '+(ROLE_LBL[role]||role)+' · somente leitura'):'Somente leitura (entre pelo sistema principal para editar)');
+  let av='';
+  if(modo==='local')av+=`<div class="notice">⚠ A tabela <b>${TABELA}</b> não foi encontrada no Supabase. Os dados estão sendo salvos só neste navegador. Execute o arquivo <b>smae_supabase.sql</b> no SQL Editor do Supabase para sincronizar com todos os usuários.</div>`;
+  if(modo==='supabase'&&!rows.length)av+=`<div class="notice info">A tabela está vazia. ${podeEditar()?'Use <b>Cadastro → Importar dados iniciais dos PDFs</b> para carregar os 22 professores das duas planilhas.':'Peça à Coordenação para importar os dados.'}</div>`;
+  $('avisos').innerHTML=av;
+  const ed=podeEditar();
+  ['btnNovo','btnImport'].forEach(id=>{const b=$(id);if(b)b.style.display=ed?'':'none';});
+}
+function preencherDisc(id){
+  const el=$(id),cur=el.value;
+  el.innerHTML='<option value="">Todas as disciplinas</option>'+disciplinas().map(d=>`<option>${esc(d)}</option>`).join('');
+  el.value=cur;
+}
+
+/* ── métricas ── */
+function metricas(lista){
+  lista=lista||rows;
+  const n=lista.length;
+  const planoOk=lista.filter(planoCompleto).length;
+  const emDia=lista.filter(r=>sit(r)==='Em dia').length;
+  let ok=0,pd=0,na=0;
+  const porMes=MESES.map(m=>{const o={m,ok:0,pd:0,na:0};lista.forEach(r=>{const v=(r.meses||{})[m]||'N/A';if(v==='OK')o.ok++;else if(v==='PD')o.pd++;else o.na++;});ok+=o.ok;pd+=o.pd;na+=o.na;return o;});
+  const camp=CAMPOS.map(c=>({c,done:lista.filter(r=>r[c.k]===c.opts[0]).length,mid:lista.filter(r=>r[c.k]!==c.opts[0]&&r[c.k]!=='PENDENTE').length,bad:lista.filter(r=>r[c.k]==='PENDENTE').length}));
+  return{n,planoOk,emDia,pendProf:n-emDia,ok,pd,na,porMes,camp,cobertura:pct(ok,ok+pd)};
+}
+function porDisciplina(lista){
+  const mp={};
+  lista.forEach(r=>{const d=r.disciplina||'—';(mp[d]=mp[d]||[]).push(r);});
+  return Object.keys(mp).sort((a,b)=>a.localeCompare(b,'pt')).map(d=>{
+    const l=mp[d];const m=metricas(l);
+    return{d,n:l.length,planoOk:m.planoOk,emDia:m.emDia,pendProf:m.pendProf,pd:m.pd,cob:m.cobertura,semDados:(m.ok+m.pd)===0};
+  });
+}
+
+/* ═══ APRESENTAÇÃO ═══ */
+const barHTML=(parts)=>`<div class="bar">${parts.map(p=>`<i class="${p[0]}" style="width:${p[1]}%"></i>`).join('')}</div>`;
+function blocoCampos(m){
+  return m.camp.map(x=>{
+    const n=m.n||1;
+    return `<div class="bar-row"><span>${esc(x.c.l)}</span>${barHTML([['c-good',x.done*100/n],['c-warn',x.mid*100/n],['c-bad',x.bad*100/n]])}<b>${x.done}/${m.n}</b></div>`;
+  }).join('')+`<div class="legend"><span><i class="c-good"></i>Concluído</span><span><i class="c-warn"></i>Em andamento / parcial</span><span><i class="c-bad"></i>Pendente</span></div>`;
+}
+function blocoMeses(m){
+  const max=m.n||1;
+  return `<div class="mcols">${m.porMes.map(x=>`<div class="mcol"><div class="mstack" title="${x.m}: ${x.ok} OK · ${x.pd} PD · ${x.na} N/A">
+    <i class="c-good" style="height:${x.ok*100/max}%">${x.ok||''}</i><i class="c-bad" style="height:${x.pd*100/max}%">${x.pd||''}</i><i class="c-na" style="height:${x.na*100/max}%"></i></div><b>${x.m}</b></div>`).join('')}</div>
+    <div class="legend"><span><i class="c-good"></i>OK</span><span><i class="c-bad"></i>PD (pendente)</span><span><i class="c-na"></i>N/A</span></div>`;
+}
+function tabelaAtencao(lista,max){
+  const l=lista.filter(r=>sit(r)==='Pendente'||!planoCompleto(r)).sort((a,b)=>pend(b).length-pend(a).length);
+  if(!l.length)return '<div class="empty">Nenhuma pendência. 🎉</div>';
+  return `<table><thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Meses em PD</th><th>Plano Anual</th><th class="l">Observação</th></tr></thead><tbody>${
+    l.slice(0,max||99).map(r=>`<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td>${pend(r).length?pend(r).join(', '):'—'}</td><td>${esc(r.plano_anual||'—')}</td><td class="l" style="font-size:12px">${esc([r.obs_mensal,r.obs_plano].filter(Boolean).join(' · '))}</td></tr>`).join('')}</tbody></table>`;
+}
+function renderApresentacao(){
+  if(!rows.length){$('p-apr').innerHTML='<div class="card empty">Sem dados para apresentar. Cadastre professores na aba <b>Cadastro</b>.</div>';return;}
+  const m=metricas();
+  $('p-apr').innerHTML=`
+  <div class="grid g4" style="margin-bottom:14px">
+    <div class="card kpi"><div class="n">${m.n}</div><div class="l">Professores no acompanhamento</div><div class="s">${disciplinas().length} componentes curriculares</div></div>
+    <div class="card kpi good"><div class="n">${pct(m.planoOk,m.n)}%</div><div class="l">Plano Anual completo</div><div class="s">${m.planoOk} de ${m.n} professores com os 5 itens concluídos</div></div>
+    <div class="card kpi blue"><div class="n">${m.cobertura}%</div><div class="l">Conteúdos mensais lançados</div><div class="s">${m.ok} lançamentos OK · ${m.pd} pendentes (PD)</div></div>
+    <div class="card kpi bad"><div class="n">${m.pendProf}</div><div class="l">Professores com pendência</div><div class="s">${m.emDia} em dia (${pct(m.emDia,m.n)}%)</div></div>
+  </div>
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="card"><h3>Planejamento Anual</h3><div class="sub">Itens do SMAE concluídos por professor</div>${blocoCampos(m)}</div>
+    <div class="card"><h3>Conteúdos Mensais</h3><div class="sub">Lançamentos por mês (nº de professores)</div>${blocoMeses(m)}</div>
+  </div>
+  <div class="card" style="margin-bottom:14px"><h3>Panorama por disciplina</h3><div class="sub">Plano anual completo e situação dos conteúdos</div>
+    <div class="ts" style="max-height:none"><table><thead><tr><th class="l">Disciplina</th><th>Professores</th><th>Plano completo</th><th>Em dia</th><th>Com pendência</th><th>Meses PD</th><th>Cobertura</th></tr></thead><tbody>${
+      porDisciplina(rows).map(x=>`<tr><td class="l prof">${esc(x.d)}</td><td>${x.n}</td><td>${x.planoOk}/${x.n}</td><td>${x.emDia}</td><td>${x.pendProf?`<span class="qtd">${x.pendProf}</span>`:'<span class="qtd z">0</span>'}</td><td>${x.pd}</td><td>${x.semDados?'<small>—</small>':'<div class="bar" style="min-width:90px"><i class="c-good" style="width:'+x.cob+'%"></i></div> <small>'+x.cob+'%</small>'}</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="card"><h3>Pontos de atenção</h3><div class="sub">Professores com pendências no plano anual ou nos conteúdos mensais</div><div class="ts" style="max-height:none">${tabelaAtencao(rows,12)}</div></div>`;
+}
+
+/* ═══ PLANO ANUAL ═══ */
+function celPlano(r,c){
+  const v=r[c.k]||c.opts[2],k=cls(c,v);
+  if(!podeEditar())return `<span class="pill ${k}">${esc(v)}</span>`;
+  return `<select class="pill ${k}" onchange="setCampo(${r.id},'${c.k}',this.value)">${c.opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
+}
+function renderPlano(){
+  preencherDisc('plaDisc');
+  const q=norm($('plaBusca').value),d=$('plaDisc').value,s=$('plaSt').value;
+  const l=rows.filter(r=>(!d||r.disciplina===d)&&(!q||norm([r.professor,r.disciplina,r.turmas,r.turma_ref,r.obs_plano].join(' ')).includes(q))&&(!s||(s==='c')===planoCompleto(r)));
+  $('plaCount').textContent=l.length+' de '+rows.length+' professores';
+  $('plaTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia de ACEPAT</th>${CAMPOS.map(c=>`<th>${esc(c.l)}</th>`).join('')}<th class="l">Observações</th></tr></thead><tbody>${
+    l.map(r=>`<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td>${CAMPOS.map(c=>`<td>${celPlano(r,c)}</td>`).join('')}<td class="obs ${r.obs_plano?'red':''}">${esc(r.obs_plano)}</td></tr>`).join('')||`<tr><td colspan="11" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
+}
+async function setCampo(id,k,v){
+  const r=rows.find(x=>x.id===id);if(!r)return;r[k]=v;
+  if(await persistir(r)){toast('Salvo.');renderPlano();}
+}
+
+/* ═══ CONTEÚDOS MENSAIS ═══ */
+function renderMensal(){
+  preencherDisc('menDisc');
+  const q=norm($('menBusca').value),d=$('menDisc').value,s=$('menSt').value;
+  const l=rows.filter(r=>(!d||r.disciplina===d)&&(!q||norm([r.professor,r.disciplina,r.turmas,r.turma_ref,r.obs_mensal].join(' ')).includes(q))&&(!s||sit(r)===s));
+  $('menCount').textContent=l.length+' de '+rows.length+' professores';
+  $('menDica').textContent=podeEditar()?'Clique em uma célula para alternar OK → PD → N/A':'';
+  $('menTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia ACEPAT</th>${MESES.map(m=>`<th class="mcell">${m}</th>`).join('')}<th>Situação</th><th>Qtd</th><th class="l">Observações</th></tr></thead><tbody>${
+    l.map(r=>{const p=pend(r).length,s2=sit(r);return `<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td>${
+      MESES.map(m=>{const v=(r.meses||{})[m]||'N/A';return `<td class="mcell"><button class="mbtn ${v==='N/A'?'NA':v} ${podeEditar()?'edit':''}" ${podeEditar()?`onclick="ciclarMes(${r.id},'${m}')"`:''}>${v}</button></td>`;}).join('')}<td><span class="sit ${s2==='Em dia'?'ok':'pd'}">${s2}</span></td><td class="qtd ${p?'':'z'}">${p}</td><td class="obs ${r.obs_mensal?'red':''}">${esc(r.obs_mensal)}</td></tr>`;}).join('')||`<tr><td colspan="19" class="empty">Nenhum registro.</td></tr>`}</tbody>`;
+}
+async function ciclarMes(id,m){
+  const r=rows.find(x=>x.id===id);if(!r||!podeEditar())return;
+  r.meses=r.meses||{};
+  const atual=r.meses[m]||'N/A';
+  r.meses[m]=ESTADOS[(ESTADOS.indexOf(atual)+1)%3];
+  renderMensal();
+  if(await persistir(r))toast(`${r.professor} · ${m}: ${r.meses[m]}`);
+}
+
+/* ═══ CADASTRO ═══ */
+function renderCadastro(){
+  const q=norm($('cadBusca').value);
+  const l=rows.filter(r=>!q||norm([r.professor,r.disciplina,r.turmas].join(' ')).includes(q));
+  $('cadCount').textContent=l.length+' de '+rows.length+' professores';
+  const ed=podeEditar();
+  $('cadTab').innerHTML=`<thead><tr><th class="l">Professor</th><th class="l">Disciplina</th><th>Turmas</th><th>Turma ref.</th><th>Dia ACEPAT</th><th>Plano Anual</th><th>Conteúdos</th><th>Qtd PD</th><th></th></tr></thead><tbody>${
+    l.map(r=>{const s2=sit(r);return `<tr><td class="l prof">${esc(r.professor)}</td><td class="l">${esc(r.disciplina)}</td><td class="turmas">${esc(r.turmas)}</td><td>${esc(r.turma_ref||'—')}</td><td>${esc(r.dia_acepat||'—')}</td><td><span class="pill ${planoCompleto(r)?'good':'warn'}">${planoCompleto(r)?'COMPLETO':'INCOMPLETO'}</span></td><td><span class="sit ${s2==='Em dia'?'ok':'pd'}">${s2}</span></td><td class="qtd ${pend(r).length?'':'z'}">${pend(r).length}</td><td>${ed?`<button class="btn sm" onclick="abrirModal(${r.id})">✎ Editar</button>`:'—'}</td></tr>`;}).join('')||`<tr><td colspan="9" class="empty">Nenhum professor cadastrado.</td></tr>`}</tbody>`;
+}
+function abrirModal(id){
+  if(!podeEditar()){toast('Sem permissão de edição neste perfil.');return;}
+  editId=id;
+  const r=id?rows.find(x=>x.id===id):{professor:'',disciplina:'',turmas:'',turma_ref:'',dia_acepat:'—',meses:{},situacao_manual:null,obs_mensal:'',obs_plano:'',ordem:rows.length+1,...Object.fromEntries(CAMPOS.map(c=>[c.k,c.opts[2]]))};
+  $('mTitulo').textContent=id?('Editar — '+r.professor):'Novo professor';
+  $('mExcluir').style.display=id?'':'none';
+  const sel=(idf,opts,v)=>`<select id="${idf}">${opts.map(o=>`<option value="${esc(o)}" ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  $('mCorpo').innerHTML=`
+   <div class="fs"><h4>Identificação</h4><div class="fg">
+     <div class="fld"><label>Professor *</label><input id="fProf" value="${esc(r.professor)}"></div>
+     <div class="fld"><label>Disciplina</label><input id="fDisc" list="dlDisc" value="${esc(r.disciplina)}"><datalist id="dlDisc">${disciplinas().map(d=>`<option value="${esc(d)}">`).join('')}</datalist></div>
+     <div class="fld"><label>Turmas</label><input id="fTur" value="${esc(r.turmas)}" placeholder="ex.: 6º A/B/C"></div>
+     <div class="fld"><label>Turma de referência</label><input id="fRef" value="${esc(r.turma_ref)}" placeholder="ex.: 6ºA ou —"></div>
+     <div class="fld"><label>Dia de ACEPAT</label>${sel('fDia',DIAS,r.dia_acepat||'—')}</div>
+   </div></div>
+   <div class="fs"><h4>Plano Anual (SMAE)</h4><div class="fg">${CAMPOS.map(c=>`<div class="fld"><label>${esc(c.l)}</label>${sel('f_'+c.k,c.opts,r[c.k]||c.opts[2])}</div>`).join('')}</div>
+     <div class="fld" style="margin-top:10px"><label>Observações do plano anual</label><textarea id="fObsP">${esc(r.obs_plano)}</textarea></div></div>
+   <div class="fs"><h4>Conteúdos mensais</h4><div class="mg">${MESES.map(m=>`<div class="fld"><label>${m}</label>${sel('m_'+m,ESTADOS,(r.meses||{})[m]||'N/A')}</div>`).join('')}</div>
+     <div class="fg" style="margin-top:10px">
+       <div class="fld"><label>Situação</label>${sel('fSit',['Automática','Em dia','Pendente'],r.situacao_manual||'Automática')}</div>
+     </div>
+     <div class="fld" style="margin-top:10px"><label>Observações dos conteúdos mensais</label><textarea id="fObsM">${esc(r.obs_mensal)}</textarea></div></div>`;
+  $('ovModal').classList.add('show');
+}
+function fecharModal(){$('ovModal').classList.remove('show');editId=null;}
+async function salvarModal(){
+  const prof=$('fProf').value.trim();
+  if(!prof){toast('Informe o nome do professor.');return;}
+  const r=editId?rows.find(x=>x.id===editId):{meses:{},ordem:rows.length+1};
+  r.professor=prof;r.disciplina=$('fDisc').value.trim().toUpperCase();r.turmas=$('fTur').value.trim();
+  r.turma_ref=$('fRef').value.trim()||'—';r.dia_acepat=$('fDia').value;
+  CAMPOS.forEach(c=>r[c.k]=$('f_'+c.k).value);
+  r.obs_plano=$('fObsP').value.trim();r.obs_mensal=$('fObsM').value.trim();
+  r.meses={};MESES.forEach(m=>r.meses[m]=$('m_'+m).value);
+  const s=$('fSit').value;r.situacao_manual=s==='Automática'?null:s;
+  if(await persistir(r)){fecharModal();toast('Professor salvo.');renderTudo();}
+}
+async function excluirAtual(){
+  const r=rows.find(x=>x.id===editId);if(!r)return;
+  if(!confirm('Excluir '+r.professor+' do acompanhamento SMAE?'))return;
+  if(await remover(r)){fecharModal();toast('Registro excluído.');renderTudo();}
+}
+
+/* ═══ RELATÓRIOS ═══ */
+let repAtual={titulo:'',html:'',rows:[],texto:''};
+const tabHTML=(cab,linhas)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map((c,i)=>`<td${i<2?' style="text-align:left"':''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function filtrarRel(){
+  const d=$('repDisc').value,s=$('repSt').value;
+  return rows.filter(r=>(!d||r.disciplina===d)&&(!s||sit(r)===s));
+}
+function renderRelatorio(){
+  preencherDisc('repDisc');
+  const tipo=$('repTipo').value,l=filtrarRel(),m=metricas(l);
+  const tit=$('repTitulo').value.trim();
+  const meta=`Turno Tarde 2026 · gerado em ${hoje()} · ${l.length} professor(es)`;
+  let titulo,html='',tab=[],texto='';
+  if(!l.length){$('repOut').innerHTML='<div class="empty" style="color:#666">Nenhum dado para os filtros escolhidos.</div>';repAtual={titulo:'',html:'',rows:[],texto:''};return;}
+  if(tipo==='resumo'){
+    titulo=tit||'SMAE — Resumo executivo dos planejamentos';
+    const pds=l.filter(r=>sit(r)==='Pendente').sort((a,b)=>pend(b).length-pend(a).length);
+    const incompl=l.filter(r=>!planoCompleto(r));
+    html=`<div class="kv"><div><b>${m.n}</b>professores</div><div><b>${pct(m.planoOk,m.n)}%</b>plano anual completo</div><div><b>${m.cobertura}%</b>conteúdos lançados</div><div><b>${m.pendProf}</b>com pendência</div></div>
+      <h2>Plano Anual por item</h2><ul>${m.camp.map(x=>`<li>${esc(x.c.l)}: <b>${x.done}/${m.n}</b> concluídos${x.bad?` · ${x.bad} pendente(s)`:''}${x.mid?` · ${x.mid} em andamento/parcial`:''}</li>`).join('')}</ul>
+      <h2>Conteúdos mensais</h2>${tabHTML(['Mês','OK','PD','N/A'],m.porMes.map(x=>[x.m,x.ok,x.pd,x.na]))}
+      <h2>Professores com pendência (${pds.length})</h2>${pds.length?`<ul>${pds.map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${pend(r).length?pend(r).length+' mês(es) em PD: '+pend(r).join(', '):'situação pendente'}${r.obs_mensal?' · '+esc(r.obs_mensal):''}</li>`).join('')}</ul>`:'<p>Nenhuma.</p>'}
+      <h2>Plano anual incompleto (${incompl.length})</h2>${incompl.length?`<ul>${incompl.map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+': '+r[c.k]).join('; ')}${r.obs_plano?' · '+esc(r.obs_plano):''}</li>`).join('')}</ul>`:'<p>Todos completos.</p>'}`;
+    tab=[['Indicador','Valor'],['Professores',m.n],['Plano anual completo',m.planoOk],['Conteúdos lançados (OK)',m.ok],['Conteúdos pendentes (PD)',m.pd],['Professores com pendência',m.pendProf],...m.porMes.map(x=>['Mês '+x.m+' (OK/PD/N-A)',x.ok+'/'+x.pd+'/'+x.na])];
+    texto=`*${titulo}*\n${meta}\n\n• Plano anual completo: ${m.planoOk}/${m.n} (${pct(m.planoOk,m.n)}%)\n• Conteúdos lançados: ${m.cobertura}% (${m.ok} OK, ${m.pd} PD)\n• Professores com pendência: ${m.pendProf}\n\n*Pendências nos conteúdos mensais:*\n${pds.map(r=>`- ${r.professor} (${r.disciplina}): ${pend(r).length?pend(r).join(', '):'pendente'}`).join('\n')||'- nenhuma'}\n\n*Plano anual incompleto:*\n${incompl.map(r=>`- ${r.professor} (${r.disciplina}): ${CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' '+r[c.k]).join('; ')}`).join('\n')||'- nenhum'}`;
+  }
+  if(tipo==='plano'){
+    titulo=tit||'SMAE — Plano Anual: situação por professor';
+    const cab=['Professor','Disciplina','Turmas','Turma ref.','Dia ACEPAT',...CAMPOS.map(c=>c.l),'Observações'];
+    tab=[cab,...l.map(r=>[r.professor,r.disciplina,r.turmas,r.turma_ref,r.dia_acepat,...CAMPOS.map(c=>r[c.k]),r.obs_plano||''])];
+    html=tabHTML(cab,tab.slice(1));
+  }
+  if(tipo==='mensal'){
+    titulo=tit||'SMAE — Conteúdos mensais por professor';
+    const cab=['Professor','Disciplina','Turmas','Dia ACEPAT',...MESES,'Situação','Qtd PD','Observações'];
+    tab=[cab,...l.map(r=>[r.professor,r.disciplina,r.turmas,r.dia_acepat,...MESES.map(x=>(r.meses||{})[x]||'N/A'),sit(r),pend(r).length,r.obs_mensal||''])];
+    html=tabHTML(cab,tab.slice(1));
+  }
+  if(tipo==='pend'){
+    titulo=tit||'SMAE — Pendências por professor';
+    const pl=l.filter(r=>sit(r)==='Pendente'||!planoCompleto(r)).sort((a,b)=>pend(b).length-pend(a).length);
+    const cab=['Professor','Disciplina','Turmas','Meses em PD','Qtd PD','Plano anual — itens pendentes','Observações'];
+    tab=[cab,...pl.map(r=>[r.professor,r.disciplina,r.turmas,pend(r).join(', ')||'—',pend(r).length,CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' ('+r[c.k]+')').join('; ')||'—',[r.obs_mensal,r.obs_plano].filter(Boolean).join(' · ')])];
+    html=pl.length?tabHTML(cab,tab.slice(1)):'<p>Nenhuma pendência para os filtros escolhidos.</p>';
+    texto=`*${titulo}*\n${meta}\n\n`+(pl.map(r=>`- ${r.professor} (${r.disciplina}): ${pend(r).length?'conteúdos PD em '+pend(r).join(', '):'conteúdos em dia'}${CAMPOS.some(c=>r[c.k]!==c.opts[0])?' | plano anual: '+CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' '+r[c.k]).join('; '):''}`).join('\n')||'- nenhuma pendência');
+  }
+  if(tipo==='disc'){
+    titulo=tit||'SMAE — Panorama por disciplina';
+    const cab=['Disciplina','Professores','Plano anual completo','Em dia','Com pendência','Meses PD','Cobertura (%)'];
+    tab=[cab,...porDisciplina(l).map(x=>[x.d,x.n,x.planoOk+'/'+x.n,x.emDia,x.pendProf,x.pd,x.semDados?'—':x.cob])];
+    html=tabHTML(cab,tab.slice(1));
+  }
+  $('repOut').innerHTML=`<h1>${esc(titulo)}</h1><div class="meta">${esc(meta)}</div>${html}`;
+  repAtual={titulo,html,rows:tab,texto,meta};
+}
+function repCSV(){
+  if(!repAtual.rows.length){toast('Nada para exportar.');return;}
+  const csv='\ufeff'+repAtual.rows.map(l=>l.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='smae_'+$('repTipo').value+'_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+async function repCopiar(){
+  const t=repAtual.texto||repAtual.rows.map(l=>l.join('\t')).join('\n');
+  if(!t){toast('Nada para copiar.');return;}
+  try{await navigator.clipboard.writeText(t);toast('Texto copiado.');}
+  catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Texto copiado.');}
+}
+function repImprimir(){
+  if(!repAtual.html){toast('Nada para imprimir.');return;}
+  const wide=['mensal','plano'].includes($('repTipo').value);
+  const css=`@page{size:A4 ${wide?'landscape':'portrait'};margin:12mm}body{font-family:Arial,sans-serif;color:#111;font-size:${wide?10:12}px}h1{font-size:18px;margin-bottom:2px}.meta{color:#666;margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th{background:#F3C99B;color:#4A2E0B;padding:5px;border:1px solid #bbb;font-size:${wide?9:11}px}td{padding:4px 5px;border:1px solid #ccc;text-align:center}td:first-child{text-align:left}tr{page-break-inside:avoid}h2{font-size:14px;margin:14px 0 6px}ul{padding-left:18px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}`;
+  const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+  document.body.appendChild(f);
+  const d=f.contentWindow.document;d.open();
+  d.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(repAtual.titulo)}</title><style>${css}</style></head><body><h1>${esc(repAtual.titulo)}</h1><div class="meta">${esc(repAtual.meta||'')}</div>${repAtual.html}</body></html>`);
+  d.close();
+  setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);
+}
+
+/* ═══ SLIDES (modo apresentação) ═══ */
+let slIdx=0,slList=[];
+function montarSlides(){
+  const m=metricas(),pds=rows.filter(r=>sit(r)==='Pendente').sort((a,b)=>pend(b).length-pend(a).length);
+  const inc=rows.filter(r=>!planoCompleto(r));
+  const disc=porDisciplina(rows);
+  slList=[
+   `<h1>SMAE — Planejamentos<br>Anual e de Conteúdos</h1><div class="lead">Monitoramento Pedagógico · Turno Tarde 2026 · ${hoje()}</div><div class="kpis"><div class="k"><b>${m.n}</b><span>professores acompanhados</span></div><div class="k"><b>${disciplinas().length}</b><span>componentes curriculares</span></div></div>`,
+   `<h2>Panorama geral</h2><div class="lead">Situação consolidada dos lançamentos no SMAE</div><div class="kpis"><div class="k"><b>${pct(m.planoOk,m.n)}%</b><span>plano anual completo (${m.planoOk}/${m.n})</span></div><div class="k"><b>${m.cobertura}%</b><span>conteúdos mensais lançados</span></div><div class="k"><b>${m.emDia}</b><span>professores em dia</span></div><div class="k"><b>${m.pendProf}</b><span>professores com pendência</span></div></div>`,
+   `<h2>Planejamento Anual</h2><div class="lead">Itens do SMAE concluídos por professor</div>${blocoCampos(m)}`,
+   `<h2>Conteúdos Mensais</h2><div class="lead">Lançamentos por mês — OK, pendentes (PD) e não se aplica (N/A)</div>${blocoMeses(m)}`,
+   `<h2>Panorama por disciplina</h2><div class="lead">Plano anual completo e conteúdos em dia</div><table><thead><tr><th style="text-align:left">Disciplina</th><th>Prof.</th><th>Plano completo</th><th>Em dia</th><th>Com pendência</th><th>Cobertura</th></tr></thead><tbody>${disc.map(x=>`<tr><td style="text-align:left"><b>${esc(x.d)}</b></td><td>${x.n}</td><td>${x.planoOk}/${x.n}</td><td>${x.emDia}</td><td>${x.pendProf}</td><td>${x.semDados?'—':x.cob+'%'}</td></tr>`).join('')}</tbody></table>`,
+   `<h2>Pontos de atenção</h2><div class="lead">${pds.length} professor(es) com conteúdos pendentes · ${inc.length} com plano anual incompleto</div>${
+     pds.length||inc.length?`<ul>${[...pds.slice(0,6).map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${pend(r).length?pend(r).length+' mês(es) em PD':'situação pendente'}${r.obs_mensal?' · '+esc(r.obs_mensal):''}</li>`),
+       ...inc.filter(r=>!pds.includes(r)).slice(0,3).map(r=>`<li><b>${esc(r.professor)}</b> — plano anual incompleto${r.obs_plano?' · '+esc(r.obs_plano):''}</li>`)].join('')}</ul>`:'<ul><li>Nenhuma pendência registrada.</li></ul>'}`,
+   `<h2>Encaminhamentos</h2><div class="lead">Sugestões geradas a partir dos dados</div><ul>${[
+      pds.length?`<li>Cobrar o lançamento dos conteúdos de <b>${pds.length} professor(es)</b> com pendência.</li>`:'',
+      m.camp[0].bad+m.camp[0].mid?`<li>Concluir o Plano Anual de <b>${m.n-m.camp[0].done} professor(es)</b>.</li>`:'',
+      inc.length?`<li>Concluir perfil da turma, proposta pedagógica, habilidades e descritores dos <b>${inc.length}</b> professor(es) incompletos.</li>`:'',
+      `<li>Reapresentar este panorama na próxima reunião de planejamento (ACEPAT).</li>`].join('')}</ul>`
+  ];
+}
+function renderSlide(){
+  $('slBody').innerHTML=slList[slIdx];
+  $('slInfo').textContent=`SMAE · ${slIdx+1} / ${slList.length}`;
+  $('slDots').innerHTML=slList.map((_,i)=>`<i class="${i===slIdx?'on':''}"></i>`).join('');
+}
+function abrirSlides(){if(!rows.length){toast('Cadastre professores antes de apresentar.');return;}montarSlides();slIdx=0;renderSlide();$('slides').classList.add('show');}
+function fecharSlides(){$('slides').classList.remove('show');if(document.fullscreenElement)document.exitFullscreen();}
+function slideIr(d){slIdx=Math.max(0,Math.min(slList.length-1,slIdx+d));renderSlide();}
+function fullscreenSlides(){const e=$('slides');if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen();}
+document.addEventListener('keydown',e=>{
+  if($('slides').classList.contains('show')){
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();slideIr(1);}
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();slideIr(-1);}
+    if(e.key==='Escape')fecharSlides();
+  }else if(e.key==='Escape')fecharModal();
+});
+
+/* ── tema (acompanha o sistema principal) ── */
+function aplicarTema(){
+  let t='light';try{t=localStorage.getItem('theme')||'light';}catch(e){}
+  document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');
+}
+window.addEventListener('storage',e=>{if(e.key==='theme')aplicarTema();});
+aplicarTema();
+
+/* ── init ── */
+(async function(){
+  await carregar();carregado=true;renderTudo();
+})();
+</script>
+</body>
+</html>
