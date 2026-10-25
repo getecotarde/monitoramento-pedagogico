@@ -117,6 +117,8 @@ td.nw{white-space:nowrap}
 .help{font-size:11.5px;color:var(--tx3);margin-top:3px}
 
 /* relatório */
+.grp{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rep-out .kv{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.rep-out .kv div{border:1px solid #E5E5E5;border-radius:8px;padding:8px 12px;min-width:110px}.rep-out .kv b{display:block;font-size:20px}
 .rep-out{background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:var(--shadow);overflow:auto}
 .rep-out h1{font-size:19px;margin-bottom:2px}.rep-out .meta{font-size:12px;color:#666;margin-bottom:12px}
 .rep-out h2{font-size:14px;margin:16px 0 5px;color:#0F766E;text-transform:uppercase;letter-spacing:.04em}
@@ -169,6 +171,9 @@ td.nw{white-space:nowrap}
     <div class="split">
       <div>
         <div class="filters" style="margin-bottom:8px">
+          <select id="fReu" onchange="escolherReu(this.value)" style="min-width:0;width:100%" title="Filtrar pela reunião (data · nome)"></select>
+        </div>
+        <div class="filters" style="margin-bottom:8px">
           <input id="fBusca" placeholder="Buscar…" title="Buscar por data, nome ou pessoa" oninput="renderLista()" style="min-width:0;flex:1">
           <select id="fTipo" onchange="renderLista()" style="min-width:0"></select>
         </div>
@@ -181,10 +186,12 @@ td.nw{white-space:nowrap}
   <section class="pane" id="p-enc">
     <div class="filters">
       <input id="eBusca" placeholder="Buscar encaminhamento, reunião ou responsável…" oninput="renderEnc()" style="min-width:240px">
+      <select id="eReu" onchange="renderEnc()" style="min-width:260px" title="Filtrar pela reunião (data · nome)"></select>
       <select id="eSt" onchange="renderEnc()"></select>
       <select id="eResp" onchange="renderEnc()"></select>
       <select id="eTipo" onchange="renderEnc()"></select>
       <button class="btn pri" onclick="abrirEnc(null,null)" id="btnNovoEnc">+ Novo encaminhamento</button>
+      <button class="btn danger" id="btnExcSel" onclick="excluirSelecionados()" style="display:none">🗑 Excluir selecionados (0)</button>
       <span class="count" id="eCount"></span>
     </div>
     <div class="tw"><div class="ts"><table id="eTab"></table></div></div>
@@ -202,22 +209,37 @@ td.nw{white-space:nowrap}
 
   <section class="pane" id="p-rel">
     <div class="card" style="margin-bottom:14px">
-      <h3>Gerar documento</h3>
-      <div class="sub">A <b>pauta</b> reúne a pauta apresentada, as sugestões e a retomada dos encaminhamentos em aberto. A <b>ata</b> registra o que foi tratado e o andamento.</div>
+      <h3>Relatórios e documentos</h3>
+      <div class="sub" id="rDesc"></div>
       <div class="filters" style="margin-bottom:6px">
-        <select id="rTipo" onchange="renderRel()">
-          <option value="pauta">Pauta da reunião</option>
-          <option value="ata">Registro / ata da reunião</option>
-          <option value="abertos">Encaminhamentos em aberto</option>
-          <option value="hist">Histórico de reuniões</option>
+        <select id="rTipo" onchange="renderRel()" style="min-width:260px">
+          <optgroup label="Documentos da reunião">
+            <option value="pauta">Pauta da reunião</option>
+            <option value="ata">Registro / ata da reunião</option>
+          </optgroup>
+          <optgroup label="Acompanhamento de encaminhamentos">
+            <option value="abertos">Encaminhamentos em aberto</option>
+            <option value="atrasos">Atrasados e sem prazo</option>
+            <option value="resp">Painel por responsável</option>
+          </optgroup>
+          <optgroup label="Análises e resumos">
+            <option value="assunto">Ações por assunto</option>
+            <option value="recorr">Assuntos mais recorrentes</option>
+            <option value="tipo">Síntese por tipo de reunião</option>
+            <option value="periodo">Resumo do período / histórico</option>
+            <option value="definir">Itens a definir na pauta</option>
+            <option value="sugestoes">Pautas sugeridas e aceitação</option>
+          </optgroup>
         </select>
-        <select id="rReu" onchange="renderRel()" style="min-width:260px"></select>
-        <select id="rFTipo" onchange="renderRel()"></select>
-        <select id="rResp" onchange="renderRel()"></select>
+        <select id="rReu" data-g="reu" onchange="renderRel()" style="min-width:260px"></select>
+        <span class="grp" data-g="ass"><select id="rAss" onchange="$('rAssTxt').value='';renderRel()" style="min-width:200px"></select><input id="rAssTxt" placeholder="ou digite um assunto…" oninput="$('rAss').value='';renderRel()" style="min-width:170px"></span>
+        <select id="rFTipo" data-g="tipo" onchange="renderRel()"></select>
+        <select id="rResp" data-g="resp" onchange="renderRel()"></select>
+        <span class="grp" data-g="per"><span style="font-size:12px;color:var(--tx2)">de</span><input type="date" id="rDe" onchange="renderRel()" style="min-width:0"><span style="font-size:12px;color:var(--tx2)">até</span><input type="date" id="rAte" onchange="renderRel()" style="min-width:0"></span>
       </div>
       <div class="filters" style="margin-bottom:0">
-        <label style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rSug" checked onchange="renderRel()" style="min-width:0"> incluir pautas sugeridas</label>
-        <label style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rRet" checked onchange="renderRel()" style="min-width:0"> incluir retomada de encaminhamentos em aberto</label>
+        <label data-g="sug" style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rSug" checked onchange="renderRel()" style="min-width:0"> incluir pautas sugeridas</label>
+        <label data-g="ret" style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rRet" checked onchange="renderRel()" style="min-width:0"> incluir retomada de encaminhamentos em aberto</label>
         <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn pri" onclick="repImprimir()">🖨 Imprimir / PDF</button>
           <button class="btn" onclick="repWord()">⬇ Word (.doc)</button>
@@ -367,6 +389,11 @@ function renderTopo(){
   $('avisos').innerHTML=av;
   ['btnNova','btnImport','btnNovoEnc'].forEach(id=>{const b=$(id);if(b)b.style.display=podeEditar()?'':'none';});
 }
+function optsReu(sel,primeiro){
+  const e=$(sel),cur=e.value;
+  e.innerHTML=`<option value="">${primeiro}</option>`+rows.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(r=>`<option value="${r.id}">${esc(ref(r))}</option>`).join('');
+  e.value=cur&&rows.some(r=>String(r.id)===cur)?cur:'';
+}
 function opts(sel,primeiro,lista,val){const e=$(sel);const cur=val!==undefined?val:e.value;e.innerHTML=`<option value="">${primeiro}</option>`+lista.map(x=>`<option>${esc(x)}</option>`).join('');e.value=cur;}
 
 /* ═══ REUNIÕES E PAUTAS ═══ */
@@ -384,19 +411,21 @@ function filtrar(lista,busca,tipo){
   const q=norm(busca);
   return lista.filter(r=>(!tipo||r.tipo===tipo)&&(!q||norm([fmtData(r.data),r.data,r.titulo,r.tipo,r.responsavel,r.participantes,r.pauta,...r.encaminhamentos.map(e=>e.responsavel)].join(' ')).includes(q)));
 }
+function escolherReu(v){if(v){sel=+v;}renderLista();renderDetalhe();}
 function renderLista(){
-  opts('fTipo','Todos os tipos',TIPOS);
-  const l=filtrar(rows,$('fBusca').value,$('fTipo').value).sort((a,b)=>b.data.localeCompare(a.data));
+  opts('fTipo','Todos os tipos',TIPOS);optsReu('fReu','Todas as reuniões (data · nome)');
+  const fr=$('fReu').value;
+  const l=filtrar(rows,$('fBusca').value,$('fTipo').value).filter(r=>!fr||String(r.id)===fr).sort((a,b)=>b.data.localeCompare(a.data));
   const hoje=hojeISO();
   $('rlist').innerHTML=l.map(r=>{const n=r.encaminhamentos.length,c=r.encaminhamentos.filter(e=>e.status==='Concluído').length;
     return `<div class="ritem t-${tk(r.tipo)} ${r.id===sel?'sel':''}" onclick="selReu(${r.id})"><div class="d">${fmtData(r.data,1)}${r.data>hoje?' · <span style="color:var(--azul)">agendada</span>':''}</div><div class="t">${esc(r.titulo)}</div><div class="m">${esc(r.tipo)} · ${n?c+'/'+n+' encaminhamentos':'sem encaminhamentos'}</div></div>`;}).join('')||'<div class="empty">Nenhuma reunião.</div>';
 }
-function selReu(id){sel=id;renderLista();renderDetalhe();}
+function selReu(id){sel=id;if($('fReu').value)$('fReu').value=String(id);renderLista();renderDetalhe();}
 function encHTML(r,e,editavel){
   const at=atrasado(e),p=pctSt(e.status);
   return `<div class="enc"><div class="h"><div class="tx">${esc(e.texto)}</div>
     ${editavel?`<select class="pill ${stCls(e.status)}" onchange="setEncSt(${r.id},'${e.id}',this.value)">${ST_ENC.map(s=>`<option ${s===e.status?'selected':''}>${s}</option>`).join('')}</select>
-    <button class="btn sm" onclick="abrirEnc(${r.id},'${e.id}')">✎</button>`:`<span class="pill ${stCls(e.status)}">${esc(e.status)}</span>`}</div>
+    <button class="btn sm" title="Editar encaminhamento" onclick="abrirEnc(${r.id},'${e.id}')">✎ Editar</button><button class="btn sm danger" title="Excluir — não é um encaminhamento (ex.: apenas repasse)" onclick="excluirEncDireto(${r.id},'${e.id}')">🗑 Excluir</button>`:`<span class="pill ${stCls(e.status)}">${esc(e.status)}</span>`}</div>
    <div class="mt"><span>👤 ${esc(e.responsavel||'—')}</span><span>📅 prazo: ${e.prazo?fmtData(e.prazo):'—'}${at?' <span class="late">· atrasado</span>':''}</span></div>
    <div class="prog"><i class="${e.status==='Concluído'?'c-good':e.status==='Em andamento'?'c-blue':'c-na'}" style="width:${p}%"></i></div>
    ${editavel?`<textarea class="and" placeholder="Andamento: o que já foi feito, pendências, observações…" onchange="setEncAnd(${r.id},'${e.id}',this.value)">${esc(e.andamento)}</textarea>`:(e.andamento?`<div class="and-ro">${esc(e.andamento)}</div>`:'')}</div>`;
@@ -442,21 +471,43 @@ async function delSug(rid,sid){if(!confirm('Remover esta sugestão?'))return;con
 
 /* ═══ ENCAMINHAMENTOS (visão geral) ═══ */
 function renderEnc(){
-  opts('eSt','Todos os status',ST_ENC);opts('eTipo','Todos os tipos de reunião',TIPOS);
+  optsReu('eReu','Todas as reuniões (data · nome)');opts('eSt','Todos os status',ST_ENC);opts('eTipo','Todos os tipos de reunião',TIPOS);
   const nomes=nomesConhecidos();opts('eResp','Todos os responsáveis',nomes);
-  const q=norm($('eBusca').value),st=$('eSt').value,rs=$('eResp').value,tp=$('eTipo').value,ed=podeEditar();
-  const l=todosEnc().filter(({e,r})=>(!st||e.status===st)&&(!tp||r.tipo===tp)&&(!rs||norm(e.responsavel).includes(norm(rs)))&&(!q||norm([e.texto,e.responsavel,e.andamento,ref(r)].join(' ')).includes(q)))
+  const q=norm($('eBusca').value),fr=$('eReu').value,st=$('eSt').value,rs=$('eResp').value,tp=$('eTipo').value,ed=podeEditar();
+  const l=todosEnc().filter(({e,r})=>(!fr||String(r.id)===fr)&&(!st||e.status===st)&&(!tp||r.tipo===tp)&&(!rs||norm(e.responsavel).includes(norm(rs)))&&(!q||norm([e.texto,e.responsavel,e.andamento,ref(r)].join(' ')).includes(q)))
     .sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999')||b.r.data.localeCompare(a.r.data));
-  $('eCount').textContent=l.length+' encaminhamento(s)';
-  $('eTab').innerHTML=`<thead><tr><th>Reunião (referência)</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th>${ed?'<th></th>':''}</tr></thead><tbody>${
-    l.map(({e,r})=>`<tr><td><a href="#" onclick="event.preventDefault();irReu(${r.id})" style="color:var(--verde-dark);font-weight:600;text-decoration:none">${fmtData(r.data)}</a><br><small style="color:var(--tx2)">${esc(r.titulo.split('—')[0].trim())}</small></td>
+  $('eCount').textContent=l.length+' encaminhamento(s)';atualizarBtnSel();
+  visEnc=l.map(({e,r})=>r.id+':'+e.id);
+  $('eTab').innerHTML=`<thead><tr>${ed?'<th style="width:30px"><input type="checkbox" title="Selecionar todos os listados" onchange="toggleTodos(this.checked)"></th>':''}<th>Reunião (referência)</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th>${ed?'<th></th>':''}</tr></thead><tbody>${
+    l.map(({e,r})=>`<tr>${ed?`<td><input type="checkbox" ${selEnc.has(r.id+':'+e.id)?'checked':''} onchange="toggleSel('${r.id}:${e.id}',this.checked)"></td>`:''}<td><a href="#" onclick="event.preventDefault();irReu(${r.id})" style="color:var(--verde-dark);font-weight:600;text-decoration:none">${fmtData(r.data)}</a><br><small style="color:var(--tx2)">${esc(r.titulo.split('—')[0].trim())}</small></td>
       <td style="min-width:240px;font-weight:600">${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td>
       <td class="nw">${e.prazo?fmtData(e.prazo):'—'}${atrasado(e)?'<br><span class="late">atrasado</span>':''}</td>
       <td>${ed?`<select class="pill ${stCls(e.status)}" onchange="setEncSt(${r.id},'${e.id}',this.value)">${ST_ENC.map(s=>`<option ${s===e.status?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="pill ${stCls(e.status)}">${esc(e.status)}</span>`}</td>
       <td style="min-width:200px">${ed?`<textarea class="and" style="margin:0" onchange="setEncAnd(${r.id},'${e.id}',this.value)" placeholder="Andamento…">${esc(e.andamento)}</textarea>`:esc(e.andamento)}</td>
-      ${ed?`<td><button class="btn sm" onclick="abrirEnc(${r.id},'${e.id}')">✎</button></td>`:''}</tr>`).join('')||`<tr><td colspan="7" class="empty">Nenhum encaminhamento.</td></tr>`}</tbody>`;
+      ${ed?`<td class="nw"><button class="btn sm" title="Editar" onclick="abrirEnc(${r.id},'${e.id}')">✎ Editar</button> <button class="btn sm danger" title="Excluir — não é um encaminhamento" onclick="excluirEncDireto(${r.id},'${e.id}')">🗑</button></td>`:''}</tr>`).join('')||`<tr><td colspan="8" class="empty">Nenhum encaminhamento.</td></tr>`}</tbody>`;
 }
-function irReu(id){sel=id;irAba('reu');}
+let selEnc=new Set(),visEnc=[];
+function atualizarBtnSel(){const b=$('btnExcSel');if(!b)return;b.style.display=podeEditar()&&selEnc.size?'':'none';b.textContent='🗑 Excluir selecionados ('+selEnc.size+')';}
+function toggleSel(k,on){on?selEnc.add(k):selEnc.delete(k);atualizarBtnSel();}
+function toggleTodos(on){visEnc.forEach(k=>on?selEnc.add(k):selEnc.delete(k));renderEnc();}
+const trecho=t=>String(t).length>90?String(t).slice(0,90)+'…':t;
+async function excluirEncDireto(rid,eid){
+  if(!podeEditar())return;const[r,e]=achar(rid,eid);if(!e)return;
+  if(!confirm('Excluir este item?\n\n"'+trecho(e.texto)+'"\n\nUse quando for apenas um repasse e não gerar encaminhamento. Não dá para desfazer.'))return;
+  r.encaminhamentos=r.encaminhamentos.filter(x=>x.id!==eid);selEnc.delete(rid+':'+eid);
+  if(await persistir(r,['encaminhamentos'])){toast('Encaminhamento excluído.');renderTudo();}
+}
+async function excluirSelecionados(){
+  if(!podeEditar()||!selEnc.size)return;
+  if(!confirm('Excluir '+selEnc.size+' item(ns) selecionado(s)?\n\nUse para itens que são apenas repasse e não geram encaminhamento. Não dá para desfazer.'))return;
+  const porReu={};selEnc.forEach(k=>{const[rid,eid]=k.split(':');(porReu[rid]=porReu[rid]||new Set()).add(eid);});
+  let ok=true;
+  for(const rid of Object.keys(porReu)){const r=rows.find(x=>String(x.id)===rid);if(!r)continue;
+    r.encaminhamentos=r.encaminhamentos.filter(e=>!porReu[rid].has(e.id));
+    if(!await persistir(r,['encaminhamentos']))ok=false;}
+  const n=selEnc.size;selEnc.clear();if(ok)toast(n+' item(ns) excluído(s).');renderTudo();
+}
+function irReu(id){sel=id;$('fReu').value='';irAba('reu');}
 
 /* ═══ CADASTRO ═══ */
 function renderCadastro(){
@@ -522,59 +573,175 @@ let rep={titulo:'',html:'',rows:[],texto:'',meta:''};
 function gerarDe(id,tipo){sel=id;aba='rel';document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p==='rel'));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='p-rel'));$('rTipo').value=tipo;$('rReu').value=String(id);renderTudo();}
 const secHTML=secs=>secs.map(s=>`${s.t?`<h3>${esc(s.t)}</h3>`:''}<ul>${s.i.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul>`).join('');
 const secTxt=secs=>secs.map(s=>(s.t?`\n*${s.t}*\n`:'')+s.i.map(i=>(i.n===2?'   – ':'• ')+i.x).join('\n')).join('\n');
+
+/* assuntos (temas) — palavras-chave procuradas na pauta e nos encaminhamentos */
+const TEMAS=[
+ {n:'SMAE (lançamentos e planejamento)',k:['smae']},
+ {n:'SGE, notas e diário',k:['sge','lancamento de notas','diario online']},
+ {n:'Getecultura e projetos',k:['getecultura','projeto','estrelas do geteco','gincana','clube de leitura','ornamentacao']},
+ {n:'Provas e avaliações',k:['prova','avaliac','avalia bh','matriz','diagnostic']},
+ {n:'Recuperação e retenção',k:['recuperacao','retencao','oer']},
+ {n:'Conselho de Classe e Atitudes e Valores',k:['conselho de classe','atitudes e valores','ficha de conselho']},
+ {n:'Reunião de pais e famílias',k:['reuniao de pais','familia','boletim']},
+ {n:'Interclasse, festas e eventos',k:['interclasse','festa junina','carnaval','acolhida','sabado escolar','aniversariantes']},
+ {n:'PIP, inclusão e AEE',k:['pip','aee','inclusao','deficiencia','atencao especial']},
+ {n:'Turno, disciplina e fluxos',k:['banheiro','uniforme','celular','indisciplina','xerox','materialidade','fluxo','kit','bullying','saida de sala','horario']}
+];
+TEMAS.forEach(t=>t.re=new RegExp('(^|[^a-z0-9])('+t.k.join('|')+')'));
+const escRx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function assuntoSel(){const i=$('rAss').value,tx=$('rAssTxt').value.trim();
+  if(tx)return{n:'"'+tx+'"',re:new RegExp(escRx(norm(tx)))};
+  if(i!=='')return TEMAS[+i];return null;}
+/* o que, numa reunião, casa com um assunto */
+function reuCasa(r,as){
+  const itens=[];
+  parsePauta(r.pauta).forEach(s=>{const sec=as.re.test(norm(s.t));
+    s.i.forEach(i=>{if(sec||as.re.test(norm(i.x)))itens.push({sec:s.t,x:i.x,n:i.n});});});
+  const encs=r.encaminhamentos.filter(e=>as.re.test(norm(e.texto+' '+e.andamento)));
+  const sugs=r.sugestoes.filter(s=>as.re.test(norm(s.texto)));
+  return{itens,encs,sugs,tem:itens.length||encs.length||sugs.length};
+}
+const nomesDe=v=>{const l=String(v||'').split(/,| e |;/).map(x=>x.trim()).filter(Boolean).map(x=>x[0].toUpperCase()+x.slice(1));return l.length?l:['(sem responsável)'];};
+const pc=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+const RDESC={
+ pauta:'Documento para a reunião: pauta apresentada, sugestões e retomada dos encaminhamentos em aberto.',
+ ata:'Registro do que foi tratado e do andamento dos encaminhamentos.',
+ abertos:'Tudo o que ainda não foi concluído, ordenado por prazo.',
+ atrasos:'Encaminhamentos com prazo vencido ou sem prazo definido — o que precisa de cobrança.',
+ resp:'Quantos encaminhamentos cada pessoa ou grupo recebeu e quanto foi cumprido.',
+ assunto:'Escolha um assunto (SMAE, SGE, provas…) ou digite um termo: mostra em quais reuniões foi tratado e o que foi encaminhado.',
+ recorr:'Quais assuntos mais voltam nas reuniões — apoio para planejar o ano e priorizar pautas.',
+ tipo:'Compara reuniões pedagógicas, de conselho, de entrega de resultados e outras.',
+ periodo:'Resumo de um intervalo (mês, trimestre…): reuniões, assuntos, indicadores e pendências.',
+ definir:'Itens da pauta marcados como "a definir", "não discutido" ou com interrogação.',
+ sugestoes:'Todas as pautas sugeridas, com autor e se foram aceitas.'};
+const GRUPOS={pauta:['reu','sug','ret'],ata:['reu'],abertos:['tipo','resp'],atrasos:['tipo','resp'],resp:['tipo','per'],assunto:['ass','tipo','resp','per'],recorr:['tipo','per'],tipo:['per'],periodo:['tipo','resp','per'],definir:['tipo','per'],sugestoes:['tipo','per']};
+
 function renderRel(){
   const lista=rows.slice().sort((a,b)=>b.data.localeCompare(a.data));
-  const e=$('rReu'),cur=e.value||String(sel);e.innerHTML=lista.map(r=>`<option value="${r.id}">${esc(ref(r))}</option>`).join('');e.value=cur;
+  const er=$('rReu'),cur=er.value||String(sel);er.innerHTML=lista.map(r=>`<option value="${r.id}">${esc(ref(r))}</option>`).join('');er.value=cur;
   opts('rFTipo','Todos os tipos',TIPOS);opts('rResp','Todos os responsáveis',nomesConhecidos());
-  const tipo=$('rTipo').value,r=rows.find(x=>x.id===+$('rReu').value)||lista[0];
-  const usaReu=['pauta','ata'].includes(tipo);$('rReu').style.display=usaReu?'':'none';
-  $('rSug').parentElement.style.display=tipo==='pauta'?'':'none';$('rRet').parentElement.style.display=tipo==='pauta'?'':'none';
+  const ea=$('rAss');if(!ea.options.length)ea.innerHTML='<option value="">Escolha um assunto…</option>'+TEMAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
+  const tipo=$('rTipo').value,g=GRUPOS[tipo]||[];
+  $('rDesc').textContent=RDESC[tipo]||'';
+  document.querySelectorAll('#p-rel [data-g]').forEach(el=>el.style.display=g.includes(el.dataset.g)?'':'none');
   const escola='Escola Municipal Geraldo Teixeira da Costa — GETECO (Turno Tarde)';
-  const ftp=$('rFTipo').value,fr=norm($('rResp').value);
-  let titulo='',html='',tab=[],texto='',meta='';
   if(!rows.length){$('repOut').innerHTML='<div class="empty" style="color:#666">Sem reuniões cadastradas.</div>';rep={titulo:'',html:'',rows:[],texto:'',meta:''};return;}
-  if(usaReu&&r){
-    const secs=parsePauta(r.pauta);
+  const ftp=g.includes('tipo')?$('rFTipo').value:'',fr=g.includes('resp')?norm($('rResp').value):'',de=g.includes('per')?$('rDe').value:'',ate=g.includes('per')?$('rAte').value:'';
+  const base=rows.filter(r=>(!ftp||r.tipo===ftp)&&(!de||r.data>=de)&&(!ate||r.data<=ate)).sort((a,b)=>a.data.localeCompare(b.data));
+  const encs=base.flatMap(r=>r.encaminhamentos.filter(e=>!fr||norm(e.responsavel).includes(fr)).map(e=>({e,r})));
+  const filtTxt=[ftp&&'tipo: '+ftp,$('rResp').value&&g.includes('resp')&&'responsável: '+$('rResp').value,de&&'de '+fmtData(de),ate&&'até '+fmtData(ate)].filter(Boolean).join(' · ');
+  const meta0=`${escola}\nGerado em ${fmtData(hojeISO())}${filtTxt?' · '+filtTxt:''}`;
+  let titulo='',html='',tab=[],texto='',meta=meta0;
+  const encTab=(l,cols)=>tabH(cols,l);
+  const COLS_ENC=['Origem (data · reunião)','Encaminhamento','Responsável','Prazo','Status','Andamento'];
+  const linhaEnc=({e,r})=>[ref(r),e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||''];
+  const txtEnc=({e,r})=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}] · origem ${fmtData(r.data)}`;
+
+  if(tipo==='pauta'||tipo==='ata'){
+    const r=rows.find(x=>x.id===+er.value)||lista[0],secs=parsePauta(r.pauta);
     meta=`${escola}\n${fmtData(r.data,1)}${r.horario?' · '+r.horario:''}${r.local?' · '+r.local:''} · ${r.tipo}`;
     if(tipo==='pauta'){
       titulo=`Pauta — ${r.titulo}`;
       const sug=$('rSug').checked?r.sugestoes.filter(s=>s.status!=='Descartada'):[];
-      const ret=$('rRet').checked?todosEnc().filter(x=>x.r.data<r.data&&aberto(x.e)&&x.e.status!=='A confirmar'):[];
+      const ret=$('rRet').checked?todosEnc().filter(x=>x.r.data<r.data&&['Não iniciado','Em andamento'].includes(x.e.status)):[];
       html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}<h2>Pauta</h2>${secs.length?secHTML(secs):'<p><i>Pauta a definir.</i></p>'}`
         +(sug.length?`<h2>Pautas sugeridas</h2><ul>${sug.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''}${s.status==='Aceita'?' — <b>aceita</b>':''}</li>`).join('')}</ul>`:'')
-        +(ret.length?`<h2>Retomada de encaminhamentos em aberto</h2><table><thead><tr><th>Origem (data · reunião)</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>${ret.map(({e,r:o})=>`<tr><td>${esc(ref(o))}</td><td>${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td><td>${e.prazo?fmtData(e.prazo):'—'}</td><td>${esc(e.status)}</td></tr>`).join('')}</tbody></table>`:'');
-      tab=[['Seção','Item'],...secs.flatMap(s=>s.i.map(i=>[s.t,(i.n===2?'– ':'')+i.x])),...sug.map(s=>['Pauta sugerida',s.texto+(s.autor?' ('+s.autor+')':'')]),...ret.map(({e,r:o})=>['Retomada — '+ref(o),e.texto+' ['+(e.responsavel||'—')+' · '+e.status+']'])];
-      texto=`*${titulo}*\n${meta}\n${secTxt(secs)}`+(sug.length?`\n\n*Pautas sugeridas*\n${sug.map(s=>'• '+s.texto+(s.autor?' ('+s.autor+')':'')).join('\n')}`:'')+(ret.length?`\n\n*Retomada de encaminhamentos em aberto*\n${ret.map(({e,r:o})=>`• ${e.texto} — ${e.responsavel||'—'} (${e.status}; origem ${fmtData(o.data)})`).join('\n')}`:'');
+        +(ret.length?`<h2>Retomada de encaminhamentos em aberto</h2>${encTab(ret.map(linhaEnc),COLS_ENC)}`:'');
+      tab=[['Seção','Item'],...secs.flatMap(s=>s.i.map(i=>[s.t,(i.n===2?'– ':'')+i.x])),...sug.map(s=>['Pauta sugerida',s.texto+(s.autor?' ('+s.autor+')':'')]),...ret.map(x=>['Retomada — '+ref(x.r),x.e.texto+' ['+(x.e.responsavel||'—')+' · '+x.e.status+']'])];
+      texto=`*${titulo}*\n${meta}\n${secTxt(secs)}`+(sug.length?`\n\n*Pautas sugeridas*\n${sug.map(s=>'• '+s.texto+(s.autor?' ('+s.autor+')':'')).join('\n')}`:'')+(ret.length?`\n\n*Retomada de encaminhamentos em aberto*\n${ret.map(txtEnc).join('\n')}`:'');
     }else{
       titulo=`Registro da reunião — ${r.titulo}`;
       html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada</h2>${secs.length?secHTML(secs):'<p><i>—</i></p>'}
         <h2>Pautas sugeridas</h2>${r.sugestoes.length?`<ul>${r.sugestoes.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''} — <b>${esc(s.status)}</b></li>`).join('')}</ul>`:'<p><i>Nenhuma.</i></p>'}
-        <h2>Encaminhamentos</h2>${r.encaminhamentos.length?`<table><thead><tr><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th></tr></thead><tbody>${r.encaminhamentos.map(e=>`<tr><td>${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td><td>${e.prazo?fmtData(e.prazo):'—'}</td><td>${esc(e.status)}</td><td>${esc(e.andamento)}</td></tr>`).join('')}</tbody></table>`:'<p><i>Nenhum.</i></p>'}
+        <h2>Encaminhamentos</h2>${r.encaminhamentos.length?tabH(['Encaminhamento','Responsável','Prazo','Status','Andamento'],r.encaminhamentos.map(e=>[e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status,e.andamento||''])):'<p><i>Nenhum.</i></p>'}
         <p style="margin-top:28px">Assinaturas/lista de presença: ______________________________________________</p>`;
       tab=[['Encaminhamento','Responsável','Prazo','Status','Andamento'],...r.encaminhamentos.map(e=>[e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
       texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(r.encaminhamentos.map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
     }
   }
-  if(tipo==='abertos'){
-    titulo='Encaminhamentos em aberto';meta=`${escola}\nGerado em ${fmtData(hojeISO())}`;
-    const l=todosEnc().filter(({e,r:o})=>aberto(e)&&(!ftp||o.tipo===ftp)&&(!fr||norm(e.responsavel).includes(fr))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
-    const cab=['Origem (data · reunião)','Encaminhamento','Responsável','Prazo','Status','Andamento'];
-    tab=[cab,...l.map(({e,r:o})=>[ref(o),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status+(atrasado(e)?' (atrasado)':''),e.andamento])];
-    html=`<p>${l.length} encaminhamento(s) em aberto.</p>`+tabH(cab,tab.slice(1));
-    texto=`*${titulo}*\n${l.map(({e,r:o})=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}] · origem ${fmtData(o.data)}`).join('\n')||'• nenhum'}`;
+  if(tipo==='abertos'||tipo==='atrasos'){
+    const l=encs.filter(({e})=>tipo==='abertos'?aberto(e):(atrasado(e)||(['Não iniciado','Em andamento'].includes(e.status)&&!e.prazo))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
+    titulo=tipo==='abertos'?'Encaminhamentos em aberto':'Encaminhamentos atrasados e sem prazo';
+    const cols=tipo==='atrasos'?[...COLS_ENC,'Situação']:COLS_ENC;
+    const linhas=l.map(x=>tipo==='atrasos'?[...linhaEnc(x),atrasado(x.e)?'Atrasado':'Sem prazo']:linhaEnc(x));
+    tab=[cols,...linhas];html=`<p>${l.length} encaminhamento(s).</p>`+tabH(cols,linhas);
+    texto=`*${titulo}*\n${l.map(txtEnc).join('\n')||'• nenhum'}`;
   }
-  if(tipo==='hist'){
-    titulo='Histórico de reuniões';meta=`${escola}\nGerado em ${fmtData(hojeISO())}`;
-    const l=lista.filter(o=>(!ftp||o.tipo===ftp)&&(!fr||norm(o.responsavel+' '+o.encaminhamentos.map(e=>e.responsavel).join(' ')).includes(fr)));
-    const cab=['Data','Tipo','Reunião','Itens de pauta','Sugestões','Encaminhamentos concluídos'];
-    tab=[cab,...l.map(o=>[fmtData(o.data),o.tipo,o.titulo,parsePauta(o.pauta).reduce((n,s)=>n+s.i.length,0),o.sugestoes.length,o.encaminhamentos.filter(e=>e.status==='Concluído').length+'/'+o.encaminhamentos.length])];
-    html=tabH(cab,tab.slice(1));texto=`*${titulo}*\n${l.map(o=>`• ${fmtData(o.data)} — ${o.titulo} (${o.tipo})`).join('\n')}`;
+  if(tipo==='resp'){
+    titulo='Painel de encaminhamentos por responsável';const mp={};
+    encs.forEach(({e})=>nomesDe(e.responsavel).forEach(nm=>{const o=mp[nm]=mp[nm]||{t:0,c:0,a:0,n:0,x:0,at:0};o.t++;if(e.status==='Concluído')o.c++;else if(e.status==='Em andamento')o.a++;else if(e.status==='Não iniciado')o.n++;else if(e.status==='A confirmar')o.x++;if(atrasado(e))o.at++;}));
+    const ord=Object.entries(mp).sort((a,b)=>(b[1].t-b[1].c)-(a[1].t-a[1].c)||a[0].localeCompare(b[0],'pt'));
+    const cols=['Responsável','Total','Concluídos','Em andamento','Não iniciados','A confirmar','Atrasados','% concluído'];
+    tab=[cols,...ord.map(([k,o])=>[k,o.t,o.c,o.a,o.n,o.x,o.at,pc(o.c,o.t)])];
+    html='<p>Encaminhamentos divididos por pessoa/grupo (um encaminhamento com dois responsáveis conta para os dois).</p>'+tabH(cols,tab.slice(1));
+    texto=`*${titulo}*\n`+ord.map(([k,o])=>`• ${k}: ${o.c}/${o.t} concluídos${o.at?`, ${o.at} atrasado(s)`:''}`).join('\n');
+  }
+  if(tipo==='assunto'){
+    const as=assuntoSel();
+    if(!as){titulo='Ações por assunto';html='<p><i>Escolha um assunto na lista ou digite um termo para pesquisar.</i></p>';}
+    else{
+      titulo='Ações por assunto — '+as.n;const blocos=[];let nR=0,nE=0,nC=0;
+      tab=[['Reunião','Tipo','Origem','Seção / item','Responsável','Prazo','Status']];
+      base.forEach(r=>{const m=reuCasa(r,as);const el=m.encs.filter(e=>!fr||norm(e.responsavel).includes(fr));if(!m.itens.length&&!el.length&&!m.sugs.length)return;
+        if(fr&&!el.length)return;nR++;nE+=el.length;nC+=el.filter(e=>e.status==='Concluído').length;
+        const porSec={};m.itens.forEach(i=>(porSec[i.sec]=porSec[i.sec]||[]).push(i));
+        blocos.push(`<h2>${esc(ref(r))} <small style="color:#666;text-transform:none">· ${esc(r.tipo)}</small></h2>`
+          +(m.itens.length?`<h3>O que foi tratado</h3>`+Object.entries(porSec).map(([s,l])=>`${s?`<p style="margin:4px 0 0"><b>${esc(s)}</b></p>`:''}<ul>${l.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul>`).join(''):'')
+          +(m.sugs.length?`<h3>Pautas sugeridas</h3><ul>${m.sugs.map(s=>`<li>${esc(s.texto)} — ${esc(s.status)}</li>`).join('')}</ul>`:'')
+          +(el.length?`<h3>Encaminhamentos</h3>`+tabH(['Encaminhamento','Responsável','Prazo','Status','Andamento'],el.map(e=>[e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||''])):''));
+        Object.entries(porSec).forEach(([s,l])=>l.forEach(i=>tab.push([ref(r),r.tipo,'Pauta',(s?s+' › ':'')+i.x,'','','']))); 
+        el.forEach(e=>tab.push([ref(r),r.tipo,'Encaminhamento',e.texto,e.responsavel||'',e.prazo?fmtData(e.prazo):'',e.status]));
+        m.sugs.forEach(s=>tab.push([ref(r),r.tipo,'Sugestão',s.texto,s.autor||'','',s.status]));});
+      html=`<p><b>${nR}</b> reunião(ões) trataram do assunto · <b>${nE}</b> encaminhamento(s), <b>${nC}</b> concluído(s) (${pc(nC,nE)}).</p>`+(blocos.join('')||'<p><i>Nada encontrado para este assunto e filtros.</i></p>');
+      texto=`*${titulo}*\n${nR} reunião(ões) · ${nE} encaminhamento(s), ${nC} concluído(s)\n`+tab.slice(1).filter(l=>l[2]==='Encaminhamento').map(l=>`• ${l[3]} — ${l[4]||'—'} [${l[6]}] (${l[0].split(' · ')[0]})`).join('\n');}
+  }
+  if(tipo==='recorr'){
+    titulo='Assuntos mais recorrentes nas reuniões';
+    const lin=TEMAS.map(t=>{const rs=[];let ne=0,nc=0;base.forEach(r=>{const m=reuCasa(r,t);if(m.tem){rs.push(r);ne+=m.encs.length;nc+=m.encs.filter(e=>e.status==='Concluído').length;}});return{t,rs,ne,nc};}).sort((a,b)=>b.rs.length-a.rs.length);
+    const cols=['Assunto','Reuniões','Em que datas','Encaminhamentos','Concluídos'];
+    tab=[cols,...lin.map(x=>[x.t.n,x.rs.length+' de '+base.length,x.rs.map(r=>fmtData(r.data).slice(0,5)).join(', ')||'—',x.ne,pc(x.nc,x.ne)])];
+    html=`<p>Em quantas das ${base.length} reuniões cada assunto apareceu (na pauta ou nos encaminhamentos). Assuntos que voltam sempre costumam merecer fluxo fixo, prazo único ou um item permanente de pauta.</p>`+tabH(cols,tab.slice(1));
+    texto=`*${titulo}*\n`+lin.map(x=>`• ${x.t.n}: ${x.rs.length}/${base.length} reuniões`).join('\n');
+  }
+  if(tipo==='tipo'){
+    titulo='Síntese por tipo de reunião';
+    const cols=['Tipo','Reuniões','Itens de pauta','Sugestões','Encaminhamentos','Concluídos','Em aberto'];
+    const ln=TIPOS.map(tp=>{const rs=base.filter(r=>r.tipo===tp),es=rs.flatMap(r=>r.encaminhamentos);return[tp,rs.length,rs.reduce((n,r)=>n+parsePauta(r.pauta).reduce((m,s)=>m+s.i.length,0),0),rs.reduce((n,r)=>n+r.sugestoes.length,0),es.length,pc(es.filter(e=>e.status==='Concluído').length,es.length),es.filter(aberto).length];});
+    tab=[cols,...ln];
+    html='<p>Compara como cada tipo de reunião se comporta: quanto se pauta, quanto se encaminha e quanto se cumpre.</p>'+tabH(cols,ln)+'<h2>Reuniões do período por tipo</h2>'+TIPOS.map(tp=>{const rs=base.filter(r=>r.tipo===tp);return rs.length?`<h3>${esc(tp)} (${rs.length})</h3><ul>${rs.map(r=>`<li>${esc(ref(r))}</li>`).join('')}</ul>`:'';}).join('');
+    texto=`*${titulo}*\n`+ln.map(l=>`• ${l[0]}: ${l[1]} reunião(ões), ${l[4]} encaminhamento(s), ${l[5]} concluídos`).join('\n');
+  }
+  if(tipo==='periodo'){
+    titulo='Resumo do período';const tot=encs.length,conc=encs.filter(x=>x.e.status==='Concluído').length;
+    const cols=['Data','Tipo','Reunião','Itens de pauta','Sugestões','Encaminhamentos (concl./total)'];
+    const ln=base.map(r=>[fmtData(r.data),r.tipo,r.titulo,parsePauta(r.pauta).reduce((n,s)=>n+s.i.length,0),r.sugestoes.length,r.encaminhamentos.filter(e=>e.status==='Concluído').length+'/'+r.encaminhamentos.length]);
+    const rec=TEMAS.map(t=>({t,n:base.filter(r=>reuCasa(r,t).tem).length})).filter(x=>x.n).sort((a,b)=>b.n-a.n).slice(0,5);
+    const abertosL=encs.filter(x=>aberto(x.e)).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
+    tab=[cols,...ln];
+    html=`<div class="kv"><div><b>${base.length}</b>reuniões</div><div><b>${tot}</b>encaminhamentos</div><div><b>${pc(conc,tot)}</b>concluídos</div><div><b>${abertosL.length}</b>em aberto</div><div><b>${encs.filter(x=>atrasado(x.e)).length}</b>atrasados</div></div>
+      <h2>Reuniões</h2>${tabH(cols,ln)}<h2>Assuntos mais tratados</h2>${rec.length?`<ul>${rec.map(x=>`<li>${esc(x.t.n)} — ${x.n} reunião(ões)</li>`).join('')}</ul>`:'<p><i>—</i></p>'}
+      <h2>Encaminhamentos em aberto</h2>${abertosL.length?tabH(COLS_ENC,abertosL.map(linhaEnc)):'<p><i>Nenhum.</i></p>'}`;
+    texto=`*${titulo}*\n${meta}\n${base.length} reunião(ões) · ${tot} encaminhamento(s), ${pc(conc,tot)} concluídos, ${abertosL.length} em aberto\n\n`+ln.map(l=>`• ${l[0]} — ${l[2]}`).join('\n');
+  }
+  if(tipo==='definir'){
+    titulo='Itens da pauta a definir ou não discutidos';const rx=/a definir|nao discutid|\?\?\?|\?!|nao definid|a confirmar/;const ln=[];
+    base.forEach(r=>parsePauta(r.pauta).forEach(s=>s.i.forEach(i=>{if(rx.test(norm(i.x))||rx.test(norm(s.t)))ln.push([ref(r),s.t,i.x]);})));
+    const cols=['Reunião','Seção','Item'];tab=[cols,...ln];
+    html=`<p>${ln.length} item(ns) deixados em aberto nas pautas. Podem voltar como pauta da próxima reunião.</p>`+tabH(cols,ln);
+    texto=`*${titulo}*\n`+ln.map(l=>`• ${l[2]} (${l[0].split(' · ')[0]})`).join('\n');
+  }
+  if(tipo==='sugestoes'){
+    titulo='Pautas sugeridas e aceitação';const ln=base.flatMap(r=>r.sugestoes.map(s=>[ref(r),s.texto,s.autor||'—',s.data?fmtData(s.data):'—',s.status]));
+    const c=st=>ln.filter(l=>l[4]===st).length,cols=['Reunião','Sugestão','Autor','Data','Status'];tab=[cols,...ln];
+    html=`<div class="kv"><div><b>${ln.length}</b>sugestões</div><div><b>${c('Aceita')}</b>aceitas</div><div><b>${c('Sugerida')}</b>aguardando</div><div><b>${c('Descartada')}</b>descartadas</div></div>`+tabH(cols,ln);
+    texto=`*${titulo}*\n`+ln.map(l=>`• ${l[1]} (${l[2]}) — ${l[4]}`).join('\n');
   }
   $('repOut').innerHTML=`<h1>${esc(titulo)}</h1><div class="meta">${esc(meta).replace(/\n/g,'<br>')}</div>${html}`;
   rep={titulo,html,rows:tab,texto,meta};
 }
 const tabH=(cab,l)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${l.map(x=>`<tr>${x.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}table{width:100%;border-collapse:collapse;margin:6px 0 10px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}`;
+const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}table{width:100%;border-collapse:collapse;margin:6px 0 10px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}`;
 const docHTML=()=>`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>${docCSS}</style></head><body><h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}</body></html>`;
 function repImprimir(){if(!rep.html){toast('Nada para imprimir.');return;}const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(docHTML());d.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);}
 function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
