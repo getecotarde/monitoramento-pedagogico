@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reuniões GETECO — Pautas e Encaminhamentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#0D9488;--verde-bg:#E6FFFA;--verde-dark:#0F766E;
+  --coral:#D85A30;--amber-bg:#FEF3DC;--amber-dark:#7A4A08;
+  --azul:#2563EB;--azul-bg:#EFF6FF;--azul-dark:#1E3A8A;
+  --bg:#F8F9FA;--card:#fff;--hover:#FAFAF8;--muted:#F3F2EF;--line:#E8E7E3;
+  --tx:#1F2937;--tx2:#6B7280;--tx3:#9CA3AF;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --verde-bg:rgba(13,148,136,.16);--amber-bg:rgba(186,117,23,.2);--azul-bg:rgba(37,99,235,.16);
+  --verde-dark:#5EEAD4;--amber-dark:#F2C879;--azul-dark:#93B4FB;
+  --bg:#111110;--card:#1C1C1A;--hover:#252523;--muted:#2A2A28;--line:#2E2E2B;--tx:#F0EFE9;--tx2:#A8A7A0;--tx3:#6F6E69;--shadow:none;
+}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:13.5px;line-height:1.5}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.app{padding:16px 18px 40px;max-width:1500px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.top-l{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--tx2)}
+.chip.ok{background:var(--verde-bg);color:var(--verde-dark);border-color:transparent}
+.chip.warn{background:var(--amber-bg);color:var(--amber-dark);border-color:transparent}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.btn{padding:7px 12px;border:1px solid var(--line);border-radius:7px;background:var(--card);cursor:pointer;font-size:12.5px;color:var(--tx2);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--hover);color:var(--tx)}
+.btn.pri{background:var(--verde);border-color:var(--verde);color:#fff}.btn.pri:hover{background:var(--verde-dark)}
+.btn.danger{color:var(--coral)}.btn.sm{padding:3px 8px;font-size:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.tab{padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px;color:var(--tx2)}
+.tab:hover{background:var(--hover);color:var(--tx)}
+.tab.active{background:var(--verde-bg);border-color:var(--verde);color:var(--verde-dark);font-weight:600}
+.pane{display:none}.pane.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:16px}
+.card h3{font-size:14px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card .sub{font-size:12px;color:var(--tx2);margin-bottom:10px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi{padding:12px 14px}.kpi .n{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1}.kpi .l{font-size:12px;color:var(--tx2)}
+.kpi.good .n{color:var(--verde-dark)}.kpi.bad .n{color:#C2410C}.kpi.blue .n{color:var(--azul)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters input,.filters select{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);min-width:150px}
+.filters .count{margin-left:auto;font-size:12px;color:var(--tx3)}
+.notice{background:var(--amber-bg);color:var(--amber-dark);padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:12px}
+.notice.info{background:var(--azul-bg);color:var(--azul-dark)}
+.empty{padding:30px 16px;text-align:center;color:var(--tx2)}
+
+/* layout reuniões */
+.split{display:grid;grid-template-columns:320px 1fr;gap:14px;align-items:start}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.rlist{max-height:calc(100vh - 330px);overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.ritem{border:1px solid var(--line);border-radius:10px;background:var(--card);padding:9px 11px;cursor:pointer;border-left:4px solid var(--cinza,#9CA3AF)}
+.ritem:hover{background:var(--hover)}
+.ritem.sel{outline:2px solid var(--verde);background:var(--verde-bg)}
+.ritem .d{font-size:11.5px;font-weight:700;color:var(--tx2)}
+.ritem .t{font-size:12.5px;font-weight:600;line-height:1.3;margin-top:1px}
+.ritem .m{font-size:11px;color:var(--tx3);margin-top:3px}
+.t-Pedagógica{border-left-color:#0D9488}.t-PedagógicaConselho{border-left-color:#7C3AED}.t-EntregadeResultados{border-left-color:#2563EB}.t-Outros{border-left-color:#9CA3AF}
+.tipo{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;color:#fff}
+.tipo.Pedagógica{background:#0D9488}.tipo.PedagógicaConselho{background:#7C3AED}.tipo.EntregadeResultados{background:#2563EB}.tipo.Outros{background:#6B7280}
+.dh h2{font-size:19px;letter-spacing:-.01em;margin:4px 0}
+.dh .meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--tx2)}
+.dh .meta b{color:var(--tx)}
+.sec{margin-top:12px}.sec>b{display:block;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--verde-dark);margin-bottom:3px}
+.pauta ul{list-style:none;padding:0}
+.pauta li{padding:3px 0 3px 16px;position:relative}
+.pauta li::before{content:"";position:absolute;left:3px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--verde)}
+.pauta li.n2{margin-left:18px;color:var(--tx2);font-size:13px}.pauta li.n2::before{background:var(--tx3);width:5px;height:5px}
+.sug{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.sug:last-child{border:0}.sug .tx{flex:1}.sug small{color:var(--tx3)}
+.addrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.addrow input{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);flex:1;min-width:140px}
+.enc{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.enc .h{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.enc .tx{flex:1;min-width:220px;font-weight:600}
+.enc .mt{font-size:12px;color:var(--tx2);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap}
+.prog{height:6px;border-radius:99px;background:var(--muted);overflow:hidden;margin-top:8px}.prog i{display:block;height:100%}
+.late{color:#D92D20;font-weight:700}
+.and{width:100%;margin-top:7px;min-height:34px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:var(--card);resize:vertical;font-size:12.5px}
+.and-ro{margin-top:6px;font-size:12.5px;color:var(--tx2);font-style:italic}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10.5px;font-weight:700;letter-spacing:.03em;border:0;white-space:nowrap;text-align:center}
+.pill.good{background:#DDF3E4;color:#17653F}.pill.warn{background:#FFF1B8;color:#7A5B00}.pill.blue{background:#DBEAFE;color:#1E40AF}.pill.na{background:var(--muted);color:var(--tx2)}.pill.bad{background:#FFD9B8;color:#9A3F05}
+[data-theme="dark"] .pill.good{background:rgba(34,160,107,.22);color:#7BE0AE}
+[data-theme="dark"] .pill.warn{background:rgba(229,168,0,.22);color:#F2D062}
+[data-theme="dark"] .pill.blue{background:rgba(37,99,235,.25);color:#93B4FB}
+[data-theme="dark"] .pill.bad{background:rgba(249,115,22,.22);color:#FDBA74}
+select.pill{appearance:none;-webkit-appearance:none;cursor:pointer;padding:3px 12px}
+.c-good{background:#22A06B}.c-warn{background:#E5A800}.c-blue{background:#3B82F6}.c-na{background:#C9C8C2}
+
+/* tabela */
+.tw{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.ts{overflow:auto;max-height:calc(100vh - 290px)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;z-index:2;background:#F3C99B;color:#4A2E0B;text-align:left;font-weight:700;padding:9px 8px;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+[data-theme="dark"] thead th{background:#3A2E1E;color:#F2D3AB}
+tbody td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:nth-child(even) td{background:rgba(120,140,170,.07)}
+td.nw{white-space:nowrap}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto;z-index:50}
+.ov.show{display:flex}
+.modal{background:var(--card);border-radius:14px;max-width:780px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.mh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.mh h2{font-size:16px}
+.mb{padding:16px 18px}.mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:var(--hover)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.fld label{display:block;font-size:11.5px;color:var(--tx2);margin-bottom:3px;font-weight:600}
+.fld input,.fld select,.fld textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--card)}
+.fld textarea{min-height:60px;resize:vertical}
+.help{font-size:11.5px;color:var(--tx3);margin-top:3px}
+
+/* relatório */
+.rep-out{background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:var(--shadow);overflow:auto}
+.rep-out h1{font-size:19px;margin-bottom:2px}.rep-out .meta{font-size:12px;color:#666;margin-bottom:12px}
+.rep-out h2{font-size:14px;margin:16px 0 5px;color:#0F766E;text-transform:uppercase;letter-spacing:.04em}
+.rep-out h3{font-size:13px;margin:10px 0 3px}
+.rep-out ul{padding-left:20px;margin-bottom:6px}.rep-out li{margin:2px 0}.rep-out li.n2{list-style:circle;margin-left:18px;color:#444}
+.rep-out table{font-size:12px;margin:6px 0 10px}.rep-out th{position:static;background:#F3C99B;color:#4A2E0B;border:1px solid #ccc}
+.rep-out td{border:1px solid #ddd;color:#111;background:#fff!important}
+
+/* slides */
+.slides{position:fixed;inset:0;background:#0B1F1D;color:#fff;z-index:80;display:none;flex-direction:column}
+.slides.show{display:flex}
+.sl-top{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;font-size:12.5px;color:#9FD6CF}
+.sl-top button,.sl-nav button{background:rgba(255,255,255,.1);color:#fff;border:0;border-radius:7px;padding:6px 14px;cursor:pointer}
+.sl-body{flex:1;overflow:auto;padding:10px 6vw 30px;display:flex;flex-direction:column;justify-content:center}
+.sl-body h1{font-size:clamp(28px,4.4vw,54px);letter-spacing:-.02em;line-height:1.12;margin-bottom:10px}
+.sl-body h2{font-size:clamp(22px,3vw,36px);margin-bottom:6px}
+.sl-body .lead{font-size:clamp(14px,1.6vw,20px);color:#9FD6CF;margin-bottom:20px}
+.sl-body ul{font-size:clamp(14px,1.7vw,22px);padding-left:22px;line-height:1.6}
+.sl-body li.n2{font-size:.85em;color:#B6E4DE;margin-left:18px}
+.sl-body .row{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:clamp(13px,1.5vw,19px);flex-wrap:wrap}
+.sl-body .row .tx{flex:1;min-width:240px}.sl-body .row small{color:#9FD6CF}
+.sl-nav{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;gap:10px}
+.sl-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.sl-dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}.sl-dots i.on{background:#5EEAD4}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="top-l">
+      <span class="chip" id="chipModo"><span class="dot"></span><span id="chipModoTxt">Carregando…</span></span>
+      <span class="chip" id="chipPerfil">—</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="recarregar()">↻ Atualizar</button>
+      <button class="btn pri" onclick="abrirSlides()">▶ Apresentar reunião</button>
+    </div>
+  </div>
+  <div id="avisos"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-p="reu" onclick="irAba('reu')">Reuniões e pautas</button>
+    <button class="tab" data-p="enc" onclick="irAba('enc')">Encaminhamentos</button>
+    <button class="tab" data-p="cad" onclick="irAba('cad')">Cadastro de reuniões</button>
+    <button class="tab" data-p="rel" onclick="irAba('rel')">Gerar pauta / Relatórios</button>
+  </div>
+
+  <section class="pane active" id="p-reu">
+    <div id="kpis" class="grid g4" style="margin-bottom:14px"></div>
+    <div class="split">
+      <div>
+        <div class="filters" style="margin-bottom:8px">
+          <input id="fBusca" placeholder="Buscar…" title="Buscar por data, nome ou pessoa" oninput="renderLista()" style="min-width:0;flex:1">
+          <select id="fTipo" onchange="renderLista()" style="min-width:0"></select>
+        </div>
+        <div class="rlist" id="rlist"></div>
+      </div>
+      <div id="detalhe"></div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-enc">
+    <div class="filters">
+      <input id="eBusca" placeholder="Buscar encaminhamento, reunião ou responsável…" oninput="renderEnc()" style="min-width:240px">
+      <select id="eSt" onchange="renderEnc()"></select>
+      <select id="eResp" onchange="renderEnc()"></select>
+      <select id="eTipo" onchange="renderEnc()"></select>
+      <button class="btn pri" onclick="abrirEnc(null,null)" id="btnNovoEnc">+ Novo encaminhamento</button>
+      <span class="count" id="eCount"></span>
+    </div>
+    <div class="tw"><div class="ts"><table id="eTab"></table></div></div>
+  </section>
+
+  <section class="pane" id="p-cad">
+    <div class="filters">
+      <input id="cBusca" placeholder="Buscar reunião…" oninput="renderCadastro()">
+      <button class="btn pri" id="btnNova" onclick="abrirReuniao(null)">+ Nova reunião</button>
+      <button class="btn" id="btnImport" onclick="importarSeed()">⇪ Importar pautas originais (11 documentos)</button>
+      <span class="count" id="cCount"></span>
+    </div>
+    <div class="tw"><div class="ts"><table id="cTab"></table></div></div>
+  </section>
+
+  <section class="pane" id="p-rel">
+    <div class="card" style="margin-bottom:14px">
+      <h3>Gerar documento</h3>
+      <div class="sub">A <b>pauta</b> reúne a pauta apresentada, as sugestões e a retomada dos encaminhamentos em aberto. A <b>ata</b> registra o que foi tratado e o andamento.</div>
+      <div class="filters" style="margin-bottom:6px">
+        <select id="rTipo" onchange="renderRel()">
+          <option value="pauta">Pauta da reunião</option>
+          <option value="ata">Registro / ata da reunião</option>
+          <option value="abertos">Encaminhamentos em aberto</option>
+          <option value="hist">Histórico de reuniões</option>
+        </select>
+        <select id="rReu" onchange="renderRel()" style="min-width:260px"></select>
+        <select id="rFTipo" onchange="renderRel()"></select>
+        <select id="rResp" onchange="renderRel()"></select>
+      </div>
+      <div class="filters" style="margin-bottom:0">
+        <label style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rSug" checked onchange="renderRel()" style="min-width:0"> incluir pautas sugeridas</label>
+        <label style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rRet" checked onchange="renderRel()" style="min-width:0"> incluir retomada de encaminhamentos em aberto</label>
+        <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn pri" onclick="repImprimir()">🖨 Imprimir / PDF</button>
+          <button class="btn" onclick="repWord()">⬇ Word (.doc)</button>
+          <button class="btn" onclick="repCSV()">⬇ CSV</button>
+          <button class="btn" onclick="repCopiar()">⧉ Copiar texto</button>
+        </span>
+      </div>
+    </div>
+    <div class="rep-out" id="repOut"></div>
+  </section>
+</div>
+
+<div class="ov" id="ovReu" onclick="if(event.target===this)fecharOv('ovReu')"><div class="modal">
+  <div class="mh"><h2 id="reuTit">Reunião</h2><button class="btn sm" onclick="fecharOv('ovReu')">✕</button></div>
+  <div class="mb" id="reuCorpo"></div>
+  <div class="mf"><button class="btn danger" id="reuExc" onclick="excluirReuniao()" style="margin-right:auto">Excluir</button><button class="btn" onclick="fecharOv('ovReu')">Cancelar</button><button class="btn pri" onclick="salvarReuniao()">Salvar</button></div>
+</div></div>
+
+<div class="ov" id="ovEnc" onclick="if(event.target===this)fecharOv('ovEnc')"><div class="modal" style="max-width:620px">
+  <div class="mh"><h2 id="encTit">Encaminhamento</h2><button class="btn sm" onclick="fecharOv('ovEnc')">✕</button></div>
+  <div class="mb" id="encCorpo"></div>
+  <div class="mf"><button class="btn danger" id="encExc" onclick="excluirEnc()" style="margin-right:auto">Excluir</button><button class="btn" onclick="fecharOv('ovEnc')">Cancelar</button><button class="btn pri" onclick="salvarEnc()">Salvar</button></div>
+</div></div>
+
+<div class="slides" id="slides">
+  <div class="sl-top"><span id="slInfo"></span><span><button onclick="fullscreenSlides()">⛶ Tela cheia</button> <button onclick="fecharSlides()">✕ Fechar (Esc)</button></span></div>
+  <div class="sl-body" id="slBody"></div>
+  <div class="sl-nav"><button onclick="slideIr(-1)">← Anterior</button><div class="sl-dots" id="slDots"></div><button onclick="slideIr(1)">Próximo →</button></div>
+</div>
+<datalist id="dlNomes"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Reuniões GETECO — pautas, sugestões e encaminhamentos
+   Tabela Supabase: reunioes_geteco (ver reunioes_supabase.sql).
+   Sem a tabela, funciona em localStorage (aviso na tela).
+   ═══════════════════════════════════════════════════════════ */
+const SUPABASE_URL='https://jmlxtczcrraefymjxqim.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8';
+const TABELA='reunioes_geteco',LS_KEY='reunioes_local_v1';
+const sbH=(x={})=>({'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation',...x});
+
+const TIPOS=['Pedagógica','Pedagógica Conselho','Entrega de Resultados','Outros'];
+const ST_ENC=['Não iniciado','Em andamento','Concluído','A confirmar','Cancelado'];
+const ST_SUG=['Sugerida','Aceita','Descartada'];
+const SEED=[{"data": "2026-02-03", "titulo": "Reunião Pedagógica — Pauta geral de início de ano", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Pauta original: \"PAUTA 03_02_2026 Reunião PEDAGÓGICA.docx\" (pauta geral + pauta detalhada + repasses do turno).", "pauta": "# Pauta geral\n- Organização das turmas/horários\n- Alinhamento/comunicação\n- Fluxo XEROX da Tarde\n- Fluxo de pedido de materialidades/compras\n- Fluxo para realização de projetos\n- Diário online/chamada (SGE)\n- Lançamentos no SMAE\n- Caderno de orientações para estudantes e famílias\n- Acolhida dos estudantes\n- \"Grito de Carnaval\"\n- Reunião de pais/mães/responsáveis\n- Projeto Gincana \"Geração Atitude\"\n- Eleição dos representantes\n- Avaliação diagnóstica/Provas mensais\n- Comissão Estrelas do GETECO\n- Protocolos de alunos na coordenação\n- Saídas de sala dos alunos\n# Parte I — Organização das turmas/horários\n- Apresentação/apreciação\n- Geração do quadro de horário inicial\n- Entrega dos horários dos professores\n# Parte II — Principais fluxos\n- Comunicação: Grupo de Informes oficial da Coordenação (permanência necessária)\n-- Grupo de Interação Anos Finais Tarde (mantido; permanência não obrigatória)\n-- WhatsApp (privado), e-mail (casos especificados) e Forms (formulário/tabela)\n- Fluxo XEROX da Tarde (antecedência de 5 dias úteis): Gabriela, com CCo para Everton\n- Materialidades/compras (antecedência de 3 dias úteis): Luciano (materialidade existente); Everton via Forms, WhatsApp ou presencial\n- Realização de projetos: Coordenação Pedagógica (Everton)\n- Diário/chamada no SGE: Física provisório em fevereiro; online pelo SGE a partir de março\n-- Professores em dobra: solicitar geração de acesso com logins e BMs (a escola de dobra não aparece no SGE)\n- Lançamentos no SMAE: docentes realizam lançamento mensal e planejamento anual; Coordenação auxilia e acompanha\n- Livros didáticos: atualizar dados dos livros a entregar e empréstimos diários; havendo livros para todos de um ano, todos serão entregues\n# Parte III — Primeiras ações e eventos\n- Acolhida dos estudantes (Semana da Boa Convivência): 04/02 a 06/02\n-- Equipe Gestora passa de sala em sala para apresentação\n-- Sugestão de roda de conversa com texto para leitura e discussão\n-- Registros com fotos serão encaminhados à SMED; outras atividades na semana de 09/02\n- Grito de Carnaval: 13/02\n-- Ronei e Adilson: redação/apresentação do evento\n-- Alexandra e Fernanda: ações alternativas para quem não curte o carnaval\n- Reunião de pais: 24/02 e 25/02 (formato e pauta a definir)\n-- Entrega e leitura do Caderno de Orientações\n- Início da Gincana \"Geração Atitude\": 09/03\n- Eleição dos representantes: 12/03 (critérios de anos anteriores a definir)\n- Provas mensais: 16/03 a 20/03 (prova diagnóstica não discutida)\n- Projeto Estrelas do GETECO: comissão organizadora (não discutido); Lucineide\n- Protocolos de alunos na coordenação e saídas de sala: fluxo de atendimento\n# Turno — repasses aos professores do 3º ciclo\n- Horários: entrada 13h; sala 13h05 (tolerância até 13h15); 2º horário 13h50; 3º horário 14h40; recreio 15h30; retorno 15h55; 5º horário 16h40; saída 17h30\n- Coordenação só atende aluno com autorização de saída do professor (formulário ou bilhete assinado)\n- Professor só recebe aluno fora do horário com autorização da coordenação\n- Saída de um aluno por vez (banheiro, água, coordenação), salvo emergência\n- Apenas representante de turma e vice auxiliam no transporte de materiais do professor\n- Indisciplina: o professor solicita a presença de um coordenador\n- Kits de material escolar: entrega e reposição coletivas; um kit de empréstimo por professor\n- Aluno sem uniforme ou com calçado diferente é encaminhado à coordenação", "sugestoes": [{"id": "s0_0", "data": "", "texto": "Roda de conversa na acolhida: disponibilizar texto para leitura e discussão", "autor": "", "status": "Sugerida"}, {"id": "s0_1", "data": "", "texto": "Projeto Estrelas do GETECO organizado por área", "autor": "", "status": "Sugerida"}, {"id": "s0_2", "data": "", "texto": "Critérios de eleição dos representantes: retomar os utilizados em anos anteriores", "autor": "", "status": "Sugerida"}], "encaminhamentos": [{"id": "e0_0", "texto": "Resolver o acesso ao SGE dos professores em dobra (gerar acesso com logins e BMs)", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e0_1", "texto": "Grito de Carnaval — redação/apresentação do evento", "responsavel": "Ronei e Adilson", "prazo": "2026-02-13", "status": "A confirmar", "andamento": ""}, {"id": "e0_2", "texto": "Grito de Carnaval — ações alternativas para quem não curte o carnaval", "responsavel": "Alexandra e Fernanda", "prazo": "2026-02-13", "status": "A confirmar", "andamento": ""}, {"id": "e0_3", "texto": "Definir formato e pauta da reunião de pais (24/02 e 25/02)", "responsavel": "Coordenação", "prazo": "2026-02-24", "status": "A confirmar", "andamento": ""}, {"id": "e0_4", "texto": "Definir critérios da eleição dos representantes", "responsavel": "Coordenação", "prazo": "2026-03-12", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-03-25", "titulo": "Reunião Pedagógica — Getecultura, Estrelas do GETECO e SMAE", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Atenção: o arquivo original se chama \"PAUTA 23_03_2026\", mas o título do documento diz 25/03. Conferir a data correta.", "pauta": "# Getecultura — 26/09/2026\n- Temas diversos, por disciplina e interdisciplinar\n- Proposta por disciplina, com data limite de entrega na semana de 3 de abril\n# Estrelas do GETECO (formação da comissão da tarde)\n- Representante por bloco: um professor por bloco\n-- 6ºABC: Alessandra\n-- 6ºDEF: Ronei\n-- 7ºABC: Alexandra\n-- 7ºD/E: Maria do Carmo\n# Relatórios\n- Emergenciais (para consultas agendadas pelas famílias)\n- Programados (para o final do trimestre)\n# Professores em substituição (quando disponíveis)\n- Trabalhar com alunos com demanda de atenção especial (pedagógicos/possível AEE)\n# SMAE\n- Lançamentos até 31/03\n- Tempo para preenchimento", "sugestoes": [], "encaminhamentos": [{"id": "e1_0", "texto": "Entregar a proposta do Getecultura por disciplina", "responsavel": "Professores", "prazo": "2026-04-03", "status": "A confirmar", "andamento": ""}, {"id": "e1_1", "texto": "Concluir os lançamentos no SMAE", "responsavel": "Professores", "prazo": "2026-03-31", "status": "A confirmar", "andamento": ""}, {"id": "e1_2", "texto": "Compor a comissão Estrelas do GETECO da tarde (um professor por bloco)", "responsavel": "Alessandra, Ronei, Alexandra e Maria do Carmo", "prazo": "", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-04-07", "titulo": "Reunião Pedagógica — Anos Finais", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "1º momento geral (formação ECA digital e avisos) e 2º momento com as coordenações. O documento original traz esta pauta como \"Sugestão de pauta\".", "pauta": "# Momentos\n- 1º momento geral: formação ECA Digital e avisos diversos\n- 2º momento com as coordenações pedagógicas e de turno\n# Pauta — Anos Finais\n- Atividades do banco de substituições\n- Matriz impressa\n- Envio das avaliações trimestrais até 10/04 (manhã: Janete, CCo Fernanda; tarde: Gabriela, CCo Everton)\n- Atividades e avaliações adaptadas para estudantes com deficiência que não acompanham a turma (AEE à disposição)\n- Lançamento dos conteúdos mensais no SMAE\n- Projetos interdisciplinares do GETECULTURA: apresentar à coordenação o que será trabalhado (prazo 22/04)\n- Elencar descritores de português e matemática para serem trabalhados em todas as matérias\n- Recuperação paralela: já está acontecendo? Comunicar a metodologia\n- Incentivo à saída para atividades em outros espaços (internos e externos)\n- Gincana Geração e Atitude (Cris)\n- Listagem dos estudantes com dificuldades (que não sejam do PIP) e estratégias de trabalho\n- Projeto Integração pela Diversidade no cotidiano da escola\n- 25/04 (sábado escolar): Conselho de Classe e aniversariantes do mês\n# Organização de sala de aula\n- Conferir o mapa de sala\n- Solicitar conservação da limpeza, cada aluno cuidando do seu espaço", "sugestoes": [], "encaminhamentos": [{"id": "e2_0", "texto": "Enviar as avaliações trimestrais às coordenações", "responsavel": "Professores", "prazo": "2026-04-10", "status": "A confirmar", "andamento": ""}, {"id": "e2_1", "texto": "Apresentar à coordenação os projetos interdisciplinares do GETECULTURA", "responsavel": "Professores", "prazo": "2026-04-22", "status": "A confirmar", "andamento": ""}, {"id": "e2_2", "texto": "Lançar os conteúdos mensais no SMAE", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e2_3", "texto": "Elencar descritores de português e matemática para todas as matérias", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e2_4", "texto": "Definir quem receberá a contribuição para o lanche dos aniversariantes (sábado escolar de 25/04)", "responsavel": "Coordenação", "prazo": "2026-04-25", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-06-13", "titulo": "Reunião Pedagógica — Pós-greve", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Datas ainda em aberto no documento original (\"???\").", "pauta": "# Semana de revisão/recuperação\n- Quadro de provas e notas finais\n- Proposta de trabalho que já englobe a revisão (para a prova) e a recuperação\n- Data/período: a definir\n# Aplicação das provas trimestrais\n- Professores: Magna, Marcelo Cafiero, Ronei e Márcia\n- Formato: mesmo dia e horário, nas aulas das respectivas disciplinas\n- Datas de aplicação: a definir\n# Lançamento no SGE\n- Data: a definir\n# Ornamentação de espaços coletivos pelas turmas\n- Organização: Cris e Everton (e os estudantes)\n- Demanda aos professores: ceder um horário para confecção e instalação dos ornamentos", "sugestoes": [], "encaminhamentos": [{"id": "e3_0", "texto": "Definir o período da semana de revisão/recuperação", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e3_1", "texto": "Definir as datas de aplicação das provas trimestrais", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e3_2", "texto": "Definir a data de lançamento no SGE", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e3_3", "texto": "Organizar a ornamentação dos espaços coletivos (ceder horário nas aulas)", "responsavel": "Cris e Everton", "prazo": "", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-06-26", "titulo": "Conselho de Classe — 1º Trimestre 2026", "tipo": "Pedagógica Conselho", "horario": "", "local": "", "participantes": "Professores, Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Reforço de calendário\n- 26/06: reunião pedagógica/Conselho de Classe\n- 01/07 (quarta), 1º ao 3º horários (oficineiros): tempo coletivo para finalizar a deliberação de Atitudes e Valores\n- 03/07: finalização do lançamento de notas no SGE\n# Reunião de pais\n- 07/07 (terça): 7º anos; 08/07 (quarta): 6º anos\n- Formato: 4º e 5º horários; 6º anos por turma; 7º anos por blocos (A/B/C e D/E)\n- Turmas sem reunião ficam no pátio com a Coordenação de Turno\n- Dois momentos: fala geral e conversa específica\n- Entrega de listagens de ocorrências\n# Festa Junina — 11/07\n- Início dos ensaios na semana seguinte\n- Definição dos pares de dança em 26/06 e bilhetes de autorização\n- Listagem dos pares: 29/06 e 30/06\n# Tarefas\n- Entrega das propostas do GETECULTURA\n- SMAE: conteúdos mensais, com atualização mensal\n# Atividades de substituição\n- Enviar para os mesmos e-mails da solicitação de cópias\n- Alunos fora de sala enviados à coordenação: motivação pertinente e envio de atividade (evitar ociosidade)\n# 2º trimestre\n- Documento com datas a ser entregue na semana seguinte\n- Provas trimestrais com data comum; provas mensais com datas alternativas\n# Demandas do grupo\n- \"Ficha\" informando que o aluno esteve na coordenação\n# Documento/ata da turma\n- Perfil (texto) e indicações de remanejamento\n- Responsabilidade de preenchimento e entrega: professor referência; todos assinam\n- Mapeamento: atualizar o PDF impresso vigente", "sugestoes": [], "encaminhamentos": [{"id": "e4_0", "texto": "Finalizar o lançamento de notas no SGE", "responsavel": "Professores", "prazo": "2026-07-03", "status": "A confirmar", "andamento": ""}, {"id": "e4_1", "texto": "Finalizar a deliberação de Atitudes e Valores (tempo coletivo de 01/07)", "responsavel": "Professores", "prazo": "2026-07-01", "status": "A confirmar", "andamento": ""}, {"id": "e4_2", "texto": "Entregar as propostas do GETECULTURA", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e4_3", "texto": "Entregar a listagem dos pares de dança da Festa Junina", "responsavel": "Professores", "prazo": "2026-06-30", "status": "A confirmar", "andamento": ""}, {"id": "e4_4", "texto": "Preencher e entregar o documento/ata da turma (perfil e remanejamentos)", "responsavel": "Professores referência", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e4_5", "texto": "Entregar o documento com as datas do 2º trimestre", "responsavel": "Coordenação", "prazo": "2026-07-03", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-07-08", "titulo": "Reunião de Pais — Entrega de Boletins do 1º Trimestre 2026", "tipo": "Entrega de Resultados", "horario": "16:00", "local": "Auditório e salas de aula", "participantes": "Pais/responsáveis, professores dos 6º e 7º anos (e 8ºX), Coordenação e Direção", "responsavel": "Coordenação Pedagógica", "obs": "6º anos e 8ºX em 08/07/2026; 7º anos em 07/07/2026.", "pauta": "# Documentos e organização\n- Pauta da reunião, listagem de presença e boletins: produção e entrega (Everton)\n- Secretaria/Gabriela: impressão dos boletins e das listagens, separação dos boletins\n- Everton: entrega aos professores; professores referência assinam e entregam aos pais/responsáveis\n- Listagem de alunos para conversa especial e listagens individuais de ocorrências: Everton\n# Turmas no pátio\n- Professores dos 6º e 7º anos vão à sala de reunião a partir das 16:00\n- Após o recreio, o professor do 4º horário faz a chamada e conduz as turmas à quadra\n# 1º momento — Auditório (Coordenação/Direção/Profa. Alessandra)\n- Boas-vindas (Coordenação)\n- Apresentação cultural: teatro (Profa. Alessandra Dantas)\n- Direcionamento às salas de reunião\n-- 6º anos e 8ºX: salas 18 (6ºA), 20 (6ºB), 01 (6ºC), 02 (6ºD), 03 (6ºE), 04 (6ºF) e 10 (8ºX)\n-- 7º anos: sala 06 (7ºA/7ºB/7ºC) e sala 08 (7ºD/7ºE)\n# 2º momento — Salas de aula (professores referência e demais)\n- Acolhimento, texto de reflexão (QR Code do grupo da sala) e listagem de presença\n- Horários de entrada (13:00) e saída (17:30), com tolerância de 10 minutos; atrasados entram pelo portão do estacionamento\n- Uniformes: camisa branca ou verde da PBH, bermuda ou calça azul-escura ou preta e tênis adequado\n- Festa Junina: 11/07, das 10:00 às 14:00\n- Interclasse: 08/09 a 11/09; camisas não são responsabilidade da escola; uso como uniforme apenas às sextas e/ou nas aulas de Educação Física\n- Avaliações: mensais (flexíveis), trimestrais (semana de prova) e externas (cronograma da SMED)\n- Entrega dos boletins: frequência, notas do trimestre e total anual, atitudes e valores\n-- Aluno pode ser afastado e perder a vaga com 25 faltas consecutivas ou 51 alternadas\n-- 7ºD/7ºE: notas do 2º trimestre de Ed. Física serão replicadas para o 1º\n- Conversa com responsáveis de alunos com demanda de apoio especial (professores convocam)", "sugestoes": [], "encaminhamentos": [{"id": "e5_0", "texto": "Produzir e entregar pauta, listagens de presença, boletins e listagens de ocorrências", "responsavel": "Everton", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e5_1", "texto": "Imprimir os boletins e as listagens e separar os boletins", "responsavel": "Gabriela (Secretaria)", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e5_2", "texto": "Convocar pais/responsáveis de alunos com demanda de apoio especial", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-07-15", "titulo": "Reunião Pedagógica — Resultados do 1º Trimestre e calendário", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Retorno e resultados\n- Retorno/avaliação da reunião de pais\n- Panorama dos resultados do 1º trimestre: 6º anos e 7º anos, por área/disciplina\n- Alunos de inclusão\n- Relação com os alunos (mais agitados, exige mais paciência)\n- Reflexão sobre o que fazer após o reconhecimento dos resultados (AVALIA BH/final de trimestre)\n- Estabelecer metas/compromissos?\n# Itens de calendário\n- Volta: 03/08\n- 10/08 a 14/08: provas mensais (atenção aos prazos de envio)\n- 18/08 e 19/08: AVALIA BH\n- 08/09 a 11/09: Interclasse\n- 14/09: Conselho de Classe — Atitudes e Valores\n- 15/09 a 18/09: avaliações trimestrais\n- 21/09: final do 2º trimestre (indicações para recuperações)\n- 22/09 a 25/09: recuperação\n- 29/09: reunião pedagógica, Conselho de Classe (notas e ata)\n- 01/10 e 02/10: reunião de pais/entrega de resultados\n# Outros\n- Rascunhando/ausência de professor\n- PIP Leitura: alta prioridade; média e baixa prioridade (professores)", "sugestoes": [], "encaminhamentos": [{"id": "e6_0", "texto": "Estabelecer metas e compromissos a partir dos resultados do 1º trimestre e do AVALIA BH", "responsavel": "Professores e Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e6_1", "texto": "Enviar as provas mensais respeitando os prazos (aplicação de 10/08 a 14/08)", "responsavel": "Professores", "prazo": "2026-08-10", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-07-30", "titulo": "Reunião de Pais — Entrega de Resultados do 2º Trimestre", "tipo": "Entrega de Resultados", "horario": "", "local": "Auditório e área externa", "participantes": "Pais/responsáveis, professores, Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# 1ª parte — Auditório\n- Boas-vindas e leitura da mensagem\n- Manutenção da assiduidade e frequência escolar\n- Uniforme\n- Proibição do uso de celular (apoio das famílias)\n- Disciplina e respeito ao professor\n- Não compartilhamento de utensílios pessoais (ex.: garrafinha d'água)\n- Bullying e cyberbullying\n- Conservar material (kit, livros, cadernos)\n- Responsabilidade pela reposição de material escolar\n# 2ª parte — Carteiras na área externa (saída à esquerda do auditório)\n- Boletins: notas e conceitos\n- Certificado de Destaque da Turma\n- Listagens de advertências\n- Lembretes da Biblioteca (livros)\n- Secretaria (documentação)", "sugestoes": [], "encaminhamentos": []}, {"data": "2026-09-14", "titulo": "Reunião Pedagógica — Provas trimestrais, recuperação e reunião de pais (2ª parte)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação, PIP", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Provas trimestrais — 15 a 18 de setembro\n- Horários: 13:40 às 14:40 e 15:55 às 16:55 (alternativa para duas provas no dia: 13:30 às 15:30)\n- 15/09: Ciências (13:40) e Inglês, exceto 7ºD/E (15:55)\n- 16/09: História (13:40) e Geografia (15:55)\n- 17/09: Matemática 6º anos (13:40 às 15:30) e Artes 6º anos (15:55); Artes 7º anos (13:40) e Matemática 7º anos (15:55)\n- 18/09: Português (13:40)\n# Recuperação — 22/09, 23/09 e 24/09\n- Coordenação disponibiliza a tabela para marcação de alunos em recuperação\n- Professores informam aos alunos e à Coordenação\n- Coordenação comunica as famílias (Gabriela)\n# Conselho de Classe/Lançamento no SGE — 25/09\n- Consolidados pedagógicos: alunos com possibilidade de retenção (definição dos indicados para a reunião de 25/09)\n- Lançamento no SGE, data limite 25/09\n# Reunião de pais\n- 6º anos: 01/10, às 16:00; 7º anos: 02/10, às 16:00\n- Formato: 1º momento no auditório; 2º momento em mesinhas na área externa do auditório (ou corredor térreo)\n# PIP e PIP Leitura\n- Retomada com Laura (teste de leitura)\n- Foco no grupo de prioridade 1 (alunos com indicação de possível retenção)\n# Lançamento no SMAE\n- E-mails aos professores informando possíveis lançamentos em aberto\n# Casos especiais de estudantes\n- Repasses das famílias e casos de trocas/permutas de sala\n- Caio Nascimento (7ºD): aluno em situação de vulnerabilidade\n# Considerações do turno\n- Projeto Clube de Leitura\n- Não liberar estudantes para beber água e ir ao banheiro no 1º e no 4º horários, em caráter absoluto (exceto saúde e emergências)\n- Ida ao banheiro: uma estudante (feminino) e um estudante (masculino); retirada/entrega de livros: até 3 estudantes\n- Troca de professores (auxílio com materiais): um estudante, de preferência um dos representantes\n- Comunicar as ações para resolver casos do Diário de Bordo, iniciando pelo 6º ano\n- Retomada dos atendimentos coletivos: projeto PAS", "sugestoes": [], "encaminhamentos": [{"id": "e8_0", "texto": "Disponibilizar a tabela para marcação de alunos em recuperação", "responsavel": "Coordenação", "prazo": "2026-09-21", "status": "A confirmar", "andamento": ""}, {"id": "e8_1", "texto": "Informar aos alunos e à Coordenação os alunos em recuperação", "responsavel": "Professores", "prazo": "2026-09-22", "status": "A confirmar", "andamento": ""}, {"id": "e8_2", "texto": "Comunicar as famílias sobre a recuperação", "responsavel": "Gabriela", "prazo": "2026-09-22", "status": "A confirmar", "andamento": ""}, {"id": "e8_3", "texto": "Lançar as notas no SGE", "responsavel": "Professores", "prazo": "2026-09-25", "status": "A confirmar", "andamento": ""}, {"id": "e8_4", "texto": "Enviar e-mails aos professores sobre lançamentos em aberto no SMAE", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e8_5", "texto": "Retomar o teste de leitura com foco no grupo de prioridade 1", "responsavel": "PIP Leitura (Laura)", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e8_6", "texto": "Retomar os atendimentos coletivos do projeto PAS", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e8_7", "texto": "Comunicar as ações para os casos do Diário de Bordo, iniciando pelo 6º ano", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-09-25", "titulo": "Reunião Pedagógica — Conselho de Classe e Notas no SGE", "tipo": "Pedagógica Conselho", "horario": "", "local": "", "participantes": "Professores, Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Conselho de Classe/Lançamento no SGE\n- Consolidados pedagógicos: preenchimento da Ficha de Conselho\n- Alunos com possibilidade de retenção (possíveis casos); casos específicos repassados junto aos professores\n- Lançamento no SGE, data limite 25/09\n- Alunos indicados para OER: cada professor marca na planilha (pasta Documentos úteis e/ou link)\n-- Critério: demanda de nota maior que 24 no 3º trimestre\n-- Aplicação: conjunto de trabalhos (pode ser interdisciplinar) em paralelo às demais atividades\n# Formato da prova trimestral do 3º trimestre\n- Interdisciplinar: sim; dois blocos, um por dia (proposta em construção)\n-- Bloco I: Geografia, História, Inglês e Artes\n-- Bloco II: Matemática, Português, Artes e Educação Física\n- Número de questões proporcional à quantidade de aulas da disciplina\n- Prova de redação em folha separada, tema definido pelo grupo, para averiguar o nível de escrita (não devolvida ao aluno)\n- Possibilidade de oferecer, nos moldes da redação, uma folha para questão aberta de Artes\n# Reunião de pais (formato aprovado em 14/09)\n- 6º anos: 01/10, às 16:00; 7º anos: 02/10, às 16:00\n- 1ª parte no auditório; 2ª parte em mesinhas na área externa do auditório (ou corredor térreo)", "sugestoes": [{"id": "s9_0", "data": "", "texto": "Manutenção da assiduidade", "autor": "", "status": "Sugerida"}, {"id": "s9_1", "data": "", "texto": "Disciplina e respeito ao professor", "autor": "", "status": "Sugerida"}, {"id": "s9_2", "data": "", "texto": "Não compartilhamento de utensílios pessoais (ex.: garrafinha d'água)", "autor": "", "status": "Sugerida"}, {"id": "s9_3", "data": "", "texto": "Bullying", "autor": "", "status": "Sugerida"}, {"id": "s9_4", "data": "", "texto": "Cyberbullying", "autor": "", "status": "Sugerida"}, {"id": "s9_5", "data": "", "texto": "Conservar material (kit, livros e cadernos)", "autor": "", "status": "Sugerida"}, {"id": "s9_6", "data": "", "texto": "Responsabilidade de posição", "autor": "", "status": "Sugerida"}], "encaminhamentos": [{"id": "e9_0", "texto": "Preencher a Ficha de Conselho", "responsavel": "Professores", "prazo": "2026-09-25", "status": "A confirmar", "andamento": ""}, {"id": "e9_1", "texto": "Marcar na planilha os alunos indicados para OER (nota maior que 24 no 3º trimestre)", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": ""}, {"id": "e9_2", "texto": "Fechar o formato da prova trimestral do 3º trimestre (dois blocos + redação)", "responsavel": "Coordenação e professores", "prazo": "", "status": "A confirmar", "andamento": ""}]}, {"data": "2026-10-21", "titulo": "Reunião Pedagógica — Provas mensais, Interclasse e Getecultura (2ª parte)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Próxima Reunião Pedagógica: 12/11/2026 (quinta-feira).", "pauta": "# Provas mensais — 26/10 a 30/10\n- Envio de matrizes para everton.correa@edu.pbh.gov.br\n# Interclasse\n- 6º anos: deliberação hoje sobre desclassificação\n- 7º anos: futsal feminino (finais: 4 jogos); queimada (9 jogos); previsão de complemento nesta semana\n# Getecultura — 07/11 (sábado)\n- Complemento da listagem de materialidades\n# Projeto FICA\n- Atividades: 10 questões de cada disciplina\n- Professores encaminham à coordenação pedagógica, que compila e entrega ao estudante para fazer com professor em horário de substituição livre ou professor do PIP\n# Prova trimestral interdisciplinar — 23/11 a 26/11\n- Com 25 questões: uma para cada número de aulas semanais\n- Com 20 questões: Português e Matemática 4 cada; demais disciplinas 2 cada\n- Prova de redação para aferir o nível de escrita\n# Conselho de Classe — Atitudes e Valores\n- Lara Sofia, 6ºC (aluna transferida)\n- Quantitativo por disciplina: Artes 18; Ciências 10; Ed. Física 18; Geografia 14; História 21; Inglês 18; Português 5; Matemática 9\n# SMAE\n- Lançamento dos conteúdos mensais\n# Organização do turno\n- Sem repasse; repasses da Cris e do João\n# Próxima reunião\n- Reunião Pedagógica: 12/11/2026 (quinta-feira)", "sugestoes": [], "encaminhamentos": [{"id": "e10_0", "texto": "Enviar as matrizes das provas mensais (semana de 26/10 a 30/10)", "responsavel": "Professores", "prazo": "2026-10-26", "status": "Não iniciado", "andamento": ""}, {"id": "e10_1", "texto": "Deliberar sobre a desclassificação no Interclasse dos 6º anos", "responsavel": "Coordenação", "prazo": "2026-10-21", "status": "Não iniciado", "andamento": ""}, {"id": "e10_2", "texto": "Complementar a listagem de materialidades do Getecultura (07/11)", "responsavel": "Professores", "prazo": "2026-11-07", "status": "Não iniciado", "andamento": ""}, {"id": "e10_3", "texto": "Encaminhar 10 questões por disciplina para o Projeto FICA", "responsavel": "Professores", "prazo": "", "status": "Não iniciado", "andamento": ""}, {"id": "e10_4", "texto": "Definir o formato interdisciplinar da prova trimestral (23/11 a 26/11)", "responsavel": "Coordenação e professores", "prazo": "2026-11-12", "status": "Não iniciado", "andamento": ""}, {"id": "e10_5", "texto": "Lançar os conteúdos mensais no SMAE", "responsavel": "Professores", "prazo": "", "status": "Não iniciado", "andamento": ""}]}, {"data": "2026-11-12", "titulo": "Reunião Pedagógica (próxima)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Data informada na pauta de 21/10/2026 (quinta-feira). Use \"Pautas sugeridas\" para receber sugestões e \"Gerar pauta\" para montar o documento.", "pauta": "", "sugestoes": [], "encaminhamentos": []}];
+
+let rows=[],modo='local',sel=null,aba='reu',editReu=null,editEnc=null;
+let role=null;try{role=sessionStorage.getItem('monit_role');}catch(e){}
+const ROLE_LBL={'coord-ped':'Coord. Pedagógico','coord-turno':'Coord. de Turno','pip':'PIP','aee':'AEE'};
+const podeEditar=()=>['coord-ped','coord-turno'].includes(role);
+const podeSugerir=()=>!!role;
+
+const $=id=>document.getElementById(id);
+const esc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const tk=t=>String(t||'').replace(/\s/g,'');
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const hojeISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const DS=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+function fmtData(iso,sem){if(!iso)return '—';const [y,m,d]=iso.split('-');const s=`${d}/${m}/${y}`;return sem?`${s} (${DS[new Date(+y,+m-1,+d).getDay()]})`:s;}
+const ref=r=>`${fmtData(r.data)} · ${r.titulo}`;      // data + nome = referência
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2200);}
+
+/* ── persistência ── */
+async function carregar(){
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?select=*&order=data.desc,id.desc`,{headers:sbH()});
+    const d=await r.json();
+    if(r.ok&&Array.isArray(d)){modo='supabase';rows=d.map(x=>({...x,sugestoes:x.sugestoes||[],encaminhamentos:x.encaminhamentos||[]}));return;}
+  }catch(e){}
+  modo='local';
+  try{rows=JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){rows=null;}
+  if(!Array.isArray(rows)){rows=SEED.map((r,i)=>({...JSON.parse(JSON.stringify(r)),id:i+1}));gravarLocal();}
+}
+const gravarLocal=()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(rows));}catch(e){}};
+/* grava só os campos alterados (reduz conflito entre quem edita ao mesmo tempo) */
+async function persistir(r,campos){
+  if(modo==='local'){if(!r.id)r.id=Math.max(0,...rows.map(x=>x.id||0))+1;if(!rows.includes(r))rows.push(r);gravarLocal();return true;}
+  try{
+    const todos=['data','titulo','tipo','horario','local','participantes','responsavel','obs','pauta','sugestoes','encaminhamentos'];
+    const body={};(r.id&&campos?campos:todos).forEach(k=>body[k]=r[k]);
+    const resp=r.id?await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?id=eq.${r.id}`,{method:'PATCH',headers:sbH(),body:JSON.stringify(body)})
+                   :await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}`,{method:'POST',headers:sbH(),body:JSON.stringify(body)});
+    if(!resp.ok)throw new Error(await resp.text());
+    const d=await resp.json();if(!r.id&&d[0]){r.id=d[0].id;rows.push(r);}
+    return true;
+  }catch(e){console.error(e);toast('Erro ao salvar no Supabase — veja o console.');return false;}
+}
+async function remover(r){
+  if(modo==='local'){rows=rows.filter(x=>x!==r);gravarLocal();return true;}
+  try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?id=eq.${r.id}`,{method:'DELETE',headers:sbH()});if(!resp.ok)throw 0;rows=rows.filter(x=>x!==r);return true;}
+  catch(e){toast('Erro ao excluir.');return false;}
+}
+async function importarSeed(){
+  if(!podeEditar())return;
+  if(rows.length&&!confirm('Já existem reuniões cadastradas. Importar ADICIONA as 12 reuniões das pautas originais (pode duplicar). Continuar?'))return;
+  if(modo==='local'){SEED.forEach(s=>{rows.push({...JSON.parse(JSON.stringify(s)),id:Math.max(0,...rows.map(x=>x.id||0))+1});});gravarLocal();}
+  else{try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}`,{method:'POST',headers:sbH(),body:JSON.stringify(SEED)});if(!resp.ok)throw new Error(await resp.text());await carregar();}catch(e){console.error(e);toast('Erro ao importar.');return;}}
+  toast('Pautas originais importadas.');renderTudo();
+}
+async function recarregar(){await carregar();renderTudo();toast('Dados atualizados.');}
+
+/* ── pauta: texto ⇄ estrutura (# seção · - item · -- subitem) ── */
+function parsePauta(t){
+  const secs=[];let cur=null;
+  String(t||'').split('\n').forEach(l=>{
+    const s=l.replace(/\s+$/,'');if(!s.trim())return;
+    if(/^#\s*/.test(s)){cur={t:s.replace(/^#\s*/,''),i:[]};secs.push(cur);}
+    else{if(!cur){cur={t:'',i:[]};secs.push(cur);}
+      if(/^--\s*/.test(s))cur.i.push({n:2,x:s.replace(/^--\s*/,'')});
+      else cur.i.push({n:1,x:s.replace(/^-\s*/,'')});}
+  });
+  return secs;
+}
+const pautaHTML=secs=>secs.map(s=>`<div class="sec">${s.t?`<b>${esc(s.t)}</b>`:''}<ul>${s.i.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul></div>`).join('');
+
+/* ── nomes (referência) ── */
+function nomesConhecidos(){
+  const set=new Set();
+  const add=v=>String(v||'').split(/,| e |;|\//).map(x=>x.trim()).filter(x=>x&&x.length<40&&!/\(/.test(x)).forEach(x=>set.add(x));
+  rows.forEach(r=>{add(r.responsavel);r.encaminhamentos.forEach(e=>add(e.responsavel));r.sugestoes.forEach(s=>add(s.autor));});
+  return [...set].sort((a,b)=>a.localeCompare(b,'pt'));
+}
+const todosEnc=()=>rows.flatMap(r=>r.encaminhamentos.map(e=>({e,r})));
+const atrasado=e=>e.prazo&&e.prazo<hojeISO()&&['Não iniciado','Em andamento'].includes(e.status);
+const aberto=e=>['Não iniciado','Em andamento','A confirmar'].includes(e.status);
+const stCls=s=>({'Concluído':'good','Em andamento':'blue','Não iniciado':'warn','A confirmar':'na','Cancelado':'na','Aceita':'good','Sugerida':'warn','Descartada':'na'}[s]||'na');
+const pctSt=s=>({'Concluído':100,'Em andamento':50}[s]||0);
+
+/* ── chrome ── */
+function irAba(a){aba=a;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p===a));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='p-'+a));renderTudo();}
+function renderTudo(){
+  if(!sel||!rows.find(r=>r.id===sel)){const p=rows.filter(r=>r.data<=hojeISO()).sort((a,b)=>b.data.localeCompare(a.data))[0]||rows[0];sel=p?p.id:null;}
+  renderTopo();
+  ({reu:()=>{renderKpis();renderLista();renderDetalhe();},enc:renderEnc,cad:renderCadastro,rel:renderRel})[aba]();
+  $('dlNomes').innerHTML=nomesConhecidos().map(n=>`<option value="${esc(n)}">`).join('');
+}
+function renderTopo(){
+  const c=$('chipModo');c.className='chip '+(modo==='supabase'?'ok':'warn');
+  $('chipModoTxt').textContent=modo==='supabase'?'Sincronizado (Supabase)':'Modo local (sem tabela no Supabase)';
+  $('chipPerfil').textContent=podeEditar()?('Perfil: '+ROLE_LBL[role]+' · edição liberada'):(role?('Perfil: '+(ROLE_LBL[role]||role)+' · pode sugerir pautas'):'Somente leitura (entre pelo sistema principal para editar)');
+  let av='';
+  if(modo==='local')av+=`<div class="notice">⚠ A tabela <b>${TABELA}</b> não foi encontrada no Supabase. Os dados estão sendo salvos só neste navegador. Execute <b>reunioes_supabase.sql</b> no SQL Editor para sincronizar com todos os usuários.</div>`;
+  if(modo==='supabase'&&!rows.length)av+=`<div class="notice info">A tabela está vazia. ${podeEditar()?'Em <b>Cadastro de reuniões</b>, use <b>Importar pautas originais</b>.':'Peça à Coordenação para importar as pautas.'}</div>`;
+  $('avisos').innerHTML=av;
+  ['btnNova','btnImport','btnNovoEnc'].forEach(id=>{const b=$(id);if(b)b.style.display=podeEditar()?'':'none';});
+}
+function opts(sel,primeiro,lista,val){const e=$(sel);const cur=val!==undefined?val:e.value;e.innerHTML=`<option value="">${primeiro}</option>`+lista.map(x=>`<option>${esc(x)}</option>`).join('');e.value=cur;}
+
+/* ═══ REUNIÕES E PAUTAS ═══ */
+function renderKpis(){
+  const hoje=hojeISO(),real=rows.filter(r=>r.data<=hoje),enc=todosEnc().map(x=>x.e);
+  const conc=enc.filter(e=>e.status==='Concluído').length,atr=enc.filter(atrasado).length,ab=enc.filter(aberto).length;
+  const prox=rows.filter(r=>r.data>hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
+  $('kpis').innerHTML=`
+   <div class="card kpi"><div class="n">${real.length}</div><div class="l">reuniões realizadas</div></div>
+   <div class="card kpi blue"><div class="n">${prox?fmtData(prox.data).slice(0,5):'—'}</div><div class="l">próxima reunião${prox?' · '+esc(prox.titulo.split('—')[0].trim()):''}</div></div>
+   <div class="card kpi good"><div class="n">${enc.length?Math.round(conc*100/enc.length):0}%</div><div class="l">encaminhamentos concluídos (${conc}/${enc.length})</div></div>
+   <div class="card kpi bad"><div class="n">${ab}</div><div class="l">em aberto · ${atr} com prazo vencido</div></div>`;
+}
+function filtrar(lista,busca,tipo){
+  const q=norm(busca);
+  return lista.filter(r=>(!tipo||r.tipo===tipo)&&(!q||norm([fmtData(r.data),r.data,r.titulo,r.tipo,r.responsavel,r.participantes,r.pauta,...r.encaminhamentos.map(e=>e.responsavel)].join(' ')).includes(q)));
+}
+function renderLista(){
+  opts('fTipo','Todos os tipos',TIPOS);
+  const l=filtrar(rows,$('fBusca').value,$('fTipo').value).sort((a,b)=>b.data.localeCompare(a.data));
+  const hoje=hojeISO();
+  $('rlist').innerHTML=l.map(r=>{const n=r.encaminhamentos.length,c=r.encaminhamentos.filter(e=>e.status==='Concluído').length;
+    return `<div class="ritem t-${tk(r.tipo)} ${r.id===sel?'sel':''}" onclick="selReu(${r.id})"><div class="d">${fmtData(r.data,1)}${r.data>hoje?' · <span style="color:var(--azul)">agendada</span>':''}</div><div class="t">${esc(r.titulo)}</div><div class="m">${esc(r.tipo)} · ${n?c+'/'+n+' encaminhamentos':'sem encaminhamentos'}</div></div>`;}).join('')||'<div class="empty">Nenhuma reunião.</div>';
+}
+function selReu(id){sel=id;renderLista();renderDetalhe();}
+function encHTML(r,e,editavel){
+  const at=atrasado(e),p=pctSt(e.status);
+  return `<div class="enc"><div class="h"><div class="tx">${esc(e.texto)}</div>
+    ${editavel?`<select class="pill ${stCls(e.status)}" onchange="setEncSt(${r.id},'${e.id}',this.value)">${ST_ENC.map(s=>`<option ${s===e.status?'selected':''}>${s}</option>`).join('')}</select>
+    <button class="btn sm" onclick="abrirEnc(${r.id},'${e.id}')">✎</button>`:`<span class="pill ${stCls(e.status)}">${esc(e.status)}</span>`}</div>
+   <div class="mt"><span>👤 ${esc(e.responsavel||'—')}</span><span>📅 prazo: ${e.prazo?fmtData(e.prazo):'—'}${at?' <span class="late">· atrasado</span>':''}</span></div>
+   <div class="prog"><i class="${e.status==='Concluído'?'c-good':e.status==='Em andamento'?'c-blue':'c-na'}" style="width:${p}%"></i></div>
+   ${editavel?`<textarea class="and" placeholder="Andamento: o que já foi feito, pendências, observações…" onchange="setEncAnd(${r.id},'${e.id}',this.value)">${esc(e.andamento)}</textarea>`:(e.andamento?`<div class="and-ro">${esc(e.andamento)}</div>`:'')}</div>`;
+}
+function renderDetalhe(){
+  const r=rows.find(x=>x.id===sel);
+  if(!r){$('detalhe').innerHTML='<div class="card empty">Selecione ou cadastre uma reunião.</div>';return;}
+  const ed=podeEditar(),secs=parsePauta(r.pauta);
+  $('detalhe').innerHTML=`
+  <div class="card dh" style="margin-bottom:14px">
+    <span class="tipo ${tk(r.tipo)}">${esc(r.tipo)}</span>
+    <h2>${esc(r.titulo)}</h2>
+    <div class="meta"><span>📅 <b>${fmtData(r.data,1)}</b></span>${r.horario?`<span>🕒 <b>${esc(r.horario)}</b></span>`:''}${r.local?`<span>📍 ${esc(r.local)}</span>`:''}<span>👤 ${esc(r.responsavel||'—')}</span></div>
+    ${r.participantes?`<div class="meta" style="margin-top:3px"><span>👥 ${esc(r.participantes)}</span></div>`:''}
+    ${r.obs?`<div class="notice info" style="margin:10px 0 0">${esc(r.obs)}</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn pri" onclick="abrirSlides()">▶ Apresentar</button>
+      <button class="btn" onclick="gerarDe(${r.id},'pauta')">📄 Gerar pauta</button>
+      <button class="btn" onclick="gerarDe(${r.id},'ata')">📝 Registro / ata</button>
+      ${ed?`<button class="btn" onclick="abrirReuniao(${r.id})">✎ Editar reunião</button>`:''}
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px"><h3>📌 Pauta apresentada</h3><div class="sub">Itens conforme a pauta original da reunião</div>
+    <div class="pauta">${secs.length?pautaHTML(secs):'<div class="empty" style="padding:14px">Pauta ainda não cadastrada.'+(ed?' Use ✎ Editar reunião para escrever a pauta.':'')+'</div>'}</div></div>
+  <div class="card" style="margin-bottom:14px"><h3>💡 Pautas sugeridas <span class="chip">${r.sugestoes.length}</span></h3><div class="sub">Sugestões de itens para a pauta. A Coordenação aceita ou descarta.</div>
+    ${r.sugestoes.map(s=>`<div class="sug"><div class="tx">${esc(s.texto)}${s.autor?` <small>— ${esc(s.autor)}${s.data?' · '+fmtData(s.data):''}</small>`:''}</div>
+      ${ed?`<select class="pill ${stCls(s.status)}" onchange="setSugSt(${r.id},'${s.id}',this.value)">${ST_SUG.map(x=>`<option ${x===s.status?'selected':''}>${x}</option>`).join('')}</select><button class="btn sm danger" onclick="delSug(${r.id},'${s.id}')">✕</button>`:`<span class="pill ${stCls(s.status)}">${esc(s.status)}</span>`}</div>`).join('')||'<div class="empty" style="padding:12px">Nenhuma sugestão.</div>'}
+    ${podeSugerir()?`<div class="addrow"><input id="sgTxt" placeholder="Sugerir um item de pauta…"><input id="sgAut" list="dlNomes" placeholder="Seu nome" style="max-width:200px"><button class="btn pri" onclick="addSug(${r.id})">+ Sugerir</button></div>`:''}</div>
+  <div class="card"><h3>✅ Encaminhamentos <span class="chip">${r.encaminhamentos.length}</span></h3><div class="sub">Acompanhe o andamento de cada encaminhamento${ed?' — altere o status e registre o andamento':''}</div>
+    ${r.encaminhamentos.map(e=>encHTML(r,e,ed)).join('')||'<div class="empty" style="padding:12px">Nenhum encaminhamento registrado.</div>'}
+    ${ed?`<div style="margin-top:8px"><button class="btn pri" onclick="abrirEnc(${r.id},null)">+ Novo encaminhamento</button></div>`:''}</div>`;
+}
+const achar=(rid,eid)=>{const r=rows.find(x=>x.id===rid);return[r,r&&r.encaminhamentos.find(e=>e.id===eid)];};
+async function setEncSt(rid,eid,v){const[r,e]=achar(rid,eid);if(!e)return;e.status=v;if(await persistir(r,['encaminhamentos'])){toast('Status: '+v);renderTudo();}}
+async function setEncAnd(rid,eid,v){const[r,e]=achar(rid,eid);if(!e)return;e.andamento=v.trim();if(await persistir(r,['encaminhamentos']))toast('Andamento salvo.');}
+async function addSug(rid){
+  const r=rows.find(x=>x.id===rid),t=$('sgTxt').value.trim();if(!t){toast('Escreva a sugestão.');return;}
+  r.sugestoes.push({id:uid('s'),texto:t,autor:$('sgAut').value.trim(),data:hojeISO(),status:'Sugerida'});
+  if(await persistir(r,['sugestoes'])){toast('Sugestão registrada.');renderTudo();}
+}
+async function setSugSt(rid,sid,v){const r=rows.find(x=>x.id===rid),s=r.sugestoes.find(x=>x.id===sid);s.status=v;if(await persistir(r,['sugestoes'])){toast('Sugestão '+v.toLowerCase()+'.');renderTudo();}}
+async function delSug(rid,sid){if(!confirm('Remover esta sugestão?'))return;const r=rows.find(x=>x.id===rid);r.sugestoes=r.sugestoes.filter(x=>x.id!==sid);if(await persistir(r,['sugestoes']))renderTudo();}
+
+/* ═══ ENCAMINHAMENTOS (visão geral) ═══ */
+function renderEnc(){
+  opts('eSt','Todos os status',ST_ENC);opts('eTipo','Todos os tipos de reunião',TIPOS);
+  const nomes=nomesConhecidos();opts('eResp','Todos os responsáveis',nomes);
+  const q=norm($('eBusca').value),st=$('eSt').value,rs=$('eResp').value,tp=$('eTipo').value,ed=podeEditar();
+  const l=todosEnc().filter(({e,r})=>(!st||e.status===st)&&(!tp||r.tipo===tp)&&(!rs||norm(e.responsavel).includes(norm(rs)))&&(!q||norm([e.texto,e.responsavel,e.andamento,ref(r)].join(' ')).includes(q)))
+    .sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999')||b.r.data.localeCompare(a.r.data));
+  $('eCount').textContent=l.length+' encaminhamento(s)';
+  $('eTab').innerHTML=`<thead><tr><th>Reunião (referência)</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th>${ed?'<th></th>':''}</tr></thead><tbody>${
+    l.map(({e,r})=>`<tr><td><a href="#" onclick="event.preventDefault();irReu(${r.id})" style="color:var(--verde-dark);font-weight:600;text-decoration:none">${fmtData(r.data)}</a><br><small style="color:var(--tx2)">${esc(r.titulo.split('—')[0].trim())}</small></td>
+      <td style="min-width:240px;font-weight:600">${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td>
+      <td class="nw">${e.prazo?fmtData(e.prazo):'—'}${atrasado(e)?'<br><span class="late">atrasado</span>':''}</td>
+      <td>${ed?`<select class="pill ${stCls(e.status)}" onchange="setEncSt(${r.id},'${e.id}',this.value)">${ST_ENC.map(s=>`<option ${s===e.status?'selected':''}>${s}</option>`).join('')}</select>`:`<span class="pill ${stCls(e.status)}">${esc(e.status)}</span>`}</td>
+      <td style="min-width:200px">${ed?`<textarea class="and" style="margin:0" onchange="setEncAnd(${r.id},'${e.id}',this.value)" placeholder="Andamento…">${esc(e.andamento)}</textarea>`:esc(e.andamento)}</td>
+      ${ed?`<td><button class="btn sm" onclick="abrirEnc(${r.id},'${e.id}')">✎</button></td>`:''}</tr>`).join('')||`<tr><td colspan="7" class="empty">Nenhum encaminhamento.</td></tr>`}</tbody>`;
+}
+function irReu(id){sel=id;irAba('reu');}
+
+/* ═══ CADASTRO ═══ */
+function renderCadastro(){
+  const l=filtrar(rows,$('cBusca').value,'').sort((a,b)=>b.data.localeCompare(a.data)),ed=podeEditar();
+  $('cCount').textContent=l.length+' reunião(ões)';
+  $('cTab').innerHTML=`<thead><tr><th>Data</th><th>Tipo</th><th>Nome da reunião</th><th>Responsável</th><th>Sugestões</th><th>Encaminhamentos</th><th></th></tr></thead><tbody>${
+    l.map(r=>`<tr><td class="nw"><b>${fmtData(r.data)}</b></td><td><span class="tipo ${tk(r.tipo)}">${esc(r.tipo)}</span></td><td>${esc(r.titulo)}</td><td>${esc(r.responsavel||'—')}</td><td>${r.sugestoes.length}</td><td>${r.encaminhamentos.filter(e=>e.status==='Concluído').length}/${r.encaminhamentos.length}</td><td class="nw"><button class="btn sm" onclick="irReu(${r.id})">Abrir</button> ${ed?`<button class="btn sm" onclick="abrirReuniao(${r.id})">✎ Editar</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Nenhuma reunião.</td></tr>'}</tbody>`;
+}
+function abrirReuniao(id){
+  if(!podeEditar()){toast('Sem permissão de edição neste perfil.');return;}
+  editReu=id;const r=id?rows.find(x=>x.id===id):{data:hojeISO(),titulo:'',tipo:'Pedagógica',horario:'',local:'',participantes:'Professores dos Anos Finais (Tarde), Coordenação',responsavel:'',obs:'',pauta:'',sugestoes:[],encaminhamentos:[]};
+  $('reuTit').textContent=id?'Editar — '+fmtData(r.data)+' · '+r.titulo:'Nova reunião';$('reuExc').style.display=id?'':'none';
+  $('reuCorpo').innerHTML=`<div class="fg">
+    <div class="fld"><label>Data *</label><input type="date" id="rData" value="${esc(r.data)}"></div>
+    <div class="fld"><label>Tipo *</label><select id="rTp">${TIPOS.map(t=>`<option ${t===r.tipo?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="fld"><label>Horário</label><input id="rHor" value="${esc(r.horario)}" placeholder="ex.: 16:00"></div></div>
+   <div class="fld" style="margin-bottom:10px"><label>Nome da reunião *</label><input id="rTit" value="${esc(r.titulo)}" placeholder="ex.: Reunião Pedagógica — Provas e recuperação"></div>
+   <div class="fg"><div class="fld"><label>Local</label><input id="rLoc" value="${esc(r.local)}"></div>
+    <div class="fld"><label>Responsável / condução</label><input id="rResp" list="dlNomes" value="${esc(r.responsavel)}"></div></div>
+   <div class="fld" style="margin-bottom:10px"><label>Participantes</label><input id="rPart" value="${esc(r.participantes)}"></div>
+   <div class="fld" style="margin-bottom:10px"><label>Observações</label><textarea id="rObs">${esc(r.obs)}</textarea></div>
+   <div class="fld"><label>Pauta apresentada</label><textarea id="rPauta" style="min-height:260px;font-family:ui-monospace,monospace;font-size:12.5px">${esc(r.pauta)}</textarea>
+   <div class="help">Formato: <b># Título da seção</b> · <b>- item</b> · <b>-- subitem</b> (uma linha por item).</div></div>`;
+  $('ovReu').classList.add('show');
+}
+async function salvarReuniao(){
+  const t=$('rTit').value.trim(),d=$('rData').value;if(!t||!d){toast('Informe data e nome da reunião.');return;}
+  const r=editReu?rows.find(x=>x.id===editReu):{sugestoes:[],encaminhamentos:[]};
+  Object.assign(r,{data:d,titulo:t,tipo:$('rTp').value,horario:$('rHor').value.trim(),local:$('rLoc').value.trim(),participantes:$('rPart').value.trim(),responsavel:$('rResp').value.trim(),obs:$('rObs').value.trim(),pauta:$('rPauta').value});
+  if(await persistir(r)){sel=r.id;fecharOv('ovReu');toast('Reunião salva.');renderTudo();}
+}
+async function excluirReuniao(){const r=rows.find(x=>x.id===editReu);if(!r)return;if(!confirm('Excluir a reunião de '+fmtData(r.data)+' com suas sugestões e encaminhamentos?'))return;if(await remover(r)){fecharOv('ovReu');toast('Reunião excluída.');renderTudo();}}
+function fecharOv(id){$(id).classList.remove('show');}
+
+/* modal de encaminhamento */
+let encReu=null;
+function abrirEnc(rid,eid){
+  if(!podeEditar()){toast('Sem permissão de edição neste perfil.');return;}
+  encReu=rid||sel;editEnc=eid;
+  const r=rows.find(x=>x.id===encReu);if(!r){toast('Cadastre uma reunião antes.');return;}
+  const e=eid?r.encaminhamentos.find(x=>x.id===eid):{texto:'',responsavel:'',prazo:'',status:'Não iniciado',andamento:''};
+  $('encTit').textContent=(eid?'Editar':'Novo')+' encaminhamento';$('encExc').style.display=eid?'':'none';
+  $('encCorpo').innerHTML=`<div class="fld" style="margin-bottom:10px"><label>Reunião (referência)</label><select id="eReu">${rows.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(x=>`<option value="${x.id}" ${x.id===encReu?'selected':''} ${eid?'disabled':''}>${esc(ref(x))}</option>`).join('')}</select></div>
+   <div class="fld" style="margin-bottom:10px"><label>Encaminhamento *</label><textarea id="eTx">${esc(e.texto)}</textarea></div>
+   <div class="fg"><div class="fld"><label>Responsável</label><input id="eRs" list="dlNomes" value="${esc(e.responsavel)}"></div>
+    <div class="fld"><label>Prazo</label><input type="date" id="ePz" value="${esc(e.prazo)}"></div>
+    <div class="fld"><label>Status</label><select id="eS">${ST_ENC.map(s=>`<option ${s===e.status?'selected':''}>${s}</option>`).join('')}</select></div></div>
+   <div class="fld"><label>Andamento</label><textarea id="eAn">${esc(e.andamento)}</textarea></div>`;
+  $('ovEnc').classList.add('show');
+}
+async function salvarEnc(){
+  const tx=$('eTx').value.trim();if(!tx){toast('Descreva o encaminhamento.');return;}
+  const rid=editEnc?encReu:+$('eReu').value,r=rows.find(x=>x.id===rid);
+  const e=editEnc?r.encaminhamentos.find(x=>x.id===editEnc):{id:uid('e')};
+  Object.assign(e,{texto:tx,responsavel:$('eRs').value.trim(),prazo:$('ePz').value,status:$('eS').value,andamento:$('eAn').value.trim()});
+  if(!editEnc)r.encaminhamentos.push(e);
+  if(await persistir(r,['encaminhamentos'])){fecharOv('ovEnc');toast('Encaminhamento salvo.');renderTudo();}
+}
+async function excluirEnc(){if(!confirm('Excluir este encaminhamento?'))return;const r=rows.find(x=>x.id===encReu);r.encaminhamentos=r.encaminhamentos.filter(x=>x.id!==editEnc);if(await persistir(r,['encaminhamentos'])){fecharOv('ovEnc');renderTudo();}}
+
+/* ═══ RELATÓRIOS / GERAR PAUTA ═══ */
+let rep={titulo:'',html:'',rows:[],texto:'',meta:''};
+function gerarDe(id,tipo){sel=id;aba='rel';document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p==='rel'));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='p-rel'));$('rTipo').value=tipo;$('rReu').value=String(id);renderTudo();}
+const secHTML=secs=>secs.map(s=>`${s.t?`<h3>${esc(s.t)}</h3>`:''}<ul>${s.i.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul>`).join('');
+const secTxt=secs=>secs.map(s=>(s.t?`\n*${s.t}*\n`:'')+s.i.map(i=>(i.n===2?'   – ':'• ')+i.x).join('\n')).join('\n');
+function renderRel(){
+  const lista=rows.slice().sort((a,b)=>b.data.localeCompare(a.data));
+  const e=$('rReu'),cur=e.value||String(sel);e.innerHTML=lista.map(r=>`<option value="${r.id}">${esc(ref(r))}</option>`).join('');e.value=cur;
+  opts('rFTipo','Todos os tipos',TIPOS);opts('rResp','Todos os responsáveis',nomesConhecidos());
+  const tipo=$('rTipo').value,r=rows.find(x=>x.id===+$('rReu').value)||lista[0];
+  const usaReu=['pauta','ata'].includes(tipo);$('rReu').style.display=usaReu?'':'none';
+  $('rSug').parentElement.style.display=tipo==='pauta'?'':'none';$('rRet').parentElement.style.display=tipo==='pauta'?'':'none';
+  const escola='Escola Municipal Geraldo Teixeira da Costa — GETECO (Turno Tarde)';
+  const ftp=$('rFTipo').value,fr=norm($('rResp').value);
+  let titulo='',html='',tab=[],texto='',meta='';
+  if(!rows.length){$('repOut').innerHTML='<div class="empty" style="color:#666">Sem reuniões cadastradas.</div>';rep={titulo:'',html:'',rows:[],texto:'',meta:''};return;}
+  if(usaReu&&r){
+    const secs=parsePauta(r.pauta);
+    meta=`${escola}\n${fmtData(r.data,1)}${r.horario?' · '+r.horario:''}${r.local?' · '+r.local:''} · ${r.tipo}`;
+    if(tipo==='pauta'){
+      titulo=`Pauta — ${r.titulo}`;
+      const sug=$('rSug').checked?r.sugestoes.filter(s=>s.status!=='Descartada'):[];
+      const ret=$('rRet').checked?todosEnc().filter(x=>x.r.data<r.data&&aberto(x.e)&&x.e.status!=='A confirmar'):[];
+      html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}<h2>Pauta</h2>${secs.length?secHTML(secs):'<p><i>Pauta a definir.</i></p>'}`
+        +(sug.length?`<h2>Pautas sugeridas</h2><ul>${sug.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''}${s.status==='Aceita'?' — <b>aceita</b>':''}</li>`).join('')}</ul>`:'')
+        +(ret.length?`<h2>Retomada de encaminhamentos em aberto</h2><table><thead><tr><th>Origem (data · reunião)</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>${ret.map(({e,r:o})=>`<tr><td>${esc(ref(o))}</td><td>${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td><td>${e.prazo?fmtData(e.prazo):'—'}</td><td>${esc(e.status)}</td></tr>`).join('')}</tbody></table>`:'');
+      tab=[['Seção','Item'],...secs.flatMap(s=>s.i.map(i=>[s.t,(i.n===2?'– ':'')+i.x])),...sug.map(s=>['Pauta sugerida',s.texto+(s.autor?' ('+s.autor+')':'')]),...ret.map(({e,r:o})=>['Retomada — '+ref(o),e.texto+' ['+(e.responsavel||'—')+' · '+e.status+']'])];
+      texto=`*${titulo}*\n${meta}\n${secTxt(secs)}`+(sug.length?`\n\n*Pautas sugeridas*\n${sug.map(s=>'• '+s.texto+(s.autor?' ('+s.autor+')':'')).join('\n')}`:'')+(ret.length?`\n\n*Retomada de encaminhamentos em aberto*\n${ret.map(({e,r:o})=>`• ${e.texto} — ${e.responsavel||'—'} (${e.status}; origem ${fmtData(o.data)})`).join('\n')}`:'');
+    }else{
+      titulo=`Registro da reunião — ${r.titulo}`;
+      html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada</h2>${secs.length?secHTML(secs):'<p><i>—</i></p>'}
+        <h2>Pautas sugeridas</h2>${r.sugestoes.length?`<ul>${r.sugestoes.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''} — <b>${esc(s.status)}</b></li>`).join('')}</ul>`:'<p><i>Nenhuma.</i></p>'}
+        <h2>Encaminhamentos</h2>${r.encaminhamentos.length?`<table><thead><tr><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th></tr></thead><tbody>${r.encaminhamentos.map(e=>`<tr><td>${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td><td>${e.prazo?fmtData(e.prazo):'—'}</td><td>${esc(e.status)}</td><td>${esc(e.andamento)}</td></tr>`).join('')}</tbody></table>`:'<p><i>Nenhum.</i></p>'}
+        <p style="margin-top:28px">Assinaturas/lista de presença: ______________________________________________</p>`;
+      tab=[['Encaminhamento','Responsável','Prazo','Status','Andamento'],...r.encaminhamentos.map(e=>[e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
+      texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(r.encaminhamentos.map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
+    }
+  }
+  if(tipo==='abertos'){
+    titulo='Encaminhamentos em aberto';meta=`${escola}\nGerado em ${fmtData(hojeISO())}`;
+    const l=todosEnc().filter(({e,r:o})=>aberto(e)&&(!ftp||o.tipo===ftp)&&(!fr||norm(e.responsavel).includes(fr))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
+    const cab=['Origem (data · reunião)','Encaminhamento','Responsável','Prazo','Status','Andamento'];
+    tab=[cab,...l.map(({e,r:o})=>[ref(o),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status+(atrasado(e)?' (atrasado)':''),e.andamento])];
+    html=`<p>${l.length} encaminhamento(s) em aberto.</p>`+tabH(cab,tab.slice(1));
+    texto=`*${titulo}*\n${l.map(({e,r:o})=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}] · origem ${fmtData(o.data)}`).join('\n')||'• nenhum'}`;
+  }
+  if(tipo==='hist'){
+    titulo='Histórico de reuniões';meta=`${escola}\nGerado em ${fmtData(hojeISO())}`;
+    const l=lista.filter(o=>(!ftp||o.tipo===ftp)&&(!fr||norm(o.responsavel+' '+o.encaminhamentos.map(e=>e.responsavel).join(' ')).includes(fr)));
+    const cab=['Data','Tipo','Reunião','Itens de pauta','Sugestões','Encaminhamentos concluídos'];
+    tab=[cab,...l.map(o=>[fmtData(o.data),o.tipo,o.titulo,parsePauta(o.pauta).reduce((n,s)=>n+s.i.length,0),o.sugestoes.length,o.encaminhamentos.filter(e=>e.status==='Concluído').length+'/'+o.encaminhamentos.length])];
+    html=tabH(cab,tab.slice(1));texto=`*${titulo}*\n${l.map(o=>`• ${fmtData(o.data)} — ${o.titulo} (${o.tipo})`).join('\n')}`;
+  }
+  $('repOut').innerHTML=`<h1>${esc(titulo)}</h1><div class="meta">${esc(meta).replace(/\n/g,'<br>')}</div>${html}`;
+  rep={titulo,html,rows:tab,texto,meta};
+}
+const tabH=(cab,l)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${l.map(x=>`<tr>${x.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}table{width:100%;border-collapse:collapse;margin:6px 0 10px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}`;
+const docHTML=()=>`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>${docCSS}</style></head><body><h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}</body></html>`;
+function repImprimir(){if(!rep.html){toast('Nada para imprimir.');return;}const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(docHTML());d.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);}
+function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
+const nomeArq=()=>(rep.titulo||'reuniao').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').slice(0,60);
+function repWord(){if(!rep.html){toast('Nada para exportar.');return;}baixar(new Blob(['\ufeff'+docHTML()],{type:'application/msword'}),nomeArq()+'.doc');}
+function repCSV(){if(!rep.rows.length){toast('Nada para exportar.');return;}baixar(new Blob(['\ufeff'+rep.rows.map(l=>l.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),nomeArq()+'.csv');}
+async function repCopiar(){const t=rep.texto||rep.rows.map(l=>l.join('\t')).join('\n');if(!t){toast('Nada para copiar.');return;}try{await navigator.clipboard.writeText(t);}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}toast('Texto copiado.');}
+
+/* ═══ APRESENTAÇÃO (slides) ═══ */
+let slIdx=0,slList=[];
+function montarSlides(){
+  const r=rows.find(x=>x.id===sel);if(!r)return false;
+  const secs=parsePauta(r.pauta);slList=[];
+  slList.push(`<span class="lead" style="margin:0">${esc(r.tipo)}</span><h1>${esc(r.titulo)}</h1><div class="lead">${fmtData(r.data,1)}${r.horario?' · '+esc(r.horario):''}${r.local?' · '+esc(r.local):''}</div><div class="lead" style="font-size:15px">${esc(r.participantes||'')}</div>`);
+  secs.forEach(s=>slList.push(`<h2>${esc(s.t||'Pauta')}</h2><div class="lead">${esc(r.titulo)} · ${fmtData(r.data)}</div><ul>${s.i.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul>`));
+  const sug=r.sugestoes.filter(s=>s.status!=='Descartada');
+  if(sug.length)slList.push(`<h2>Pautas sugeridas</h2><div class="lead">${sug.length} sugestão(ões)</div><ul>${sug.map(s=>`<li>${esc(s.texto)}${s.autor?` <small style="color:#9FD6CF">— ${esc(s.autor)}</small>`:''}</li>`).join('')}</ul>`);
+  for(let i=0;i<r.encaminhamentos.length;i+=6){
+    slList.push(`<h2>Encaminhamentos</h2><div class="lead">${r.encaminhamentos.length} no total · ${r.encaminhamentos.filter(e=>e.status==='Concluído').length} concluído(s)</div>${r.encaminhamentos.slice(i,i+6).map(e=>`<div class="row"><div class="tx">${esc(e.texto)}<br><small>👤 ${esc(e.responsavel||'—')}${e.prazo?' · 📅 '+fmtData(e.prazo):''}</small></div><span class="pill ${stCls(e.status)}">${esc(e.status)}</span></div>`).join('')}`);
+  }
+  return true;
+}
+function renderSlide(){$('slBody').innerHTML=slList[slIdx];$('slInfo').textContent=`Reuniões GETECO · ${slIdx+1} / ${slList.length}`;$('slDots').innerHTML=slList.map((_,i)=>`<i class="${i===slIdx?'on':''}"></i>`).join('');}
+function abrirSlides(){if(!montarSlides()){toast('Selecione uma reunião.');return;}slIdx=0;renderSlide();$('slides').classList.add('show');}
+function fecharSlides(){$('slides').classList.remove('show');if(document.fullscreenElement)document.exitFullscreen();}
+function slideIr(d){slIdx=Math.max(0,Math.min(slList.length-1,slIdx+d));renderSlide();}
+function fullscreenSlides(){const e=$('slides');if(document.fullscreenElement)document.exitFullscreen();else if(e.requestFullscreen)e.requestFullscreen();}
+document.addEventListener('keydown',e=>{
+  if($('slides').classList.contains('show')){
+    if(['ArrowRight',' ','PageDown'].includes(e.key)){e.preventDefault();slideIr(1);}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();slideIr(-1);}
+    if(e.key==='Escape')fecharSlides();
+  }else if(e.key==='Escape'){fecharOv('ovReu');fecharOv('ovEnc');}
+});
+
+/* tema acompanha o sistema principal */
+function aplicarTema(){let t='light';try{t=localStorage.getItem('theme')||'light';}catch(e){}document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}
+window.addEventListener('storage',e=>{if(e.key==='theme')aplicarTema();});aplicarTema();
+
+(async function(){await carregar();renderTudo();})();
+</script>
+</body>
+</html>
