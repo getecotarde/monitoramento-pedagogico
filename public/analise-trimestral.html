@@ -3068,7 +3068,7 @@ function repFamiliaPage(cd, className, st, t){
   const lei = [];
   if(fortes.length) lei.push(`<p><b>Está indo bem em:</b> ${lst(fortes)}. Vale reconhecer o esforço e manter a rotina.</p>`);
   if(abaixo.length) lei.push(`<p><b>Precisa de mais atenção em:</b> ${lst(abaixo)}. Combine um horário fixo de estudo todos os dias, revise o caderno e procure o(a) professor(a) para tirar dúvidas e fazer as atividades de recuperação.</p>`);
-  if(risk.length) lei.push(`<p><b>Risco de O.E.R.:</b> em ${risk.length} disciplina${risk.length===1?'':'s'} a soma do 1º e 2º trimestres ainda não garante os 60 pontos do ano. A O.E.R. (Oportunidade Especial de Recuperação) é a última chance de recuperar; converse com a escola o quanto antes.</p>`);
+  if(risk.length) lei.push(`<p><b>Risco de O.E.R.:</b> em ${risk.length} disciplina${risk.length===1?'':'s'} há risco de que a soma do 1º, 2º e 3º trimestres não alcance os 60 pontos do ano. A O.E.R. (Oportunidade Especial de Recuperação) é a última chance de recuperar; converse com a escola o quanto antes.</p>`);
   if(!abaixo.length && !risk.length) lei.push('<p>O desempenho está dentro do esperado. Incentive a manutenção da rotina de estudos e o acompanhamento das atividades.</p>');
   parts.push(rpSec('Leitura do trimestre e orientações', `<div class="fm-read">${lei.join('')}</div>`));
 
