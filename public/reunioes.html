@@ -192,6 +192,7 @@ td.nw{white-space:nowrap}
       <select id="eResp" onchange="renderEnc()"></select>
       <select id="eTipo" onchange="renderEnc()"></select>
       <button class="btn pri" onclick="abrirEnc(null,null)" id="btnNovoEnc">+ Novo encaminhamento</button>
+      <button class="btn" onclick="imprimirEnc()" title="Imprime a lista exatamente como está filtrada na tela">🖨 Imprimir / PDF</button>
       <button class="btn danger" id="btnExcSel" onclick="excluirSelecionados()" style="display:none">🗑 Excluir selecionados (0)</button>
       <span class="count" id="eCount"></span>
     </div>
@@ -499,7 +500,7 @@ function renderEnc(){
   const l=todosEnc().filter(({e,r})=>(!fr||String(r.id)===fr)&&(!st||e.status===st)&&(!tp||r.tipo===tp)&&(!rs||norm(e.responsavel).includes(norm(rs)))&&(!q||norm([e.texto,e.responsavel,e.andamento,ref(r)].join(' ')).includes(q)))
     .sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999')||b.r.data.localeCompare(a.r.data));
   $('eCount').textContent=l.length+' encaminhamento(s)';atualizarBtnSel();
-  visEnc=l.map(({e,r})=>r.id+':'+e.id);
+  visEnc=l.map(({e,r})=>r.id+':'+e.id);encLista=l;
   $('eTab').innerHTML=`<thead><tr>${ed?'<th style="width:30px"><input type="checkbox" title="Selecionar todos os listados" onchange="toggleTodos(this.checked)"></th>':''}<th>Reunião (referência)</th><th>Item da pauta</th><th>Encaminhamento</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>Andamento</th>${ed?'<th></th>':''}</tr></thead><tbody>${
     l.map(({e,r})=>`<tr>${ed?`<td><input type="checkbox" ${selEnc.has(r.id+':'+e.id)?'checked':''} onchange="toggleSel('${r.id}:${e.id}',this.checked)"></td>`:''}<td><a href="#" onclick="event.preventDefault();irReu(${r.id})" style="color:var(--verde-dark);font-weight:600;text-decoration:none">${fmtData(r.data)}</a><br><small style="color:var(--tx2)">${esc(r.titulo.split('—')[0].trim())}</small></td>
       <td style="min-width:190px;font-size:12px">${itemOK(r,e)?esc(itemTxt(e)):'<span class="late">⚠ sem vínculo</span>'}</td><td style="min-width:240px;font-weight:600">${esc(e.texto)}</td><td>${esc(e.responsavel||'—')}</td>
@@ -508,7 +509,21 @@ function renderEnc(){
       <td style="min-width:200px">${ed?`<textarea class="and" style="margin:0" onchange="setEncAnd(${r.id},'${e.id}',this.value)" placeholder="Andamento…">${esc(e.andamento)}</textarea>`:esc(e.andamento)}</td>
       ${ed?`<td class="nw"><button class="btn sm" title="Editar" onclick="abrirEnc(${r.id},'${e.id}')">✎ Editar</button> <button class="btn sm danger" title="Excluir — não é um encaminhamento" onclick="excluirEncDireto(${r.id},'${e.id}')">🗑</button></td>`:''}</tr>`).join('')||`<tr><td colspan="9" class="empty">Nenhum encaminhamento.</td></tr>`}</tbody>`;
 }
-let selEnc=new Set(),visEnc=[];
+let selEnc=new Set(),visEnc=[],encLista=[];
+/* imprime a lista da aba Encaminhamentos, respeitando os filtros ativos */
+function imprimirEnc(){
+  if(!encLista.length){toast('Nada para imprimir.');return;}
+  const escola='Escola Municipal Geraldo Teixeira da Costa — GETECO (Turno Tarde)';
+  const f=[$('eReu').value&&'reunião: '+$('eReu').selectedOptions[0].textContent,$('eSt').value&&'status: '+$('eSt').value,$('eResp').value&&'responsável: '+$('eResp').value,$('eTipo').value&&'tipo: '+$('eTipo').value,$('eBusca').value.trim()&&'busca: “'+$('eBusca').value.trim()+'”'].filter(Boolean).join(' · ');
+  const cols=['Reunião','Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'];
+  const ln=encLista.map(({e,r})=>[ref(r),e.item?itemTxt(e):'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||'']);
+  const titulo='Encaminhamentos';
+  const html=`<h1>${titulo}</h1><div class="meta">${esc(escola)}<br>Gerado em ${fmtData(hojeISO())} · ${ln.length} encaminhamento(s)${f?'<br>Filtros: '+esc(f):''}</div>${tabH(cols,ln)}`;
+  const doc=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>${docCSS}@page{size:A4 landscape;margin:10mm}thead{display:table-header-group}</style></head><body>${html}</body></html>`;
+  const fr=document.createElement('iframe');fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(fr);
+  const d=fr.contentWindow.document;d.open();d.write(doc);d.close();
+  setTimeout(()=>{fr.contentWindow.focus();fr.contentWindow.print();setTimeout(()=>fr.remove(),2000);},350);
+}
 function atualizarBtnSel(){const b=$('btnExcSel');if(!b)return;b.style.display=podeEditar()&&selEnc.size?'':'none';b.textContent='🗑 Excluir selecionados ('+selEnc.size+')';}
 function toggleSel(k,on){on?selEnc.add(k):selEnc.delete(k);atualizarBtnSel();}
 function toggleTodos(on){visEnc.forEach(k=>on?selEnc.add(k):selEnc.delete(k));renderEnc();}
@@ -671,13 +686,12 @@ const quadroCSS=`
 .qd .q-grp{margin-bottom:22px}
 .qd .q-gh{background:#F1F5F4;border-left:8px solid #0F766E;border-radius:6px;padding:8px 14px;font-weight:800;font-size:17px;line-height:1.25;margin-bottom:16px;break-after:avoid;page-break-after:avoid}
 .qd .q-gh small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:2px}
-.qd .q-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 16px}
-.qd.land .q-grid{grid-template-columns:repeat(3,1fr)}
+.qd .q-grid{display:grid;grid-template-columns:1fr;gap:20px 16px}
 .qd .q-card{position:relative;border-radius:6px;padding:20px 14px 12px;font-size:var(--fs,15px);break-inside:avoid;page-break-inside:avoid;border:1px solid rgba(0,0,0,.14);box-shadow:0 2px 0 rgba(0,0,0,.1)}
 .qd .q-y{background:#FFF3B0}.qd .q-p{background:#FFD6E0}.qd .q-b{background:#CDE7FF}.qd .q-g{background:#CFF0D8}
 .qd .q-pin{position:absolute;top:-8px;left:50%;margin-left:-8px;width:16px;height:16px;border-radius:50%;background:#D92D20;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
 .qd .q-tx{font-size:1.1em;font-weight:700;line-height:1.3;margin-bottom:9px}
-.qd .q-row{font-size:.82em;display:flex;flex-wrap:wrap;gap:3px 14px}
+.qd .q-row{font-size:.82em;display:flex;flex-wrap:wrap;gap:3px 28px}
 .qd .q-st{display:inline-block;margin-top:9px;padding:2px 10px;border-radius:99px;font-size:.7em;font-weight:700;background:#fff;border:1px solid rgba(0,0,0,.25)}
 .qd .q-st-good{background:#17653F;color:#fff;border-color:transparent}.qd .q-st-blue{background:#1E40AF;color:#fff;border-color:transparent}.qd .q-st-warn{background:#7A5B00;color:#fff;border-color:transparent}
 .qd .q-late{color:#D92D20;font-weight:700;font-style:normal}
@@ -705,7 +719,7 @@ function quadroHTML(r,list,orient,comAnd){
 /* gera a imagem JPG do quadro direto em canvas (não depende de bibliotecas externas) */
 function quadroJPG(){
   if(!quadroDados||!rep.quadro){toast('Gere o quadro primeiro.');return;}
-  const {r,list,orient,comAnd}=quadroDados,land=orient==='land',W=land?1754:1240,M=50,GAP=24,cols=land?3:2,F='Arial,Helvetica,sans-serif';
+  const {r,list,orient,comAnd}=quadroDados,land=orient==='land',W=land?1754:1240,M=50,GAP=24,cols=1,F='Arial,Helvetica,sans-serif';
   const cw=(W-2*M-GAP*(cols-1))/cols,CORES=['#FFF3B0','#FFD6E0','#CDE7FF','#CFF0D8'],gs=quadroGrupos(r,list);
   const cv=document.createElement('canvas');cv.width=W;cv.height=100;const c=cv.getContext('2d');
   const font=(px,w,it)=>`${it?'italic ':''}${w||'normal'} ${px}px ${F}`;
@@ -716,15 +730,17 @@ function quadroJPG(){
     const pad=26,inner=cw-2*pad;
     const tl=wrap(e.texto,30,'bold',inner),rl=wrap('Responsável: '+(e.responsavel||'A definir'),24,'normal',inner),and=comAnd&&e.andamento?wrap(e.andamento,22,'normal',inner,true):[];
     const pz='Prazo: '+(e.prazo?fmtData(e.prazo):'sem prazo')+(atrasado(e)?'  ·  ATRASADO':'');
-    const need=pad+10+tl.length*40+10+rl.length*32+32+16+38+(and.length?16+and.length*30:0)+pad;
+    c.font=font(24,'normal');const same=rl.length===1&&c.measureText(rl[0]).width+c.measureText(pz).width+50<=inner;
+    const need=pad+10+tl.length*40+10+(same?32:rl.length*32+32)+16+38+(and.length?16+and.length*30:0)+pad;
     if(!draw)return need;
     c.save();c.shadowColor='rgba(0,0,0,.2)';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=col;rr(x,y,cw,H,10);c.fill();c.restore();
     c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=2;rr(x,y,cw,H,10);c.stroke();
     c.fillStyle='#D92D20';c.beginPath();c.arc(x+cw/2,y,12,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
     let cy=y+pad+10,tx=x+pad;c.textBaseline='top';
     c.fillStyle='#111';c.font=font(30,'bold');tl.forEach((l,i)=>c.fillText(l,tx,cy+i*40));cy+=tl.length*40+10;
-    c.fillStyle='#1F2937';c.font=font(24,'normal');rl.forEach((l,i)=>c.fillText(l,tx,cy+i*32));cy+=rl.length*32;
-    c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx,cy);cy+=32+16;
+    c.fillStyle='#1F2937';c.font=font(24,'normal');rl.forEach((l,i)=>c.fillText(l,tx,cy+i*32));
+    if(same){c.textAlign='right';c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx+inner,cy);c.textAlign='left';cy+=32+16;}
+    else{cy+=rl.length*32;c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx,cy);cy+=32+16;}
     const pc=PILL[stCls(e.status)]||['#fff','#111'];c.font=font(22,'bold');const pw=c.measureText(e.status).width+32;
     c.fillStyle=pc[0];rr(tx,cy,pw,38,19);c.fill();if(pc[0]==='#fff'){c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.stroke();}
     c.fillStyle=pc[1];c.fillText(e.status,tx+16,cy+8);cy+=38;
