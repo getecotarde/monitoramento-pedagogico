@@ -95,6 +95,16 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 select.pill{appearance:none;-webkit-appearance:none;cursor:pointer;padding:3px 12px}
 .c-good{background:#22A06B}.c-warn{background:#E5A800}.c-blue{background:#3B82F6}.c-na{background:#C9C8C2}
 
+.qa{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px;padding:10px;border:1px dashed var(--verde);border-radius:10px;background:var(--verde-bg)}
+.qa>*{min-width:0}.qa input,.qa select{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--card);width:100%}
+.qa .f1{flex:1 1 100%}.qa .fr{flex:1 1 170px}.qa .fp{flex:0 0 150px}
+.qa .btn{padding:7px 9px}
+.menu{position:relative;display:inline-block}
+.menu-l{display:none;position:absolute;left:0;top:calc(100% + 4px);min-width:270px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;z-index:30}
+.menu.open .menu-l{display:block}
+.menu-l button{display:block;width:100%;text-align:left;padding:8px 10px;border:0;background:none;border-radius:7px;cursor:pointer;font-size:13px;color:var(--tx)}
+.menu-l button:hover{background:var(--hover)}.menu-l hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+
 /* tabela */
 .tw{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 .ts{overflow:auto;max-height:calc(100vh - 290px)}
@@ -163,14 +173,14 @@ td.nw{white-space:nowrap}
   <div class="tabs">
     <button class="tab active" data-p="reu" onclick="irAba('reu')">Reuniões e pautas</button>
     <button class="tab" data-p="enc" onclick="irAba('enc')">Encaminhamentos</button>
-    <button class="tab" data-p="cad" onclick="irAba('cad')">Cadastro de reuniões</button>
-    <button class="tab" data-p="rel" onclick="irAba('rel')">Gerar pauta / Relatórios</button>
+    <button class="tab" data-p="rel" onclick="irAba('rel')">Relatórios</button>
   </div>
 
   <section class="pane active" id="p-reu">
-    <div id="kpis" class="grid g4" style="margin-bottom:14px"></div>
+    <div id="kpis" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:14px"></div>
     <div class="split">
       <div>
+        <button class="btn pri" id="btnNova" onclick="abrirReuniao(null)" style="width:100%;justify-content:center;margin-bottom:8px">+ Nova reunião</button>
         <div class="filters" style="margin-bottom:8px">
           <select id="fReu" onchange="escolherReu(this.value)" style="min-width:0;width:100%" title="Filtrar pela reunião (data · nome)"></select>
         </div>
@@ -199,15 +209,6 @@ td.nw{white-space:nowrap}
     <div class="tw"><div class="ts"><table id="eTab"></table></div></div>
   </section>
 
-  <section class="pane" id="p-cad">
-    <div class="filters">
-      <input id="cBusca" placeholder="Buscar reunião…" oninput="renderCadastro()">
-      <button class="btn pri" id="btnNova" onclick="abrirReuniao(null)">+ Nova reunião</button>
-      <button class="btn" id="btnImport" onclick="importarSeed()">⇪ Importar pautas originais (11 documentos)</button>
-      <span class="count" id="cCount"></span>
-    </div>
-    <div class="tw"><div class="ts"><table id="cTab"></table></div></div>
-  </section>
 
   <section class="pane" id="p-rel">
     <div class="card" style="margin-bottom:14px">
@@ -215,17 +216,15 @@ td.nw{white-space:nowrap}
       <div class="sub" id="rDesc"></div>
       <div class="filters" style="margin-bottom:6px">
         <select id="rTipo" onchange="renderRel()" style="min-width:260px">
-          <optgroup label="Documentos da reunião">
+          <optgroup label="Principais">
             <option value="pauta">Pauta da reunião</option>
             <option value="ata">Registro / ata da reunião</option>
-            <option value="quadro">Quadro de avisos (encaminhamentos da ata)</option>
-          </optgroup>
-          <optgroup label="Acompanhamento de encaminhamentos">
+            <option value="quadro">Quadro de avisos</option>
             <option value="abertos">Encaminhamentos em aberto</option>
-            <option value="atrasos">Atrasados e sem prazo</option>
             <option value="resp">Painel por responsável</option>
           </optgroup>
-          <optgroup label="Análises e resumos">
+          <optgroup label="Mais relatórios">
+            <option value="atrasos">Atrasados e sem prazo</option>
             <option value="assunto">Ações por assunto</option>
             <option value="recorr">Assuntos mais recorrentes</option>
             <option value="tipo">Síntese por tipo de reunião</option>
@@ -289,9 +288,8 @@ const TABELA='reunioes_geteco',LS_KEY='reunioes_local_v1';
 const sbH=(x={})=>({'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation',...x});
 
 const TIPOS=['Pedagógica','Pedagógica Conselho','Entrega de Resultados','Outros'];
-const ST_ENC=['Não iniciado','Em andamento','Concluído','A confirmar','Cancelado'];
+const ST_ENC=['Pendente','Em andamento','Concluído'];
 const ST_SUG=['Sugerida','Aceita','Descartada'];
-const SEED=[{"data": "2026-02-03", "titulo": "Reunião Pedagógica — Pauta geral de início de ano", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Pauta original: \"PAUTA 03_02_2026 Reunião PEDAGÓGICA.docx\" (pauta geral + pauta detalhada + repasses do turno).", "pauta": "# Pauta geral\n- Organização das turmas/horários\n- Alinhamento/comunicação\n- Fluxo XEROX da Tarde\n- Fluxo de pedido de materialidades/compras\n- Fluxo para realização de projetos\n- Diário online/chamada (SGE)\n- Lançamentos no SMAE\n- Caderno de orientações para estudantes e famílias\n- Acolhida dos estudantes\n- \"Grito de Carnaval\"\n- Reunião de pais/mães/responsáveis\n- Projeto Gincana \"Geração Atitude\"\n- Eleição dos representantes\n- Avaliação diagnóstica/Provas mensais\n- Comissão Estrelas do GETECO\n- Protocolos de alunos na coordenação\n- Saídas de sala dos alunos\n# Parte I — Organização das turmas/horários\n- Apresentação/apreciação\n- Geração do quadro de horário inicial\n- Entrega dos horários dos professores\n# Parte II — Principais fluxos\n- Comunicação: Grupo de Informes oficial da Coordenação (permanência necessária)\n-- Grupo de Interação Anos Finais Tarde (mantido; permanência não obrigatória)\n-- WhatsApp (privado), e-mail (casos especificados) e Forms (formulário/tabela)\n- Fluxo XEROX da Tarde (antecedência de 5 dias úteis): Gabriela, com CCo para Everton\n- Materialidades/compras (antecedência de 3 dias úteis): Luciano (materialidade existente); Everton via Forms, WhatsApp ou presencial\n- Realização de projetos: Coordenação Pedagógica (Everton)\n- Diário/chamada no SGE: Física provisório em fevereiro; online pelo SGE a partir de março\n-- Professores em dobra: solicitar geração de acesso com logins e BMs (a escola de dobra não aparece no SGE)\n- Lançamentos no SMAE: docentes realizam lançamento mensal e planejamento anual; Coordenação auxilia e acompanha\n- Livros didáticos: atualizar dados dos livros a entregar e empréstimos diários; havendo livros para todos de um ano, todos serão entregues\n# Parte III — Primeiras ações e eventos\n- Acolhida dos estudantes (Semana da Boa Convivência): 04/02 a 06/02\n-- Equipe Gestora passa de sala em sala para apresentação\n-- Sugestão de roda de conversa com texto para leitura e discussão\n-- Registros com fotos serão encaminhados à SMED; outras atividades na semana de 09/02\n- Grito de Carnaval: 13/02\n-- Ronei e Adilson: redação/apresentação do evento\n-- Alexandra e Fernanda: ações alternativas para quem não curte o carnaval\n- Reunião de pais: 24/02 e 25/02 (formato e pauta a definir)\n-- Entrega e leitura do Caderno de Orientações\n- Início da Gincana \"Geração Atitude\": 09/03\n- Eleição dos representantes: 12/03 (critérios de anos anteriores a definir)\n- Provas mensais: 16/03 a 20/03 (prova diagnóstica não discutida)\n- Projeto Estrelas do GETECO: comissão organizadora (não discutido); Lucineide\n- Protocolos de alunos na coordenação e saídas de sala: fluxo de atendimento\n# Turno — repasses aos professores do 3º ciclo\n- Horários: entrada 13h; sala 13h05 (tolerância até 13h15); 2º horário 13h50; 3º horário 14h40; recreio 15h30; retorno 15h55; 5º horário 16h40; saída 17h30\n- Coordenação só atende aluno com autorização de saída do professor (formulário ou bilhete assinado)\n- Professor só recebe aluno fora do horário com autorização da coordenação\n- Saída de um aluno por vez (banheiro, água, coordenação), salvo emergência\n- Apenas representante de turma e vice auxiliam no transporte de materiais do professor\n- Indisciplina: o professor solicita a presença de um coordenador\n- Kits de material escolar: entrega e reposição coletivas; um kit de empréstimo por professor\n- Aluno sem uniforme ou com calçado diferente é encaminhado à coordenação", "sugestoes": [{"id": "s0_0", "data": "", "texto": "Roda de conversa na acolhida: disponibilizar texto para leitura e discussão", "autor": "", "status": "Sugerida"}, {"id": "s0_1", "data": "", "texto": "Projeto Estrelas do GETECO organizado por área", "autor": "", "status": "Sugerida"}, {"id": "s0_2", "data": "", "texto": "Critérios de eleição dos representantes: retomar os utilizados em anos anteriores", "autor": "", "status": "Sugerida"}], "encaminhamentos": [{"id": "e0_0", "texto": "Resolver o acesso ao SGE dos professores em dobra (gerar acesso com logins e BMs)", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Parte II — Principais fluxos", "item": "Professores em dobra: solicitar geração de acesso com logins e BMs (a escola de dobra não aparece no SGE)"}, {"id": "e0_1", "texto": "Grito de Carnaval — redação/apresentação do evento", "responsavel": "Ronei e Adilson", "prazo": "2026-02-13", "status": "A confirmar", "andamento": "", "secao": "Parte III — Primeiras ações e eventos", "item": "Ronei e Adilson: redação/apresentação do evento"}, {"id": "e0_2", "texto": "Grito de Carnaval — ações alternativas para quem não curte o carnaval", "responsavel": "Alexandra e Fernanda", "prazo": "2026-02-13", "status": "A confirmar", "andamento": "", "secao": "Parte III — Primeiras ações e eventos", "item": "Alexandra e Fernanda: ações alternativas para quem não curte o carnaval"}, {"id": "e0_3", "texto": "Definir formato e pauta da reunião de pais (24/02 e 25/02)", "responsavel": "Coordenação", "prazo": "2026-02-24", "status": "A confirmar", "andamento": "", "secao": "Parte III — Primeiras ações e eventos", "item": "Reunião de pais: 24/02 e 25/02 (formato e pauta a definir)"}, {"id": "e0_4", "texto": "Definir critérios da eleição dos representantes", "responsavel": "Coordenação", "prazo": "2026-03-12", "status": "A confirmar", "andamento": "", "secao": "Parte III — Primeiras ações e eventos", "item": "Eleição dos representantes: 12/03 (critérios de anos anteriores a definir)"}]}, {"data": "2026-03-25", "titulo": "Reunião Pedagógica — Getecultura, Estrelas do GETECO e SMAE", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Atenção: o arquivo original se chama \"PAUTA 23_03_2026\", mas o título do documento diz 25/03. Conferir a data correta.", "pauta": "# Getecultura — 26/09/2026\n- Temas diversos, por disciplina e interdisciplinar\n- Proposta por disciplina, com data limite de entrega na semana de 3 de abril\n# Estrelas do GETECO (formação da comissão da tarde)\n- Representante por bloco: um professor por bloco\n-- 6ºABC: Alessandra\n-- 6ºDEF: Ronei\n-- 7ºABC: Alexandra\n-- 7ºD/E: Maria do Carmo\n# Relatórios\n- Emergenciais (para consultas agendadas pelas famílias)\n- Programados (para o final do trimestre)\n# Professores em substituição (quando disponíveis)\n- Trabalhar com alunos com demanda de atenção especial (pedagógicos/possível AEE)\n# SMAE\n- Lançamentos até 31/03\n- Tempo para preenchimento", "sugestoes": [], "encaminhamentos": [{"id": "e1_0", "texto": "Entregar a proposta do Getecultura por disciplina", "responsavel": "Professores", "prazo": "2026-04-03", "status": "A confirmar", "andamento": "", "secao": "Getecultura — 26/09/2026", "item": "Proposta por disciplina, com data limite de entrega na semana de 3 de abril"}, {"id": "e1_1", "texto": "Concluir os lançamentos no SMAE", "responsavel": "Professores", "prazo": "2026-03-31", "status": "A confirmar", "andamento": "", "secao": "SMAE", "item": "Lançamentos até 31/03"}, {"id": "e1_2", "texto": "Compor a comissão Estrelas do GETECO da tarde (um professor por bloco)", "responsavel": "Alessandra, Ronei, Alexandra e Maria do Carmo", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Estrelas do GETECO (formação da comissão da tarde)", "item": "Representante por bloco: um professor por bloco"}]}, {"data": "2026-04-07", "titulo": "Reunião Pedagógica — Anos Finais", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "1º momento geral (formação ECA digital e avisos) e 2º momento com as coordenações. O documento original traz esta pauta como \"Sugestão de pauta\".", "pauta": "# Momentos\n- 1º momento geral: formação ECA Digital e avisos diversos\n- 2º momento com as coordenações pedagógicas e de turno\n# Pauta — Anos Finais\n- Atividades do banco de substituições\n- Matriz impressa\n- Envio das avaliações trimestrais até 10/04 (manhã: Janete, CCo Fernanda; tarde: Gabriela, CCo Everton)\n- Atividades e avaliações adaptadas para estudantes com deficiência que não acompanham a turma (AEE à disposição)\n- Lançamento dos conteúdos mensais no SMAE\n- Projetos interdisciplinares do GETECULTURA: apresentar à coordenação o que será trabalhado (prazo 22/04)\n- Elencar descritores de português e matemática para serem trabalhados em todas as matérias\n- Recuperação paralela: já está acontecendo? Comunicar a metodologia\n- Incentivo à saída para atividades em outros espaços (internos e externos)\n- Gincana Geração e Atitude (Cris)\n- Listagem dos estudantes com dificuldades (que não sejam do PIP) e estratégias de trabalho\n- Projeto Integração pela Diversidade no cotidiano da escola\n- 25/04 (sábado escolar): Conselho de Classe e aniversariantes do mês\n# Organização de sala de aula\n- Conferir o mapa de sala\n- Solicitar conservação da limpeza, cada aluno cuidando do seu espaço", "sugestoes": [], "encaminhamentos": [{"id": "e2_0", "texto": "Enviar as avaliações trimestrais às coordenações", "responsavel": "Professores", "prazo": "2026-04-10", "status": "A confirmar", "andamento": "", "secao": "Pauta — Anos Finais", "item": "Envio das avaliações trimestrais até 10/04 (manhã: Janete, CCo Fernanda; tarde: Gabriela, CCo Everton)"}, {"id": "e2_1", "texto": "Apresentar à coordenação os projetos interdisciplinares do GETECULTURA", "responsavel": "Professores", "prazo": "2026-04-22", "status": "A confirmar", "andamento": "", "secao": "Pauta — Anos Finais", "item": "Projetos interdisciplinares do GETECULTURA: apresentar à coordenação o que será trabalhado (prazo 22/04)"}, {"id": "e2_2", "texto": "Lançar os conteúdos mensais no SMAE", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Pauta — Anos Finais", "item": "Lançamento dos conteúdos mensais no SMAE"}, {"id": "e2_3", "texto": "Elencar descritores de português e matemática para todas as matérias", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Pauta — Anos Finais", "item": "Elencar descritores de português e matemática para serem trabalhados em todas as matérias"}, {"id": "e2_4", "texto": "Definir quem receberá a contribuição para o lanche dos aniversariantes (sábado escolar de 25/04)", "responsavel": "Coordenação", "prazo": "2026-04-25", "status": "A confirmar", "andamento": "", "secao": "Pauta — Anos Finais", "item": "25/04 (sábado escolar): Conselho de Classe e aniversariantes do mês"}]}, {"data": "2026-06-13", "titulo": "Reunião Pedagógica — Pós-greve", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Datas ainda em aberto no documento original (\"???\").", "pauta": "# Semana de revisão/recuperação\n- Quadro de provas e notas finais\n- Proposta de trabalho que já englobe a revisão (para a prova) e a recuperação\n- Data/período: a definir\n# Aplicação das provas trimestrais\n- Professores: Magna, Marcelo Cafiero, Ronei e Márcia\n- Formato: mesmo dia e horário, nas aulas das respectivas disciplinas\n- Datas de aplicação: a definir\n# Lançamento no SGE\n- Data: a definir\n# Ornamentação de espaços coletivos pelas turmas\n- Organização: Cris e Everton (e os estudantes)\n- Demanda aos professores: ceder um horário para confecção e instalação dos ornamentos", "sugestoes": [], "encaminhamentos": [{"id": "e3_0", "texto": "Definir o período da semana de revisão/recuperação", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Semana de revisão/recuperação", "item": "Data/período: a definir"}, {"id": "e3_1", "texto": "Definir as datas de aplicação das provas trimestrais", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Aplicação das provas trimestrais", "item": "Datas de aplicação: a definir"}, {"id": "e3_2", "texto": "Definir a data de lançamento no SGE", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Lançamento no SGE", "item": "Data: a definir"}, {"id": "e3_3", "texto": "Organizar a ornamentação dos espaços coletivos (ceder horário nas aulas)", "responsavel": "Cris e Everton", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Ornamentação de espaços coletivos pelas turmas", "item": "Organização: Cris e Everton (e os estudantes)"}]}, {"data": "2026-06-26", "titulo": "Conselho de Classe — 1º Trimestre 2026", "tipo": "Pedagógica Conselho", "horario": "", "local": "", "participantes": "Professores, Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Reforço de calendário\n- 26/06: reunião pedagógica/Conselho de Classe\n- 01/07 (quarta), 1º ao 3º horários (oficineiros): tempo coletivo para finalizar a deliberação de Atitudes e Valores\n- 03/07: finalização do lançamento de notas no SGE\n# Reunião de pais\n- 07/07 (terça): 7º anos; 08/07 (quarta): 6º anos\n- Formato: 4º e 5º horários; 6º anos por turma; 7º anos por blocos (A/B/C e D/E)\n- Turmas sem reunião ficam no pátio com a Coordenação de Turno\n- Dois momentos: fala geral e conversa específica\n- Entrega de listagens de ocorrências\n# Festa Junina — 11/07\n- Início dos ensaios na semana seguinte\n- Definição dos pares de dança em 26/06 e bilhetes de autorização\n- Listagem dos pares: 29/06 e 30/06\n# Tarefas\n- Entrega das propostas do GETECULTURA\n- SMAE: conteúdos mensais, com atualização mensal\n# Atividades de substituição\n- Enviar para os mesmos e-mails da solicitação de cópias\n- Alunos fora de sala enviados à coordenação: motivação pertinente e envio de atividade (evitar ociosidade)\n# 2º trimestre\n- Documento com datas a ser entregue na semana seguinte\n- Provas trimestrais com data comum; provas mensais com datas alternativas\n# Demandas do grupo\n- \"Ficha\" informando que o aluno esteve na coordenação\n# Documento/ata da turma\n- Perfil (texto) e indicações de remanejamento\n- Responsabilidade de preenchimento e entrega: professor referência; todos assinam\n- Mapeamento: atualizar o PDF impresso vigente", "sugestoes": [], "encaminhamentos": [{"id": "e4_0", "texto": "Finalizar o lançamento de notas no SGE", "responsavel": "Professores", "prazo": "2026-07-03", "status": "A confirmar", "andamento": "", "secao": "Reforço de calendário", "item": "03/07: finalização do lançamento de notas no SGE"}, {"id": "e4_1", "texto": "Finalizar a deliberação de Atitudes e Valores (tempo coletivo de 01/07)", "responsavel": "Professores", "prazo": "2026-07-01", "status": "A confirmar", "andamento": "", "secao": "Reforço de calendário", "item": "01/07 (quarta), 1º ao 3º horários (oficineiros): tempo coletivo para finalizar a deliberação de Atitudes e Valores"}, {"id": "e4_2", "texto": "Entregar as propostas do GETECULTURA", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Tarefas", "item": "Entrega das propostas do GETECULTURA"}, {"id": "e4_3", "texto": "Entregar a listagem dos pares de dança da Festa Junina", "responsavel": "Professores", "prazo": "2026-06-30", "status": "A confirmar", "andamento": "", "secao": "Festa Junina — 11/07", "item": "Listagem dos pares: 29/06 e 30/06"}, {"id": "e4_4", "texto": "Preencher e entregar o documento/ata da turma (perfil e remanejamentos)", "responsavel": "Professores referência", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Documento/ata da turma", "item": "Responsabilidade de preenchimento e entrega: professor referência; todos assinam"}, {"id": "e4_5", "texto": "Entregar o documento com as datas do 2º trimestre", "responsavel": "Coordenação", "prazo": "2026-07-03", "status": "A confirmar", "andamento": "", "secao": "2º trimestre", "item": "Documento com datas a ser entregue na semana seguinte"}]}, {"data": "2026-07-08", "titulo": "Reunião de Pais — Entrega de Boletins do 1º Trimestre 2026", "tipo": "Entrega de Resultados", "horario": "16:00", "local": "Auditório e salas de aula", "participantes": "Pais/responsáveis, professores dos 6º e 7º anos (e 8ºX), Coordenação e Direção", "responsavel": "Coordenação Pedagógica", "obs": "6º anos e 8ºX em 08/07/2026; 7º anos em 07/07/2026.", "pauta": "# Documentos e organização\n- Pauta da reunião, listagem de presença e boletins: produção e entrega (Everton)\n- Secretaria/Gabriela: impressão dos boletins e das listagens, separação dos boletins\n- Everton: entrega aos professores; professores referência assinam e entregam aos pais/responsáveis\n- Listagem de alunos para conversa especial e listagens individuais de ocorrências: Everton\n# Turmas no pátio\n- Professores dos 6º e 7º anos vão à sala de reunião a partir das 16:00\n- Após o recreio, o professor do 4º horário faz a chamada e conduz as turmas à quadra\n# 1º momento — Auditório (Coordenação/Direção/Profa. Alessandra)\n- Boas-vindas (Coordenação)\n- Apresentação cultural: teatro (Profa. Alessandra Dantas)\n- Direcionamento às salas de reunião\n-- 6º anos e 8ºX: salas 18 (6ºA), 20 (6ºB), 01 (6ºC), 02 (6ºD), 03 (6ºE), 04 (6ºF) e 10 (8ºX)\n-- 7º anos: sala 06 (7ºA/7ºB/7ºC) e sala 08 (7ºD/7ºE)\n# 2º momento — Salas de aula (professores referência e demais)\n- Acolhimento, texto de reflexão (QR Code do grupo da sala) e listagem de presença\n- Horários de entrada (13:00) e saída (17:30), com tolerância de 10 minutos; atrasados entram pelo portão do estacionamento\n- Uniformes: camisa branca ou verde da PBH, bermuda ou calça azul-escura ou preta e tênis adequado\n- Festa Junina: 11/07, das 10:00 às 14:00\n- Interclasse: 08/09 a 11/09; camisas não são responsabilidade da escola; uso como uniforme apenas às sextas e/ou nas aulas de Educação Física\n- Avaliações: mensais (flexíveis), trimestrais (semana de prova) e externas (cronograma da SMED)\n- Entrega dos boletins: frequência, notas do trimestre e total anual, atitudes e valores\n-- Aluno pode ser afastado e perder a vaga com 25 faltas consecutivas ou 51 alternadas\n-- 7ºD/7ºE: notas do 2º trimestre de Ed. Física serão replicadas para o 1º\n- Conversa com responsáveis de alunos com demanda de apoio especial (professores convocam)", "sugestoes": [], "encaminhamentos": [{"id": "e5_0", "texto": "Produzir e entregar pauta, listagens de presença, boletins e listagens de ocorrências", "responsavel": "Everton", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Documentos e organização", "item": "Pauta da reunião, listagem de presença e boletins: produção e entrega (Everton)"}, {"id": "e5_1", "texto": "Imprimir os boletins e as listagens e separar os boletins", "responsavel": "Gabriela (Secretaria)", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Documentos e organização", "item": "Secretaria/Gabriela: impressão dos boletins e das listagens, separação dos boletins"}, {"id": "e5_2", "texto": "Convocar pais/responsáveis de alunos com demanda de apoio especial", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "2º momento — Salas de aula (professores referência e demais)", "item": "Conversa com responsáveis de alunos com demanda de apoio especial (professores convocam)"}]}, {"data": "2026-07-15", "titulo": "Reunião Pedagógica — Resultados do 1º Trimestre e calendário", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Retorno e resultados\n- Retorno/avaliação da reunião de pais\n- Panorama dos resultados do 1º trimestre: 6º anos e 7º anos, por área/disciplina\n- Alunos de inclusão\n- Relação com os alunos (mais agitados, exige mais paciência)\n- Reflexão sobre o que fazer após o reconhecimento dos resultados (AVALIA BH/final de trimestre)\n- Estabelecer metas/compromissos?\n# Itens de calendário\n- Volta: 03/08\n- 10/08 a 14/08: provas mensais (atenção aos prazos de envio)\n- 18/08 e 19/08: AVALIA BH\n- 08/09 a 11/09: Interclasse\n- 14/09: Conselho de Classe — Atitudes e Valores\n- 15/09 a 18/09: avaliações trimestrais\n- 21/09: final do 2º trimestre (indicações para recuperações)\n- 22/09 a 25/09: recuperação\n- 29/09: reunião pedagógica, Conselho de Classe (notas e ata)\n- 01/10 e 02/10: reunião de pais/entrega de resultados\n# Outros\n- Rascunhando/ausência de professor\n- PIP Leitura: alta prioridade; média e baixa prioridade (professores)", "sugestoes": [], "encaminhamentos": [{"id": "e6_0", "texto": "Estabelecer metas e compromissos a partir dos resultados do 1º trimestre e do AVALIA BH", "responsavel": "Professores e Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Retorno e resultados", "item": "Estabelecer metas/compromissos?"}, {"id": "e6_1", "texto": "Enviar as provas mensais respeitando os prazos (aplicação de 10/08 a 14/08)", "responsavel": "Professores", "prazo": "2026-08-10", "status": "A confirmar", "andamento": "", "secao": "Itens de calendário", "item": "10/08 a 14/08: provas mensais (atenção aos prazos de envio)"}]}, {"data": "2026-07-30", "titulo": "Reunião de Pais — Entrega de Resultados do 2º Trimestre", "tipo": "Entrega de Resultados", "horario": "", "local": "Auditório e área externa", "participantes": "Pais/responsáveis, professores, Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# 1ª parte — Auditório\n- Boas-vindas e leitura da mensagem\n- Manutenção da assiduidade e frequência escolar\n- Uniforme\n- Proibição do uso de celular (apoio das famílias)\n- Disciplina e respeito ao professor\n- Não compartilhamento de utensílios pessoais (ex.: garrafinha d'água)\n- Bullying e cyberbullying\n- Conservar material (kit, livros, cadernos)\n- Responsabilidade pela reposição de material escolar\n# 2ª parte — Carteiras na área externa (saída à esquerda do auditório)\n- Boletins: notas e conceitos\n- Certificado de Destaque da Turma\n- Listagens de advertências\n- Lembretes da Biblioteca (livros)\n- Secretaria (documentação)", "sugestoes": [], "encaminhamentos": []}, {"data": "2026-09-14", "titulo": "Reunião Pedagógica — Provas trimestrais, recuperação e reunião de pais (2ª parte)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação, PIP", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Provas trimestrais — 15 a 18 de setembro\n- Horários: 13:40 às 14:40 e 15:55 às 16:55 (alternativa para duas provas no dia: 13:30 às 15:30)\n- 15/09: Ciências (13:40) e Inglês, exceto 7ºD/E (15:55)\n- 16/09: História (13:40) e Geografia (15:55)\n- 17/09: Matemática 6º anos (13:40 às 15:30) e Artes 6º anos (15:55); Artes 7º anos (13:40) e Matemática 7º anos (15:55)\n- 18/09: Português (13:40)\n# Recuperação — 22/09, 23/09 e 24/09\n- Coordenação disponibiliza a tabela para marcação de alunos em recuperação\n- Professores informam aos alunos e à Coordenação\n- Coordenação comunica as famílias (Gabriela)\n# Conselho de Classe/Lançamento no SGE — 25/09\n- Consolidados pedagógicos: alunos com possibilidade de retenção (definição dos indicados para a reunião de 25/09)\n- Lançamento no SGE, data limite 25/09\n# Reunião de pais\n- 6º anos: 01/10, às 16:00; 7º anos: 02/10, às 16:00\n- Formato: 1º momento no auditório; 2º momento em mesinhas na área externa do auditório (ou corredor térreo)\n# PIP e PIP Leitura\n- Retomada com Laura (teste de leitura)\n- Foco no grupo de prioridade 1 (alunos com indicação de possível retenção)\n# Lançamento no SMAE\n- E-mails aos professores informando possíveis lançamentos em aberto\n# Casos especiais de estudantes\n- Repasses das famílias e casos de trocas/permutas de sala\n- Caio Nascimento (7ºD): aluno em situação de vulnerabilidade\n# Considerações do turno\n- Projeto Clube de Leitura\n- Não liberar estudantes para beber água e ir ao banheiro no 1º e no 4º horários, em caráter absoluto (exceto saúde e emergências)\n- Ida ao banheiro: uma estudante (feminino) e um estudante (masculino); retirada/entrega de livros: até 3 estudantes\n- Troca de professores (auxílio com materiais): um estudante, de preferência um dos representantes\n- Comunicar as ações para resolver casos do Diário de Bordo, iniciando pelo 6º ano\n- Retomada dos atendimentos coletivos: projeto PAS", "sugestoes": [], "encaminhamentos": [{"id": "e8_0", "texto": "Disponibilizar a tabela para marcação de alunos em recuperação", "responsavel": "Coordenação", "prazo": "2026-09-21", "status": "A confirmar", "andamento": "", "secao": "Recuperação — 22/09, 23/09 e 24/09", "item": "Coordenação disponibiliza a tabela para marcação de alunos em recuperação"}, {"id": "e8_1", "texto": "Informar aos alunos e à Coordenação os alunos em recuperação", "responsavel": "Professores", "prazo": "2026-09-22", "status": "A confirmar", "andamento": "", "secao": "Recuperação — 22/09, 23/09 e 24/09", "item": "Professores informam aos alunos e à Coordenação"}, {"id": "e8_2", "texto": "Comunicar as famílias sobre a recuperação", "responsavel": "Gabriela", "prazo": "2026-09-22", "status": "A confirmar", "andamento": "", "secao": "Recuperação — 22/09, 23/09 e 24/09", "item": "Coordenação comunica as famílias (Gabriela)"}, {"id": "e8_3", "texto": "Lançar as notas no SGE", "responsavel": "Professores", "prazo": "2026-09-25", "status": "A confirmar", "andamento": "", "secao": "Conselho de Classe/Lançamento no SGE — 25/09", "item": "Lançamento no SGE, data limite 25/09"}, {"id": "e8_4", "texto": "Enviar e-mails aos professores sobre lançamentos em aberto no SMAE", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Lançamento no SMAE", "item": "E-mails aos professores informando possíveis lançamentos em aberto"}, {"id": "e8_5", "texto": "Retomar o teste de leitura com foco no grupo de prioridade 1", "responsavel": "PIP Leitura (Laura)", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "PIP e PIP Leitura", "item": "Retomada com Laura (teste de leitura)"}, {"id": "e8_6", "texto": "Retomar os atendimentos coletivos do projeto PAS", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Considerações do turno", "item": "Retomada dos atendimentos coletivos: projeto PAS"}, {"id": "e8_7", "texto": "Comunicar as ações para os casos do Diário de Bordo, iniciando pelo 6º ano", "responsavel": "Coordenação", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Considerações do turno", "item": "Comunicar as ações para resolver casos do Diário de Bordo, iniciando pelo 6º ano"}]}, {"data": "2026-09-25", "titulo": "Reunião Pedagógica — Conselho de Classe e Notas no SGE", "tipo": "Pedagógica Conselho", "horario": "", "local": "", "participantes": "Professores, Coordenação Pedagógica e de Turno", "responsavel": "Coordenação Pedagógica", "obs": "", "pauta": "# Conselho de Classe/Lançamento no SGE\n- Consolidados pedagógicos: preenchimento da Ficha de Conselho\n- Alunos com possibilidade de retenção (possíveis casos); casos específicos repassados junto aos professores\n- Lançamento no SGE, data limite 25/09\n- Alunos indicados para OER: cada professor marca na planilha (pasta Documentos úteis e/ou link)\n-- Critério: demanda de nota maior que 24 no 3º trimestre\n-- Aplicação: conjunto de trabalhos (pode ser interdisciplinar) em paralelo às demais atividades\n# Formato da prova trimestral do 3º trimestre\n- Interdisciplinar: sim; dois blocos, um por dia (proposta em construção)\n-- Bloco I: Geografia, História, Inglês e Artes\n-- Bloco II: Matemática, Português, Artes e Educação Física\n- Número de questões proporcional à quantidade de aulas da disciplina\n- Prova de redação em folha separada, tema definido pelo grupo, para averiguar o nível de escrita (não devolvida ao aluno)\n- Possibilidade de oferecer, nos moldes da redação, uma folha para questão aberta de Artes\n# Reunião de pais (formato aprovado em 14/09)\n- 6º anos: 01/10, às 16:00; 7º anos: 02/10, às 16:00\n- 1ª parte no auditório; 2ª parte em mesinhas na área externa do auditório (ou corredor térreo)", "sugestoes": [{"id": "s9_0", "data": "", "texto": "Manutenção da assiduidade", "autor": "", "status": "Sugerida"}, {"id": "s9_1", "data": "", "texto": "Disciplina e respeito ao professor", "autor": "", "status": "Sugerida"}, {"id": "s9_2", "data": "", "texto": "Não compartilhamento de utensílios pessoais (ex.: garrafinha d'água)", "autor": "", "status": "Sugerida"}, {"id": "s9_3", "data": "", "texto": "Bullying", "autor": "", "status": "Sugerida"}, {"id": "s9_4", "data": "", "texto": "Cyberbullying", "autor": "", "status": "Sugerida"}, {"id": "s9_5", "data": "", "texto": "Conservar material (kit, livros e cadernos)", "autor": "", "status": "Sugerida"}, {"id": "s9_6", "data": "", "texto": "Responsabilidade de posição", "autor": "", "status": "Sugerida"}], "encaminhamentos": [{"id": "e9_0", "texto": "Preencher a Ficha de Conselho", "responsavel": "Professores", "prazo": "2026-09-25", "status": "A confirmar", "andamento": "", "secao": "Conselho de Classe/Lançamento no SGE", "item": "Consolidados pedagógicos: preenchimento da Ficha de Conselho"}, {"id": "e9_1", "texto": "Marcar na planilha os alunos indicados para OER (nota maior que 24 no 3º trimestre)", "responsavel": "Professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Conselho de Classe/Lançamento no SGE", "item": "Alunos indicados para OER: cada professor marca na planilha (pasta Documentos úteis e/ou link)"}, {"id": "e9_2", "texto": "Fechar o formato da prova trimestral do 3º trimestre (dois blocos + redação)", "responsavel": "Coordenação e professores", "prazo": "", "status": "A confirmar", "andamento": "", "secao": "Formato da prova trimestral do 3º trimestre", "item": "Interdisciplinar: sim; dois blocos, um por dia (proposta em construção)"}]}, {"data": "2026-10-21", "titulo": "Reunião Pedagógica — Provas mensais, Interclasse e Getecultura (2ª parte)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Próxima Reunião Pedagógica: 12/11/2026 (quinta-feira).", "pauta": "# Provas mensais — 26/10 a 30/10\n- Envio de matrizes para everton.correa@edu.pbh.gov.br\n# Interclasse\n- 6º anos: deliberação hoje sobre desclassificação\n- 7º anos: futsal feminino (finais: 4 jogos); queimada (9 jogos); previsão de complemento nesta semana\n# Getecultura — 07/11 (sábado)\n- Complemento da listagem de materialidades\n# Projeto FICA\n- Atividades: 10 questões de cada disciplina\n- Professores encaminham à coordenação pedagógica, que compila e entrega ao estudante para fazer com professor em horário de substituição livre ou professor do PIP\n# Prova trimestral interdisciplinar — 23/11 a 26/11\n- Com 25 questões: uma para cada número de aulas semanais\n- Com 20 questões: Português e Matemática 4 cada; demais disciplinas 2 cada\n- Prova de redação para aferir o nível de escrita\n# Conselho de Classe — Atitudes e Valores\n- Lara Sofia, 6ºC (aluna transferida)\n- Quantitativo por disciplina: Artes 18; Ciências 10; Ed. Física 18; Geografia 14; História 21; Inglês 18; Português 5; Matemática 9\n# SMAE\n- Lançamento dos conteúdos mensais\n# Organização do turno\n- Sem repasse; repasses da Cris e do João\n# Próxima reunião\n- Reunião Pedagógica: 12/11/2026 (quinta-feira)", "sugestoes": [], "encaminhamentos": [{"id": "e10_0", "texto": "Enviar as matrizes das provas mensais (semana de 26/10 a 30/10)", "responsavel": "Professores", "prazo": "2026-10-26", "status": "Não iniciado", "andamento": "", "secao": "Provas mensais — 26/10 a 30/10", "item": "Envio de matrizes para everton.correa@edu.pbh.gov.br"}, {"id": "e10_1", "texto": "Deliberar sobre a desclassificação no Interclasse dos 6º anos", "responsavel": "Coordenação", "prazo": "2026-10-21", "status": "Não iniciado", "andamento": "", "secao": "Interclasse", "item": "6º anos: deliberação hoje sobre desclassificação"}, {"id": "e10_2", "texto": "Complementar a listagem de materialidades do Getecultura (07/11)", "responsavel": "Professores", "prazo": "2026-11-07", "status": "Não iniciado", "andamento": "", "secao": "Getecultura — 07/11 (sábado)", "item": "Complemento da listagem de materialidades"}, {"id": "e10_3", "texto": "Encaminhar 10 questões por disciplina para o Projeto FICA", "responsavel": "Professores", "prazo": "", "status": "Não iniciado", "andamento": "", "secao": "Projeto FICA", "item": "Atividades: 10 questões de cada disciplina"}, {"id": "e10_4", "texto": "Definir o formato interdisciplinar da prova trimestral (23/11 a 26/11)", "responsavel": "Coordenação e professores", "prazo": "2026-11-12", "status": "Não iniciado", "andamento": "", "secao": "Prova trimestral interdisciplinar — 23/11 a 26/11", "item": "Com 25 questões: uma para cada número de aulas semanais"}, {"id": "e10_5", "texto": "Lançar os conteúdos mensais no SMAE", "responsavel": "Professores", "prazo": "", "status": "Não iniciado", "andamento": "", "secao": "SMAE", "item": "Lançamento dos conteúdos mensais"}]}, {"data": "2026-11-12", "titulo": "Reunião Pedagógica (próxima)", "tipo": "Pedagógica", "horario": "", "local": "", "participantes": "Professores dos Anos Finais (Tarde), Coordenação", "responsavel": "Coordenação Pedagógica", "obs": "Data informada na pauta de 21/10/2026 (quinta-feira). Use \"Pautas sugeridas\" para receber sugestões e \"Gerar pauta\" para montar o documento.", "pauta": "", "sugestoes": [], "encaminhamentos": []}];
 
 let rows=[],modo='local',sel=null,aba='reu',editReu=null,editEnc=null;
 let role=null;try{role=sessionStorage.getItem('monit_role');}catch(e){}
@@ -311,15 +309,20 @@ const ref=r=>`${fmtData(r.data)} · ${r.titulo}`;      // data + nome = referên
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2200);}
 
 /* ── persistência ── */
+/* status antigos (Não iniciado / A confirmar / Cancelado) passam a Pendente / Concluído, sem perder a informação */
+function normSt(r){r.encaminhamentos=(r.encaminhamentos||[]).map(e=>{
+  if(e.status==='Cancelado'){e.status='Concluído';if(!/^cancelad/i.test(e.andamento||''))e.andamento=('Cancelado. '+(e.andamento||'')).trim();}
+  else if(!['Pendente','Em andamento','Concluído'].includes(e.status))e.status='Pendente';
+  return e;});return r;}
 async function carregar(){
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?select=*&order=data.desc,id.desc`,{headers:sbH()});
     const d=await r.json();
-    if(r.ok&&Array.isArray(d)){modo='supabase';rows=d.map(x=>({...x,sugestoes:x.sugestoes||[],encaminhamentos:x.encaminhamentos||[]}));return;}
+    if(r.ok&&Array.isArray(d)){modo='supabase';rows=d.map(x=>normSt({...x,sugestoes:x.sugestoes||[],encaminhamentos:x.encaminhamentos||[]}));return;}
   }catch(e){}
   modo='local';
   try{rows=JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){rows=null;}
-  if(!Array.isArray(rows)){rows=SEED.map((r,i)=>({...JSON.parse(JSON.stringify(r)),id:i+1}));gravarLocal();}
+  rows=Array.isArray(rows)?rows.map(r=>normSt({...r,sugestoes:r.sugestoes||[]})):[];
 }
 const gravarLocal=()=>{try{localStorage.setItem(LS_KEY,JSON.stringify(rows));}catch(e){}};
 /* grava só os campos alterados (reduz conflito entre quem edita ao mesmo tempo) */
@@ -339,13 +342,6 @@ async function remover(r){
   if(modo==='local'){rows=rows.filter(x=>x!==r);gravarLocal();return true;}
   try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}?id=eq.${r.id}`,{method:'DELETE',headers:sbH()});if(!resp.ok)throw 0;rows=rows.filter(x=>x!==r);return true;}
   catch(e){toast('Erro ao excluir.');return false;}
-}
-async function importarSeed(){
-  if(!podeEditar())return;
-  if(rows.length&&!confirm('Já existem reuniões cadastradas. Importar ADICIONA as 12 reuniões das pautas originais (pode duplicar). Continuar?'))return;
-  if(modo==='local'){SEED.forEach(s=>{rows.push({...JSON.parse(JSON.stringify(s)),id:Math.max(0,...rows.map(x=>x.id||0))+1});});gravarLocal();}
-  else{try{const resp=await fetch(`${SUPABASE_URL}/rest/v1/${TABELA}`,{method:'POST',headers:sbH(),body:JSON.stringify(SEED)});if(!resp.ok)throw new Error(await resp.text());await carregar();}catch(e){console.error(e);toast('Erro ao importar.');return;}}
-  toast('Pautas originais importadas.');renderTudo();
 }
 async function recarregar(){await carregar();renderTudo();toast('Dados atualizados.');}
 
@@ -386,9 +382,9 @@ function nomesConhecidos(){
 function encOrd(r){const ord=new Map();itensDe(r).forEach((it,i)=>ord.set(it.sec+'\u0001'+it.x,i));
   return r.encaminhamentos.map((e,i)=>({e,i,k:ord.has((e.secao||'')+'\u0001'+e.item)?ord.get((e.secao||'')+'\u0001'+e.item):1e9})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.e);}
 const todosEnc=()=>rows.flatMap(r=>r.encaminhamentos.map(e=>({e,r})));
-const atrasado=e=>e.prazo&&e.prazo<hojeISO()&&['Não iniciado','Em andamento'].includes(e.status);
-const aberto=e=>['Não iniciado','Em andamento','A confirmar'].includes(e.status);
-const stCls=s=>({'Concluído':'good','Em andamento':'blue','Não iniciado':'warn','A confirmar':'na','Cancelado':'na','Aceita':'good','Sugerida':'warn','Descartada':'na'}[s]||'na');
+const atrasado=e=>e.prazo&&e.prazo<hojeISO()&&['Pendente','Em andamento'].includes(e.status);
+const aberto=e=>['Pendente','Em andamento'].includes(e.status);
+const stCls=s=>({'Concluído':'good','Em andamento':'blue','Pendente':'warn','Aceita':'good','Sugerida':'warn','Descartada':'na'}[s]||'na');
 const pctSt=s=>({'Concluído':100,'Em andamento':50}[s]||0);
 
 /* ── chrome ── */
@@ -396,7 +392,7 @@ function irAba(a){aba=a;document.querySelectorAll('.tab').forEach(t=>t.classList
 function renderTudo(){
   if(!sel||!rows.find(r=>r.id===sel)){const p=rows.filter(r=>r.data<=hojeISO()).sort((a,b)=>b.data.localeCompare(a.data))[0]||rows[0];sel=p?p.id:null;}
   renderTopo();
-  ({reu:()=>{renderKpis();renderLista();renderDetalhe();},enc:renderEnc,cad:renderCadastro,rel:renderRel})[aba]();
+  ({reu:()=>{renderKpis();renderLista();renderDetalhe();},enc:renderEnc,rel:renderRel})[aba]();
   $('dlNomes').innerHTML=nomesConhecidos().map(n=>`<option value="${esc(n)}">`).join('');
 }
 function renderTopo(){
@@ -405,9 +401,9 @@ function renderTopo(){
   $('chipPerfil').textContent=podeEditar()?('Perfil: '+ROLE_LBL[role]+' · edição liberada'):(role?('Perfil: '+(ROLE_LBL[role]||role)+' · pode sugerir pautas'):'Somente leitura (entre pelo sistema principal para editar)');
   let av='';
   if(modo==='local')av+=`<div class="notice">⚠ A tabela <b>${TABELA}</b> não foi encontrada no Supabase. Os dados estão sendo salvos só neste navegador. Execute <b>reunioes_supabase.sql</b> no SQL Editor para sincronizar com todos os usuários.</div>`;
-  if(modo==='supabase'&&!rows.length)av+=`<div class="notice info">A tabela está vazia. ${podeEditar()?'Em <b>Cadastro de reuniões</b>, use <b>Importar pautas originais</b>.':'Peça à Coordenação para importar as pautas.'}</div>`;
+  if(modo==='supabase'&&!rows.length)av+=`<div class="notice info">A tabela está vazia. ${podeEditar()?'Use <b>+ Nova reunião</b> para começar.':'Peça à Coordenação para cadastrar as reuniões.'}</div>`;
   $('avisos').innerHTML=av;
-  ['btnNova','btnImport','btnNovoEnc'].forEach(id=>{const b=$(id);if(b)b.style.display=podeEditar()?'':'none';});
+  ['btnNova','btnNovoEnc'].forEach(id=>{const b=$(id);if(b)b.style.display=podeEditar()?'':'none';});
 }
 function optsReu(sel,primeiro){
   const e=$(sel),cur=e.value;
@@ -418,14 +414,12 @@ function opts(sel,primeiro,lista,val){const e=$(sel);const cur=val!==undefined?v
 
 /* ═══ REUNIÕES E PAUTAS ═══ */
 function renderKpis(){
-  const hoje=hojeISO(),real=rows.filter(r=>r.data<=hoje),enc=todosEnc().map(x=>x.e);
-  const conc=enc.filter(e=>e.status==='Concluído').length,atr=enc.filter(atrasado).length,ab=enc.filter(aberto).length;
-  const prox=rows.filter(r=>r.data>hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
+  const hoje=hojeISO(),prox=rows.filter(r=>r.data>=hoje).sort((a,b)=>a.data.localeCompare(b.data))[0];
+  const atr=todosEnc().filter(({e})=>atrasado(e)).sort((a,b)=>a.e.prazo.localeCompare(b.e.prazo));
+  const cur=t=>t.length>110?t.slice(0,108)+'…':t;
   $('kpis').innerHTML=`
-   <div class="card kpi"><div class="n">${real.length}</div><div class="l">reuniões realizadas</div></div>
-   <div class="card kpi blue"><div class="n">${prox?fmtData(prox.data).slice(0,5):'—'}</div><div class="l">próxima reunião${prox?' · '+esc(prox.titulo.split('—')[0].trim()):''}</div></div>
-   <div class="card kpi good"><div class="n">${enc.length?Math.round(conc*100/enc.length):0}%</div><div class="l">encaminhamentos concluídos (${conc}/${enc.length})</div></div>
-   <div class="card kpi bad"><div class="n">${ab}</div><div class="l">em aberto · ${atr} com prazo vencido</div></div>`;
+   <div class="card"><h3>📅 Próxima reunião</h3>${prox?`<div style="font-size:19px;font-weight:700;margin:4px 0">${fmtData(prox.data,1)}${prox.horario?' · '+esc(prox.horario):''}</div><div>${esc(prox.titulo)}</div><div class="sub" style="margin-top:2px">${esc(prox.tipo)}</div><button class="btn sm" onclick="selReu(${prox.id})">Abrir</button>`:'<div class="sub">Nenhuma reunião agendada.'+(podeEditar()?' Use <b>+ Nova reunião</b>.':'')+'</div>'}</div>
+   <div class="card"><h3>⚠ Encaminhamentos atrasados <span class="chip ${atr.length?'warn':'ok'}">${atr.length}</span></h3>${atr.length?atr.slice(0,4).map(({e,r})=>`<div class="sug" style="cursor:pointer" onclick="irReu(${r.id})"><div class="tx">${esc(cur(e.texto))}<br><small>👤 ${esc(e.responsavel||'—')} · prazo ${fmtData(e.prazo)} · ${fmtData(r.data)}</small></div></div>`).join('')+(atr.length>4?`<div class="sub" style="margin:6px 0 0">+ ${atr.length-4} outros — </div>`:'')+`<button class="btn sm" style="margin-top:6px" onclick="gerarDe(sel,'atrasos')">Ver todos / imprimir</button>`:'<div class="sub">Nenhum encaminhamento com prazo vencido. 👏</div>'}</div>`;
 }
 function filtrar(lista,busca,tipo){
   const q=norm(busca);
@@ -464,9 +458,13 @@ function renderDetalhe(){
     ${r.obs?`<div class="notice info" style="margin:10px 0 0">${esc(r.obs)}</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
       <button class="btn pri" onclick="abrirSlides()">▶ Apresentar</button>
-      <button class="btn" onclick="gerarDe(${r.id},'pauta')">📄 Gerar pauta</button>
-      <button class="btn" onclick="gerarDe(${r.id},'ata')">📝 Registro / ata</button>
-      <button class="btn" onclick="gerarDe(${r.id},'quadro')" title="Imprimir os encaminhamentos em formato de quadro de avisos">📋 Quadro de avisos</button>
+      <div class="menu"><button class="btn" onclick="menuImp(event)">🖨 Imprimir ▾</button><div class="menu-l">
+        <button onclick="imprimirDe(${r.id},'pauta')">📄 Pauta</button>
+        <button onclick="imprimirDe(${r.id},'ata')">📝 Ata (com lista de presença)</button>
+        <button onclick="imprimirDe(${r.id},'lista')">✅ Lista de encaminhamentos</button><hr>
+        <button onclick="imprimirDe(${r.id},'quadro')">📋 Quadro de avisos — imprimir / PDF</button>
+        <button onclick="imprimirDe(${r.id},'quadroJPG')">🖼 Quadro de avisos — imagem JPG</button><hr>
+        <button onclick="gerarDe(${r.id},'pauta')">⚙ Personalizar / outros relatórios…</button></div></div>
       ${ed?`<button class="btn" onclick="abrirReuniao(${r.id})">✎ Editar reunião</button>`:''}
     </div>
   </div>
@@ -477,9 +475,10 @@ function renderDetalhe(){
       ${ed?`<select class="pill ${stCls(s.status)}" onchange="setSugSt(${r.id},'${s.id}',this.value)">${ST_SUG.map(x=>`<option ${x===s.status?'selected':''}>${x}</option>`).join('')}</select><button class="btn sm danger" onclick="delSug(${r.id},'${s.id}')">✕</button>`:`<span class="pill ${stCls(s.status)}">${esc(s.status)}</span>`}</div>`).join('')||'<div class="empty" style="padding:12px">Nenhuma sugestão.</div>'}
     ${podeSugerir()?`<div class="addrow"><input id="sgTxt" placeholder="Sugerir um item de pauta…"><input id="sgAut" list="dlNomes" placeholder="Seu nome" style="max-width:200px"><button class="btn pri" onclick="addSug(${r.id})">+ Sugerir</button></div>`:''}</div>
   <div class="card"><h3>✅ Encaminhamentos <span class="chip">${r.encaminhamentos.length}</span></h3><div class="sub">Acompanhe o andamento de cada encaminhamento${ed?' — altere o status e registre o andamento':''}. Todo encaminhamento é vinculado a um item da pauta.</div>
+    ${ed?quickAddHTML(r):''}
     ${semVinculo(r).length?`<div class="notice">⚠ ${semVinculo(r).length} encaminhamento(s) sem vínculo com a pauta (o item foi alterado ou removido). ${ed?'Use ✎ Editar para vincular novamente.':''}</div>`:''}
     ${encOrd(r).map(e=>encHTML(r,e,ed)).join('')||'<div class="empty" style="padding:12px">Nenhum encaminhamento registrado.</div>'}
-    ${ed?`<div style="margin-top:8px"><button class="btn pri" onclick="abrirEnc(${r.id},null)">+ Novo encaminhamento</button></div>`:''}</div>`;
+    ${ed?`<div style="margin-top:8px"><button class="btn" onclick="abrirEnc(${r.id},null)">Formulário completo…</button></div>`:''}</div>`;
 }
 const achar=(rid,eid)=>{const r=rows.find(x=>x.id===rid);return[r,r&&r.encaminhamentos.find(e=>e.id===eid)];};
 async function setEncSt(rid,eid,v){const[r,e]=achar(rid,eid);if(!e)return;e.status=v;if(await persistir(r,['encaminhamentos'])){toast('Status: '+v);renderTudo();}}
@@ -510,19 +509,56 @@ function renderEnc(){
       ${ed?`<td class="nw"><button class="btn sm" title="Editar" onclick="abrirEnc(${r.id},'${e.id}')">✎ Editar</button> <button class="btn sm danger" title="Excluir — não é um encaminhamento" onclick="excluirEncDireto(${r.id},'${e.id}')">🗑</button></td>`:''}</tr>`).join('')||`<tr><td colspan="9" class="empty">Nenhum encaminhamento.</td></tr>`}</tbody>`;
 }
 let selEnc=new Set(),visEnc=[],encLista=[];
-/* imprime a lista da aba Encaminhamentos, respeitando os filtros ativos */
-function imprimirEnc(){
-  if(!encLista.length){toast('Nada para imprimir.');return;}
+/* imprime uma lista de encaminhamentos (tabela em folha deitada) */
+function imprimirListaEnc(lista,filtros){
+  if(!lista.length){toast('Nada para imprimir.');return;}
   const escola='Escola Municipal Geraldo Teixeira da Costa — GETECO (Turno Tarde)';
-  const f=[$('eReu').value&&'reunião: '+$('eReu').selectedOptions[0].textContent,$('eSt').value&&'status: '+$('eSt').value,$('eResp').value&&'responsável: '+$('eResp').value,$('eTipo').value&&'tipo: '+$('eTipo').value,$('eBusca').value.trim()&&'busca: “'+$('eBusca').value.trim()+'”'].filter(Boolean).join(' · ');
   const cols=['Reunião','Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'];
-  const ln=encLista.map(({e,r})=>[ref(r),e.item?itemTxt(e):'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||'']);
-  const titulo='Encaminhamentos';
-  const html=`<h1>${titulo}</h1><div class="meta">${esc(escola)}<br>Gerado em ${fmtData(hojeISO())} · ${ln.length} encaminhamento(s)${f?'<br>Filtros: '+esc(f):''}</div>${tabH(cols,ln)}`;
-  const doc=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>${docCSS}@page{size:A4 landscape;margin:10mm}thead{display:table-header-group}</style></head><body>${html}</body></html>`;
-  const fr=document.createElement('iframe');fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(fr);
-  const d=fr.contentWindow.document;d.open();d.write(doc);d.close();
-  setTimeout(()=>{fr.contentWindow.focus();fr.contentWindow.print();setTimeout(()=>fr.remove(),2000);},350);
+  const ln=lista.map(({e,r})=>[ref(r),e.item?itemTxt(e):'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||'']);
+  abrirImpressao('Encaminhamentos',`<h1>Encaminhamentos</h1><div class="meta">${esc(escola)}<br>Gerado em ${fmtData(hojeISO())} · ${ln.length} encaminhamento(s)${filtros?'<br>Filtros: '+esc(filtros):''}</div>${tabH(cols,ln)}`,{land:true,margem:'10mm'});
+}
+function imprimirEnc(){
+  const f=[$('eReu').value&&'reunião: '+$('eReu').selectedOptions[0].textContent,$('eSt').value&&'status: '+$('eSt').value,$('eResp').value&&'responsável: '+$('eResp').value,$('eTipo').value&&'tipo: '+$('eTipo').value,$('eBusca').value.trim()&&'busca: “'+$('eBusca').value.trim()+'”'].filter(Boolean).join(' · ');
+  imprimirListaEnc(encLista,f);
+}
+
+/* ── registro rápido de encaminhamentos (modo reunião) ── */
+let qaUlt={item:null,resp:''};
+const dISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function quickAddHTML(r){
+  const its=itensDe(r),pre=qaUlt.item!==null&&its.some(i=>i.k===qaUlt.item)?qaUlt.item:(its[0]?its[0].k:'');
+  return `<div class="qa"><div class="f1"><select id="qaItem" title="Item da pauta a que o encaminhamento pertence">${its.map(i=>`<option value="${i.k}" ${i.k===pre?'selected':''}>${i.n===2?'– ':''}${esc((i.sec?i.sec+' › ':'')+i.x)}</option>`).join('')}<option value="" ${pre===''?'selected':''}>(sem item da pauta)</option></select></div>
+    <div class="f1"><input id="qaTxt" placeholder="Digite o encaminhamento e tecle Enter para adicionar…" onkeydown="if(event.key==='Enter'){event.preventDefault();addEncRapido(${r.id});}"></div>
+    <div class="fr"><input id="qaResp" list="dlNomes" placeholder="Responsável" value="${esc(qaUlt.resp)}" onkeydown="if(event.key==='Enter'){event.preventDefault();addEncRapido(${r.id});}"></div>
+    <div class="fp"><input type="date" id="qaPrazo" title="Prazo"></div>
+    <button class="btn" type="button" onclick="qaPrazo(7)">+7 dias</button><button class="btn" type="button" onclick="qaPrazo(15)">+15 dias</button><button class="btn" type="button" onclick="qaPrazo('prox')" title="Data da próxima reunião">próx. reunião</button>
+    <button class="btn pri" type="button" onclick="addEncRapido(${r.id})">+ Adicionar</button></div>`;
+}
+function qaPrazo(v){
+  let d;
+  if(v==='prox'){const r=rows.find(x=>x.id===sel),n=rows.filter(x=>r&&x.data>r.data).sort((a,b)=>a.data.localeCompare(b.data))[0];if(!n){toast('Não há reunião posterior cadastrada.');return;}$('qaPrazo').value=n.data;return;}
+  d=new Date();d.setDate(d.getDate()+v);$('qaPrazo').value=dISO(d);
+}
+async function addEncRapido(rid){
+  const r=rows.find(x=>x.id===rid);if(!r||!podeEditar())return;
+  const txt=$('qaTxt').value.trim();if(!txt){toast('Digite o encaminhamento.');$('qaTxt').focus();return;}
+  const k=$('qaItem').value,it=itensDe(r).find(i=>i.k===k);
+  const e={id:uid('e'),texto:txt,responsavel:$('qaResp').value.trim(),prazo:$('qaPrazo').value,status:'Pendente',andamento:'',secao:it?it.sec:'',item:it?it.x:''};
+  r.encaminhamentos.push(e);
+  if(await persistir(r,['encaminhamentos'])){qaUlt={item:k,resp:e.responsavel};toast('Encaminhamento adicionado.');renderTudo();setTimeout(()=>{const t=$('qaTxt');if(t)t.focus();},30);}
+  else r.encaminhamentos.pop();
+}
+
+/* ── menu Imprimir da reunião ── */
+function menuImp(ev){ev.stopPropagation();const m=ev.currentTarget.parentElement,ab=m.classList.contains('open');fecharMenu();if(!ab)m.classList.add('open');}
+function fecharMenu(){document.querySelectorAll('.menu.open').forEach(m=>m.classList.remove('open'));}
+document.addEventListener('click',fecharMenu);
+function imprimirDe(rid,tipo){
+  fecharMenu();const r=rows.find(x=>x.id===rid);if(!r)return;sel=rid;
+  if(tipo==='lista'){imprimirListaEnc(encOrd(r).map(e=>({e,r})),'reunião: '+ref(r));return;}
+  $('rTipo').value=tipo==='quadroJPG'?'quadro':tipo;$('rReu').value=String(rid);renderRel();
+  if(tipo==='quadroJPG'||tipo==='quadro'){if(rep.vazio){toast(r.encaminhamentos.length?'Nenhum encaminhamento em aberto. Em Relatórios, escolha “Todos”.':'Esta reunião não tem encaminhamentos.');return;}}
+  if(tipo==='quadroJPG')quadroJPG();else repImprimir();
 }
 function atualizarBtnSel(){const b=$('btnExcSel');if(!b)return;b.style.display=podeEditar()&&selEnc.size?'':'none';b.textContent='🗑 Excluir selecionados ('+selEnc.size+')';}
 function toggleSel(k,on){on?selEnc.add(k):selEnc.delete(k);atualizarBtnSel();}
@@ -547,12 +583,6 @@ async function excluirSelecionados(){
 function irReu(id){sel=id;$('fReu').value='';irAba('reu');}
 
 /* ═══ CADASTRO ═══ */
-function renderCadastro(){
-  const l=filtrar(rows,$('cBusca').value,'').sort((a,b)=>b.data.localeCompare(a.data)),ed=podeEditar();
-  $('cCount').textContent=l.length+' reunião(ões)';
-  $('cTab').innerHTML=`<thead><tr><th>Data</th><th>Tipo</th><th>Nome da reunião</th><th>Responsável</th><th>Sugestões</th><th>Encaminhamentos</th><th></th></tr></thead><tbody>${
-    l.map(r=>`<tr><td class="nw"><b>${fmtData(r.data)}</b></td><td><span class="tipo ${tk(r.tipo)}">${esc(r.tipo)}</span></td><td>${esc(r.titulo)}</td><td>${esc(r.responsavel||'—')}</td><td>${r.sugestoes.length}</td><td>${r.encaminhamentos.filter(e=>e.status==='Concluído').length}/${r.encaminhamentos.length}</td><td class="nw"><button class="btn sm" onclick="irReu(${r.id})">Abrir</button> ${ed?`<button class="btn sm" onclick="abrirReuniao(${r.id})">✎ Editar</button>`:''}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Nenhuma reunião.</td></tr>'}</tbody>`;
-}
 function abrirReuniao(id){
   if(!podeEditar()){toast('Sem permissão de edição neste perfil.');return;}
   editReu=id;const r=id?rows.find(x=>x.id===id):{data:hojeISO(),titulo:'',tipo:'Pedagógica',horario:'',local:'',participantes:'Professores dos Anos Finais (Tarde), Coordenação',responsavel:'',obs:'',pauta:'',sugestoes:[],encaminhamentos:[]};
@@ -585,7 +615,7 @@ function abrirEnc(rid,eid){
   if(!podeEditar()){toast('Sem permissão de edição neste perfil.');return;}
   encReu=rid||sel;editEnc=eid;
   const r=rows.find(x=>x.id===encReu);if(!r){toast('Cadastre uma reunião antes.');return;}
-  const e=eid?r.encaminhamentos.find(x=>x.id===eid):{texto:'',responsavel:'',prazo:'',status:'Não iniciado',andamento:''};
+  const e=eid?r.encaminhamentos.find(x=>x.id===eid):{texto:'',responsavel:'',prazo:'',status:'Pendente',andamento:''};
   $('encTit').textContent=(eid?'Editar':'Novo')+' encaminhamento';$('encExc').style.display=eid?'':'none';
   $('encCorpo').innerHTML=`<div class="fld" style="margin-bottom:10px"><label>Reunião (referência)</label><select id="eReuM" onchange="fillItens()">${rows.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(x=>`<option value="${x.id}" ${x.id===encReu?'selected':''} ${eid?'disabled':''}>${esc(ref(x))}</option>`).join('')}</select></div>
    <div class="fld" style="margin-bottom:10px"><label>Item da pauta a que se vincula *</label><select id="eItem" onchange="togItemNovo()"></select>
@@ -676,26 +706,28 @@ const RDESC={
 const GRUPOS={pauta:['reu','sug','ret'],ata:['reu'],quadro:['reu','qop'],abertos:['tipo','resp'],atrasos:['tipo','resp'],resp:['tipo','per'],assunto:['ass','tipo','resp','per'],recorr:['tipo','per'],tipo:['per'],periodo:['tipo','resp','per'],definir:['tipo','per'],sugestoes:['tipo','per']};
 
 
-/* ═══ QUADRO DE AVISOS (encaminhamentos por item da pauta — imprimir ou baixar em JPG) ═══ */
+/* ═══ QUADRO DE AVISOS (um bloco por item da pauta, com seus pontos/encaminhamentos — imprimir ou baixar em JPG) ═══ */
 const quadroCSS=`
 .qd{font-family:Arial,Helvetica,sans-serif;color:#1F2937;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.qd .q-head{background:#0F766E;color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.qd .q-head{background:#0F766E;color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:26px}
 .qd .q-kick{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:700}
 .qd .q-title{font-size:26px;font-weight:800;line-height:1.15;margin:4px 0}
 .qd .q-meta{font-size:13px;opacity:.92}
-.qd .q-grp{margin-bottom:22px}
-.qd .q-gh{background:#F1F5F4;border-left:8px solid #0F766E;border-radius:6px;padding:8px 14px;font-weight:800;font-size:17px;line-height:1.25;margin-bottom:16px;break-after:avoid;page-break-after:avoid}
-.qd .q-gh small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:2px}
-.qd .q-grid{display:grid;grid-template-columns:1fr;gap:20px 16px}
-.qd .q-card{position:relative;border-radius:6px;padding:20px 14px 12px;font-size:var(--fs,15px);break-inside:avoid;page-break-inside:avoid;border:1px solid rgba(0,0,0,.14);box-shadow:0 2px 0 rgba(0,0,0,.1)}
+.qd .q-grp{position:relative;margin-bottom:26px;border-radius:8px;border:1px solid rgba(0,0,0,.16);box-shadow:0 2px 0 rgba(0,0,0,.1);overflow:hidden;font-size:var(--fs,15px)}
 .qd .q-y{background:#FFF3B0}.qd .q-p{background:#FFD6E0}.qd .q-b{background:#CDE7FF}.qd .q-g{background:#CFF0D8}
-.qd .q-pin{position:absolute;top:-8px;left:50%;margin-left:-8px;width:16px;height:16px;border-radius:50%;background:#D92D20;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
-.qd .q-tx{font-size:1.1em;font-weight:700;line-height:1.3;margin-bottom:9px}
+.qd .q-gh{background:rgba(0,0,0,.08);border-left:8px solid #0F766E;padding:10px 16px;font-weight:800;font-size:1.15em;line-height:1.25;break-after:avoid;page-break-after:avoid}
+.qd .q-gh small{display:block;font-size:.58em;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:2px}
+.qd .q-pin{position:absolute;top:-1px;left:50%;margin-left:-8px;width:16px;height:16px;border-radius:50%;background:#D92D20;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45);z-index:2}
+.qd .q-pt{position:relative;padding:12px 16px;border-top:1px dashed rgba(0,0,0,.3);break-inside:avoid;page-break-inside:avoid}
+.qd .q-gh + .q-pt{border-top:0}
+.qd .q-pt.num{padding-left:calc(16px + 2.1em)}
+.qd .q-n{position:absolute;left:16px;top:12px;width:1.6em;height:1.6em;border-radius:50%;background:#0F766E;color:#fff;font-size:.9em;font-weight:700;text-align:center;line-height:1.6em}
+.qd .q-tx{font-size:1.1em;font-weight:700;line-height:1.3;margin-bottom:8px}
 .qd .q-row{font-size:.82em;display:flex;flex-wrap:wrap;gap:3px 28px}
-.qd .q-st{display:inline-block;margin-top:9px;padding:2px 10px;border-radius:99px;font-size:.7em;font-weight:700;background:#fff;border:1px solid rgba(0,0,0,.25)}
+.qd .q-st{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:99px;font-size:.7em;font-weight:700;background:#fff;border:1px solid rgba(0,0,0,.25)}
 .qd .q-st-good{background:#17653F;color:#fff;border-color:transparent}.qd .q-st-blue{background:#1E40AF;color:#fff;border-color:transparent}.qd .q-st-warn{background:#7A5B00;color:#fff;border-color:transparent}
 .qd .q-late{color:#D92D20;font-weight:700;font-style:normal}
-.qd .q-and{margin-top:8px;font-size:.78em;font-style:italic;color:#444;border-top:1px dashed rgba(0,0,0,.3);padding-top:5px}
+.qd .q-and{margin-top:7px;font-size:.78em;font-style:italic;color:#444}
 `;
 let quadroDados=null;
 /* agrupa os encaminhamentos pelo item da pauta, na ordem da pauta */
@@ -709,63 +741,67 @@ const quadroMeta=r=>[fmtData(r.data,1),r.horario,r.local,r.tipo].filter(Boolean)
 function quadroHTML(r,list,orient,comAnd){
   quadroDados={r,list,orient,comAnd};
   const n=list.length,fs=n<=4?17:n<=8?15:n<=14?13:12,cores=['y','p','b','g'];
-  const body=quadroGrupos(r,list).map((g,gi)=>`<div class="q-grp"><div class="q-gh">${g.sec?`<small>${esc(g.sec)}</small>`:''}${esc(g.item)}</div><div class="q-grid">${g.ls.map(e=>`<div class="q-card q-${cores[gi%4]}"><span class="q-pin"></span>
-    <div class="q-tx">${esc(e.texto)}</div>
-    <div class="q-row"><span>👤 <b>${esc(e.responsavel||'A definir')}</b></span><span>📅 ${e.prazo?fmtData(e.prazo):'sem prazo'}${atrasado(e)?' <i class="q-late">· atrasado</i>':''}</span></div>
-    <div class="q-st q-st-${stCls(e.status)}">${esc(e.status)}</div>
-    ${comAnd&&e.andamento?`<div class="q-and">${esc(e.andamento)}</div>`:''}</div>`).join('')}</div></div>`).join('');
+  const body=quadroGrupos(r,list).map((g,gi)=>{const num=g.ls.length>1;
+    return `<div class="q-grp q-${cores[gi%4]}"><span class="q-pin"></span><div class="q-gh">${g.sec?`<small>${esc(g.sec)}</small>`:''}${esc(g.item)}</div>${g.ls.map((e,i)=>`<div class="q-pt${num?' num':''}">${num?`<span class="q-n">${i+1}</span>`:''}
+      <div class="q-tx">${esc(e.texto)}</div>
+      <div class="q-row"><span>👤 <b>${esc(e.responsavel||'A definir')}</b></span><span>📅 ${e.prazo?fmtData(e.prazo):'sem prazo'}${atrasado(e)?' <i class="q-late">· atrasado</i>':''}</span></div>
+      <div class="q-st q-st-${stCls(e.status)}">${esc(e.status)}</div>
+      ${comAnd&&e.andamento?`<div class="q-and">${esc(e.andamento)}</div>`:''}</div>`).join('')}</div>`;}).join('');
   return `<div class="qd ${orient}" style="--fs:${fs}px"><div class="q-head"><div class="q-kick">Quadro de avisos · Encaminhamentos</div><div class="q-title">${esc(r.titulo)}</div><div class="q-meta">${esc(quadroMeta(r))}</div></div>${body}</div>`;
 }
 /* gera a imagem JPG do quadro direto em canvas (não depende de bibliotecas externas) */
 function quadroJPG(){
   if(!quadroDados||!rep.quadro){toast('Gere o quadro primeiro.');return;}
-  const {r,list,orient,comAnd}=quadroDados,land=orient==='land',W=land?1754:1240,M=50,GAP=24,cols=1,F='Arial,Helvetica,sans-serif';
-  const cw=(W-2*M-GAP*(cols-1))/cols,CORES=['#FFF3B0','#FFD6E0','#CDE7FF','#CFF0D8'],gs=quadroGrupos(r,list);
+  const {r,list,orient,comAnd}=quadroDados,land=orient==='land',W=land?1754:1240,M=50,F='Arial,Helvetica,sans-serif';
+  const BW=W-2*M,CORES=['#FFF3B0','#FFD6E0','#CDE7FF','#CFF0D8'],gs=quadroGrupos(r,list);
   const cv=document.createElement('canvas');cv.width=W;cv.height=100;const c=cv.getContext('2d');
   const font=(px,w,it)=>`${it?'italic ':''}${w||'normal'} ${px}px ${F}`;
   const wrap=(t,px,w,maxW,it)=>{c.font=font(px,w,it);const out=[];String(t).split('\n').forEach(par=>{let ln='';par.split(/\s+/).forEach(wd=>{const tt=ln?ln+' '+wd:wd;if(c.measureText(tt).width>maxW&&ln){out.push(ln);ln=wd;}else ln=tt;});out.push(ln);});return out;};
   const rr=(x,y,w,h,rad)=>{c.beginPath();c.moveTo(x+rad,y);c.arcTo(x+w,y,x+w,y+h,rad);c.arcTo(x+w,y+h,x,y+h,rad);c.arcTo(x,y+h,x,y,rad);c.arcTo(x,y,x+w,y,rad);c.closePath();};
   const PILL={good:['#17653F','#fff'],blue:['#1E40AF','#fff'],warn:['#7A5B00','#fff']};
-  const card=(x,y,e,col,H,draw)=>{
-    const pad=26,inner=cw-2*pad;
+  /* um ponto (encaminhamento) dentro do bloco do item; n = número (0 = sem numeração) */
+  const pt=(x,y,e,n,first,draw)=>{
+    const pad=26,ind=n?52:0,inner=BW-2*pad-ind,tx=x+pad+ind;
     const tl=wrap(e.texto,30,'bold',inner),rl=wrap('Responsável: '+(e.responsavel||'A definir'),24,'normal',inner),and=comAnd&&e.andamento?wrap(e.andamento,22,'normal',inner,true):[];
     const pz='Prazo: '+(e.prazo?fmtData(e.prazo):'sem prazo')+(atrasado(e)?'  ·  ATRASADO':'');
     c.font=font(24,'normal');const same=rl.length===1&&c.measureText(rl[0]).width+c.measureText(pz).width+50<=inner;
-    const need=pad+10+tl.length*40+10+(same?32:rl.length*32+32)+16+38+(and.length?16+and.length*30:0)+pad;
+    const need=20+tl.length*40+10+(same?32:rl.length*32+32)+16+38+(and.length?10+and.length*30:0)+22;
     if(!draw)return need;
-    c.save();c.shadowColor='rgba(0,0,0,.2)';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=col;rr(x,y,cw,H,10);c.fill();c.restore();
-    c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=2;rr(x,y,cw,H,10);c.stroke();
-    c.fillStyle='#D92D20';c.beginPath();c.arc(x+cw/2,y,12,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
-    let cy=y+pad+10,tx=x+pad;c.textBaseline='top';
+    c.textBaseline='top';
+    if(!first){c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.setLineDash([8,6]);c.beginPath();c.moveTo(x+pad,y);c.lineTo(x+BW-pad,y);c.stroke();c.setLineDash([]);}
+    let cy=y+20;
+    if(n){c.fillStyle='#0F766E';c.beginPath();c.arc(x+pad+19,cy+19,19,0,7);c.fill();c.fillStyle='#fff';c.font=font(24,'bold');c.textAlign='center';c.fillText(String(n),x+pad+19,cy+8);c.textAlign='left';}
     c.fillStyle='#111';c.font=font(30,'bold');tl.forEach((l,i)=>c.fillText(l,tx,cy+i*40));cy+=tl.length*40+10;
     c.fillStyle='#1F2937';c.font=font(24,'normal');rl.forEach((l,i)=>c.fillText(l,tx,cy+i*32));
-    if(same){c.textAlign='right';c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx+inner,cy);c.textAlign='left';cy+=32+16;}
+    if(same){c.textAlign='right';c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,x+BW-pad,cy);c.textAlign='left';cy+=32+16;}
     else{cy+=rl.length*32;c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx,cy);cy+=32+16;}
     const pc=PILL[stCls(e.status)]||['#fff','#111'];c.font=font(22,'bold');const pw=c.measureText(e.status).width+32;
     c.fillStyle=pc[0];rr(tx,cy,pw,38,19);c.fill();if(pc[0]==='#fff'){c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.stroke();}
     c.fillStyle=pc[1];c.fillText(e.status,tx+16,cy+8);cy+=38;
-    if(and.length){cy+=16;c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.setLineDash([6,5]);c.beginPath();c.moveTo(tx,cy-8);c.lineTo(tx+inner,cy-8);c.stroke();c.setLineDash([]);
-      c.fillStyle='#444';c.font=font(22,'normal',true);and.forEach((l,i)=>c.fillText(l,tx,cy+i*30));}
+    if(and.length){cy+=10;c.fillStyle='#444';c.font=font(22,'normal',true);and.forEach((l,i)=>c.fillText(l,tx,cy+i*30));}
     return need;
   };
   const run=draw=>{
     c.textBaseline='top';let y=M;
-    const tl=wrap(r.titulo,46,'bold',W-2*M-60),ml=wrap(quadroMeta(r),26,'normal',W-2*M-60),hh=30+28+tl.length*56+6+ml.length*34+30;
-    if(draw){c.fillStyle='#0F766E';rr(M,y,W-2*M,hh,18);c.fill();c.fillStyle='rgba(255,255,255,.85)';c.font=font(22,'bold');c.fillText('QUADRO DE AVISOS · ENCAMINHAMENTOS',M+30,y+30);
+    const tl=wrap(r.titulo,46,'bold',BW-60),ml=wrap(quadroMeta(r),26,'normal',BW-60),hh=30+28+tl.length*56+6+ml.length*34+30;
+    if(draw){c.fillStyle='#0F766E';rr(M,y,BW,hh,18);c.fill();c.fillStyle='rgba(255,255,255,.85)';c.font=font(22,'bold');c.fillText('QUADRO DE AVISOS · ENCAMINHAMENTOS',M+30,y+30);
       c.fillStyle='#fff';c.font=font(46,'bold');tl.forEach((l,i)=>c.fillText(l,M+30,y+58+i*56));c.font=font(26,'normal');ml.forEach((l,i)=>c.fillText(l,M+30,y+58+tl.length*56+6+i*34));}
-    y+=hh+34;
+    y+=hh+44;
     gs.forEach((g,gi)=>{
-      const il=wrap(g.item,32,'bold',W-2*M-50),gh=14+(g.sec?28:0)+il.length*42+14;
-      if(draw){c.fillStyle='#F1F5F4';rr(M,y,W-2*M,gh,10);c.fill();c.fillStyle='#0F766E';rr(M,y,10,gh,5);c.fill();let ty=y+14;
-        if(g.sec){c.fillStyle='#555';c.font=font(20,'bold');c.fillText(g.sec.toUpperCase(),M+28,ty);ty+=28;}
-        c.fillStyle='#111';c.font=font(32,'bold');il.forEach((l,i)=>c.fillText(l,M+28,ty+i*42));}
-      y+=gh+26;
-      for(let i=0;i<g.ls.length;i+=cols){const row=g.ls.slice(i,i+cols),H=Math.max(...row.map(e=>card(0,0,e,'',0,false)));
-        if(draw)row.forEach((e,k)=>card(M+k*(cw+GAP),y,e,CORES[gi%4],H,true));
-        y+=H+GAP;}
-      y+=14;
+      const il=wrap(g.item,32,'bold',BW-50),gh=14+(g.sec?28:0)+il.length*42+14,num=g.ls.length>1;
+      const hs=g.ls.map((e,i)=>pt(0,0,e,num?i+1:0,i===0,false)),GH=gh+hs.reduce((a,b)=>a+b,0);
+      if(draw){
+        c.save();c.shadowColor='rgba(0,0,0,.2)';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=CORES[gi%4];rr(M,y,BW,GH,12);c.fill();c.restore();
+        c.save();rr(M,y,BW,GH,12);c.clip();c.fillStyle='rgba(0,0,0,.08)';c.fillRect(M,y,BW,gh);c.fillStyle='#0F766E';c.fillRect(M,y,10,gh);c.restore();
+        c.strokeStyle='rgba(0,0,0,.18)';c.lineWidth=2;rr(M,y,BW,GH,12);c.stroke();
+        let ty=y+14;if(g.sec){c.fillStyle='#555';c.font=font(20,'bold');c.fillText(g.sec.toUpperCase(),M+28,ty);ty+=28;}
+        c.fillStyle='#111';c.font=font(32,'bold');il.forEach((l,i)=>c.fillText(l,M+28,ty+i*42));
+        let py=y+gh;g.ls.forEach((e,i)=>{pt(M,py,e,num?i+1:0,i===0,true);py+=hs[i];});
+        c.fillStyle='#D92D20';c.beginPath();c.arc(M+BW/2,y,12,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+      }
+      y+=GH+40;
     });
-    return y+M-GAP;
+    return y-40+M;
   };
   const H0=run(false);cv.height=Math.max(Math.ceil(H0),Math.round(land?W/1.414:W*1.414));
   c.fillStyle='#fff';c.fillRect(0,0,W,cv.height);run(true);
@@ -799,7 +835,7 @@ function renderRel(){
     if(tipo==='pauta'){
       titulo=`Pauta — ${r.titulo}`;
       const sug=$('rSug').checked?r.sugestoes.filter(s=>s.status!=='Descartada'):[];
-      const ret=$('rRet').checked?todosEnc().filter(x=>x.r.data<r.data&&['Não iniciado','Em andamento'].includes(x.e.status)):[];
+      const ret=$('rRet').checked?todosEnc().filter(x=>x.r.data<r.data&&['Pendente','Em andamento'].includes(x.e.status)):[];
       html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}<h2>Pauta</h2>${secs.length?secHTML(secs):'<p><i>Pauta a definir.</i></p>'}`
         +(sug.length?`<h2>Pautas sugeridas</h2><ul>${sug.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''}${s.status==='Aceita'?' — <b>aceita</b>':''}</li>`).join('')}</ul>`:'')
         +(ret.length?`<h2>Retomada de encaminhamentos em aberto</h2>${encTab(ret.map(linhaEnc),COLS_ENC)}`:'');
@@ -810,7 +846,7 @@ function renderRel(){
       html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada</h2>${secs.length?secHTML(secs):'<p><i>—</i></p>'}
         <h2>Pautas sugeridas</h2>${r.sugestoes.length?`<ul>${r.sugestoes.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''} — <b>${esc(s.status)}</b></li>`).join('')}</ul>`:'<p><i>Nenhuma.</i></p>'}
         <h2>Encaminhamentos</h2>${encOrd(r).length?tabH(['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],encOrd(r).map(e=>[itemTxt(e)||'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status,e.andamento||''])):'<p><i>Nenhum.</i></p>'}
-        <p style="margin-top:28px">Assinaturas/lista de presença: ______________________________________________</p>`;
+        <h2>Lista de presença</h2><div class="assin">${tabH(['Nome','Assinatura'],Array.from({length:12},()=>['','']))}</div>`;
       tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...encOrd(r).map(e=>[itemTxt(e),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
       texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(encOrd(r).map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.item?' · item: '+e.item:''}${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
     }
@@ -825,7 +861,7 @@ function renderRel(){
     else{vazio=true;html=`<div class="empty" style="color:#666">${r.encaminhamentos.length?'Nenhum encaminhamento em aberto nesta reunião. Escolha “Todos os encaminhamentos” para incluir os concluídos.':'Esta reunião ainda não tem encaminhamentos registrados.'}</div>`;}
   }
   if(tipo==='abertos'||tipo==='atrasos'){
-    const l=encs.filter(({e})=>tipo==='abertos'?aberto(e):(atrasado(e)||(['Não iniciado','Em andamento'].includes(e.status)&&!e.prazo))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
+    const l=encs.filter(({e})=>tipo==='abertos'?aberto(e):(atrasado(e)||(['Pendente','Em andamento'].includes(e.status)&&!e.prazo))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
     titulo=tipo==='abertos'?'Encaminhamentos em aberto':'Encaminhamentos atrasados e sem prazo';
     const cols=tipo==='atrasos'?[...COLS_ENC,'Situação']:COLS_ENC;
     const linhas=l.map(x=>tipo==='atrasos'?[...linhaEnc(x),atrasado(x.e)?'Atrasado':'Sem prazo']:linhaEnc(x));
@@ -834,10 +870,10 @@ function renderRel(){
   }
   if(tipo==='resp'){
     titulo='Painel de encaminhamentos por responsável';const mp={};
-    encs.forEach(({e})=>nomesDe(e.responsavel).forEach(nm=>{const o=mp[nm]=mp[nm]||{t:0,c:0,a:0,n:0,x:0,at:0};o.t++;if(e.status==='Concluído')o.c++;else if(e.status==='Em andamento')o.a++;else if(e.status==='Não iniciado')o.n++;else if(e.status==='A confirmar')o.x++;if(atrasado(e))o.at++;}));
+    encs.forEach(({e})=>nomesDe(e.responsavel).forEach(nm=>{const o=mp[nm]=mp[nm]||{t:0,c:0,a:0,n:0,x:0,at:0};o.t++;if(e.status==='Concluído')o.c++;else if(e.status==='Em andamento')o.a++;else o.n++;if(atrasado(e))o.at++;}));
     const ord=Object.entries(mp).sort((a,b)=>(b[1].t-b[1].c)-(a[1].t-a[1].c)||a[0].localeCompare(b[0],'pt'));
-    const cols=['Responsável','Total','Concluídos','Em andamento','Não iniciados','A confirmar','Atrasados','% concluído'];
-    tab=[cols,...ord.map(([k,o])=>[k,o.t,o.c,o.a,o.n,o.x,o.at,pc(o.c,o.t)])];
+    const cols=['Responsável','Total','Concluídos','Em andamento','Pendentes','Atrasados','% concluído'];
+    tab=[cols,...ord.map(([k,o])=>[k,o.t,o.c,o.a,o.n,o.at,pc(o.c,o.t)])];
     html='<p>Encaminhamentos divididos por pessoa/grupo (um encaminhamento com dois responsáveis conta para os dois).</p>'+tabH(cols,tab.slice(1));
     texto=`*${titulo}*\n`+ord.map(([k,o])=>`• ${k}: ${o.c}/${o.t} concluídos${o.at?`, ${o.at} atrasado(s)`:''}`).join('\n');
   }
@@ -905,9 +941,20 @@ function renderRel(){
   rep={titulo,html,rows:tab,texto,meta,quadro,vazio};
 }
 const tabH=(cab,l)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${l.map(x=>`<tr>${x.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}.lnk{font-size:11px;color:#333;margin:2px 0 3px 2px;list-style:none}table{width:100%;border-collapse:collapse;margin:6px 0 10px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}`;
+const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}.lnk{font-size:11px;color:#333;margin:2px 0 3px 2px;list-style:none}table{width:100%;border-collapse:collapse;margin:6px 0 10px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}.assin td{height:26px}`;
 const docHTML=()=>rep.quadro?`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>@page{size:A4 ${rep.quadro==='land'?'landscape':'portrait'};margin:10mm}body{margin:0}${quadroCSS}</style></head><body>${rep.html}</body></html>`:`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>${docCSS}</style></head><body><h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}</body></html>`;
-function repImprimir(){if(!rep.html||rep.vazio){toast('Nada para imprimir.');return;}const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(docHTML());d.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);}
+/* único caminho de impressão: todos os documentos passam por aqui */
+function abrirImpressao(titulo,corpo,o={}){
+  const doc=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(titulo)}</title><style>${docCSS}@page{size:A4 ${o.land?'landscape':'portrait'};margin:${o.margem||'14mm'}}${o.css||''}thead{display:table-header-group}</style></head><body>${corpo}</body></html>`;
+  const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);
+  const d=f.contentWindow.document;d.open();d.write(doc);d.close();
+  setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);
+}
+function repImprimir(){
+  if(!rep.html||rep.vazio){toast('Nada para imprimir.');return;}
+  if(rep.quadro)abrirImpressao(rep.titulo,rep.html,{land:rep.quadro==='land',margem:'10mm',css:quadroCSS+'body{margin:0}'});
+  else abrirImpressao(rep.titulo,`<h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}`);
+}
 function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 const nomeArq=()=>(rep.titulo||'reuniao').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').slice(0,60);
 function repWord(){if(!rep.html){toast('Nada para exportar.');return;}baixar(new Blob(['\ufeff'+docHTML()],{type:'application/msword'}),nomeArq()+'.doc');}
@@ -921,8 +968,6 @@ function montarSlides(){
   const secs=parsePauta(r.pauta);slList=[];
   slList.push(`<span class="lead" style="margin:0">${esc(r.tipo)}</span><h1>${esc(r.titulo)}</h1><div class="lead">${fmtData(r.data,1)}${r.horario?' · '+esc(r.horario):''}${r.local?' · '+esc(r.local):''}</div><div class="lead" style="font-size:15px">${esc(r.participantes||'')}</div>`);
   secs.forEach(s=>slList.push(`<h2>${esc(s.t||'Pauta')}</h2><div class="lead">${esc(r.titulo)} · ${fmtData(r.data)}</div><ul>${s.i.map(i=>`<li class="${i.n===2?'n2':''}">${esc(i.x)}</li>`).join('')}</ul>`));
-  const sug=r.sugestoes.filter(s=>s.status!=='Descartada');
-  if(sug.length)slList.push(`<h2>Pautas sugeridas</h2><div class="lead">${sug.length} sugestão(ões)</div><ul>${sug.map(s=>`<li>${esc(s.texto)}${s.autor?` <small style="color:#9FD6CF">— ${esc(s.autor)}</small>`:''}</li>`).join('')}</ul>`);
   for(let i=0;i<r.encaminhamentos.length;i+=6){
     slList.push(`<h2>Encaminhamentos</h2><div class="lead">${r.encaminhamentos.length} no total · ${r.encaminhamentos.filter(e=>e.status==='Concluído').length} concluído(s)</div>${r.encaminhamentos.slice(i,i+6).map(e=>`<div class="row"><div class="tx">${esc(e.texto)}<br><small>📌 ${esc(e.item||'sem item da pauta')} · 👤 ${esc(e.responsavel||'—')}${e.prazo?' · 📅 '+fmtData(e.prazo):''}</small></div><span class="pill ${stCls(e.status)}">${esc(e.status)}</span></div>`).join('')}`);
   }
