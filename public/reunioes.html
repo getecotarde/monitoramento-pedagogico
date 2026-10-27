@@ -244,6 +244,7 @@ td.nw{white-space:nowrap}
         <label data-g="sug" style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rSug" checked onchange="renderRel()" style="min-width:0"> incluir pautas sugeridas</label>
         <label data-g="ret" style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="rRet" checked onchange="renderRel()" style="min-width:0"> incluir retomada de encaminhamentos em aberto</label>
         <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn pri" id="btnJpg" onclick="quadroJPG()" style="display:none">🖼 Baixar JPG</button>
           <button class="btn pri" onclick="repImprimir()">🖨 Imprimir / PDF</button>
           <button class="btn" onclick="repWord()">⬇ Word (.doc)</button>
           <button class="btn" onclick="repCSV()">⬇ CSV</button>
@@ -644,7 +645,7 @@ const pc=(a,b)=>b?Math.round(a*100/b)+'%':'—';
 const RDESC={
  pauta:'Documento para a reunião: pauta apresentada, sugestões e retomada dos encaminhamentos em aberto.',
  ata:'Registro do que foi tratado e do andamento dos encaminhamentos.',
- quadro:'Encaminhamentos da reunião em cartões (estilo post-it) para imprimir e fixar no quadro de avisos. Escolha quais entram e a orientação da folha.',
+ quadro:'Título da reunião e, para cada item da pauta, seus encaminhamentos em cartões (estilo post-it). Imprima ou baixe em JPG para fixar no quadro de avisos.',
  abertos:'Tudo o que ainda não foi concluído, ordenado por prazo.',
  atrasos:'Encaminhamentos com prazo vencido ou sem prazo definido — o que precisa de cobrança.',
  resp:'Quantos encaminhamentos cada pessoa ou grupo recebeu e quanto foi cumprido.',
@@ -657,35 +658,99 @@ const RDESC={
 const GRUPOS={pauta:['reu','sug','ret'],ata:['reu'],quadro:['reu','qop'],abertos:['tipo','resp'],atrasos:['tipo','resp'],resp:['tipo','per'],assunto:['ass','tipo','resp','per'],recorr:['tipo','per'],tipo:['per'],periodo:['tipo','resp','per'],definir:['tipo','per'],sugestoes:['tipo','per']};
 
 
-/* ═══ QUADRO DE AVISOS (encaminhamentos de uma reunião, para imprimir) ═══ */
+/* ═══ QUADRO DE AVISOS (encaminhamentos por item da pauta — imprimir ou baixar em JPG) ═══ */
 const quadroCSS=`
 .qd{font-family:Arial,Helvetica,sans-serif;color:#1F2937;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.qd .q-head{background:#0F766E;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:18px}
+.qd .q-head{background:#0F766E;color:#fff;border-radius:12px;padding:16px 20px;margin-bottom:20px}
 .qd .q-kick{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:700}
-.qd .q-title{font-size:24px;font-weight:800;line-height:1.15;margin:4px 0}
+.qd .q-title{font-size:26px;font-weight:800;line-height:1.15;margin:4px 0}
 .qd .q-meta{font-size:13px;opacity:.92}
+.qd .q-grp{margin-bottom:22px}
+.qd .q-gh{background:#F1F5F4;border-left:8px solid #0F766E;border-radius:6px;padding:8px 14px;font-weight:800;font-size:17px;line-height:1.25;margin-bottom:16px;break-after:avoid;page-break-after:avoid}
+.qd .q-gh small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#555;margin-bottom:2px}
 .qd .q-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 16px}
 .qd.land .q-grid{grid-template-columns:repeat(3,1fr)}
 .qd .q-card{position:relative;border-radius:6px;padding:20px 14px 12px;font-size:var(--fs,15px);break-inside:avoid;page-break-inside:avoid;border:1px solid rgba(0,0,0,.14);box-shadow:0 2px 0 rgba(0,0,0,.1)}
 .qd .q-y{background:#FFF3B0}.qd .q-p{background:#FFD6E0}.qd .q-b{background:#CDE7FF}.qd .q-g{background:#CFF0D8}
 .qd .q-pin{position:absolute;top:-8px;left:50%;margin-left:-8px;width:16px;height:16px;border-radius:50%;background:#D92D20;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
-.qd .q-item{font-size:.68em;text-transform:uppercase;letter-spacing:.05em;color:#555;font-weight:700;margin-bottom:5px}
 .qd .q-tx{font-size:1.1em;font-weight:700;line-height:1.3;margin-bottom:9px}
 .qd .q-row{font-size:.82em;display:flex;flex-wrap:wrap;gap:3px 14px}
 .qd .q-st{display:inline-block;margin-top:9px;padding:2px 10px;border-radius:99px;font-size:.7em;font-weight:700;background:#fff;border:1px solid rgba(0,0,0,.25)}
 .qd .q-st-good{background:#17653F;color:#fff;border-color:transparent}.qd .q-st-blue{background:#1E40AF;color:#fff;border-color:transparent}.qd .q-st-warn{background:#7A5B00;color:#fff;border-color:transparent}
 .qd .q-late{color:#D92D20;font-weight:700;font-style:normal}
 .qd .q-and{margin-top:8px;font-size:.78em;font-style:italic;color:#444;border-top:1px dashed rgba(0,0,0,.3);padding-top:5px}
-.qd .q-foot{margin-top:16px;font-size:11px;color:#666;text-align:center}
 `;
-function quadroHTML(r,list,orient,comAnd,escola){
+let quadroDados=null;
+/* agrupa os encaminhamentos pelo item da pauta, na ordem da pauta */
+function quadroGrupos(r,list){
+  const used=new Set(),gs=[];
+  itensDe(r).forEach(it=>{const ls=list.filter(e=>(e.secao||'')===it.sec&&e.item===it.x);ls.forEach(e=>used.add(e));if(ls.length)gs.push({sec:it.sec,item:it.x,ls});});
+  const rest=list.filter(e=>!used.has(e));if(rest.length)gs.push({sec:'',item:'Outros encaminhamentos',ls:rest});
+  return gs;
+}
+const quadroMeta=r=>[fmtData(r.data,1),r.horario,r.local,r.tipo].filter(Boolean).join(' · ');
+function quadroHTML(r,list,orient,comAnd){
+  quadroDados={r,list,orient,comAnd};
   const n=list.length,fs=n<=4?17:n<=8?15:n<=14?13:12,cores=['y','p','b','g'];
-  const cards=list.map((e,i)=>`<div class="q-card q-${cores[i%4]}"><span class="q-pin"></span>
+  const body=quadroGrupos(r,list).map((g,gi)=>`<div class="q-grp"><div class="q-gh">${g.sec?`<small>${esc(g.sec)}</small>`:''}${esc(g.item)}</div><div class="q-grid">${g.ls.map(e=>`<div class="q-card q-${cores[gi%4]}"><span class="q-pin"></span>
     <div class="q-tx">${esc(e.texto)}</div>
     <div class="q-row"><span>👤 <b>${esc(e.responsavel||'A definir')}</b></span><span>📅 ${e.prazo?fmtData(e.prazo):'sem prazo'}${atrasado(e)?' <i class="q-late">· atrasado</i>':''}</span></div>
     <div class="q-st q-st-${stCls(e.status)}">${esc(e.status)}</div>
-    ${comAnd&&e.andamento?`<div class="q-and">${esc(e.andamento)}</div>`:''}</div>`).join('');
-  return `<div class="qd ${orient}" style="--fs:${fs}px"><div class="q-grid">${cards}</div></div>`;
+    ${comAnd&&e.andamento?`<div class="q-and">${esc(e.andamento)}</div>`:''}</div>`).join('')}</div></div>`).join('');
+  return `<div class="qd ${orient}" style="--fs:${fs}px"><div class="q-head"><div class="q-kick">Quadro de avisos · Encaminhamentos</div><div class="q-title">${esc(r.titulo)}</div><div class="q-meta">${esc(quadroMeta(r))}</div></div>${body}</div>`;
+}
+/* gera a imagem JPG do quadro direto em canvas (não depende de bibliotecas externas) */
+function quadroJPG(){
+  if(!quadroDados||!rep.quadro){toast('Gere o quadro primeiro.');return;}
+  const {r,list,orient,comAnd}=quadroDados,land=orient==='land',W=land?1754:1240,M=50,GAP=24,cols=land?3:2,F='Arial,Helvetica,sans-serif';
+  const cw=(W-2*M-GAP*(cols-1))/cols,CORES=['#FFF3B0','#FFD6E0','#CDE7FF','#CFF0D8'],gs=quadroGrupos(r,list);
+  const cv=document.createElement('canvas');cv.width=W;cv.height=100;const c=cv.getContext('2d');
+  const font=(px,w,it)=>`${it?'italic ':''}${w||'normal'} ${px}px ${F}`;
+  const wrap=(t,px,w,maxW,it)=>{c.font=font(px,w,it);const out=[];String(t).split('\n').forEach(par=>{let ln='';par.split(/\s+/).forEach(wd=>{const tt=ln?ln+' '+wd:wd;if(c.measureText(tt).width>maxW&&ln){out.push(ln);ln=wd;}else ln=tt;});out.push(ln);});return out;};
+  const rr=(x,y,w,h,rad)=>{c.beginPath();c.moveTo(x+rad,y);c.arcTo(x+w,y,x+w,y+h,rad);c.arcTo(x+w,y+h,x,y+h,rad);c.arcTo(x,y+h,x,y,rad);c.arcTo(x,y,x+w,y,rad);c.closePath();};
+  const PILL={good:['#17653F','#fff'],blue:['#1E40AF','#fff'],warn:['#7A5B00','#fff']};
+  const card=(x,y,e,col,H,draw)=>{
+    const pad=26,inner=cw-2*pad;
+    const tl=wrap(e.texto,30,'bold',inner),rl=wrap('Responsável: '+(e.responsavel||'A definir'),24,'normal',inner),and=comAnd&&e.andamento?wrap(e.andamento,22,'normal',inner,true):[];
+    const pz='Prazo: '+(e.prazo?fmtData(e.prazo):'sem prazo')+(atrasado(e)?'  ·  ATRASADO':'');
+    const need=pad+10+tl.length*40+10+rl.length*32+32+16+38+(and.length?16+and.length*30:0)+pad;
+    if(!draw)return need;
+    c.save();c.shadowColor='rgba(0,0,0,.2)';c.shadowBlur=8;c.shadowOffsetY=3;c.fillStyle=col;rr(x,y,cw,H,10);c.fill();c.restore();
+    c.strokeStyle='rgba(0,0,0,.15)';c.lineWidth=2;rr(x,y,cw,H,10);c.stroke();
+    c.fillStyle='#D92D20';c.beginPath();c.arc(x+cw/2,y,12,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+    let cy=y+pad+10,tx=x+pad;c.textBaseline='top';
+    c.fillStyle='#111';c.font=font(30,'bold');tl.forEach((l,i)=>c.fillText(l,tx,cy+i*40));cy+=tl.length*40+10;
+    c.fillStyle='#1F2937';c.font=font(24,'normal');rl.forEach((l,i)=>c.fillText(l,tx,cy+i*32));cy+=rl.length*32;
+    c.fillStyle=atrasado(e)?'#D92D20':'#1F2937';c.font=font(24,atrasado(e)?'bold':'normal');c.fillText(pz,tx,cy);cy+=32+16;
+    const pc=PILL[stCls(e.status)]||['#fff','#111'];c.font=font(22,'bold');const pw=c.measureText(e.status).width+32;
+    c.fillStyle=pc[0];rr(tx,cy,pw,38,19);c.fill();if(pc[0]==='#fff'){c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.stroke();}
+    c.fillStyle=pc[1];c.fillText(e.status,tx+16,cy+8);cy+=38;
+    if(and.length){cy+=16;c.strokeStyle='rgba(0,0,0,.3)';c.lineWidth=2;c.setLineDash([6,5]);c.beginPath();c.moveTo(tx,cy-8);c.lineTo(tx+inner,cy-8);c.stroke();c.setLineDash([]);
+      c.fillStyle='#444';c.font=font(22,'normal',true);and.forEach((l,i)=>c.fillText(l,tx,cy+i*30));}
+    return need;
+  };
+  const run=draw=>{
+    c.textBaseline='top';let y=M;
+    const tl=wrap(r.titulo,46,'bold',W-2*M-60),ml=wrap(quadroMeta(r),26,'normal',W-2*M-60),hh=30+28+tl.length*56+6+ml.length*34+30;
+    if(draw){c.fillStyle='#0F766E';rr(M,y,W-2*M,hh,18);c.fill();c.fillStyle='rgba(255,255,255,.85)';c.font=font(22,'bold');c.fillText('QUADRO DE AVISOS · ENCAMINHAMENTOS',M+30,y+30);
+      c.fillStyle='#fff';c.font=font(46,'bold');tl.forEach((l,i)=>c.fillText(l,M+30,y+58+i*56));c.font=font(26,'normal');ml.forEach((l,i)=>c.fillText(l,M+30,y+58+tl.length*56+6+i*34));}
+    y+=hh+34;
+    gs.forEach((g,gi)=>{
+      const il=wrap(g.item,32,'bold',W-2*M-50),gh=14+(g.sec?28:0)+il.length*42+14;
+      if(draw){c.fillStyle='#F1F5F4';rr(M,y,W-2*M,gh,10);c.fill();c.fillStyle='#0F766E';rr(M,y,10,gh,5);c.fill();let ty=y+14;
+        if(g.sec){c.fillStyle='#555';c.font=font(20,'bold');c.fillText(g.sec.toUpperCase(),M+28,ty);ty+=28;}
+        c.fillStyle='#111';c.font=font(32,'bold');il.forEach((l,i)=>c.fillText(l,M+28,ty+i*42));}
+      y+=gh+26;
+      for(let i=0;i<g.ls.length;i+=cols){const row=g.ls.slice(i,i+cols),H=Math.max(...row.map(e=>card(0,0,e,'',0,false)));
+        if(draw)row.forEach((e,k)=>card(M+k*(cw+GAP),y,e,CORES[gi%4],H,true));
+        y+=H+GAP;}
+      y+=14;
+    });
+    return y+M-GAP;
+  };
+  const H0=run(false);cv.height=Math.max(Math.ceil(H0),Math.round(land?W/1.414:W*1.414));
+  c.fillStyle='#fff';c.fillRect(0,0,W,cv.height);run(true);
+  cv.toBlob(b=>{if(b){baixar(b,nomeArq()+'.jpg');toast('Imagem JPG gerada.');}else toast('Não foi possível gerar a imagem.');},'image/jpeg',0.93);
 }
 
 function renderRel(){
@@ -694,7 +759,7 @@ function renderRel(){
   opts('rFTipo','Todos os tipos',TIPOS);opts('rResp','Todos os responsáveis',nomesConhecidos());
   const ea=$('rAss');if(!ea.options.length)ea.innerHTML='<option value="">Escolha um assunto…</option>'+TEMAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
   const tipo=$('rTipo').value,g=GRUPOS[tipo]||[];
-  $('rDesc').textContent=RDESC[tipo]||'';
+  $('rDesc').textContent=RDESC[tipo]||'';$('btnJpg').style.display=tipo==='quadro'?'':'none';
   document.querySelectorAll('#p-rel [data-g]').forEach(el=>el.style.display=g.includes(el.dataset.g)?'':'none');
   const escola='Escola Municipal Geraldo Teixeira da Costa — GETECO (Turno Tarde)';
   if(!rows.length){$('repOut').innerHTML='<div class="empty" style="color:#666">Sem reuniões cadastradas.</div>';rep={titulo:'',html:'',rows:[],texto:'',meta:''};return;}
@@ -723,7 +788,7 @@ function renderRel(){
       texto=`*${titulo}*\n${meta}\n${secTxt(secs)}`+(sug.length?`\n\n*Pautas sugeridas*\n${sug.map(s=>'• '+s.texto+(s.autor?' ('+s.autor+')':'')).join('\n')}`:'')+(ret.length?`\n\n*Retomada de encaminhamentos em aberto*\n${ret.map(txtEnc).join('\n')}`:'');
     }else{
       titulo=`Registro da reunião — ${r.titulo}`;
-      html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada e encaminhamentos por item</h2>${secs.length?pautaComEnc(r,true):'<p><i>—</i></p>'}
+      html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada</h2>${secs.length?secHTML(secs):'<p><i>—</i></p>'}
         <h2>Pautas sugeridas</h2>${r.sugestoes.length?`<ul>${r.sugestoes.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''} — <b>${esc(s.status)}</b></li>`).join('')}</ul>`:'<p><i>Nenhuma.</i></p>'}
         <h2>Encaminhamentos</h2>${r.encaminhamentos.length?tabH(['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],r.encaminhamentos.map(e=>[itemTxt(e)||'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status,e.andamento||''])):'<p><i>Nenhum.</i></p>'}
         <p style="margin-top:28px">Assinaturas/lista de presença: ______________________________________________</p>`;
@@ -737,7 +802,7 @@ function renderRel(){
     titulo=`Quadro de avisos — ${r.titulo}`;meta=`${escola}\n${fmtData(r.data,1)} · ${r.tipo}`;
     tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...list.map(e=>[e.item||'',e.texto,e.responsavel||'',e.prazo?fmtData(e.prazo):'',e.status,e.andamento||''])];
     texto=`*${titulo}*\n${meta}\n\n`+(list.map(txtEnc2=>`• ${txtEnc2.texto} — ${txtEnc2.responsavel||'—'}${txtEnc2.prazo?' (prazo '+fmtData(txtEnc2.prazo)+')':''} [${txtEnc2.status}]`).join('\n')||'—');
-    if(list.length){quadro=orient;html=quadroHTML(r,list,orient,$('qAnd').checked,escola);}
+    if(list.length){quadro=orient;html=quadroHTML(r,list,orient,$('qAnd').checked);}
     else{vazio=true;html=`<div class="empty" style="color:#666">${r.encaminhamentos.length?'Nenhum encaminhamento em aberto nesta reunião. Escolha “Todos os encaminhamentos” para incluir os concluídos.':'Esta reunião ainda não tem encaminhamentos registrados.'}</div>`;}
   }
   if(tipo==='abertos'||tipo==='atrasos'){
