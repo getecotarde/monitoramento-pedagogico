@@ -381,6 +381,9 @@ function nomesConhecidos(){
   rows.forEach(r=>{add(r.responsavel);r.encaminhamentos.forEach(e=>add(e.responsavel));r.sugestoes.forEach(s=>add(s.autor));});
   return [...set].sort((a,b)=>a.localeCompare(b,'pt'));
 }
+/* encaminhamentos na ordem em que o item aparece na pauta original (sem vínculo, por último) */
+function encOrd(r){const ord=new Map();itensDe(r).forEach((it,i)=>ord.set(it.sec+'\u0001'+it.x,i));
+  return r.encaminhamentos.map((e,i)=>({e,i,k:ord.has((e.secao||'')+'\u0001'+e.item)?ord.get((e.secao||'')+'\u0001'+e.item):1e9})).sort((a,b)=>a.k-b.k||a.i-b.i).map(x=>x.e);}
 const todosEnc=()=>rows.flatMap(r=>r.encaminhamentos.map(e=>({e,r})));
 const atrasado=e=>e.prazo&&e.prazo<hojeISO()&&['Não iniciado','Em andamento'].includes(e.status);
 const aberto=e=>['Não iniciado','Em andamento','A confirmar'].includes(e.status);
@@ -474,7 +477,7 @@ function renderDetalhe(){
     ${podeSugerir()?`<div class="addrow"><input id="sgTxt" placeholder="Sugerir um item de pauta…"><input id="sgAut" list="dlNomes" placeholder="Seu nome" style="max-width:200px"><button class="btn pri" onclick="addSug(${r.id})">+ Sugerir</button></div>`:''}</div>
   <div class="card"><h3>✅ Encaminhamentos <span class="chip">${r.encaminhamentos.length}</span></h3><div class="sub">Acompanhe o andamento de cada encaminhamento${ed?' — altere o status e registre o andamento':''}. Todo encaminhamento é vinculado a um item da pauta.</div>
     ${semVinculo(r).length?`<div class="notice">⚠ ${semVinculo(r).length} encaminhamento(s) sem vínculo com a pauta (o item foi alterado ou removido). ${ed?'Use ✎ Editar para vincular novamente.':''}</div>`:''}
-    ${r.encaminhamentos.map(e=>encHTML(r,e,ed)).join('')||'<div class="empty" style="padding:12px">Nenhum encaminhamento registrado.</div>'}
+    ${encOrd(r).map(e=>encHTML(r,e,ed)).join('')||'<div class="empty" style="padding:12px">Nenhum encaminhamento registrado.</div>'}
     ${ed?`<div style="margin-top:8px"><button class="btn pri" onclick="abrirEnc(${r.id},null)">+ Novo encaminhamento</button></div>`:''}</div>`;
 }
 const achar=(rid,eid)=>{const r=rows.find(x=>x.id===rid);return[r,r&&r.encaminhamentos.find(e=>e.id===eid)];};
@@ -790,15 +793,15 @@ function renderRel(){
       titulo=`Registro da reunião — ${r.titulo}`;
       html=`${r.participantes?`<p><b>Participantes:</b> ${esc(r.participantes)}</p>`:''}${r.responsavel?`<p><b>Condução/registro:</b> ${esc(r.responsavel)}</p>`:''}<h2>Pauta apresentada</h2>${secs.length?secHTML(secs):'<p><i>—</i></p>'}
         <h2>Pautas sugeridas</h2>${r.sugestoes.length?`<ul>${r.sugestoes.map(s=>`<li>${esc(s.texto)}${s.autor?` <i>(${esc(s.autor)})</i>`:''} — <b>${esc(s.status)}</b></li>`).join('')}</ul>`:'<p><i>Nenhuma.</i></p>'}
-        <h2>Encaminhamentos</h2>${r.encaminhamentos.length?tabH(['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],r.encaminhamentos.map(e=>[itemTxt(e)||'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status,e.andamento||''])):'<p><i>Nenhum.</i></p>'}
+        <h2>Encaminhamentos</h2>${encOrd(r).length?tabH(['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],encOrd(r).map(e=>[itemTxt(e)||'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status,e.andamento||''])):'<p><i>Nenhum.</i></p>'}
         <p style="margin-top:28px">Assinaturas/lista de presença: ______________________________________________</p>`;
-      tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...r.encaminhamentos.map(e=>[itemTxt(e),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
-      texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(r.encaminhamentos.map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.item?' · item: '+e.item:''}${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
+      tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...encOrd(r).map(e=>[itemTxt(e),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
+      texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(encOrd(r).map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.item?' · item: '+e.item:''}${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
     }
   }
   if(tipo==='quadro'){
     const r=rows.find(x=>x.id===+er.value)||lista[0],orient=$('qOr').value==='land'?'land':'port',soAb=$('qSt').value==='abertos';
-    const list=r.encaminhamentos.filter(e=>soAb?aberto(e):true);
+    const list=encOrd(r).filter(e=>soAb?aberto(e):true);
     titulo=`Quadro de avisos — ${r.titulo}`;meta=`${escola}\n${fmtData(r.data,1)} · ${r.tipo}`;
     tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...list.map(e=>[e.item||'',e.texto,e.responsavel||'',e.prazo?fmtData(e.prazo):'',e.status,e.andamento||''])];
     texto=`*${titulo}*\n${meta}\n\n`+(list.map(txtEnc2=>`• ${txtEnc2.texto} — ${txtEnc2.responsavel||'—'}${txtEnc2.prazo?' (prazo '+fmtData(txtEnc2.prazo)+')':''} [${txtEnc2.status}]`).join('\n')||'—');
