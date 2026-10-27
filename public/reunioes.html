@@ -217,6 +217,7 @@ td.nw{white-space:nowrap}
           <optgroup label="Documentos da reunião">
             <option value="pauta">Pauta da reunião</option>
             <option value="ata">Registro / ata da reunião</option>
+            <option value="quadro">Quadro de avisos (encaminhamentos da ata)</option>
           </optgroup>
           <optgroup label="Acompanhamento de encaminhamentos">
             <option value="abertos">Encaminhamentos em aberto</option>
@@ -236,6 +237,7 @@ td.nw{white-space:nowrap}
         <span class="grp" data-g="ass"><select id="rAss" onchange="$('rAssTxt').value='';renderRel()" style="min-width:200px"></select><input id="rAssTxt" placeholder="ou digite um assunto…" oninput="$('rAss').value='';renderRel()" style="min-width:170px"></span>
         <select id="rFTipo" data-g="tipo" onchange="renderRel()"></select>
         <select id="rResp" data-g="resp" onchange="renderRel()"></select>
+        <span class="grp" data-g="qop"><select id="qSt" onchange="renderRel()" style="min-width:0" title="Quais encaminhamentos entram no quadro"><option value="abertos">Somente em aberto</option><option value="todos">Todos os encaminhamentos</option></select><select id="qOr" onchange="renderRel()" style="min-width:0" title="Orientação da folha"><option value="port">Folha em pé (retrato)</option><option value="land">Folha deitada (paisagem)</option></select><label style="font-size:12.5px;color:var(--tx2)"><input type="checkbox" id="qAnd" onchange="renderRel()" style="min-width:0"> mostrar andamento</label></span>
         <span class="grp" data-g="per"><span style="font-size:12px;color:var(--tx2)">de</span><input type="date" id="rDe" onchange="renderRel()" style="min-width:0"><span style="font-size:12px;color:var(--tx2)">até</span><input type="date" id="rAte" onchange="renderRel()" style="min-width:0"></span>
       </div>
       <div class="filters" style="margin-bottom:0">
@@ -459,6 +461,7 @@ function renderDetalhe(){
       <button class="btn pri" onclick="abrirSlides()">▶ Apresentar</button>
       <button class="btn" onclick="gerarDe(${r.id},'pauta')">📄 Gerar pauta</button>
       <button class="btn" onclick="gerarDe(${r.id},'ata')">📝 Registro / ata</button>
+      <button class="btn" onclick="gerarDe(${r.id},'quadro')" title="Imprimir os encaminhamentos em formato de quadro de avisos">📋 Quadro de avisos</button>
       ${ed?`<button class="btn" onclick="abrirReuniao(${r.id})">✎ Editar reunião</button>`:''}
     </div>
   </div>
@@ -641,6 +644,7 @@ const pc=(a,b)=>b?Math.round(a*100/b)+'%':'—';
 const RDESC={
  pauta:'Documento para a reunião: pauta apresentada, sugestões e retomada dos encaminhamentos em aberto.',
  ata:'Registro do que foi tratado e do andamento dos encaminhamentos.',
+ quadro:'Encaminhamentos da reunião em cartões (estilo post-it) para imprimir e fixar no quadro de avisos. Escolha quais entram e a orientação da folha.',
  abertos:'Tudo o que ainda não foi concluído, ordenado por prazo.',
  atrasos:'Encaminhamentos com prazo vencido ou sem prazo definido — o que precisa de cobrança.',
  resp:'Quantos encaminhamentos cada pessoa ou grupo recebeu e quanto foi cumprido.',
@@ -650,7 +654,39 @@ const RDESC={
  periodo:'Resumo de um intervalo (mês, trimestre…): reuniões, assuntos, indicadores e pendências.',
  definir:'Itens da pauta marcados como "a definir", "não discutido" ou com interrogação.',
  sugestoes:'Todas as pautas sugeridas, com autor e se foram aceitas.'};
-const GRUPOS={pauta:['reu','sug','ret'],ata:['reu'],abertos:['tipo','resp'],atrasos:['tipo','resp'],resp:['tipo','per'],assunto:['ass','tipo','resp','per'],recorr:['tipo','per'],tipo:['per'],periodo:['tipo','resp','per'],definir:['tipo','per'],sugestoes:['tipo','per']};
+const GRUPOS={pauta:['reu','sug','ret'],ata:['reu'],quadro:['reu','qop'],abertos:['tipo','resp'],atrasos:['tipo','resp'],resp:['tipo','per'],assunto:['ass','tipo','resp','per'],recorr:['tipo','per'],tipo:['per'],periodo:['tipo','resp','per'],definir:['tipo','per'],sugestoes:['tipo','per']};
+
+
+/* ═══ QUADRO DE AVISOS (encaminhamentos de uma reunião, para imprimir) ═══ */
+const quadroCSS=`
+.qd{font-family:Arial,Helvetica,sans-serif;color:#1F2937;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.qd .q-head{background:#0F766E;color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:18px}
+.qd .q-kick{font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;font-weight:700}
+.qd .q-title{font-size:24px;font-weight:800;line-height:1.15;margin:4px 0}
+.qd .q-meta{font-size:13px;opacity:.92}
+.qd .q-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 16px}
+.qd.land .q-grid{grid-template-columns:repeat(3,1fr)}
+.qd .q-card{position:relative;border-radius:6px;padding:20px 14px 12px;font-size:var(--fs,15px);break-inside:avoid;page-break-inside:avoid;border:1px solid rgba(0,0,0,.14);box-shadow:0 2px 0 rgba(0,0,0,.1)}
+.qd .q-y{background:#FFF3B0}.qd .q-p{background:#FFD6E0}.qd .q-b{background:#CDE7FF}.qd .q-g{background:#CFF0D8}
+.qd .q-pin{position:absolute;top:-8px;left:50%;margin-left:-8px;width:16px;height:16px;border-radius:50%;background:#D92D20;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.qd .q-item{font-size:.68em;text-transform:uppercase;letter-spacing:.05em;color:#555;font-weight:700;margin-bottom:5px}
+.qd .q-tx{font-size:1.1em;font-weight:700;line-height:1.3;margin-bottom:9px}
+.qd .q-row{font-size:.82em;display:flex;flex-wrap:wrap;gap:3px 14px}
+.qd .q-st{display:inline-block;margin-top:9px;padding:2px 10px;border-radius:99px;font-size:.7em;font-weight:700;background:#fff;border:1px solid rgba(0,0,0,.25)}
+.qd .q-st-good{background:#17653F;color:#fff;border-color:transparent}.qd .q-st-blue{background:#1E40AF;color:#fff;border-color:transparent}.qd .q-st-warn{background:#7A5B00;color:#fff;border-color:transparent}
+.qd .q-late{color:#D92D20;font-weight:700;font-style:normal}
+.qd .q-and{margin-top:8px;font-size:.78em;font-style:italic;color:#444;border-top:1px dashed rgba(0,0,0,.3);padding-top:5px}
+.qd .q-foot{margin-top:16px;font-size:11px;color:#666;text-align:center}
+`;
+function quadroHTML(r,list,orient,comAnd,escola){
+  const n=list.length,fs=n<=4?17:n<=8?15:n<=14?13:12,cores=['y','p','b','g'];
+  const cards=list.map((e,i)=>`<div class="q-card q-${cores[i%4]}"><span class="q-pin"></span>
+    <div class="q-tx">${esc(e.texto)}</div>
+    <div class="q-row"><span>👤 <b>${esc(e.responsavel||'A definir')}</b></span><span>📅 ${e.prazo?fmtData(e.prazo):'sem prazo'}${atrasado(e)?' <i class="q-late">· atrasado</i>':''}</span></div>
+    <div class="q-st q-st-${stCls(e.status)}">${esc(e.status)}</div>
+    ${comAnd&&e.andamento?`<div class="q-and">${esc(e.andamento)}</div>`:''}</div>`).join('');
+  return `<div class="qd ${orient}" style="--fs:${fs}px"><div class="q-grid">${cards}</div></div>`;
+}
 
 function renderRel(){
   const lista=rows.slice().sort((a,b)=>b.data.localeCompare(a.data));
@@ -667,7 +703,7 @@ function renderRel(){
   const encs=base.flatMap(r=>r.encaminhamentos.filter(e=>!fr||norm(e.responsavel).includes(fr)).map(e=>({e,r})));
   const filtTxt=[ftp&&'tipo: '+ftp,$('rResp').value&&g.includes('resp')&&'responsável: '+$('rResp').value,de&&'de '+fmtData(de),ate&&'até '+fmtData(ate)].filter(Boolean).join(' · ');
   const meta0=`${escola}\nGerado em ${fmtData(hojeISO())}${filtTxt?' · '+filtTxt:''}`;
-  let titulo='',html='',tab=[],texto='',meta=meta0;
+  let titulo='',html='',tab=[],texto='',meta=meta0,quadro=null,vazio=false;
   const encTab=(l,cols)=>tabH(cols,l);
   const COLS_ENC=['Origem (data · reunião)','Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'];
   const linhaEnc=({e,r})=>[ref(r),itemTxt(e)||'—',e.texto,e.responsavel||'—',e.prazo?fmtData(e.prazo):'—',e.status+(atrasado(e)?' (atrasado)':''),e.andamento||''];
@@ -694,6 +730,15 @@ function renderRel(){
       tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...r.encaminhamentos.map(e=>[itemTxt(e),e.texto,e.responsavel,e.prazo?fmtData(e.prazo):'',e.status,e.andamento])];
       texto=`*${titulo}*\n${meta}\n\n*Encaminhamentos*\n`+(r.encaminhamentos.map(e=>`• ${e.texto} — ${e.responsavel||'—'}${e.prazo?' (prazo '+fmtData(e.prazo)+')':''} [${e.status}]${e.item?' · item: '+e.item:''}${e.andamento?' · '+e.andamento:''}`).join('\n')||'—');
     }
+  }
+  if(tipo==='quadro'){
+    const r=rows.find(x=>x.id===+er.value)||lista[0],orient=$('qOr').value==='land'?'land':'port',soAb=$('qSt').value==='abertos';
+    const list=r.encaminhamentos.filter(e=>soAb?aberto(e):true);
+    titulo=`Quadro de avisos — ${r.titulo}`;meta=`${escola}\n${fmtData(r.data,1)} · ${r.tipo}`;
+    tab=[['Item da pauta','Encaminhamento','Responsável','Prazo','Status','Andamento'],...list.map(e=>[e.item||'',e.texto,e.responsavel||'',e.prazo?fmtData(e.prazo):'',e.status,e.andamento||''])];
+    texto=`*${titulo}*\n${meta}\n\n`+(list.map(txtEnc2=>`• ${txtEnc2.texto} — ${txtEnc2.responsavel||'—'}${txtEnc2.prazo?' (prazo '+fmtData(txtEnc2.prazo)+')':''} [${txtEnc2.status}]`).join('\n')||'—');
+    if(list.length){quadro=orient;html=quadroHTML(r,list,orient,$('qAnd').checked,escola);}
+    else{vazio=true;html=`<div class="empty" style="color:#666">${r.encaminhamentos.length?'Nenhum encaminhamento em aberto nesta reunião. Escolha “Todos os encaminhamentos” para incluir os concluídos.':'Esta reunião ainda não tem encaminhamentos registrados.'}</div>`;}
   }
   if(tipo==='abertos'||tipo==='atrasos'){
     const l=encs.filter(({e})=>tipo==='abertos'?aberto(e):(atrasado(e)||(['Não iniciado','Em andamento'].includes(e.status)&&!e.prazo))).sort((a,b)=>(a.e.prazo||'9999').localeCompare(b.e.prazo||'9999'));
@@ -772,13 +817,13 @@ function renderRel(){
     html=`<div class="kv"><div><b>${ln.length}</b>sugestões</div><div><b>${c('Aceita')}</b>aceitas</div><div><b>${c('Sugerida')}</b>aguardando</div><div><b>${c('Descartada')}</b>descartadas</div></div>`+tabH(cols,ln);
     texto=`*${titulo}*\n`+ln.map(l=>`• ${l[1]} (${l[2]}) — ${l[4]}`).join('\n');
   }
-  $('repOut').innerHTML=`<h1>${esc(titulo)}</h1><div class="meta">${esc(meta).replace(/\n/g,'<br>')}</div>${html}`;
-  rep={titulo,html,rows:tab,texto,meta};
+  $('repOut').innerHTML=quadro?`<style>${quadroCSS}</style>${html}`:vazio?html:`<h1>${esc(titulo)}</h1><div class="meta">${esc(meta).replace(/\n/g,'<br>')}</div>${html}`;
+  rep={titulo,html,rows:tab,texto,meta,quadro,vazio};
 }
 const tabH=(cab,l)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${l.map(x=>`<tr>${x.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 const docCSS=`@page{size:A4 portrait;margin:14mm}body{font-family:Arial,sans-serif;color:#111;font-size:12px;line-height:1.45}h1{font-size:18px;margin:0 0 2px}.meta{color:#555;margin-bottom:12px}h2{font-size:13px;margin:14px 0 4px;color:#0F766E;text-transform:uppercase;border-bottom:1px solid #ccc;padding-bottom:2px}h3{font-size:12.5px;margin:9px 0 2px}ul{padding-left:20px;margin:2px 0 6px}li.n2{list-style:circle;margin-left:16px;color:#444}.lnk{font-size:11px;color:#333;margin:2px 0 3px 2px;list-style:none}table{width:100%;border-collapse:collapse;margin:6px 0 10px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}th{background:#F3C99B;color:#4A2E0B;border:1px solid #bbb;padding:4px 5px;text-align:left;font-size:11px}td{border:1px solid #ccc;padding:4px 5px;vertical-align:top}tr{page-break-inside:avoid}`;
-const docHTML=()=>`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>${docCSS}</style></head><body><h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}</body></html>`;
-function repImprimir(){if(!rep.html){toast('Nada para imprimir.');return;}const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(docHTML());d.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);}
+const docHTML=()=>rep.quadro?`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>@page{size:A4 ${rep.quadro==='land'?'landscape':'portrait'};margin:10mm}body{margin:0}${quadroCSS}</style></head><body>${rep.html}</body></html>`:`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(rep.titulo)}</title><style>${docCSS}</style></head><body><h1>${esc(rep.titulo)}</h1><div class="meta">${esc(rep.meta).replace(/\n/g,'<br>')}</div>${rep.html}</body></html>`;
+function repImprimir(){if(!rep.html||rep.vazio){toast('Nada para imprimir.');return;}const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const d=f.contentWindow.document;d.open();d.write(docHTML());d.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),2000);},350);}
 function baixar(blob,nome){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);}
 const nomeArq=()=>(rep.titulo||'reuniao').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').slice(0,60);
 function repWord(){if(!rep.html){toast('Nada para exportar.');return;}baixar(new Blob(['\ufeff'+docHTML()],{type:'application/msword'}),nomeArq()+'.doc');}
