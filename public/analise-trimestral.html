@@ -716,6 +716,51 @@ body{
 .rp-page .fm-stk{border-radius:999px;}
 .rp-page .rp-bar, .rp-page .rp-bar i{border-radius:3px;}
 .rep-preview .rp-page{border-radius:10px;}
+
+/* ===== Quadro da turma: risco de O.E.R x disciplinas, com adaptação/diagnóstico ===== */
+@page rpland{ size:A4 landscape; margin:7mm; }
+.rep-preview .rp-page.rp-land{ width:281mm; zoom:.9; }
+.qd-table{ width:100%; border-collapse:collapse; table-layout:fixed; color:#000; font-size:8pt; }
+.qd-table th, .qd-table td{ border:.7px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; background:#fff; }
+.qd-table th{ font-size:7pt; font-weight:800; text-transform:uppercase; line-height:1.1; border-bottom:1.6px solid #000; }
+.qd-table th.l, .qd-table td.l{ text-align:left; }
+.qd-table th.qd-d{ padding:3px 0; vertical-align:bottom; }
+.qd-table th.qd-d span{ display:inline-block; writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font-size:7.2pt; line-height:1.1; }
+.qd-table tr{ break-inside:avoid; page-break-inside:avoid; }
+.qd-table thead{ display:table-header-group; }
+.qd-table td.x{ font-weight:900; font-size:11pt; background:#e4e4e4; }
+.qd-table td.nm{ font-weight:600; }
+.qd-table tr.ad td, .qd-table tr.rf td{ background:#f1f1f1; }
+.qd-table tr.ad td.x, .qd-table tr.rf td.x{ background:#d2d2d2; }
+.qd-table tr.pri td:first-child{ border-left:3.2px solid #000; }
+.qd-table tr.pri td.nm{ font-weight:800; }
+.qd-obs{ font-size:7.4pt; line-height:1.2; }
+.qd-mut{ color:#333; }
+.qd-elev{ margin-top:1px; font-size:6.8pt; font-weight:700; font-style:italic; }
+.qd-chk{ font-size:7pt; line-height:1.25; text-align:left !important; padding-left:5px !important; }
+.qd-prio{ margin:4px 6px; padding:4px 8px; border:1.6px solid #000; background:#fff; font-size:8pt; line-height:1.3; border-radius:8px; }
+.qd-prio .qd-pn{ display:inline-block; margin:2px 8px 0 0; font-weight:700; }
+.qd-prio .qd-pn small{ font-weight:400; }
+.qd-warn{ margin:4px 6px; padding:3px 8px; border:1px dashed #000; background:#fff; font-size:7.6pt; line-height:1.3; border-radius:8px; }
+.rp-land .rp-sec{ margin-bottom:4px; }
+/* editor de cadastro (tela) */
+.ad-map{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin:6px 0; background:#fafaf5; font-size:12.5px; }
+.ad-map-t{ max-height:260px; overflow:auto; margin:6px 0; }
+.ad-map table{ border-collapse:collapse; width:100%; }
+.ad-map th, .ad-map td{ border-bottom:1px solid #eee; padding:2px 6px; text-align:center; }
+.ad-map th.l, .ad-map td.l{ text-align:left; }
+.ad-lista{ max-height:340px; overflow:auto; border:1px solid var(--line); border-radius:6px; padding:4px 6px; margin-top:8px; }
+.ad-row{ display:grid; grid-template-columns:minmax(200px,1.3fr) 170px 80px minmax(220px,2fr); gap:8px; align-items:center; padding:3px 2px; border-bottom:1px solid #eee; }
+.ad-row.risco{ background:#fdf3f1; }
+.ad-ref{ font-size:12.5px; display:flex; gap:4px; align-items:center; }
+.ad-nm{ font-size:12.5px; }
+.ad-badge{ font-size:10.5px; font-weight:700; background:#f7b9b0; color:#6b0d00; border-radius:8px; padding:1px 6px; margin-left:4px; white-space:nowrap; }
+.ad-paste{ margin:4px 0 6px; font-size:12.5px; }
+.ad-paste summary{ cursor:pointer; font-weight:600; margin-bottom:4px; }
+.ad-paste textarea{ width:100%; box-sizing:border-box; margin:4px 0; }
+@media print{
+  .print-report-doc .rp-page.rp-land{ page:rpland; width:auto; zoom:1; }
+}
 </style>
 </head>
 <body>
@@ -3162,6 +3207,7 @@ function repComparativoPage(names, V){
 
 // ---------- montagem / pré-visualização / impressão ----------
 function repCurrentVars(){
+  if(repState.modo==='quadro') return new Set(['quadro']);
   if(repState.modo==='turma') return repState.varsTur;
   if(repState.modo==='ind') return new Set(REP_IND_PRESETS.padrao.vars);
   return repState.varsInd;
@@ -3169,6 +3215,11 @@ function repCurrentVars(){
 function repBuild(){
   const S = repState, V = repCurrentVars();
   if(!V.size){ alert('Marque ao menos uma variável para o relatório.'); return null; }
+  if(S.modo==='quadro'){
+    const names = Object.keys(currentClasses).sort().filter(n=>S.turmas.has(n));
+    if(!names.length){ alert('Selecione ao menos uma turma.'); return null; }
+    return names.map(n=>repQuadroPage(currentClasses[n], n)).join('');
+  }
   if(S.modo==='turma'){
     const names = Object.keys(currentClasses).sort().filter(n=>S.turmas.has(n));
     if(!names.length){ alert('Selecione ao menos uma turma.'); return null; }
@@ -3182,14 +3233,16 @@ function repBuild(){
   const t = repRefTri(cd);
   return idxs.map(i=> S.modo==='ind' ? repFamiliaPage(cd, S.turmaAluno, cd.students[i], t) : repIndividualPage(cd, S.turmaAluno, cd.students[i], V, t)).join('');
 }
-function repPreview(){
+async function repPreview(){
+  if(repState.modo==='quadro'){ const r = await adSync(); quadroState.status = r.msg; }
   const html = repBuild(); if(!html) return;
   repState.preview = html;
   const box = document.getElementById('repPreview');
   box.innerHTML = html;
   box.scrollIntoView({behavior:'smooth', block:'start'});
 }
-function repPrint(){
+async function repPrint(){
+  if(repState.modo==='quadro'){ const r = await adSync(); quadroState.status = r.msg; }
   const html = repBuild(); if(!html) return;
   runPrintMode('printReportDoc', html, 'print-mode-report');
 }
@@ -3226,7 +3279,7 @@ function renderReportsTab(){
   S.alunos = new Set([...S.alunos].filter(i=>cdA.students[i]));
   const chg = fn => (...a)=>{ fn(...a); S.preview = null; renderReportsTab(); };
 
-  const scopeNames = S.modo==='turma' ? names.filter(n=>S.turmas.has(n)) : [S.turmaAluno];
+  const scopeNames = (S.modo==='turma'||S.modo==='quadro') ? names.filter(n=>S.turmas.has(n)) : [S.turmaAluno];
   const triUnion = [0,1,2].filter(i=> scopeNames.some(n=>triHasData(currentClasses[n], i)));
   if(S.tri!=='auto' && S.tri!=='ALL' && !triUnion.includes(S.tri)) S.tri = 'auto';
 
@@ -3236,9 +3289,10 @@ function renderReportsTab(){
     ${modeCard('turma','Relatório da turma','Indicadores, resultado por disciplina, alunos em risco de O.E.R, acompanhamento e destaques')}
     ${modeCard('ind','Individual — família e aluno (recomendado)','Uma folha A4 por aluno, em linguagem simples e com gráficos, para a família e o aluno acompanharem e analisarem o trimestre')}
     ${modeCard('indp','Individual — detalhado (escolher variáveis)','Modelo em tabelas para conselho de classe e coordenação, só com as informações que você marcar')}
+    ${modeCard('quadro','Quadro da turma — O.E.R × disciplinas (com adaptação)','Alunos nas linhas e disciplinas nas colunas, com X onde há risco de O.E.R; observações indicam demanda de adaptação e diagnóstico')}
   </div></div>`;
 
-  if(S.modo==='turma'){
+  if(S.modo==='turma' || S.modo==='quadro'){
     const allOn = names.every(n=>S.turmas.has(n));
     h += `<div class="rep-card"><h3>2 · Turmas</h3><div class="oer-tab-controls" style="margin:0">
       <label class="oer-chip all${allOn?' on':''}"><input type="checkbox" id="repAllCb" ${allOn?'checked':''}> Todas</label>
@@ -3254,13 +3308,19 @@ function renderReportsTab(){
       <div class="rep-alunos" id="repAlunos">${ord.map(o=>`<label class="rep-al${S.alunos.has(o.i)?' on':''}" data-nome="${escHtml(o.st.name.toLowerCase())}"><input type="checkbox" class="rep-al-cb" value="${o.i}" ${S.alunos.has(o.i)?'checked':''}> ${escHtml(o.st.name)}</label>`).join('')}</div></div>`;
   }
 
-  h += `<div class="rep-card"><h3>3 · Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
+  if(S.modo!=='quadro') h += `<div class="rep-card"><h3>3 · Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
       <option value="auto" ${S.tri==='auto'?'selected':''}>Último trimestre com notas (recomendado para fim de trimestre)</option>
       ${triUnion.map(i=>`<option value="${i}" ${S.tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}
       <option value="ALL" ${S.tri==='ALL'?'selected':''}>Acumulado do ano (todos os trimestres lado a lado)</option>
     </select></div></div>`;
 
-  if(S.modo==='ind'){
+  if(S.modo==='quadro'){
+    const esc = (v,t)=>`<label class="oer-chip${quadroState.escopo===v?' on':''}"><input type="radio" name="qdEscopo" value="${v}" ${quadroState.escopo===v?'checked':''}> ${t}</label>`;
+    h += `<div class="rep-card"><h3>3 · Opções do quadro</h3><div class="rep-row"><b style="font-size:12.5px">Alunos no quadro:</b>${esc('risco','Somente em risco de O.E.R')}${esc('todos','Toda a turma')}${esc('adapt','Somente adaptação ou reforço')}</div>
+      <div class="rep-row"><label class="oer-chip${quadroState.aplicada?' on':''}"><input type="checkbox" id="qdAplicada" ${quadroState.aplicada?'checked':''}> Coluna “Adaptação aplicada?” (☐ Sim ☐ Não) para conferência dos alunos com adaptação</label></div>
+      <div class="rep-hint">O X marca a disciplina em risco de O.E.R (soma do 1º+2º trimestres abaixo de 36). A coluna Observações mostra se o aluno tem demanda de adaptação e o diagnóstico cadastrado abaixo.</div></div>`;
+    h += adEditorHtml(S, names);
+  } else if(S.modo==='ind'){
     const inc = ['Resumo: frase de leitura, aproveitamento geral e situação nas disciplinas','Gráfico por disciplina, com a média (60%) e a comparação com a turma','Gráfico de evolução ao longo dos trimestres (aluno × turma)','Gráfico dos pontos necessários no 3º trimestre (O.E.R.), quando houver risco','Leitura do trimestre e orientações em linguagem simples','Espaço para o aluno analisar e planejar; observações do professor; ciência do responsável e assinaturas'];
     h += `<div class="rep-card"><h3>4 · O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer um modelo em tabelas, escolhendo as informações? Use “Individual — detalhado”.</div></div>`;
   } else {
@@ -3311,7 +3371,11 @@ function renderReportsTab(){
     document.getElementById('repMarkNone').onclick = chg(()=>{ S.alunos = new Set(); });
   }
   const tri = document.getElementById('repTri');
-  tri.onchange = chg(()=>{ S.tri = (tri.value==='auto'||tri.value==='ALL') ? tri.value : Number(tri.value); });
+  if(tri) tri.onchange = chg(()=>{ S.tri = (tri.value==='auto'||tri.value==='ALL') ? tri.value : Number(tri.value); });
+  main.querySelectorAll('input[name="qdEscopo"]').forEach(r=> r.onchange = chg(()=>{ quadroState.escopo = r.value; }));
+  const qa = document.getElementById('qdAplicada');
+  if(qa) qa.onchange = chg(()=>{ quadroState.aplicada = qa.checked; });
+  if(S.modo==='quadro') adBindEditor(main, S, names);
   main.querySelectorAll('.rep-preset').forEach(b=> b.onclick = chg(()=>{
     const k = b.dataset.p;
     if(S.modo==='turma'){ S.turPreset = k; S.varsTur = new Set(REP_TUR_PRESETS[k].vars); }
@@ -3335,6 +3399,283 @@ function renderReportsTab(){
   document.getElementById('repPrintBtn').onclick = repPrint;
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// QUADRO DA TURMA — RISCO DE O.E.R × DISCIPLINAS, COM ADAPTAÇÃO E DIAGNÓSTICO
+// Cadastro local (localStorage, chave própria — não é apagado ao reimportar PDFs).
+// Estados: a='S' (demanda adaptação) | a='N' (não demanda) | a='' (não informado).
+// ═══════════════════════════════════════════════════════════════════════
+const ADAPT_KEY = 'config:adaptacoes';
+function adLoad(){
+  try{ const o = JSON.parse(localStorage.getItem(ADAPT_KEY)||'{}'); return (o && o.items) ? o : {items:{}}; }
+  catch(e){ return {items:{}}; }
+}
+function adSave(o){
+  try{ localStorage.setItem(ADAPT_KEY, JSON.stringify(o)); return true; }
+  catch(e){ alert('Não foi possível salvar o cadastro de adaptação neste navegador: '+e.message); return false; }
+}
+function adKey(className, name){ return normTurma(shortTurmaLabel(className))+'|'+libNorm(name); }
+function adGet(reg, className, name){ return Object.assign({a:'', d:'', r:false}, reg.items[adKey(className, name)]||{}); }
+function adSet(className, name, patch){
+  const reg = adLoad(), k = adKey(className, name);
+  const cur = Object.assign({a:'', d:'', r:false}, reg.items[k]||{}, patch);
+  cur.d = (cur.d||'').trim();
+  if(!cur.a && !cur.d && !cur.r) delete reg.items[k]; else reg.items[k] = cur;
+  adSave(reg);
+}
+function adClassCount(className){
+  const cd = currentClasses[className]; if(!cd) return {sim:0, nao:0, semInfo:0, ref:0};
+  const reg = adLoad(); let sim=0, nao=0, semInfo=0, ref=0;
+  cd.students.forEach(st=>{ const x = adGet(reg, className, st.name); if(x.r) ref++; if(x.a==='S') sim++; else if(x.a==='N') nao++; else semInfo++; });
+  return {sim, nao, semInfo, ref};
+}
+
+// ---------- montagem do quadro (uma página A4 paisagem por turma) ----------
+const quadroState = { escopo:'risco', aplicada:true };
+
+function repQuadroPage(cd, className){
+  cd.meta = cd.meta || {};
+  const turma = shortTurmaLabel(className);
+  const reg = adLoad();
+  const subs = cd.subjects.map((name,idx)=>({name,idx})).filter(s=>!isLiteratura(s.name));
+  const riskBy = {}; computeRetentionRisk(cd).forEach(r=>{ riskBy[r.name] = r; });
+  const comAd = st => adGet(reg, className, st.name).a==='S';
+  const comRef = st => !!adGet(reg, className, st.name).r;
+  const comEsp = st => comAd(st) || comRef(st);
+  let lista = cd.students.slice();
+  if(quadroState.escopo==='risco') lista = lista.filter(st=>riskBy[st.name]);
+  else if(quadroState.escopo==='adapt') lista = lista.filter(comEsp);
+  lista.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+
+  const totRisco = Object.keys(riskBy).length;
+  const prio = cd.students.filter(st=>riskBy[st.name] && comEsp(st)).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+  const cnt = adClassCount(className);
+  const temParcial = Object.values(riskBy).some(r=>r.parcial);
+  const mostrarAplicada = quadroState.aplicada;
+
+  const head = subs.map(s=>`<th class="qd-d"><span>${escHtml(s.name)}</span></th>`).join('');
+  const rows = lista.map((st,i)=>{
+    const r = riskBy[st.name];
+    const by = {}; if(r) r.subjects.forEach(s=>{ by[s.name] = s; });
+    const ad = adGet(reg, className, st.name);
+    const sim = ad.a==='S';
+    const cells = subs.map(s=>{ const x = by[s.name]; return x ? `<td class="x">X${x.parcial?'*':''}</td>` : `<td></td>`; }).join('');
+    let obs;
+    if(sim) obs = `<b>◆ ADAPTAÇÃO</b>${ad.d ? ' — <b>Diagnóstico:</b> '+escHtml(ad.d) : ' — <i>diagnóstico não informado</i>'}`;
+    else if(ad.a==='N') obs = `<span class="qd-mut">Sem demanda de adaptação</span>`;
+    else obs = `<span class="qd-mut"><i>adaptação não cadastrada</i></span>`;
+    if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>` + (sim ? '' : `<div>${obs}</div>`);
+    if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)</div>`;
+    const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '');
+    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}<td class="l qd-obs">${obs}</td></tr>`;
+  }).join('');
+
+  const nSub = subs.length;
+  const colgroup = `<colgroup><col style="width:7mm"><col style="width:${nSub>8?48:56}mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:18mm">':''}<col style="width:${nSub>8?66:78}mm"></colgroup>`;
+  const tabela = lista.length
+    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th>Adaptação aplicada?</th>':''}<th class="l">Observações — adaptação e diagnóstico</th></tr></thead><tbody>${rows}</tbody></table>`
+    : `<div class="rp-ok">Nenhum aluno nesta seleção.</div>`;
+
+  const aviso = [];
+  if(prio.length){
+    aviso.push(`<div class="qd-prio"><b>ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R <u>e</u> situação especial (adaptação e/ou reforço):</b> confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado e dar atenção especial às atividades de final de ano. ${prio.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>[${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
+  }
+  if(cnt.semInfo===cd.students.length){
+    aviso.push(`<div class="qd-warn">Nenhuma informação de adaptação/diagnóstico foi cadastrada para esta turma. Preencha o cadastro na tela de Relatórios antes de imprimir; a coluna Observações mostra “adaptação não cadastrada”, o que <b>não</b> significa que o aluno não precise de adaptação.</div>`);
+  } else if(cnt.semInfo>0){
+    const semInfoRisco = Object.keys(riskBy).filter(n=>{ const st = cd.students.find(s=>s.name===n); return st && !adGet(reg, className, st.name).a; }).length;
+    if(semInfoRisco) aviso.push(`<div class="qd-warn">${semInfoRisco} aluno${semInfoRisco>1?'s':''} em risco de O.E.R ainda sem informação de adaptação cadastrada (“adaptação não cadastrada”) — conferir com a coordenação/AEE.</div>`);
+  }
+
+  const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
+  const foot = `<div class="rp-foot"><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
+  const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', aviso.join('') + tabela) + rpMsg() + foot;
+  return rpWrap(rpHeader('Quadro da turma — risco de O.E.R por disciplina', escHtml(turma)+' · '+escHtml(effectiveMesAno(cd))), body)
+    .replace('<section class="rp-page">','<section class="rp-page rp-land">');
+}
+
+// ---------- sincronização com o Monitoramento (Supabase, tabela "estudantes") ----------
+const AD_MAP_KEY = 'config:adaptacoesMap';
+let adCache = null;
+function adMapLoad(){ try{ const m = JSON.parse(localStorage.getItem(AD_MAP_KEY)||'null'); return (m && (m.ad||m.dx||m.rf)) ? {ad:m.ad||[], dx:m.dx||[], rf:m.rf||[]} : null; }catch(e){ return null; } }
+function adMapSave(m){ try{ localStorage.setItem(AD_MAP_KEY, JSON.stringify(m)); }catch(e){} }
+async function adFetch(force){
+  if(adCache && !force) return adCache;
+  const out = [], page = 1000;
+  for(let off=0; ; off+=page){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/estudantes?select=*&order=id.asc&limit=${page}&offset=${off}`, { headers: sbHeaders() });
+    const rows = await r.json().catch(()=>null);
+    if(!r.ok || !Array.isArray(rows)) throw new Error('Supabase respondeu com erro ('+r.status+') ao ler "estudantes".');
+    out.push(...rows);
+    if(rows.length < page) break;
+  }
+  adCache = out; return out;
+}
+function adDetectCols(rows){
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  return {
+    cols,
+    ad: cols.filter(c=>/adapt/i.test(c)),
+    dx: cols.filter(c=>/diagn|laudo|\bcid\b|cid_|defici|transtorn|necessid|\bnee\b|\baee\b|atendimento_esp|\bpei\b/i.test(c)),
+    rf: cols.filter(c=>/refor/i.test(c))
+  };
+}
+// Lê o Monitoramento e grava no cadastro (o Monitoramento prevalece; alunos sem dado lá mantêm o cadastro manual).
+async function adSync(){
+  let rows;
+  try{ rows = await adFetch(true); }
+  catch(e){ return {ok:false, msg:'Não foi possível ler o Monitoramento ('+e.message+'). Usando o cadastro já salvo neste navegador.'}; }
+  if(!rows.length) return {ok:false, msg:'A tabela "estudantes" do Monitoramento veio vazia.'};
+  const det = adDetectCols(rows), saved = adMapLoad();
+  const colAd = saved ? saved.ad : det.ad, colDx = saved ? saved.dx : det.dx, colRf = saved ? saved.rf : det.rf;
+  if(!colAd.length && !colDx.length && !colRf.length) return {ok:false, needMap:true, msg:'Não identifiquei sozinho as colunas de adaptação/diagnóstico no Monitoramento. Clique em “Escolher colunas” para indicá-las (só precisa fazer uma vez).'};
+  const norm = v => String(v==null?'':v).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const isYes = v => v===true || /^(s|sim|1|true|x)$/.test(norm(v));
+  const isNo  = v => v===false || /^(n|nao|0|false)$/.test(norm(v));
+  const vazio = v => v==null || v===false || /^(|-|—|n\/a|na|nenhum|nenhuma|nao|n|sem diagn.*)$/.test(norm(v));
+  const txt = v => (v && typeof v==='object') ? JSON.stringify(v) : String(v).trim();
+  const idx = { porTurmaNome:new Map(), porNome:new Map(), porTurma:new Map() };
+  rows.forEach(e=>{
+    const tn = normTurma(e.turma), nn = libNorm(e.nome);
+    idx.porTurmaNome.set(tn+'|'+nn, e);
+    if(!idx.porNome.has(nn)) idx.porNome.set(nn, []); idx.porNome.get(nn).push(e);
+    if(!idx.porTurma.has(tn)) idx.porTurma.set(tn, []); idx.porTurma.get(tn).push(e);
+  });
+  const reg = adLoad(); let comDado=0, semDado=0, naoAchou=0, total=0;
+  Object.keys(currentClasses).forEach(cn=>{
+    currentClasses[cn].students.forEach(st=>{
+      total++;
+      const row = libAcharEstudante(idx, shortTurmaLabel(cn), st.name);
+      if(!row){ naoAchou++; return; }
+      let a = '', d = '';
+      colAd.forEach(c=>{
+        const v = row[c];
+        if(isYes(v)) a = 'S';
+        else if(isNo(v)){ if(a!=='S') a = 'N'; }
+        else if(!vazio(v)){ a = 'S'; if(!d) d = txt(v); }
+      });
+      const dx = colDx.map(c=>row[c]).filter(v=>!vazio(v) && typeof v!=='boolean').map(txt);
+      if(dx.length){ d = [...new Set([d, ...dx].filter(Boolean))].join('; '); if(a!=='N') a = 'S'; }
+      let rv = null;
+      colRf.forEach(c=>{ const v = row[c]; if(isYes(v) || (!vazio(v) && !isNo(v))) rv = true; else if(rv===null && isNo(v)) rv = false; });
+      if(!a && !d && rv===null){ semDado++; return; }
+      const prev = reg.items[adKey(cn, st.name)] || {};
+      reg.items[adKey(cn, st.name)] = {a: a || prev.a || '', d: d || prev.d || '', r: rv===null ? !!prev.r : rv}; comDado++;
+    });
+  });
+  adSave(reg);
+  return {ok:true, msg:`Monitoramento sincronizado (${new Date().toLocaleTimeString('pt-BR')}): ${comDado} aluno(s) com dado de adaptação/diagnóstico; ${semDado} sem dado; ${naoAchou} não localizado(s) pelo nome/turma. Colunas lidas — adaptação: ${colAd.join(', ')||'—'}; diagnóstico: ${colDx.join(', ')||'—'}; reforço: ${colRf.join(', ')||'—'}.`};
+}
+// Painel para o usuário escolher as colunas (quando a detecção automática não basta)
+async function adMapUi(box, onDone){
+  let rows;
+  try{ rows = await adFetch(true); }catch(e){ alert('Não foi possível ler o Monitoramento: '+e.message); return; }
+  if(!rows.length){ alert('A tabela "estudantes" veio vazia.'); return; }
+  const det = adDetectCols(rows), saved = adMapLoad() || {ad:det.ad, dx:det.dx};
+  const ex = c => { const r = rows.find(x=>x[c]!=null && String(x[c]).trim()!==''); return r ? String(typeof r[c]==='object'?JSON.stringify(r[c]):r[c]).slice(0,45) : ''; };
+  box.innerHTML = `<div class="ad-map"><b>Quais colunas do Monitoramento trazem a adaptação, o diagnóstico e o reforço?</b>
+    <div class="ad-map-t"><table><thead><tr><th class="l">Coluna</th><th class="l">Exemplo</th><th>Adaptação</th><th>Diagnóstico</th><th>Reforço</th></tr></thead><tbody>
+    ${det.cols.map(c=>`<tr><td class="l">${escHtml(c)}</td><td class="l"><small>${escHtml(ex(c))}</small></td><td><input type="checkbox" class="adm-ad" value="${escHtml(c)}" ${saved.ad.includes(c)?'checked':''}></td><td><input type="checkbox" class="adm-dx" value="${escHtml(c)}" ${saved.dx.includes(c)?'checked':''}></td><td><input type="checkbox" class="adm-rf" value="${escHtml(c)}" ${(saved.rf||[]).includes(c)?'checked':''}></td></tr>`).join('')}
+    </tbody></table></div>
+    <button class="print-btn" id="admSave">Salvar e sincronizar</button> <button class="print-btn" id="admCancel">Cancelar</button></div>`;
+  box.querySelector('#admCancel').onclick = ()=>{ box.innerHTML=''; };
+  box.querySelector('#admSave').onclick = async ()=>{
+    const m = { ad:[...box.querySelectorAll('.adm-ad:checked')].map(x=>x.value), dx:[...box.querySelectorAll('.adm-dx:checked')].map(x=>x.value), rf:[...box.querySelectorAll('.adm-rf:checked')].map(x=>x.value) };
+    if(!m.ad.length && !m.dx.length && !m.rf.length){ alert('Marque ao menos uma coluna.'); return; }
+    adMapSave(m); const r = await adSync(); quadroState.status = r.msg; onDone();
+  };
+}
+
+// ---------- editor do cadastro (dentro da aba Relatórios) ----------
+function adEditorHtml(S, names){
+  const sel = (S.quadroEd && currentClasses[S.quadroEd]) ? S.quadroEd : (names.find(n=>S.turmas.has(n)) || names[0]);
+  S.quadroEd = sel;
+  const cd = currentClasses[sel], reg = adLoad();
+  const riskBy = {}; computeRetentionRisk(cd).forEach(r=>{ riskBy[r.name] = r; });
+  const ord = cd.students.slice().sort((a,b)=>{
+    const ra = riskBy[a.name]?0:1, rb = riskBy[b.name]?0:1;
+    return ra-rb || a.name.localeCompare(b.name,'pt-BR');
+  });
+  const c = adClassCount(sel);
+  const linhas = ord.map(st=>{
+    const x = adGet(reg, sel, st.name), r = riskBy[st.name];
+    return `<div class="ad-row${r?' risco':''}" data-nome="${escHtml(st.name.toLowerCase())}">
+      <div class="ad-nm">${escHtml(st.name)}${r?` <span class="ad-badge">O.E.R em ${r.subjects.length}</span>`:''}</div>
+      <select class="tri-select ad-sel" data-n="${escHtml(st.name)}"><option value="" ${x.a===''?'selected':''}>— não informado —</option><option value="S" ${x.a==='S'?'selected':''}>Demanda adaptação</option><option value="N" ${x.a==='N'?'selected':''}>Sem adaptação</option></select>
+      <label class="ad-ref"><input type="checkbox" class="ad-rf" data-n="${escHtml(st.name)}" ${x.r?'checked':''}> Reforço</label>
+      <input type="text" class="rep-filtro ad-dx" data-n="${escHtml(st.name)}" placeholder="Diagnóstico (ex.: TDAH, TEA, deficiência intelectual…)" value="${escHtml(x.d)}">
+    </div>`;
+  }).join('');
+  return `<div class="rep-card"><h3>4 · Cadastro de adaptação e diagnóstico</h3>
+    <div class="rep-hint" style="margin-bottom:8px">Os alunos em risco de O.E.R aparecem primeiro. O diagnóstico vem do Monitoramento (prevalece sobre o que estiver salvo aqui); alunos sem dado lá mantêm o cadastro manual. Fica salvo neste navegador e não é apagado ao reimportar os PDFs.</div>
+    <div class="rep-row"><label>Turma: <select id="adTurma" class="tri-select">${names.map(n=>`<option value="${escHtml(n)}" ${n===sel?'selected':''}>${escHtml(shortTurmaLabel(n))}</option>`).join('')}</select></label>
+      <span class="rep-count" id="adCount">${c.sim} com adaptação · ${c.ref} em reforço · ${c.nao} sem · ${c.semInfo} não informado${c.semInfo===1?'':'s'}</span></div>
+    <div class="rep-row">
+      <button class="print-btn" id="adSupa">⬇ Sincronizar com o Monitoramento</button>
+      <button class="print-btn" id="adMap">Escolher colunas</button>
+      <button class="print-btn" id="adExp">Exportar cadastro</button>
+      <label class="print-btn" style="cursor:pointer">Importar cadastro<input type="file" id="adImpFile" accept=".json,application/json" style="display:none"></label>
+    </div>
+    <div class="rep-hint" id="adStatus">${escHtml(quadroState.status||'O diagnóstico é lido do Monitoramento automaticamente ao pré-visualizar/imprimir o quadro.')}</div><div id="adMapBox"></div>
+    <details class="ad-paste"><summary>Colar lista (planilha)</summary>
+      <div class="rep-hint">Uma linha por aluno: <code>Nome ; Sim/Não ; Diagnóstico ; Reforço</code> (escreva “Reforço” numa coluna extra para marcar) (separador “;” ou tabulação). Se vier só <code>Nome ; Diagnóstico</code>, o aluno é marcado como “demanda adaptação”. Vale para a turma selecionada acima.</div>
+      <textarea id="adPasteTxt" class="rep-msg-in" rows="4" placeholder="MARIA DA SILVA ; Sim ; TDAH&#10;JOÃO PEREIRA ; Não"></textarea>
+      <button class="print-btn" id="adPasteBtn">Aplicar lista</button></details>
+    <div class="ad-lista">${linhas}</div></div>`;
+}
+function adBindEditor(main, S, names){
+  const sel = S.quadroEd, stale = ()=>{ S.preview = null; const pv = document.getElementById('repPreview'); if(pv) pv.innerHTML = ''; };
+  const upd = ()=>{ const c = adClassCount(sel); document.getElementById('adCount').textContent = c.sim+' com adaptação · '+c.ref+' em reforço · '+c.nao+' sem · '+c.semInfo+' não informado'+(c.semInfo===1?'':'s'); };
+  document.getElementById('adTurma').onchange = e=>{ S.quadroEd = e.target.value; stale(); renderReportsTab(); };
+  main.querySelectorAll('.ad-sel').forEach(el=> el.onchange = ()=>{ adSet(sel, el.dataset.n, {a:el.value}); upd(); stale(); });
+  main.querySelectorAll('.ad-rf').forEach(el=> el.onchange = ()=>{ adSet(sel, el.dataset.n, {r:el.checked}); upd(); stale(); });
+  main.querySelectorAll('.ad-dx').forEach(el=> el.onchange = ()=>{
+    const row = el.closest('.ad-row'), s = row.querySelector('.ad-sel');
+    const patch = {d:el.value};
+    if(el.value.trim() && !s.value){ patch.a = 'S'; s.value = 'S'; }
+    adSet(sel, el.dataset.n, patch); upd(); stale();
+  });
+  document.getElementById('adSupa').onclick = async ()=>{ document.getElementById('adStatus').textContent='Sincronizando…'; const r = await adSync(); quadroState.status = r.msg; stale(); renderReportsTab(); if(r.needMap) adMapUi(document.getElementById('adMapBox'), ()=>{ stale(); renderReportsTab(); }); };
+  document.getElementById('adMap').onclick = ()=> adMapUi(document.getElementById('adMapBox'), ()=>{ stale(); renderReportsTab(); });
+  document.getElementById('adExp').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(adLoad(), null, 1)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'cadastro-adaptacoes.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  };
+  document.getElementById('adImpFile').onchange = e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const o = JSON.parse(r.result); if(!o || !o.items) throw new Error('arquivo sem o campo "items"');
+        const reg = adLoad(); Object.assign(reg.items, o.items); adSave(reg);
+        alert('Cadastro importado: '+Object.keys(o.items).length+' registro(s).'); stale(); renderReportsTab();
+      }catch(err){ alert('Arquivo inválido: '+err.message); }
+    };
+    r.readAsText(f);
+  };
+  document.getElementById('adPasteBtn').onclick = ()=>{
+    const cd = currentClasses[sel];
+    const byNorm = new Map(cd.students.map(st=>[libNorm(st.name), st]));
+    let ok = 0; const falhou = [];
+    document.getElementById('adPasteTxt').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{
+      const p = l.split(/[;\t]/).map(x=>x.trim());
+      const st = byNorm.get(libNorm(p[0]));
+      if(!st){ falhou.push(p[0]); return; }
+      const t = libNorm(p[1]||'');
+      let a, d;
+      if(/^(SIM|S|X)$/.test(t)){ a='S'; d=p.slice(2).join('; '); }
+      else if(/^(NAO|N)$/.test(t)){ a='N'; d=p.slice(2).join('; '); }
+      else { a = p[1] ? 'S' : ''; d = p.slice(1).join('; '); }
+      const extra = (d||'').split(';').map(x=>x.trim()).filter(Boolean);
+      const refl = extra.filter(x=>/^REFORCO$/.test(libNorm(x)));
+      d = extra.filter(x=>!/^REFORCO$/.test(libNorm(x))).join('; ');
+      adSet(sel, st.name, refl.length ? {a, d, r:true} : {a, d}); ok++;
+    });
+    alert(ok+' aluno(s) atualizado(s).'+(falhou.length?'\n\nNão localizados nesta turma:\n'+falhou.join('\n'):''));
+    stale(); renderReportsTab();
+  };
+}
 
 // ---------- INIT ----------
 (async function init(){
