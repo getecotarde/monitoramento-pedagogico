@@ -3021,8 +3021,16 @@ function zipStore(files){
 const xmlEsc = t => String(t==null?'':t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const xlsCol = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
 // estilos: 10 cabeçalho vertical (disciplinas) · 0 normal · 1 título · 2 cabeçalho de tabela · 3 subtítulo/seção · 4 % na média · 5 centralizado · 6 % amarelo · 7 % vermelho · 8 nº amarelo · 9 nº vermelho
-const XLS_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0&quot;%&quot;"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2EC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF999999"/></left><right style="thin"><color rgb="FF999999"/></right><top style="thin"><color rgb="FF999999"/></top><bottom style="thin"><color rgb="FF999999"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="15"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="4" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" textRotation="90" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="1"><dxf><fill><patternFill><bgColor rgb="FFF8CBAD"/></patternFill></fill></dxf></dxfs></styleSheet>`;
+const XLS_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0&quot;%&quot;"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="6"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2EC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="18"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="4" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" textRotation="90" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="5" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="1"><dxf><fill><patternFill><bgColor rgb="FFF8CBAD"/></patternFill></fill></dxf></dxfs></styleSheet>`;
+function xlsBloco(R, t, s){ const r = [{v:t, s:s||15}]; r.block = true; R.push(r); }
 function xlsSheetXml(rows, widths, freeze, cf, hid){
+  const visW = widths.reduce((a,w,i)=>a+((hid||[]).includes(i)?0:w),0), merges = [];
+  rows.forEach((row,r)=>{
+    if(!row.block) return;
+    merges.push(`A${r+1}:${xlsCol(widths.length-1)}${r+1}`);
+    const c = row[0], big = c.s===16;
+    if(!row.ht) row.ht = big ? 24 : Math.max(17, Math.ceil(String(c.v).length/Math.max(20,visW*0.95))*15+3);
+  });
   const cols = `<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"${(hid||[]).includes(i)?' hidden="1"':''}/>`).join('')}</cols>`;
   const body = rows.map((row,r)=>`<row r="${r+1}"${row.ht?` ht="${row.ht}" customHeight="1"`:''}${row.hidden?' hidden="1"':''}>${row.map((c,i)=>{
     if(c===null || c===undefined || c==='') return '';
@@ -3034,7 +3042,7 @@ function xlsSheetXml(rows, widths, freeze, cf, hid){
       ? `<c r="${ref}" s="${o.s||0}"><v>${o.v}</v></c>`
       : `<c r="${ref}" s="${o.s||0}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(o.v)}</t></is></c>`;
   }).join('')}</row>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${freeze?'<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="1" topLeftCell="C2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>':''}${cols}<sheetData>${body}</sheetData>${cf?`<conditionalFormatting sqref="${cf}"><cfRule type="expression" dxfId="0" priority="1"><formula>UPPER(LEFT(${cf.split(':')[0]},1))="X"</formula></cfRule></conditionalFormatting>`:''}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${freeze?'<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="1" topLeftCell="C2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>':''}${cols}<sheetData>${body}</sheetData>${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}${cf?`<conditionalFormatting sqref="${cf}"><cfRule type="expression" dxfId="0" priority="1"><formula>UPPER(LEFT(${cf.split(':')[0]},1))="X"</formula></cfRule></conditionalFormatting>`:''}</worksheet>`;
 }
 function xlsxBlob(sheets){ // sheets: [{name, rows, widths}]
   const files = [
@@ -3145,9 +3153,9 @@ function repComparativoRows(names){
       ...subjNames.map(sn=>{ const idx = cd.subjects.indexOf(sn); return idx<0 ? C('–') : P(repClassSubj(cd, idx, t).pctOk); })]);
   });
   R.push([]);
-  R.push([{v:schoolName(), s:1}]);
-  R.push([{v:'Comparativo entre as turmas — % de alunos na média por disciplina', s:3}]);
-  R.push(['Cores: amarelo = entre 40% e 69%; vermelho = abaixo de 40%. Literatura não é exibida.']);
+  xlsBloco(R, schoolName(), 16);
+  xlsBloco(R, 'Comparativo entre as turmas — % de alunos na média por disciplina', 17);
+  xlsBloco(R, 'Cores: amarelo = entre 40% e 69%; vermelho = abaixo de 40%. Literatura não é exibida.');
   return {rows:R, freeze:true, widths:[14,8.5,10,10,...subjNames.map(()=>8.5)]};
 }
 function repQuadroRows(cd, className){
@@ -3199,21 +3207,19 @@ function repQuadroRows(cd, className){
     ...subs.map((s,k)=>({f:`COUNTIF(${colS[k]}2:${colS[k]}${nLast},"X*")`, v:Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length, s:12})),
     {f:`COUNTIF(${colD}2:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:12}, ...(colA?[{v:'',s:12}]:[]), {v:'',s:14}];
   R.push(tot);
-  // 2) Microtexto abaixo da tabela
+  // 2) Microtexto abaixo da tabela, em bloco de células mescladas na largura da tabela
   R.push([]);
-  R.push([{v:schoolName(), s:1}]);
-  R.push([B('Quadro da turma — risco de O.E.R por disciplina — '+turma)]);
-  R.push([`${effectiveMesAno(cd)} · Alunos na turma: ${cd.students.length} · Em risco de O.E.R: ${Object.keys(riskBy).length} · Com demanda de adaptação: ${cnt.sim} · Em reforço: ${cnt.ref}${cd.meta.professor?' · Prof. de referência: '+cd.meta.professor:''}`]);
-  if(repState.msg.trim()) R.push([`Recado da coordenação: ${repState.msg.trim().replace(/\s+/g,' ')}`]);
+  xlsBloco(R, schoolName(), 16);
+  xlsBloco(R, 'Quadro da turma — risco de O.E.R por disciplina — '+turma, 17);
+  xlsBloco(R, `${effectiveMesAno(cd)} · Alunos na turma: ${cd.students.length} · Em risco de O.E.R: ${Object.keys(riskBy).length} · Com demanda de adaptação: ${cnt.sim} · Em reforço: ${cnt.ref}${cd.meta.professor?' · Prof. de referência: '+cd.meta.professor:''}`);
+  if(repState.msg.trim()) xlsBloco(R, `Recado da coordenação: ${repState.msg.trim().replace(/\s+/g,' ')}`);
   if(prio.length){
-    R.push([]);
-    R.push([B(`ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R e situação especial (adaptação e/ou reforço): confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado`)]);
-    prio.forEach(st=>R.push([`${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`]));
+    xlsBloco(R, `ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R e situação especial (adaptação e/ou reforço): confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado`, 17);
+    prio.forEach(st=>xlsBloco(R, `${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`));
   }
-  R.push([]);
-  R.push(['X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.')]);
-  R.push(['A linha "Total em O.E.R" e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.']);
-  R.push(['Linhas e colunas sem nenhum preenchimento ficam ocultas (selecione ao redor e use "Reexibir" para vê-las). Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.']);
+  xlsBloco(R, 'X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.'));
+  xlsBloco(R, 'A linha "Total em O.E.R" e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
+  xlsBloco(R, 'Linhas e colunas sem nenhum preenchimento ficam ocultas (selecione ao redor e use "Reexibir" para vê-las). Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
   const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
   const info = {alunos:cd.students.length, risco:Object.keys(riskBy).length, adapt:cnt.sim, reforco:cnt.ref, prio:prio.length, perSubj, discCol:colD, obsCol:colO, last:nLast, subjCol:Object.fromEntries(subs.map((s,k)=>[s.name,colS[k]])), nameCol:'B'};
   const hid = []; subs.forEach((s,k)=>{ if(!usadoS[k]) hid.push(2+k); });
@@ -3246,10 +3252,10 @@ function repQuadroResumo(itens){
   }
   R.push(tot);
   R.push([]);
-  R.push([{v:schoolName(), s:1}]);
-  R.push([{v:'Resumo — quantidade de alunos por turma', s:3}]);
-  R.push(['Tudo é calculado automaticamente a partir das abas das turmas: ao marcar ou apagar um X, os números se atualizam. Prioritários = alunos em risco de O.E.R que também têm adaptação e/ou reforço. As colunas das disciplinas somam os alunos em O.E.R em cada uma.']);
-  R.push(['Colunas sem nenhum registro ficam ocultas (selecione ao redor e use "Reexibir" para vê-las).']);
+  xlsBloco(R, schoolName(), 16);
+  xlsBloco(R, 'Resumo — quantidade de alunos por turma', 17);
+  xlsBloco(R, 'Tudo é calculado automaticamente a partir das abas das turmas: ao marcar ou apagar um X, os números se atualizam. Prioritários = alunos em risco de O.E.R que também têm adaptação e/ou reforço. As colunas das disciplinas somam os alunos em O.E.R em cada uma.');
+  xlsBloco(R, 'Colunas sem nenhum registro ficam ocultas (selecione ao redor e use "Reexibir" para vê-las).');
   const hid = []; for(let c=3;c<soma.length;c++) if(!soma[c]) hid.push(c);
   return {rows:R, freeze:true, hid, widths:[14,8.5,8.5,8.5,8.5,10,...subjNames.map(()=>8.5)]};
 }
