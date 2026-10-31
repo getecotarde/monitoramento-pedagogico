@@ -3021,7 +3021,7 @@ function zipStore(files){
 const xmlEsc = t => String(t==null?'':t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const xlsCol = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
 // estilos: 10 cabeçalho vertical (disciplinas) · 0 normal · 1 título · 2 cabeçalho de tabela · 3 subtítulo/seção · 4 % na média · 5 centralizado · 6 % amarelo · 7 % vermelho · 8 nº amarelo · 9 nº vermelho
-const XLS_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0&quot;%&quot;"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="6"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2EC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="18"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="4" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" textRotation="90" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="5" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="1"><dxf><fill><patternFill><bgColor rgb="FFF8CBAD"/></patternFill></fill></dxf></dxfs></styleSheet>`;
+const XLS_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0&quot;%&quot;"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="7"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2EC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF2F2F2"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFBDD7EE"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="21"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="4" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" textRotation="90" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="5" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="1" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="5" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="6" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="1"><dxf><fill><patternFill><bgColor rgb="FFF8CBAD"/></patternFill></fill></dxf></dxfs></styleSheet>`;
 function xlsBloco(R, t, s){ const r = [{v:t, s:s||15}]; r.block = true; R.push(r); }
 function xlsSheetXml(rows, widths, freeze, cf, hid){
   const visW = widths.reduce((a,w,i)=>a+((hid||[]).includes(i)?0:w),0), merges = [];
@@ -3037,12 +3037,12 @@ function xlsSheetXml(rows, widths, freeze, cf, hid){
     const o = (typeof c==='object') ? c : {v:c, s:0};
     const ref = xlsCol(i)+(r+1);
     if(o.f!==undefined) return `<c r="${ref}" s="${o.s||0}"${typeof o.v==='string'?' t="str"':''}><f>${xmlEsc(o.f)}</f><v>${xmlEsc(o.v)}</v></c>`;
-    if(o.v===null || o.v===undefined || o.v==='') return '';
+    if(o.v===null || o.v===undefined || o.v==='') return o.s ? `<c r="${ref}" s="${o.s}"/>` : ''; // célula vazia mantém o estilo (borda preta)
     return typeof o.v==='number'
       ? `<c r="${ref}" s="${o.s||0}"><v>${o.v}</v></c>`
       : `<c r="${ref}" s="${o.s||0}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(o.v)}</t></is></c>`;
   }).join('')}</row>`).join('');
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${freeze?'<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="1" topLeftCell="C2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>':''}${cols}<sheetData>${body}</sheetData>${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}${cf?`<conditionalFormatting sqref="${cf}"><cfRule type="expression" dxfId="0" priority="1"><formula>UPPER(LEFT(${cf.split(':')[0]},1))="X"</formula></cfRule></conditionalFormatting>`:''}</worksheet>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${freeze?(f=>`<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="${f}" topLeftCell="C${f+1}" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>`)(freeze===true?1:freeze):''}${cols}<sheetData>${body}</sheetData>${merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}${cf?`<conditionalFormatting sqref="${cf}"><cfRule type="expression" dxfId="0" priority="1"><formula>UPPER(LEFT(${cf.split(':')[0]},1))="X"</formula></cfRule></conditionalFormatting>`:''}</worksheet>`;
 }
 function xlsxBlob(sheets){ // sheets: [{name, rows, widths}]
   const files = [
@@ -3174,13 +3174,18 @@ function repQuadroRows(cd, className){
   const cnt = adClassCount(className);
   const prio = todos.filter(st=>riskBy[st.name] && comEsp(st));
   const temParcial = Object.values(riskBy).some(r=>r.parcial);
-  const nS = subs.length, N = Math.max(todos.length,1), nLast = 1+N, nTot = nLast+1;
+  const nS = subs.length, N = Math.max(todos.length,1), nLast = 2+N;
   const colS = subs.map((_,k)=>xlsCol(2+k)), colD = xlsCol(2+nS);
   const colA = quadroState.aplicada ? xlsCol(3+nS) : null, colO = xlsCol(3+nS+(quadroState.aplicada?1:0));
   const R = [];
   // 1) Tabela já na primeira linha
   const hdr = [H('Nº'),H('Aluno'),...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação e diagnóstico')];
   hdr.ht = 95; R.push(hdr);
+  // linha de totais logo abaixo dos nomes das disciplinas: soma automática dos X (alunos em O.E.R)
+  const T = 18, TL = 19, TW = 20;
+  R.push([{v:'',s:T},{v:'Total em O.E.R',s:TL},
+    ...subs.map((s,k)=>({f:`COUNTIF(${colS[k]}3:${colS[k]}${nLast},"X*")`, v:Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length, s:T})),
+    {f:`COUNTIF(${colD}3:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:TW}, ...(colA?[{v:'',s:T}]:[]), {v:'',s:T}]);
   const usadoS = subs.map(()=>false); let haObs = false, haApl = false;
   todos.forEach((st,i)=>{
     const r = riskBy[st.name], by = {}; if(r) r.subjects.forEach(s=>{ by[s.name] = s; });
@@ -3193,20 +3198,16 @@ function repQuadroRows(cd, className){
     const hasX = !!r && subs.some(s=>by[s.name]);
     subs.forEach((s,k)=>{ if(by[s.name]) usadoS[k] = true; });
     if(obs.length) haObs = true; if(apl) haApl = true;
-    const rn = i+2, rng = `${colS[0]}${rn}:${colS[nS-1]}${rn}`;
+    const rn = i+3, rng = `${colS[0]}${rn}:${colS[nS-1]}${rn}`;
     const row = [{v:i+1,s:12}, {v:st.name,s:11},
-      ...subs.map(s=>{ const x = by[s.name]; return {v: x ? 'X'+(x.parcial?'*':'') : '', s:12}; }),
+      ...subs.map((s,k)=>{ const x = by[s.name];
+        return {v: x ? 'X'+(x.parcial?'*':'') : '', s:12}; }),
       nS ? {f:`IF(COUNTIF(${rng},"X*")=0,"",COUNTIF(${rng},"X*"))`, v:r ? r.subjects.length : '', s:12} : {v:'',s:12},
       ...(colA ? [{v:apl, s:12}] : []), {v:obs.join(' | '), s:14}];
     row.hidden = !noEscopo.has(st) || (!hasX && !obs.length);
     R.push(row);
   });
   if(!todos.length) R.push([{v:'',s:12},{v:'Nenhum aluno.',s:11}]);
-  // soma automática por disciplina (alunos em O.E.R)
-  const tot = [{v:'',s:12},{v:'Total em O.E.R',s:11},
-    ...subs.map((s,k)=>({f:`COUNTIF(${colS[k]}2:${colS[k]}${nLast},"X*")`, v:Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length, s:12})),
-    {f:`COUNTIF(${colD}2:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:12}, ...(colA?[{v:'',s:12}]:[]), {v:'',s:14}];
-  R.push(tot);
   // 2) Microtexto abaixo da tabela, em bloco de células mescladas na largura da tabela
   R.push([]);
   xlsBloco(R, schoolName(), 16);
@@ -3218,13 +3219,13 @@ function repQuadroRows(cd, className){
     prio.forEach(st=>xlsBloco(R, `${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`));
   }
   xlsBloco(R, 'X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.'));
-  xlsBloco(R, 'A linha "Total em O.E.R" e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
+  xlsBloco(R, 'A linha "Total em O.E.R" (logo abaixo das disciplinas) e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
   xlsBloco(R, 'Linhas e colunas sem nenhum preenchimento ficam ocultas (selecione ao redor e use "Reexibir" para vê-las). Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
   const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
   const info = {alunos:cd.students.length, risco:Object.keys(riskBy).length, adapt:cnt.sim, reforco:cnt.ref, prio:prio.length, perSubj, discCol:colD, obsCol:colO, last:nLast, subjCol:Object.fromEntries(subs.map((s,k)=>[s.name,colS[k]])), nameCol:'B'};
   const hid = []; subs.forEach((s,k)=>{ if(!usadoS[k]) hid.push(2+k); });
   if(colA && !haApl) hid.push(2+nS+1); if(!haObs) hid.push(2+nS+1+(colA?1:0));
-  return {rows:R, freeze:true, info, hid, cf:nS ? `${colS[0]}2:${colS[nS-1]}${nLast}` : null, widths:[5,42,...subs.map(()=>8.5),11,...(colA?[15]:[]),80]};
+  return {rows:R, freeze:2, info, hid, cf:nS ? `${colS[0]}3:${colS[nS-1]}${nLast}` : null, widths:[5,42,...subs.map(()=>8.5),11,...(colA?[15]:[]),80]};
 }
 // Aba "Resumo": só números, tudo por fórmula a partir das abas das turmas
 function repQuadroResumo(itens){
@@ -3235,7 +3236,7 @@ function repQuadroResumo(itens){
   hdr.ht = 95;
   const R = [hdr], q = n => "'"+n.replace(/'/g,"''")+"'";
   itens.forEach(it=>{
-    const i = it.info, a = q(it.aba), rng = c => `${a}!${c}2:${c}${i.last}`, D = rng(i.discCol), O = rng(i.obsCol);
+    const i = it.info, a = q(it.aba), rng = c => `${a}!${c}3:${c}${i.last}`, D = rng(i.discCol), O = rng(i.obsCol);
     const AD = '"*◆ ADAPTAÇÃO*"', RF = '"*▲ REFORÇO*"';
     R.push([{v:it.aba,s:11},
       {f:`COUNTA(${rng(i.nameCol)})`, v:i.alunos, s:12},
