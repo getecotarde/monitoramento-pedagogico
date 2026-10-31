@@ -445,53 +445,6 @@ body{
   .oer-legend{ margin-top:6px; font-size:10.5px; }
 }
 
-/* ===== Liberação de boletim ===== */
-.overview-btn.lib{background:var(--accent);}
-.print-lib-doc{ display:none; }
-.lib-panel{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 18px; font-size:13px;}
-.lib-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px;}
-.lib-row:last-child{margin-bottom:0;}
-.lib-lbl{min-width:92px; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;}
-.lib-lbl small{text-transform:none; letter-spacing:0; font-weight:500;}
-.lib-chk{display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:var(--paper); cursor:pointer;}
-.lib-link{background:none; border:0; color:var(--accent); font:inherit; font-size:12px; font-weight:600; cursor:pointer; text-decoration:underline; padding:0 2px;}
-.lib-num{width:64px; padding:4px 6px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:13px; background:#fff;}
-.lib-row small, .lib-hint{color:var(--ink-soft); font-size:11.5px;}
-.lib-hint{margin:-4px 0 10px 102px;}
-.lib-graves{align-items:flex-start;}
-.lib-tipos{display:flex; flex-wrap:wrap; gap:6px; flex:1; min-width:260px;}
-.lib-tipo{display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border:1px solid var(--line); border-radius:14px; background:var(--paper); cursor:pointer; font-size:12.5px;}
-.lib-tipo.on{background:var(--danger-soft); border-color:var(--danger); color:var(--danger); font-weight:600;}
-.lib-tipo small{color:inherit; opacity:.75; font-weight:400;}
-.lib-status{font-size:12px; color:var(--ink-soft);}
-.lib-msg{padding:14px 16px; border:1px dashed var(--line); border-radius:10px; color:var(--ink-soft);}
-.lib-msg.bad{border-color:var(--danger); background:var(--danger-soft); color:var(--danger); border-style:solid;}
-.lib-summary{display:flex; gap:10px; flex-wrap:wrap; margin:0 0 14px;}
-.lib-chip{padding:8px 14px; border-radius:8px; background:var(--paper-2); font-size:13px;}
-.lib-chip b{font-size:18px; margin-right:4px;}
-.lib-chip.ok{background:var(--accent-soft); color:var(--accent);}
-.lib-chip.bad{background:var(--danger-soft); color:var(--danger);}
-.lib-chip.warn{background:var(--warn-soft); color:var(--warn);}
-.lib-turma{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 14px;}
-.lib-turma-hdr{display:flex; align-items:center; gap:14px; margin-bottom:8px;}
-.lib-turma-hdr h3{font-family:'Fraunces',serif; font-size:18px; margin:0;}
-.lib-turma-hdr span{color:var(--ink-soft); font-size:12.5px; flex:1;}
-.print-btn.lib-small{padding:4px 10px; font-size:12px;}
-.lib-table{width:100%; border-collapse:collapse; font-size:13px; margin:4px 0;}
-.lib-table th, .lib-table td{border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; vertical-align:top;}
-.lib-table th{font-size:11px; text-transform:uppercase; color:var(--ink-soft);}
-.lib-table td:first-child{width:36px; color:var(--ink-soft);}
-.lib-obs{color:var(--ink-soft); font-size:12px;}
-.lib-det{margin-top:8px; border-radius:8px; padding:6px 10px;}
-.lib-det summary{cursor:pointer; font-weight:600; font-size:13px;}
-.lib-det.bad{background:var(--danger-soft);} .lib-det.bad summary{color:var(--danger);}
-.lib-det.warn{background:var(--warn-soft);} .lib-det.warn summary{color:var(--warn);}
-@media print{
-  body.print-mode-liberacao .app{ display:none !important; }
-  body.print-mode-liberacao .print-lib-doc{ display:block !important; }
-  .print-lib-doc .print-subj-table td{ height:26px; }
-}
-
 /* Notas metodológicas dos gráficos do Dashboard */
 .chart-card{ position:relative; }
 .chart-methodology{
@@ -781,7 +734,6 @@ body{
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
       <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard - Notas Individuais</div>
       <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
-      <div class="overview-btn lib" id="libBtn">📄 Liberação de boletim</div>
       <div class="overview-btn rep" id="repBtn">📑 Relatórios</div>
     </div>
     <div class="turma-switch">
@@ -801,11 +753,8 @@ body{
   </div>
 </div>
 <div id="printSubjectDoc" class="print-subject-doc"></div>
-<div id="printCardsDoc" class="print-cards-doc"></div>
 <div id="printOerCardsDoc" class="print-oer-cards-doc"></div>
-<div id="printOerTableDoc" class="print-oer-table-doc"></div>
 <div id="printClassTableDoc" class="print-class-table-doc"></div>
-<div id="printLibDoc" class="print-lib-doc"></div>
 <div id="printReportDoc" class="print-report-doc"></div>
 
 <script>
@@ -1255,9 +1204,9 @@ function computeRetentionRiskBySubject(classData){
 
 // Monta e imprime, uma folha por disciplina, a lista de alunos em risco daquela
 // disciplina — pronta para ser destacada e entregue ao professor(a) responsável.
-function printRiskBySubject(className){
+function riskBySubjectHtml(className){
   const cd = currentClasses[className];
-  if(!cd) return;
+  if(!cd) return '';
   const bySubject = computeRetentionRiskBySubject(cd);
   const cfg = loadGlobalConfig();
   cd.meta = cd.meta || {};
@@ -1285,30 +1234,12 @@ function printRiskBySubject(className){
         </table>${oerLegendHtml(sec.students)}
       </div>`).join('');
   }
-  document.getElementById('printSubjectDoc').innerHTML = html;
-  document.body.classList.add('print-mode-subjects');
-  window.print();
-  setTimeout(()=>{ document.body.classList.remove('print-mode-subjects'); }, 300);
+  return html;
 }
-
-// Imprime, em folhas separadas (uma por turma), o conjunto de cards de risco de
-// O.E.R já usados na tela — útil para levar o conjunto completo de turmas
-// numa única impressão em papel, sem precisar abrir turma por turma.
-function printRiskCardsAllClasses(){
-  const names = Object.keys(currentClasses).sort();
-  if(names.length===0) return;
-  const html = names.map(name=>{
-    const cd = currentClasses[name];
-    const risk = computeRetentionRisk(cd);
-    return `<div class="print-page">
-      <div class="print-page-hdr"><div><h1>${name}</h1><div class="print-page-sub">${cd.students.length} alunos</div></div></div>
-      <div class="risk-grid print-risk-grid">${riskCards(risk)}</div>${oerLegendHtml(risk)}
-    </div>`;
-  }).join('');
-  document.getElementById('printCardsDoc').innerHTML = html;
-  document.body.classList.add('print-mode-cards');
-  window.print();
-  setTimeout(()=>{ document.body.classList.remove('print-mode-cards'); }, 300);
+function printRiskBySubject(names){
+  names = (Array.isArray(names) ? names : [names]).filter(n=>currentClasses[n]);
+  if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
+  runPrintMode('printSubjectDoc', names.map(riskBySubjectHtml).join(''), 'print-mode-subjects');
 }
 
 // ---------- IMPRESSÕES DE O.E.R (por turma) ----------
@@ -1334,7 +1265,7 @@ function runPrintMode(docId, html, mode){
 // Quadro A4 (paisagem) por turma: uma linha por aluno, e para cada disciplina uma coluna por
 // trimestre com a nota. Cores claras: amarelo = recuperou, vermelho = abaixo da média.
 function printClassTable(only){
-  const names = only ? [only] : Object.keys(currentClasses).sort();
+  const names = Array.isArray(only) ? only : (only ? [only] : Object.keys(currentClasses).sort());
   const cfg = loadGlobalConfig();
   const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const pages = names.map(className=>{
@@ -1392,8 +1323,8 @@ function printClassTable(only){
 }
 
 // Cards individuais (um por aluno em risco) para recortar e entregar ao aluno/responsável.
-function printOerCards(){
-  const names = oerSelectedNames();
+function printOerCards(names){
+  names = names || oerSelectedNames();
   if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
   const cards = names.flatMap(className=>{
   const m = oerPrintMeta(className);
@@ -1426,39 +1357,6 @@ function printOerCards(){
     <div class="oer-cards-grid">${cards}</div>
   </div>`;
   runPrintMode('printOerCardsDoc', html, 'print-mode-oer-cards');
-}
-
-// Tabela da turma: uma linha por aluno em risco, uma coluna por disciplina; a célula traz
-// os pontos necessários no 3º trimestre (e, entre parênteses, a soma do 1º+2º) quando em risco.
-function printOerTable(){
-  const names = oerSelectedNames();
-  if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
-  const pages = names.map(className=>{
-    const m = oerPrintMeta(className);
-    const risk = computeRetentionRisk(m.cd).slice().sort((a,b)=> a.name.localeCompare(b.name));
-    if(!risk.length) return '';
-    const subjects = m.cd.subjects.filter(s=>!isLiteratura(s));
-    const head = subjects.map(s=>`<th>${s}</th>`).join('');
-    const body = risk.map((st,i)=>{
-      const by = {}; st.subjects.forEach(s=>{ by[s.name] = s; });
-      const cells = subjects.map(sn=>{
-        const s = by[sn];
-        return s ? `<td class="risk">${s.precisa}${oerAst(s)} <small>(${s.soma}${s.parcial ? '; s/'+s.faltaTri+'º' : ''})</small></td>` : `<td>–</td>`;
-      }).join('');
-      return `<tr><td>${i+1}</td><td class="l">${st.name}</td>${cells}<td><strong>${st.subjects.length}</strong></td></tr>`;
-    }).join('');
-    return `<div class="print-page">
-    <div class="print-page-hdr"><div><h1>${m.turma} — Alunos com risco de O.E.R</h1><div class="print-page-sub">${m.escola}${m.mesAno ? ' · '+m.mesAno : ''}${m.prof ? ' · Prof. de referência: '+m.prof : ''} · ${risk.length} aluno${risk.length>1?'s':''} de ${m.cd.students.length}</div></div></div>
-    <table class="oer-table">
-      <thead><tr><th>Nº</th><th class="l">Aluno</th>${head}<th>Disc. em risco</th></tr></thead>
-      <tbody>${body}</tbody>
-    </table>
-    <div class="oer-legend">Valor na célula = pontos que o aluno precisa no 3º trimestre (máx. 40; média 24). Entre parênteses: somatória do 1º+2º trimestres (máx. 60). "–" = sem risco na disciplina.</div>${oerLegendHtml(risk.flatMap(x=>x.subjects), ' Na célula, "s/1º" = sem a nota do 1º trimestre e "s/2º" = sem a nota do 2º.')}
-  </div>`;
-  }).filter(Boolean);
-  if(!pages.length){ alert('Nenhum aluno das turmas selecionadas com risco de O.E.R.'); return; }
-  const html = pages.join('');
-  runPrintMode('printOerTableDoc', html, 'print-mode-oer-table');
 }
 
 // ---------- STORAGE ----------
@@ -1714,8 +1612,9 @@ function renderOerTab(){
       ${chips}
     </div>
     <div class="risk-actions" style="margin:0 0 18px">
-      <button class="print-btn" onclick="printOerCards()" ${sel.length?'':'disabled'}>🖶 Cards de O.E.R para entrega ao aluno (${sel.length===1?'esta turma':sel.length===names.length?'todas as turmas':sel.length+' turmas'})</button>
-      <button class="print-btn" onclick="printOerTable()" ${sel.length?'':'disabled'}>🖶 Tabela de alunos em risco de O.E.R (${sel.length===1?'esta turma':sel.length===names.length?'todas as turmas':sel.length+' turmas'})</button>
+      <button class="print-btn" onclick="abrirRelatorios(oerSelectedNames(),'cards')" ${sel.length?'':'disabled'}>📑 Cards de O.E.R para entrega ao aluno</button>
+      <button class="print-btn" onclick="abrirRelatorios(oerSelectedNames(),'quadro')" ${sel.length?'':'disabled'}>📑 Quadro O.E.R × disciplinas</button>
+      <button class="print-btn" onclick="abrirRelatorios(oerSelectedNames(),'prof')" ${sel.length?'':'disabled'}>📑 Lista por disciplina (professores)</button>
     </div>
     ${sections}`;
   main.querySelectorAll('.oer-turma-cb').forEach(cb=>{
@@ -1729,334 +1628,22 @@ function renderOerTab(){
 }
 let oerSelTouched = false;
 
-// ═══════════════════════════════════════════════════════════════════════
-// LIBERAÇÃO DE BOLETIM
-// Lista, por turma, os alunos que PODEM receber o boletim do 2º trimestre:
-//   (1) não precisam de mais de 24 pontos (parâmetro ajustável) no 3º trimestre
-//       em NENHUMA disciplina — mesma conta do risco de O.E.R: 60 − (1º+2º); e
-//   (2) não têm advertência/ocorrência GRAVE no 2º trimestre — lida da tabela
-//       "estudantes" do Supabase (campo sintese_ocorrencias, o mesmo que o
-//       Monitoramento Pedagógico grava).
-// Como o banco não tem um campo "gravidade", a coordenação marca na própria tela
-// quais TIPOS de advertência (os que existem no 2º trimestre) são graves.
-// ═══════════════════════════════════════════════════════════════════════
-const LIB_TRI_ADV = 2;                       // trimestre das advertências avaliado
-const LIB_CFG_KEY = 'config:liberacaoBoletim';
-// Sugestão inicial (só pré-marca a caixinha; a decisão final é sempre da coordenação).
-const LIB_GRAVE_RX = new RegExp('\\b(' + [
-  'AGRESS','AGREDI','BRIGA','VIOLEN','AMEAC','SOCO','CHUTE','BULLYING','DISCRIMIN','RACIS',
-  'HOMOFOB','PRECONCEIT','DESACATO','ARMA','FACA','ESTILETE','DROG','ENTORPEC','MACONHA',
-  'FUMAR','CIGARRO','VAPE','FURTO','ROUBO','DEPREDA','VANDAL','DANO AO PATRIM','INCENDI',
-  'ASSEDIO','SEXUAL','OBSCEN'
-].join('|') + ')');
-
-const libState = { adv:null, loading:false, erro:null, sel:null, limite:OER_LIMITE, cfg:null, res:null };
-
-function libEsc(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function libNorm(s){
+// Apoio ao cruzamento aluno do boletim × cadastro do Monitoramento (usado pelo quadro de adaptação)
+function normNome(s){
   return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
 }
-function libLoadCfg(){
-  try{
-    const c = JSON.parse(localStorage.getItem(LIB_CFG_KEY)||'{}');
-    return { marcados: c.marcados||{}, limiarQtd: Math.max(0, parseInt(c.limiarQtd,10)||0) };
-  }catch(e){ return { marcados:{}, limiarQtd:0 }; }
-}
-function libSaveCfg(){
-  try{ localStorage.setItem(LIB_CFG_KEY, JSON.stringify(libState.cfg)); }catch(e){ console.error(e); }
-}
-function libEhGrave(tipoKey){
-  const m = libState.cfg.marcados;
-  return (tipoKey in m) ? !!m[tipoKey] : LIB_GRAVE_RX.test(tipoKey);
-}
-function libTurmasOrdenadas(){
-  return Object.keys(currentClasses).sort((a,b)=> shortTurmaLabel(a).localeCompare(shortTurmaLabel(b),'pt-BR',{numeric:true}));
-}
-
-// Lê a síntese ("1º Trimestre (3 advertências): atraso (2x); conversa (1x) | 2º Trimestre (...): ...")
-// e devolve os itens agrupados por trimestre. Trechos fora do padrão vão para "livre".
-function libParseSintese(txt){
-  const res = { porTri:{}, foraPeriodo:[], livre:[] };
-  (txt||'').split('|').map(s=>s.trim()).filter(Boolean).forEach(b=>{
-    const m = b.match(/^(.+?):\s*([\s\S]*)$/);
-    if(!m){ res.livre.push(b); return; }
-    const titulo = m[1].trim();
-    const itens = m[2].split(';').map(s=>s.trim()).filter(Boolean).map(it=>{
-      const mi = it.match(/^(.*?)\s*\((\d+)\s*x\)\s*$/i);
-      return mi ? { tipo:mi[1].trim(), qtd:parseInt(mi[2],10) } : { tipo:it, qtd:1 };
-    });
-    const mt = titulo.match(/^(\d+)\s*[ºo°]/i);
-    if(mt){ const n = parseInt(mt[1],10); (res.porTri[n] = res.porTri[n]||[]).push(...itens); }
-    else if(/^fora do per/i.test(titulo)) res.foraPeriodo.push(...itens);
-    else res.livre.push(b);
-  });
-  return res;
-}
-
-// Busca TODOS os estudantes (paginado, pois o Supabase devolve no máximo 1000 por vez).
-async function libBuscarEstudantes(){
-  const out = [], page = 1000;
-  for(let off=0; ; off+=page){
-    const url = `${SUPABASE_URL}/rest/v1/estudantes?select=nome,turma,num_ocorrencias,sintese_ocorrencias,transferido&order=id.asc&limit=${page}&offset=${off}`;
-    const r = await fetch(url, { headers: sbHeaders() });
-    const rows = await r.json().catch(()=>null);
-    if(!r.ok || !Array.isArray(rows)) throw new Error('Supabase respondeu com erro ('+r.status+') ao ler "estudantes".');
-    out.push(...rows);
-    if(rows.length < page) break;
-  }
-  return out;
-}
-
-function libIndexar(){
-  const porTurmaNome = new Map(), porNome = new Map(), porTurma = new Map();
-  libState.adv.forEach(e=>{
-    const tn = normTurma(e.turma), nn = libNorm(e.nome);
-    porTurmaNome.set(tn+'|'+nn, e);
-    if(!porNome.has(nn)) porNome.set(nn, []);
-    porNome.get(nn).push(e);
-    if(!porTurma.has(tn)) porTurma.set(tn, []);
-    porTurma.get(tn).push(e);
-  });
-  return { porTurmaNome, porNome, porTurma };
-}
 // Casa o aluno do boletim com o cadastro do Monitoramento: turma+nome; senão nome único; senão nome parecido na turma.
-function libAcharEstudante(idx, turmaLabel, nome){
-  const tn = normTurma(turmaLabel), nn = libNorm(nome);
+function acharEstudante(idx, turmaLabel, nome){
+  const tn = normTurma(turmaLabel), nn = normNome(nome);
   const exato = idx.porTurmaNome.get(tn+'|'+nn);
   if(exato) return exato;
   const mesmos = idx.porNome.get(nn);
   if(mesmos && mesmos.length===1) return mesmos[0];
   const parecidos = (idx.porTurma.get(tn)||[]).filter(x=>{
-    const o = libNorm(x.nome);
+    const o = normNome(x.nome);
     return Math.min(o.length, nn.length)>=12 && (o.startsWith(nn) || nn.startsWith(o));
   });
   return parecidos.length===1 ? parecidos[0] : null;
-}
-
-function libCalcular(){
-  const limite = libState.limite;
-  const limiarQtd = libState.cfg.limiarQtd;
-  const nomes = libTurmasOrdenadas().filter(n=>libState.sel.has(n));
-  const idx = libIndexar();
-  const tipos = new Map(); // chave normalizada -> {label, qtd, alunos:Set}
-  const turmas = nomes.map(name=>{
-    const cd = currentClasses[name];
-    const label = shortTurmaLabel(name);
-    const t = { name, label, total: cd.students.length, liberados:[], bloqueados:[], verificar:[], transferidos:0 };
-    cd.students.forEach(st=>{
-      const motivos = [], pend = [], semNota = [];
-      let algumaNota = false;
-      cd.subjects.forEach((sn, i)=>{
-        if(isLiteratura(sn)) return;
-        const calc = subjectCalc(st.subjects[i]);
-        const t1 = calc.tris[0], t2 = calc.tris[1];
-        if(!t1.filled && !t2.filled){ semNota.push(sn); return; }
-        algumaNota = true;
-        const soma = (t1.filled?t1.total:0) + (t2.filled?t2.total:0);
-        const precisa = OER_TOTAL - soma;
-        if(precisa > limite){
-          const falta = !t1.filled ? 1 : (!t2.filled ? 2 : null);
-          pend.push(`${sn}: precisa de ${precisa} pts no 3º trim.` + (falta ? ` (sem nota no ${falta}º trim.)` : ''));
-        }
-      });
-      motivos.push(...pend);
-
-      // ── advertências do 2º trimestre ──
-      const est = libAcharEstudante(idx, label, st.name);
-      const verif = [];
-      if(est && est.transferido){ t.transferidos++; return; }
-      if(!est){
-        verif.push('Não localizado no cadastro do Monitoramento (conferir o nome)');
-      } else {
-        const p = libParseSintese(est.sintese_ocorrencias);
-        const itens = p.porTri[LIB_TRI_ADV] || [];
-        itens.forEach(it=>{
-          const k = libNorm(it.tipo);
-          if(!tipos.has(k)) tipos.set(k, { key:k, label:it.tipo, qtd:0, alunos:new Set() });
-          const tp = tipos.get(k); tp.qtd += it.qtd; tp.alunos.add(name+'|'+st.name);
-        });
-        const graves = itens.filter(it=>libEhGrave(libNorm(it.tipo)));
-        graves.forEach(it=> motivos.push(`Advertência grave no ${LIB_TRI_ADV}º trim.: ${it.tipo}${it.qtd>1?' ('+it.qtd+'x)':''}`));
-        const totalTri = itens.reduce((a,it)=>a+it.qtd,0);
-        if(limiarQtd>0 && totalTri>=limiarQtd) motivos.push(`${totalTri} advertências no ${LIB_TRI_ADV}º trim. (limite: ${limiarQtd})`);
-        const semDetalhe = (parseInt(est.num_ocorrencias,10)||0)>0 && !Object.keys(p.porTri).length && !p.foraPeriodo.length && !p.livre.length;
-        if(p.livre.length || semDetalhe) verif.push('Advertências sem trimestre identificado (revisar a síntese no Monitoramento)');
-      }
-      if(!algumaNota) verif.push('Nenhuma nota de 1º/2º trimestre lançada');
-
-      const obs = semNota.length ? 'Sem nota lançada em: ' + semNota.join(', ') : '';
-      if(motivos.length) t.bloqueados.push({ nome: st.name, motivos });
-      else if(verif.length) t.verificar.push({ nome: st.name, motivos: verif });
-      else t.liberados.push({ nome: st.name, obs });
-    });
-    const cmp = (a,b)=> a.nome.localeCompare(b.nome,'pt-BR');
-    t.liberados.sort(cmp); t.bloqueados.sort(cmp); t.verificar.sort(cmp);
-    return t;
-  });
-  const listaTipos = [...tipos.values()].sort((a,b)=> a.label.localeCompare(b.label,'pt-BR'));
-  return { turmas, tipos: listaTipos };
-}
-
-// ── Interface ──
-function renderLiberacaoTab(){
-  const main = document.getElementById('main');
-  const nomes = libTurmasOrdenadas();
-  if(!nomes.length){
-    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF de quadro síntese para gerar a listagem de liberação de boletim.</p></div>`;
-    return;
-  }
-  if(!libState.cfg) libState.cfg = libLoadCfg();
-  libState.sel = libState.sel ? new Set([...libState.sel].filter(n=>currentClasses[n])) : new Set(nomes);
-  main.innerHTML = `<div class="hdr"><div><h1>Liberação de boletim — ${LIB_TRI_ADV}º trimestre</h1>
-      <div class="hdr-sub">Alunos que não precisam de mais de <span id="libLimTxt">${libState.limite}</span> pontos em nenhuma disciplina e sem advertência grave no ${LIB_TRI_ADV}º trimestre</div></div></div>
-    <div class="lib-panel">
-      <div class="lib-row"><span class="lib-lbl">Turmas</span>
-        ${nomes.map(n=>`<label class="lib-chk"><input type="checkbox" class="libTurmaChk" value="${libEsc(n)}" ${libState.sel.has(n)?'checked':''}> ${libEsc(shortTurmaLabel(n))}</label>`).join('')}
-        <button class="lib-link" id="libTodas">todas</button><button class="lib-link" id="libNenhuma">nenhuma</button>
-      </div>
-      <div class="lib-row"><span class="lib-lbl">Notas</span>
-        <label>Não liberar se precisar de mais de <input type="number" id="libLimite" class="lib-num" min="0" max="60" value="${libState.limite}"> pontos no 3º trimestre em alguma disciplina <small>(1º+2º trimestres, já com recuperação)</small></label>
-      </div>
-      <div class="lib-row"><span class="lib-lbl">Advertências</span>
-        <label>Também não liberar com <input type="number" id="libLimiarQtd" class="lib-num" min="0" value="${libState.cfg.limiarQtd}"> ou mais advertências (de qualquer tipo) no ${LIB_TRI_ADV}º trimestre <small>(0 = desligado)</small></label>
-      </div>
-      <div id="libGravesBox"></div>
-      <div class="lib-row"><button class="print-btn" id="libRecarregar">↻ Atualizar advertências do Supabase</button><span id="libStatus" class="lib-status"></span></div>
-    </div>
-    <div id="libResultado"></div>`;
-
-  main.querySelectorAll('.libTurmaChk').forEach(cb=> cb.onchange = ()=>{
-    cb.checked ? libState.sel.add(cb.value) : libState.sel.delete(cb.value); libAtualizar();
-  });
-  document.getElementById('libTodas').onclick = ()=>{ libState.sel = new Set(nomes); main.querySelectorAll('.libTurmaChk').forEach(c=>c.checked=true); libAtualizar(); };
-  document.getElementById('libNenhuma').onclick = ()=>{ libState.sel = new Set(); main.querySelectorAll('.libTurmaChk').forEach(c=>c.checked=false); libAtualizar(); };
-  document.getElementById('libLimite').oninput = e=>{
-    const v = parseInt(e.target.value,10); libState.limite = isNaN(v) ? OER_LIMITE : v;
-    document.getElementById('libLimTxt').textContent = libState.limite; libAtualizar();
-  };
-  document.getElementById('libLimiarQtd').oninput = e=>{
-    libState.cfg.limiarQtd = Math.max(0, parseInt(e.target.value,10)||0); libSaveCfg(); libAtualizar();
-  };
-  document.getElementById('libRecarregar').onclick = ()=> libCarregar();
-  document.getElementById('libResultado').onclick = e=>{
-    const b = e.target.closest('[data-lib-act]'); if(!b) return;
-    const act = b.dataset.libAct;
-    if(act==='print-all') libImprimir(libTurmasOrdenadas().filter(n=>libState.sel.has(n)));
-    else if(act==='print-turma') libImprimir([b.dataset.turma]);
-    else if(act==='csv') libExportarCsv();
-  };
-  if(libState.adv===null && !libState.loading) libCarregar(); else libAtualizar();
-}
-
-async function libCarregar(){
-  libState.loading = true; libState.erro = null;
-  libAtualizar();
-  try{ libState.adv = await libBuscarEstudantes(); }
-  catch(e){ console.error(e); libState.adv = null; libState.erro = e.message || String(e); }
-  libState.loading = false;
-  libAtualizar();
-}
-
-function libAtualizar(){
-  const box = document.getElementById('libResultado');
-  if(!box) return; // usuário saiu da aba
-  const st = document.getElementById('libStatus');
-  if(libState.loading){
-    st.textContent = 'Buscando advertências no Supabase…';
-    box.innerHTML = `<div class="lib-msg">Carregando dados…</div>`; document.getElementById('libGravesBox').innerHTML=''; return;
-  }
-  if(libState.erro || !libState.adv){
-    st.textContent = '';
-    box.innerHTML = `<div class="lib-msg bad"><b>Não foi possível ler as advertências.</b><br>${libEsc(libState.erro||'Sem resposta do Supabase.')}<br>Sem esses dados a listagem não é gerada (para não liberar boletim sem checar ocorrências). Verifique a conexão e clique em “Atualizar”.</div>`;
-    document.getElementById('libGravesBox').innerHTML=''; return;
-  }
-  if(libState.adv.length===0){
-    st.textContent = '';
-    box.innerHTML = `<div class="lib-msg bad"><b>O Supabase retornou 0 estudantes.</b><br>Possível bloqueio de acesso (RLS) na tabela "estudantes". A listagem não foi gerada.</div>`;
-    document.getElementById('libGravesBox').innerHTML=''; return;
-  }
-  st.textContent = `${libState.adv.length} estudantes lidos do Supabase.`;
-  libState.res = libCalcular();
-  libRenderGraves();
-  libRenderResultado();
-}
-
-function libRenderGraves(){
-  const tipos = libState.res.tipos;
-  const el = document.getElementById('libGravesBox');
-  if(!tipos.length){
-    el.innerHTML = `<div class="lib-row"><span class="lib-lbl">Graves</span><span class="lib-hint">Nenhuma advertência registrada no ${LIB_TRI_ADV}º trimestre nas turmas selecionadas.</span></div>`;
-    return;
-  }
-  el.innerHTML = `<div class="lib-row lib-graves"><span class="lib-lbl">Marque os tipos GRAVES<br><small>(${LIB_TRI_ADV}º trim.)</small></span>
-    <div class="lib-tipos">${tipos.map(t=>`<label class="lib-tipo ${libEhGrave(t.key)?'on':''}"><input type="checkbox" data-k="${libEsc(t.key)}" ${libEhGrave(t.key)?'checked':''}> ${libEsc(t.label)} <small>${t.qtd}× · ${t.alunos.size} aluno${t.alunos.size>1?'s':''}</small></label>`).join('')}</div></div>
-    <div class="lib-hint">Os tipos vêm do que foi registrado no Monitoramento; a pré-marcação é só uma sugestão e fica salva neste navegador.</div>`;
-  el.querySelectorAll('input[data-k]').forEach(cb=> cb.onchange = ()=>{
-    libState.cfg.marcados[cb.dataset.k] = cb.checked; libSaveCfg(); libAtualizar();
-  });
-}
-
-function libRenderResultado(){
-  const { turmas } = libState.res;
-  const box = document.getElementById('libResultado');
-  if(!turmas.length){ box.innerHTML = `<div class="lib-msg">Selecione ao menos uma turma.</div>`; return; }
-  const sum = k => turmas.reduce((a,t)=>a+t[k].length,0);
-  const transf = turmas.reduce((a,t)=>a+t.transferidos,0);
-  const tabela = (rows, cols) => `<table class="lib-table"><tbody>${rows.map(r=>`<tr>${cols(r)}</tr>`).join('')}</tbody></table>`;
-  box.innerHTML = `
-    <div class="lib-summary">
-      <div class="lib-chip ok"><b>${sum('liberados')}</b> liberados</div>
-      <div class="lib-chip bad"><b>${sum('bloqueados')}</b> não liberados</div>
-      <div class="lib-chip warn"><b>${sum('verificar')}</b> a verificar</div>
-      ${transf?`<div class="lib-chip"><b>${transf}</b> transferido${transf>1?'s':''} (ignorado${transf>1?'s':''})</div>`:''}
-    </div>
-    <div class="risk-actions">
-      <button class="print-btn" data-lib-act="print-all">🖶 Imprimir listagem (uma folha por turma)</button>
-      <button class="print-btn" data-lib-act="csv">⬇ Exportar CSV (todos, com situação)</button>
-    </div>
-    ${turmas.map(t=>`<div class="lib-turma">
-      <div class="lib-turma-hdr"><h3>${libEsc(t.label)}</h3><span>${t.liberados.length} de ${t.total} alunos liberados</span>
-        <button class="print-btn lib-small" data-lib-act="print-turma" data-turma="${libEsc(t.name)}">🖶 Imprimir esta turma</button></div>
-      ${t.liberados.length ? `<table class="lib-table"><thead><tr><th>Nº</th><th>Aluno</th><th>Obs.</th></tr></thead><tbody>${t.liberados.map((a,i)=>`<tr><td>${i+1}</td><td>${libEsc(a.nome)}</td><td class="lib-obs">${libEsc(a.obs)}</td></tr>`).join('')}</tbody></table>` : `<div class="lib-hint">Nenhum aluno liberado nesta turma.</div>`}
-      ${t.bloqueados.length ? `<details class="lib-det bad"><summary>Não liberados (${t.bloqueados.length})</summary>${tabela(t.bloqueados, a=>`<td>${libEsc(a.nome)}</td><td class="lib-obs">${a.motivos.map(libEsc).join('<br>')}</td>`)}</details>` : ''}
-      ${t.verificar.length ? `<details class="lib-det warn"><summary>A verificar manualmente (${t.verificar.length})</summary>${tabela(t.verificar, a=>`<td>${libEsc(a.nome)}</td><td class="lib-obs">${a.motivos.map(libEsc).join('<br>')}</td>`)}</details>` : ''}
-    </div>`).join('')}`;
-}
-
-function libImprimir(nomes){
-  if(!libState.res) return;
-  const turmas = libState.res.turmas.filter(t=>nomes.includes(t.name));
-  if(!turmas.length){ alert('Selecione ao menos uma turma.'); return; }
-  const cfg = loadGlobalConfig();
-  const escola = cfg.escola || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA';
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  const crit = `Critérios: não precisa de mais de ${libState.limite} pontos no 3º trimestre em nenhuma disciplina (soma 1º+2º trimestres) e sem advertência grave no ${LIB_TRI_ADV}º trimestre.`;
-  const html = turmas.map(t=>`<div class="print-page">
-    <div class="print-page-hdr"><div><h1>${libEsc(t.label)} — Liberação de boletim (${LIB_TRI_ADV}º trimestre)</h1>
-      <div class="print-page-sub">${libEsc(escola)} · ${t.liberados.length} aluno${t.liberados.length===1?'':'s'} liberado${t.liberados.length===1?'':'s'} · emitido em ${hoje}</div></div></div>
-    ${t.liberados.length ? `<table class="print-subj-table"><thead><tr><th style="width:36px">Nº</th><th>Aluno</th><th style="width:110px">Data de entrega</th><th style="width:34%">Assinatura do responsável</th></tr></thead>
-      <tbody>${t.liberados.map((a,i)=>`<tr><td>${i+1}</td><td>${libEsc(a.nome)}</td><td></td><td></td></tr>`).join('')}</tbody></table>` : `<p>Nenhum aluno liberado nesta turma.</p>`}
-    <div class="oer-legend">${libEsc(crit)}</div>
-  </div>`).join('');
-  runPrintMode('printLibDoc', html, 'print-mode-liberacao');
-}
-
-function libExportarCsv(){
-  if(!libState.res) return;
-  const q = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
-  const linhas = [['Turma','Aluno','Situação','Motivo'].map(q).join(';')];
-  libState.res.turmas.forEach(t=>{
-    t.liberados.forEach(a=> linhas.push([t.label,a.nome,'Liberado',a.obs].map(q).join(';')));
-    t.bloqueados.forEach(a=> linhas.push([t.label,a.nome,'Não liberado',a.motivos.join(' | ')].map(q).join(';')));
-    t.verificar.forEach(a=> linhas.push([t.label,a.nome,'A verificar',a.motivos.join(' | ')].map(q).join(';')));
-  });
-  const blob = new Blob(['\ufeff'+linhas.join('\r\n')], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'liberacao-boletim-'+LIB_TRI_ADV+'tri.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 
 function renderMain(){
@@ -2064,7 +1651,6 @@ function renderMain(){
   if(activeClass==='OVERVIEW') return renderOverview();
   if(activeClass==='DASHBOARD') return renderDashboard();
   if(activeClass==='OER') return renderOerTab();
-  if(activeClass==='LIBERACAO') return renderLiberacaoTab();
   if(activeClass==='RELATORIOS') return renderReportsTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
@@ -2092,17 +1678,13 @@ function renderMain(){
       <h1>${activeClass}</h1>
       <div class="hdr-sub">${cd.students.length} alunos · ${cd.subjects.filter(s=>!isLiteratura(s)).length} disciplinas</div>
       <div class="hdr-info">
-        <label>Escola: <input type="text" class="meta-input" id="metaEscola" value="${(cfg.escola||'').replace(/"/g,'&quot;')}" placeholder="Nome da escola"></label>
         <label>Mês/Ano: <input type="text" class="meta-input" id="metaMesAno" value="${effectiveMesAno(cd).replace(/"/g,'&quot;')}" placeholder="ex: ${mesAnoAtual()}"></label>
         <label>Prof. de referência: <input type="text" class="meta-input" id="metaProfessor" value="${(cd.meta.professor||'').replace(/"/g,'&quot;')}" placeholder="Nome do professor(a)"></label>
-        <label>Nota de rodapé do quadro: <input type="text" class="meta-input" id="metaNota" style="width:300px" value="${(cd.meta.notaRodape||'').replace(/"/g,'&quot;')}" placeholder="Opcional: observação a imprimir no rodapé"></label>
+        <label>Rodapé do quadro de notas: <input type="text" class="meta-input" id="metaNota" style="width:300px" value="${(cd.meta.notaRodape||'').replace(/"/g,'&quot;')}" placeholder="Opcional: observação a imprimir no rodapé"></label>
       </div>
     </div>
     <div class="hdr-actions">
-      <button class="print-btn" onclick="printClassTable('${activeClass.replace(/'/g,"\\'")}')">🖶 Quadro por aluno (A4)</button>
-      <button class="print-btn" onclick="window.print()">🖶 Imprimir quadro resumo</button>
-      <button class="print-btn" onclick="printRiskBySubject('${activeClass.replace(/'/g,"\\'")}')">🖶 Imprimir por disciplina (professores)</button>
-      <button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button>
+      <button class="print-btn" onclick="abrirRelatorios(activeClass)">📑 Gerar relatórios desta turma</button>
       <div class="stamp">${activeClass.slice(0,6)}</div>
     </div>
   </div>`;
@@ -2156,9 +1738,6 @@ function renderMain(){
     const v = e.target.value;
     triFilter[activeClass] = (v==='ALL') ? 'ALL' : Number(v);
     renderMain();
-  };
-  document.getElementById('metaEscola').onchange = (e)=>{
-    const c = loadGlobalConfig(); c.escola = e.target.value; saveGlobalConfig(c);
   };
   document.getElementById('metaMesAno').onchange = (e)=>{
     const v = e.target.value.trim();
@@ -2243,7 +1822,7 @@ function renderOverview(){
   if(overviewTri!=='ALL' && !triAvail.includes(overviewTri)) overviewTri = 'ALL';
   const tri = overviewTri;
   const triTxt = tri==='ALL' ? 'Acumulado (Total Anual)' : (tri+1)+'º trimestre';
-  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><div class="hdr-actions"><button class="print-btn" onclick="printClassTable()">🖶 Quadros por aluno — todas as turmas</button><button class="print-btn" onclick="window.print()">🖶 Imprimir visão geral</button><button class="print-btn" onclick="printRiskCardsAllClasses()">🖶 Imprimir cards de risco — todas as turmas</button></div></div>`;
+  let html = `<div class="hdr"><h1>Visão geral — todas as turmas</h1><div class="hdr-actions"><button class="print-btn" onclick="abrirRelatorios(Object.keys(currentClasses).sort())">📑 Gerar relatórios — todas as turmas</button></div></div>`;
   html += `<div class="tri-filter-bar"><label>Trimestre: <select id="ovTriSelect" class="tri-select">${triAvail.map(i=>`<option value="${i}" ${tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}<option value="ALL" ${tri==='ALL'?'selected':''}>Acumulado (Total Anual)</option></select></label><span class="tri-filter-hint">Vale para toda a Visão geral</span></div>`;
   html += `<div class="section-title">${tri==='ALL' ? 'Aprovação final (%)' : 'Aprovação no trimestre (%)'} por turma e disciplina — ${triTxt}</div>`;
   html += `<table class="overview-table"><thead><tr><th>Turma</th>${[...allSubjects].map(s=>`<th>${s}</th>`).join('')}</tr></thead><tbody>`;
@@ -2727,11 +2306,18 @@ function showReview(parsed){
 
 document.getElementById('overviewBtn').onclick = ()=>{ activeClass='OVERVIEW'; renderSidebar(); renderMain(); };
 document.getElementById('dashboardBtn').onclick = ()=>{ activeClass='DASHBOARD'; renderSidebar(); renderMain(); };
+function abrirRelatorios(names, modo){
+  names = (Array.isArray(names) ? names : [names]).filter(n=>currentClasses[n]);
+  const S = repState;
+  S.started = true; if(modo) S.modo = modo;
+  if(names.length){ S.turmas = new Set(names); S.turmaAluno = names[0]; }
+  S.alunos = new Set(); S.preview = null;
+  activeClass = 'RELATORIOS'; renderSidebar(); renderMain();
+}
 document.getElementById('repBtn').onclick = ()=>{
   if(currentClasses[activeClass]){ repState.started = true; repState.turmaAluno = activeClass; repState.turmas = new Set([activeClass]); repState.alunos = new Set(); repState.preview = null; } // abre já na turma que estava sendo vista
   activeClass='RELATORIOS'; renderSidebar(); renderMain();
 };
-document.getElementById('libBtn').onclick = ()=>{ activeClass='LIBERACAO'; renderSidebar(); renderMain(); };
 document.getElementById('oerBtn').onclick = ()=>{
   if(currentClasses[activeClass]){ oerTurma = activeClass; oerSel = new Set([activeClass]); oerSelTouched = true; } // abre já na turma que estava sendo vista
   activeClass='OER'; renderSidebar(); renderMain();
@@ -2753,7 +2339,7 @@ function brandBandHtml(){
 }
 // Antes de qualquer impressão (botão ou Ctrl+P) garante a faixa com logo + nome da escola no topo
 // de cada folha dos documentos dedicados e da tela atual. Os cards de O.E.R já trazem a logo no próprio card.
-const BRAND_DOCS = ['printSubjectDoc','printCardsDoc','printOerTableDoc','printClassTableDoc','printLibDoc'];
+const BRAND_DOCS = ['printSubjectDoc','printClassTableDoc'];
 function injectBrand(){
   const mk = ()=>{ const d = document.createElement('div'); d.innerHTML = brandBandHtml(); return d.firstChild; };
   BRAND_DOCS.forEach(id=>{
@@ -2796,7 +2382,6 @@ const REP_IND_VARS = [
 ];
 const REP_IND_PRESETS = {
   padrao:   {nome:'Padrão (recomendado)',   vars:['notas','situacao','turma','resumo','evolucao','acumulado','oer','destaques','orient','freq','parecer','assin']},
-  familia:  {nome:'Resumo para a família',  vars:['notas','situacao','resumo','oer','orient','ciencia']},
   conselho: {nome:'Conselho de classe',     vars:['notas','situacao','turma','resumo','evolucao','acumulado','oer','destaques','freq','parecer','assin']}
 };
 const REP_TUR_VARS = [
@@ -3207,7 +2792,7 @@ function repComparativoPage(names, V){
 
 // ---------- montagem / pré-visualização / impressão ----------
 function repCurrentVars(){
-  if(repState.modo==='quadro') return new Set(['quadro']);
+  if(['quadro','notas','cards','prof'].includes(repState.modo)) return new Set(['x']);
   if(repState.modo==='turma') return repState.varsTur;
   if(repState.modo==='ind') return new Set(REP_IND_PRESETS.padrao.vars);
   return repState.varsInd;
@@ -3241,7 +2826,13 @@ async function repPreview(){
   box.innerHTML = html;
   box.scrollIntoView({behavior:'smooth', block:'start'});
 }
+const REP_DIRETOS = {notas:printClassTable, cards:printOerCards, prof:printRiskBySubject};
 async function repPrint(){
+  if(REP_DIRETOS[repState.modo]){
+    const nomes = Object.keys(currentClasses).sort().filter(n=>repState.turmas.has(n));
+    if(!nomes.length){ alert('Selecione ao menos uma turma.'); return; }
+    REP_DIRETOS[repState.modo](nomes); return;
+  }
   if(repState.modo==='quadro'){ const r = await adSync(); quadroState.status = r.msg; }
   const html = repBuild(); if(!html) return;
   runPrintMode('printReportDoc', html, 'print-mode-report');
@@ -3279,28 +2870,32 @@ function renderReportsTab(){
   S.alunos = new Set([...S.alunos].filter(i=>cdA.students[i]));
   const chg = fn => (...a)=>{ fn(...a); S.preview = null; renderReportsTab(); };
 
-  const scopeNames = (S.modo==='turma'||S.modo==='quadro') ? names.filter(n=>S.turmas.has(n)) : [S.turmaAluno];
+  const multi = ['turma','quadro','notas','cards','prof'].includes(S.modo);
+  const scopeNames = multi ? names.filter(n=>S.turmas.has(n)) : [S.turmaAluno];
   const triUnion = [0,1,2].filter(i=> scopeNames.some(n=>triHasData(currentClasses[n], i)));
   if(S.tri!=='auto' && S.tri!=='ALL' && !triUnion.includes(S.tri)) S.tri = 'auto';
 
   const modeCard = (v,t,d)=>`<label class="rep-mode${S.modo===v?' on':''}"><input type="radio" name="repModo" value="${v}" ${S.modo===v?'checked':''}><b>${t}</b><span>${d}</span></label>`;
-  let h = `<div class="hdr"><div><h1>Relatórios</h1><div class="hdr-sub">Relatórios por turma ou individuais, sempre com cabeçalho, nome e logo da escola</div></div></div>`;
-  h += `<div class="rep-card"><h3>1 · Tipo de relatório</h3><div class="rep-modes">
+  let h = `<div class="hdr"><div><h1>Relatórios</h1><div class="hdr-sub">Todos os documentos para impressão em um só lugar: escolha o tipo, as turmas e imprima ou salve em PDF</div></div></div>`;
+  h += `<div class="rep-card"><h3>Tipo de relatório</h3><div class="rep-modes">
     ${modeCard('turma','Relatório da turma','Indicadores, resultado por disciplina, alunos em risco de O.E.R, acompanhamento e destaques')}
     ${modeCard('ind','Individual — família e aluno (recomendado)','Uma folha A4 por aluno, em linguagem simples e com gráficos, para a família e o aluno acompanharem e analisarem o trimestre')}
     ${modeCard('indp','Individual — detalhado (escolher variáveis)','Modelo em tabelas para conselho de classe e coordenação, só com as informações que você marcar')}
-    ${modeCard('quadro','Quadro da turma — O.E.R × disciplinas (com adaptação)','Alunos nas linhas e disciplinas nas colunas, com X onde há risco de O.E.R; observações indicam demanda de adaptação e diagnóstico')}
+    ${modeCard('notas','Quadro de notas por aluno','Todas as notas por disciplina e trimestre, em uma folha A4 paisagem por turma (cores para recuperou e abaixo da média)')}
+    ${modeCard('cards','Cards de O.E.R para entrega','Aviso individual em 2 vias (família e escola) para cada aluno em risco, com ciência do responsável')}
+    ${modeCard('prof','O.E.R por disciplina (professores)','Uma folha por disciplina com os alunos em risco, para entregar a cada professor(a)')}
+    ${modeCard('quadro','Quadro da turma — O.E.R × disciplinas (com adaptação)','Alunos nas linhas e disciplinas nas colunas, com X onde há risco de O.E.R; a coluna de observações mostra adaptação/diagnóstico só para quem tem registro (os demais ficam em branco)')}
   </div></div>`;
 
-  if(S.modo==='turma' || S.modo==='quadro'){
+  if(multi){
     const allOn = names.every(n=>S.turmas.has(n));
-    h += `<div class="rep-card"><h3>2 · Turmas</h3><div class="oer-tab-controls" style="margin:0">
+    h += `<div class="rep-card"><h3>Turmas</h3><div class="oer-tab-controls" style="margin:0">
       <label class="oer-chip all${allOn?' on':''}"><input type="checkbox" id="repAllCb" ${allOn?'checked':''}> Todas</label>
       ${names.map(n=>`<label class="oer-chip${S.turmas.has(n)?' on':''}" title="${escHtml(n)}"><input type="checkbox" class="rep-turma-cb" value="${escHtml(n)}" ${S.turmas.has(n)?'checked':''}> ${escHtml(shortTurmaLabel(n))}</label>`).join('')}
     </div></div>`;
   } else {
     const ord = cdA.students.map((st,i)=>({st,i})).sort((a,b)=>a.st.name.localeCompare(b.st.name));
-    h += `<div class="rep-card"><h3>2 · Turma e aluno(s)</h3>
+    h += `<div class="rep-card"><h3>Turma e aluno(s)</h3>
       <div class="rep-row"><label>Turma: <select id="repTurmaSel" class="tri-select">${names.map(n=>`<option value="${escHtml(n)}" ${n===S.turmaAluno?'selected':''}>${escHtml(shortTurmaLabel(n))}</option>`).join('')}</select></label>
       <input type="text" id="repFiltro" class="rep-filtro" placeholder="Buscar aluno…" value="${escHtml(S.filtro)}">
       <button class="print-btn" id="repMarkAll">Marcar todos</button><button class="print-btn" id="repMarkNone">Limpar</button>
@@ -3308,7 +2903,7 @@ function renderReportsTab(){
       <div class="rep-alunos" id="repAlunos">${ord.map(o=>`<label class="rep-al${S.alunos.has(o.i)?' on':''}" data-nome="${escHtml(o.st.name.toLowerCase())}"><input type="checkbox" class="rep-al-cb" value="${o.i}" ${S.alunos.has(o.i)?'checked':''}> ${escHtml(o.st.name)}</label>`).join('')}</div></div>`;
   }
 
-  if(S.modo!=='quadro') h += `<div class="rep-card"><h3>3 · Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
+  if(['turma','ind','indp'].includes(S.modo)) h += `<div class="rep-card"><h3>Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
       <option value="auto" ${S.tri==='auto'?'selected':''}>Último trimestre com notas (recomendado para fim de trimestre)</option>
       ${triUnion.map(i=>`<option value="${i}" ${S.tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}
       <option value="ALL" ${S.tri==='ALL'?'selected':''}>Acumulado do ano (todos os trimestres lado a lado)</option>
@@ -3316,34 +2911,34 @@ function renderReportsTab(){
 
   if(S.modo==='quadro'){
     const esc = (v,t)=>`<label class="oer-chip${quadroState.escopo===v?' on':''}"><input type="radio" name="qdEscopo" value="${v}" ${quadroState.escopo===v?'checked':''}> ${t}</label>`;
-    h += `<div class="rep-card"><h3>3 · Opções do quadro</h3><div class="rep-row"><b style="font-size:12.5px">Alunos no quadro:</b>${esc('risco','Somente em risco de O.E.R')}${esc('todos','Toda a turma')}${esc('adapt','Somente adaptação ou reforço')}</div>
+    h += `<div class="rep-card"><h3>Opções do quadro</h3><div class="rep-row"><b style="font-size:12.5px">Alunos no quadro:</b>${esc('risco','Somente em risco de O.E.R')}${esc('todos','Toda a turma')}${esc('adapt','Somente adaptação ou reforço')}</div>
       <div class="rep-row"><label class="oer-chip${quadroState.aplicada?' on':''}"><input type="checkbox" id="qdAplicada" ${quadroState.aplicada?'checked':''}> Coluna “Adaptação aplicada?” (☐ Sim ☐ Não) para conferência dos alunos com adaptação</label></div>
       <div class="rep-hint">O X marca a disciplina em risco de O.E.R (soma do 1º+2º trimestres abaixo de 36). A coluna Observações mostra se o aluno tem demanda de adaptação e o diagnóstico cadastrado abaixo.</div></div>`;
     h += adEditorHtml(S, names);
   } else if(S.modo==='ind'){
     const inc = ['Resumo: frase de leitura, aproveitamento geral e situação nas disciplinas','Gráfico por disciplina, com a média (60%) e a comparação com a turma','Gráfico de evolução ao longo dos trimestres (aluno × turma)','Gráfico dos pontos necessários no 3º trimestre (O.E.R.), quando houver risco','Leitura do trimestre e orientações em linguagem simples','Espaço para o aluno analisar e planejar; observações do professor; ciência do responsável e assinaturas'];
-    h += `<div class="rep-card"><h3>4 · O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer um modelo em tabelas, escolhendo as informações? Use “Individual — detalhado”.</div></div>`;
-  } else {
+    h += `<div class="rep-card"><h3>O que o modelo padrão inclui</h3><ul class="rep-inc">${inc.map(x=>`<li>${x}</li>`).join('')}</ul><div class="rep-hint">Quer um modelo em tabelas, escolhendo as informações? Use “Individual — detalhado”.</div></div>`;
+  } else if(S.modo==='turma' || S.modo==='indp'){
     const groups = S.modo==='turma' ? REP_TUR_VARS : REP_IND_VARS;
     const presets = S.modo==='turma' ? REP_TUR_PRESETS : REP_IND_PRESETS;
     const cur = S.modo==='turma' ? S.varsTur : S.varsInd;
     const curPreset = S.modo==='turma' ? S.turPreset : S.indPreset;
-    h += `<div class="rep-card"><h3>4 · Variáveis do relatório</h3>
+    h += `<div class="rep-card"><h3>Variáveis do relatório</h3>
       <div class="rep-row">${Object.entries(presets).map(([k,p])=>`<button class="print-btn rep-preset${curPreset===k?' on':''}" data-p="${k}">${p.nome}</button>`).join('')}
       <button class="print-btn" id="repVarAll">Marcar tudo</button><button class="print-btn" id="repVarNone">Limpar</button>
       <span class="rep-count">${curPreset==='custom'?'Personalizado':''}</span></div>
       <div class="rep-vars">${groups.map(g=>`<div class="rep-vg"><div class="rep-vg-t">${g.g}</div>${g.items.map(i=>`<label class="rep-v"><input type="checkbox" class="rep-var-cb" value="${i[0]}" ${cur.has(i[0])?'checked':''}> ${i[1]}</label>`).join('')}</div>`).join('')}</div></div>`;
   }
 
-  h += `<div class="rep-card"><h3>${S.modo==='ind'?'5':'5'} · Cabeçalho, nome da escola e logo</h3>
+  h += `<details class="rep-card" id="repHdrBox"${S.hdrOpen?' open':''}><summary><b>Cabeçalho, logo e recado</b> <span class="rep-hint">(opcional — vale para todos os documentos)</span></summary>
     <div class="rep-row"><label style="flex:1">Escola: <input type="text" id="repEscola" class="rep-filtro" style="width:100%" value="${escHtml(schoolName())}"></label></div>
     <div class="rep-row"><img class="rep-logo-prev" src="${getLogo()}" alt="Logo da escola">
       <label class="print-btn" style="cursor:pointer">Trocar logo<input type="file" id="repLogoFile" accept="image/*" style="display:none"></label>
       <button class="print-btn" id="repLogoReset">Usar logo padrão</button>
-      <span class="rep-hint">A logo aparece em todos os documentos impressos (relatórios, cards de O.E.R, tabelas e listagens).</span></div></div>`;
+      <span class="rep-hint">A logo aparece em todos os documentos impressos (relatórios, cards de O.E.R, tabelas e listagens).</span></div>
+    <div class="rep-row"><textarea id="repMsg" class="rep-msg-in" rows="2" placeholder="Recado opcional da coordenação, impresso nos relatórios individuais e da turma.">${escHtml(S.msg)}</textarea></div></details>`;
 
-  h += `<div class="rep-card"><h3>6 · Recado opcional</h3><textarea id="repMsg" class="rep-msg-in" rows="2" placeholder="Opcional: aviso ou recado da coordenação, impresso em todos os relatórios gerados.">${escHtml(S.msg)}</textarea></div>`;
-  h += `<div class="rep-actions"><button class="print-btn" id="repPreviewBtn">👁 Pré-visualizar</button><button class="print-btn" id="repPrintBtn">🖶 Imprimir relatório</button></div>
+  h += `<div class="rep-actions">${REP_DIRETOS[S.modo]?'':'<button class="print-btn" id="repPreviewBtn">👁 Pré-visualizar</button>'}<button class="print-btn" id="repPrintBtn">🖶 Imprimir / salvar PDF</button>${(S.modo==='turma'||S.modo==='quadro')?'<button class="print-btn" id="repXlsBtn">📊 Baixar planilha (uma turma por aba)</button>':''}</div>
     <div id="repPreview" class="rep-preview"></div>`;
   main.innerHTML = h;
   if(S.preview) document.getElementById('repPreview').innerHTML = S.preview;
@@ -3394,11 +2989,294 @@ function renderReportsTab(){
   document.getElementById('repEscola').onchange = e=>{ const c = loadGlobalConfig(); c.escola = e.target.value.trim() || 'ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA'; saveGlobalConfig(c); S.preview = null; renderReportsTab(); };
   document.getElementById('repLogoFile').onchange = e=> repLogoUpload(e.target.files[0]);
   document.getElementById('repLogoReset').onclick = ()=>{ const c = loadGlobalConfig(); delete c.logo; saveGlobalConfig(c); S.preview = null; renderReportsTab(); };
+  document.getElementById('repHdrBox').ontoggle = e=>{ S.hdrOpen = e.target.open; };
   document.getElementById('repMsg').oninput = e=>{ S.msg = e.target.value; };
-  document.getElementById('repPreviewBtn').onclick = repPreview;
+  const pvb = document.getElementById('repPreviewBtn'); if(pvb) pvb.onclick = repPreview;
   document.getElementById('repPrintBtn').onclick = repPrint;
+  const xlb = document.getElementById('repXlsBtn'); if(xlb) xlb.onclick = repXlsx;
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// PLANILHA (.xlsx) DO RELATÓRIO DA TURMA — uma turma por aba (gerada no navegador, sem bibliotecas)
+// ═══════════════════════════════════════════════════════════════════════
+const _crcT = (()=>{ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=_crcT[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+// ZIP sem compressão (formato do .xlsx)
+function zipStore(files){
+  const enc = new TextEncoder(), chunks = [], central = [];
+  const u16 = n=>[n&255,(n>>8)&255], u32 = n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  let off = 0;
+  files.forEach(f=>{
+    const nm = enc.encode(f.name), d = enc.encode(f.data), crc = crc32(d);
+    const lh = new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(d.length),...u32(d.length),...u16(nm.length),...u16(0)]);
+    chunks.push(lh, nm, d);
+    central.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(d.length),...u32(d.length),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]), nm);
+    off += lh.length + nm.length + d.length;
+  });
+  const cdSize = central.reduce((a,x)=>a+x.length,0);
+  const end = new Uint8Array([0x50,0x4b,5,6,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(off),...u16(0)]);
+  return new Blob([...chunks, ...central, end], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const xmlEsc = t => String(t==null?'':t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const xlsCol = i => { let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
+// estilos: 10 cabeçalho vertical (disciplinas) · 0 normal · 1 título · 2 cabeçalho de tabela · 3 subtítulo/seção · 4 % na média · 5 centralizado · 6 % amarelo · 7 % vermelho · 8 nº amarelo · 9 nº vermelho
+const XLS_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="0&quot;%&quot;"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="14"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9E2EC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFF8CBAD"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF999999"/></left><right style="thin"><color rgb="FF999999"/></right><top style="thin"><color rgb="FF999999"/></top><bottom style="thin"><color rgb="FF999999"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="15"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="164" fontId="0" fillId="4" borderId="0" xfId="0" applyNumberFormat="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" textRotation="90" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="4" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles><dxfs count="1"><dxf><fill><patternFill><bgColor rgb="FFF8CBAD"/></patternFill></fill></dxf></dxfs></styleSheet>`;
+function xlsSheetXml(rows, widths, freeze, cf, hid){
+  const cols = `<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"${(hid||[]).includes(i)?' hidden="1"':''}/>`).join('')}</cols>`;
+  const body = rows.map((row,r)=>`<row r="${r+1}"${row.ht?` ht="${row.ht}" customHeight="1"`:''}${row.hidden?' hidden="1"':''}>${row.map((c,i)=>{
+    if(c===null || c===undefined || c==='') return '';
+    const o = (typeof c==='object') ? c : {v:c, s:0};
+    const ref = xlsCol(i)+(r+1);
+    if(o.f!==undefined) return `<c r="${ref}" s="${o.s||0}"${typeof o.v==='string'?' t="str"':''}><f>${xmlEsc(o.f)}</f><v>${xmlEsc(o.v)}</v></c>`;
+    if(o.v===null || o.v===undefined || o.v==='') return '';
+    return typeof o.v==='number'
+      ? `<c r="${ref}" s="${o.s||0}"><v>${o.v}</v></c>`
+      : `<c r="${ref}" s="${o.s||0}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(o.v)}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${freeze?'<sheetViews><sheetView workbookViewId="0"><pane xSplit="2" ySplit="1" topLeftCell="C2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews>':''}${cols}<sheetData>${body}</sheetData>${cf?`<conditionalFormatting sqref="${cf}"><cfRule type="expression" dxfId="0" priority="1"><formula>UPPER(LEFT(${cf.split(':')[0]},1))="X"</formula></cfRule></conditionalFormatting>`:''}</worksheet>`;
+}
+function xlsxBlob(sheets){ // sheets: [{name, rows, widths}]
+  const files = [
+    {name:'[Content_Types].xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`},
+    {name:'_rels/.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+    {name:'xl/workbook.xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xmlEsc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets><calcPr fullCalcOnLoad="1"/></workbook>`},
+    {name:'xl/_rels/workbook.xml.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml', data:XLS_STYLES},
+    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`, data:xlsSheetXml(s.rows, s.widths, s.freeze, s.cf, s.hid)}))
+  ];
+  return zipStore(files);
+}
+
+// Linhas da aba de uma turma (mesmo conteúdo do Relatório da turma, respeitando as variáveis marcadas)
+function repTurmaRows(cd, className, V, t){
+  cd.meta = cd.meta || {};
+  const R = [], H = v=>({v,s:2}), B = v=>({v,s:3}), C = v=>({v,s:5});
+  const P = p => (p===null||p===undefined) ? C('–') : {v:Math.round(p), s: p>=70 ? 4 : (p>=40 ? 6 : 7)};
+  const turma = shortTurmaLabel(className);
+  const subs = cd.subjects.map((name,idx)=>({name,idx})).filter(s=>!isLiteratura(s.name));
+  const st = subs.map(s=>({name:s.name, idx:s.idx, ...repClassSubj(cd, s.idx, t)}));
+  const cs = computeStats(cd, t==='ALL' ? undefined : t);
+  const risk = computeRetentionRisk(cd).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  R.push([{v:schoolName(), s:1}]);
+  R.push([B('Relatório da turma — '+turma)]);
+  R.push([`Referência: ${repTriNome(t)} · ${effectiveMesAno(cd)} · Alunos: ${cd.students.length}${cd.meta.professor?' · Prof. de referência: '+cd.meta.professor:''}`]);
+  if(repState.msg.trim()) R.push([`Recado da coordenação: ${repState.msg.trim().replace(/\s+/g,' ')}`]);
+  R.push([]);
+  const totOk = st.reduce((a,s)=>a+s.ok,0), totN = st.reduce((a,s)=>a+s.n,0);
+
+  if(V.has('indicadores')){
+    R.push([B('Indicadores gerais')]);
+    R.push(['Alunos', C(cd.students.length)]);
+    R.push(['Aproveitamento médio', P(repClassPct(cd,t))]);
+    R.push(['Notas na média (alunos × disciplinas)', P(totN ? totOk/totN*100 : null)]);
+    R.push(['Alunos em risco de O.E.R', C(risk.length)]);
+    R.push(['Alunos em acompanhamento', C(cs.atencao.length)]);
+    R.push(['Alunos em destaque', C(cs.destaques70.length)]);
+    R.push([]);
+  }
+  if(V.has('disciplinas')){
+    R.push([B('Resultado por disciplina — '+repTriNome(t))]);
+    R.push(t==='ALL'
+      ? [H('Disciplina'),H('Alunos com nota'),H('Na média'),H('Abaixo da média'),H('% na média'),H('Média (%)'),H('Mediana (%)')]
+      : [H('Disciplina'),H('Alunos com nota'),H('Média direta'),H('Recuperou'),H('Abaixo da média'),H('% na média'),H('Média (%)'),H('Mediana (%)')]);
+    st.forEach(s=>R.push(t==='ALL'
+      ? [s.name,C(s.n),C(s.ok),{v:s.notrec,s:s.notrec?9:5},P(s.pctOk),P(s.mean),P(s.med)]
+      : [s.name,C(s.n),C(s.direct),{v:s.rec,s:s.rec?8:5},{v:s.notrec,s:s.notrec?9:5},P(s.pctOk),P(s.mean),P(s.med)]));
+    R.push([]);
+  }
+  if(V.has('evolucao')){
+    const tris = availableTris(cd);
+    if(tris.length){
+      R.push([B('Comparativo entre trimestres (% de alunos na média)')]);
+      R.push([H('Disciplina'),...tris.map(i=>H((i+1)+'º trim.')),...(tris.length>1?[H('Variação (p.p.)')]:[])]);
+      const rowOf = (name, ps) => [name, ...ps.map(P), ...(tris.length>1 ? [(()=>{ const a=ps[0], b=ps[ps.length-1]; if(a===null||b===null) return C('–'); const d=Math.round(b-a); return C((d>0?'+':'')+d); })()] : [])];
+      subs.forEach(s=>R.push(rowOf(s.name, tris.map(i=>repClassSubj(cd,s.idx,i).pctOk))));
+      const tot = rowOf('Aproveitamento médio da turma', tris.map(i=>repClassPct(cd,i))); tot[0] = B(tot[0]); R.push(tot);
+      R.push([]);
+    }
+  }
+  if(V.has('criticas')){
+    R.push([B('Disciplinas que exigem atenção')]);
+    const crit = st.filter(s=>s.pctOk!==null).sort((a,b)=>a.pctOk-b.pctOk).slice(0,3).filter(s=>s.pctOk<70);
+    if(crit.length) crit.forEach(s=>R.push([`${s.name} — ${s.pctOk}% na média (${s.notrec} aluno${s.notrec===1?'':'s'} abaixo da média)`]));
+    else R.push(['Todas as disciplinas têm 70% ou mais dos alunos na média.']);
+    R.push([]);
+  }
+  if(V.has('oer')){
+    R.push([B('Alunos em risco de O.E.R ('+risk.length+')')]);
+    if(risk.length){
+      R.push([H('Aluno'),H('Disciplinas em risco (pontos necessários no 3º trimestre)')]);
+      risk.forEach(r=>R.push([r.name, r.subjects.map(s=>`${s.name} (${s.precisa}${oerAst(s)})`).join('; ')]));
+      if(oerTemParcial(risk.flatMap(r=>r.subjects))) R.push([OER_ASTERISCO_TXT]);
+    } else R.push(['Nenhum aluno com risco de O.E.R com as notas lançadas.']);
+    R.push([]);
+  }
+  if(V.has('acomp')){
+    const a = cs.atencao;
+    R.push([B('Alunos em acompanhamento — abaixo da média em 2 ou mais disciplinas ('+a.length+')')]);
+    if(a.length){
+      R.push([H('Aluno'),H('Disc.'),H('Disciplinas abaixo da média')]);
+      a.forEach(s=>R.push([s.name,{v:s.count,s:9},s.lowSubjects.join('; ')]));
+    } else R.push(['Nenhum aluno nesta condição.']);
+    R.push([]);
+  }
+  if(V.has('destaques')){
+    R.push([B('Alunos em destaque')]);
+    const blocos = [['≥ 70% em todas as disciplinas',cs.destaques70],['≥ 90% em Língua Portuguesa',cs.destaquesPort],['≥ 90% em Matemática',cs.destaquesMat]];
+    blocos.forEach(([tit,l])=>{ R.push([B(`${tit} (${l.length})`)]); if(l.length) l.forEach(x=>R.push([x.name])); else R.push(['Nenhum']); });
+    R.push([]);
+  }
+  R.push([`“% na média” = alunos que atingiram a média (direto ou após recuperação) ÷ alunos com nota lançada. Cores: amarelo = recuperou (ou 40–69%); vermelho = abaixo da média (ou abaixo de 40%). Literatura não é exibida.`]);
+  return {rows:R, widths:[44,16,16,16,16,14,14,14]};
+}
+// Aba extra: comparação entre as turmas selecionadas
+function repComparativoRows(names){
+  const H = v=>({v,s:2}), C = v=>({v,s:12});
+  const P = p => (p===null||p===undefined) ? C('–') : {v:Math.round(p), s: p>=70 ? 4 : (p>=40 ? 6 : 7)};
+  const subjNames = [];
+  names.forEach(n=>currentClasses[n].subjects.forEach(x=>{ if(!isLiteratura(x) && !subjNames.includes(x)) subjNames.push(x); }));
+  const hdr = [H('Turma'),{v:'ALUNOS',s:10},{v:'APROVEITAMENTO MÉDIO',s:10},{v:'EM RISCO DE O.E.R',s:10},...subjNames.map(x=>({v:x.toUpperCase(), s:10}))];
+  hdr.ht = 95;
+  const R = [hdr];
+  names.forEach(n=>{
+    const cd = currentClasses[n], t = repRefTri(cd);
+    R.push([{v:shortTurmaLabel(n),s:11}, C(cd.students.length), P(repClassPct(cd,t)), C(computeRetentionRisk(cd).length),
+      ...subjNames.map(sn=>{ const idx = cd.subjects.indexOf(sn); return idx<0 ? C('–') : P(repClassSubj(cd, idx, t).pctOk); })]);
+  });
+  R.push([]);
+  R.push([{v:schoolName(), s:1}]);
+  R.push([{v:'Comparativo entre as turmas — % de alunos na média por disciplina', s:3}]);
+  R.push(['Cores: amarelo = entre 40% e 69%; vermelho = abaixo de 40%. Literatura não é exibida.']);
+  return {rows:R, freeze:true, widths:[14,8.5,10,10,...subjNames.map(()=>8.5)]};
+}
+function repQuadroRows(cd, className){
+  cd.meta = cd.meta || {};
+  const H = v=>({v,s:2}), B = v=>({v,s:3});
+  const turma = shortTurmaLabel(className);
+  const reg = adLoad();
+  const subs = cd.subjects.map((name,idx)=>({name,idx})).filter(s=>!isLiteratura(s.name));
+  const riskBy = {}; computeRetentionRisk(cd).forEach(r=>{ riskBy[r.name] = r; });
+  const comAd = st => adGet(reg, className, st.name).a==='S';
+  const comRef = st => !!adGet(reg, className, st.name).r;
+  const comEsp = st => comAd(st) || comRef(st);
+  // todos os alunos entram na aba (as fórmulas do resumo cobrem a turma inteira); o filtro escolhido só oculta linhas
+  const todos = cd.students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+  const noEscopo = new Set(todos.filter(st=> quadroState.escopo==='risco' ? riskBy[st.name] : quadroState.escopo==='adapt' ? comEsp(st) : true));
+  const cnt = adClassCount(className);
+  const prio = todos.filter(st=>riskBy[st.name] && comEsp(st));
+  const temParcial = Object.values(riskBy).some(r=>r.parcial);
+  const nS = subs.length, N = Math.max(todos.length,1), nLast = 1+N, nTot = nLast+1;
+  const colS = subs.map((_,k)=>xlsCol(2+k)), colD = xlsCol(2+nS);
+  const colA = quadroState.aplicada ? xlsCol(3+nS) : null, colO = xlsCol(3+nS+(quadroState.aplicada?1:0));
+  const R = [];
+  // 1) Tabela já na primeira linha
+  const hdr = [H('Nº'),H('Aluno'),...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação e diagnóstico')];
+  hdr.ht = 95; R.push(hdr);
+  const usadoS = subs.map(()=>false); let haObs = false, haApl = false;
+  todos.forEach((st,i)=>{
+    const r = riskBy[st.name], by = {}; if(r) r.subjects.forEach(s=>{ by[s.name] = s; });
+    const ad = adGet(reg, className, st.name), sim = ad.a==='S';
+    const obs = [];
+    if(sim) obs.push('◆ ADAPTAÇÃO'+(ad.d ? ' — Diagnóstico: '+ad.d : ' — diagnóstico não informado'));
+    if(ad.r) obs.push('▲ REFORÇO');
+    if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs.push('Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)');
+    const apl = (colA && sim && r) ? '☐ Sim  ☐ Não' : '';
+    const hasX = !!r && subs.some(s=>by[s.name]);
+    subs.forEach((s,k)=>{ if(by[s.name]) usadoS[k] = true; });
+    if(obs.length) haObs = true; if(apl) haApl = true;
+    const rn = i+2, rng = `${colS[0]}${rn}:${colS[nS-1]}${rn}`;
+    const row = [{v:i+1,s:12}, {v:st.name,s:11},
+      ...subs.map(s=>{ const x = by[s.name]; return {v: x ? 'X'+(x.parcial?'*':'') : '', s:12}; }),
+      nS ? {f:`IF(COUNTIF(${rng},"X*")=0,"",COUNTIF(${rng},"X*"))`, v:r ? r.subjects.length : '', s:12} : {v:'',s:12},
+      ...(colA ? [{v:apl, s:12}] : []), {v:obs.join(' | '), s:14}];
+    row.hidden = !noEscopo.has(st) || (!hasX && !obs.length);
+    R.push(row);
+  });
+  if(!todos.length) R.push([{v:'',s:12},{v:'Nenhum aluno.',s:11}]);
+  // soma automática por disciplina (alunos em O.E.R)
+  const tot = [{v:'',s:12},{v:'Total em O.E.R',s:11},
+    ...subs.map((s,k)=>({f:`COUNTIF(${colS[k]}2:${colS[k]}${nLast},"X*")`, v:Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length, s:12})),
+    {f:`COUNTIF(${colD}2:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:12}, ...(colA?[{v:'',s:12}]:[]), {v:'',s:14}];
+  R.push(tot);
+  // 2) Microtexto abaixo da tabela
+  R.push([]);
+  R.push([{v:schoolName(), s:1}]);
+  R.push([B('Quadro da turma — risco de O.E.R por disciplina — '+turma)]);
+  R.push([`${effectiveMesAno(cd)} · Alunos na turma: ${cd.students.length} · Em risco de O.E.R: ${Object.keys(riskBy).length} · Com demanda de adaptação: ${cnt.sim} · Em reforço: ${cnt.ref}${cd.meta.professor?' · Prof. de referência: '+cd.meta.professor:''}`]);
+  if(repState.msg.trim()) R.push([`Recado da coordenação: ${repState.msg.trim().replace(/\s+/g,' ')}`]);
+  if(prio.length){
+    R.push([]);
+    R.push([B(`ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R e situação especial (adaptação e/ou reforço): confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado`)]);
+    prio.forEach(st=>R.push([`${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`]));
+  }
+  R.push([]);
+  R.push(['X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.')]);
+  R.push(['A linha "Total em O.E.R" e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.']);
+  R.push(['Linhas e colunas sem nenhum preenchimento ficam ocultas (selecione ao redor e use "Reexibir" para vê-las). Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.']);
+  const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
+  const info = {alunos:cd.students.length, risco:Object.keys(riskBy).length, adapt:cnt.sim, reforco:cnt.ref, prio:prio.length, perSubj, discCol:colD, obsCol:colO, last:nLast, subjCol:Object.fromEntries(subs.map((s,k)=>[s.name,colS[k]])), nameCol:'B'};
+  const hid = []; subs.forEach((s,k)=>{ if(!usadoS[k]) hid.push(2+k); });
+  if(colA && !haApl) hid.push(2+nS+1); if(!haObs) hid.push(2+nS+1+(colA?1:0));
+  return {rows:R, freeze:true, info, hid, cf:nS ? `${colS[0]}2:${colS[nS-1]}${nLast}` : null, widths:[5,42,...subs.map(()=>8.5),11,...(colA?[15]:[]),80]};
+}
+// Aba "Resumo": só números, tudo por fórmula a partir das abas das turmas
+function repQuadroResumo(itens){
+  const H = v=>({v,s:2}), C = v=>({v,s:12});
+  const subjNames = [];
+  itens.forEach(it=>Object.keys(it.info.perSubj).forEach(x=>{ if(!subjNames.includes(x)) subjNames.push(x); }));
+  const hdr = [H('Turma'),...['ALUNOS','EM RISCO DE O.E.R','COM ADAPTAÇÃO','EM REFORÇO','PRIORITÁRIOS'].map(v=>({v,s:10})),...subjNames.map(x=>({v:x.toUpperCase(), s:10}))];
+  hdr.ht = 95;
+  const R = [hdr], q = n => "'"+n.replace(/'/g,"''")+"'";
+  itens.forEach(it=>{
+    const i = it.info, a = q(it.aba), rng = c => `${a}!${c}2:${c}${i.last}`, D = rng(i.discCol), O = rng(i.obsCol);
+    const AD = '"*◆ ADAPTAÇÃO*"', RF = '"*▲ REFORÇO*"';
+    R.push([{v:it.aba,s:11},
+      {f:`COUNTA(${rng(i.nameCol)})`, v:i.alunos, s:12},
+      {f:`COUNTIF(${D},">0")`, v:i.risco, s:12},
+      {f:`COUNTIF(${O},${AD})`, v:i.adapt, s:12},
+      {f:`COUNTIF(${O},${RF})`, v:i.reforco, s:12},
+      {f:`COUNTIFS(${D},">0",${O},${AD})+COUNTIFS(${D},">0",${O},${RF})-COUNTIFS(${D},">0",${O},${AD},${O},${RF})`, v:i.prio, s:12},
+      ...subjNames.map(n=> (n in i.perSubj) ? {f:`COUNTIF(${rng(i.subjCol[n])},"X*")`, v:i.perSubj[n], s:12} : C('–'))]);
+  });
+  const n = itens.length, tot = [{v:'Total',s:3}], soma = [0];
+  for(let c=1;c<6+subjNames.length;c++){
+    const col = xlsCol(c), v = R.slice(1).reduce((x,r)=>x+((r[c]&&typeof r[c].v==='number')?r[c].v:0),0);
+    soma.push(v); tot.push({f:`SUM(${col}2:${col}${n+1})`, v, s:12});
+  }
+  R.push(tot);
+  R.push([]);
+  R.push([{v:schoolName(), s:1}]);
+  R.push([{v:'Resumo — quantidade de alunos por turma', s:3}]);
+  R.push(['Tudo é calculado automaticamente a partir das abas das turmas: ao marcar ou apagar um X, os números se atualizam. Prioritários = alunos em risco de O.E.R que também têm adaptação e/ou reforço. As colunas das disciplinas somam os alunos em O.E.R em cada uma.']);
+  R.push(['Colunas sem nenhum registro ficam ocultas (selecione ao redor e use "Reexibir" para vê-las).']);
+  const hid = []; for(let c=3;c<soma.length;c++) if(!soma[c]) hid.push(c);
+  return {rows:R, freeze:true, hid, widths:[14,8.5,8.5,8.5,8.5,10,...subjNames.map(()=>8.5)]};
+}
+// Ordem das abas: 6º ano (A–F), 7º ano (A–E), 8º ano... pela série e depois pela letra da turma
+function ordemTurmas(a,b){
+  const la = shortTurmaLabel(a), lb = shortTurmaLabel(b);
+  const na = parseInt((la.match(/\d+/)||[99])[0],10), nb = parseInt((lb.match(/\d+/)||[99])[0],10);
+  return na-nb || la.localeCompare(lb,'pt-BR',{numeric:true});
+}
+async function repXlsx(){
+  const S = repState, V = repCurrentVars(), quadro = S.modo==='quadro';
+  const names = Object.keys(currentClasses).filter(n=>S.turmas.has(n)).sort(ordemTurmas);
+  if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
+  if(!V.size){ alert('Marque ao menos uma variável para o relatório.'); return; }
+  if(quadro){ const r = await adSync(); quadroState.status = r.msg; }
+  const usados = new Set();
+  const nomeAba = n => { let b = shortTurmaLabel(n).replace(/[\[\]:*?\/\\]/g,'-').slice(0,28) || 'Turma', x = b, k = 2; while(usados.has(x.toLowerCase())) x = b+'-'+(k++); usados.add(x.toLowerCase()); return x; };
+  const sheets = names.map(n=>({name:nomeAba(n), ...(quadro ? repQuadroRows(currentClasses[n], n) : repTurmaRows(currentClasses[n], n, V, repRefTri(currentClasses[n])))}));
+  if(quadro) sheets.push({name:nomeAba('Resumo'), ...repQuadroResumo(sheets.map(x=>({aba:x.name, info:x.info})))});
+  if(!quadro && V.has('comparativo') && names.length>1) sheets.push({name:nomeAba('Comparativo'), ...repComparativoRows(names)});
+  const blob = xlsxBlob(sheets);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (quadro ? 'quadro-oer-turmas-' : 'relatorio-turmas-')+new Date().toISOString().slice(0,10)+'.xlsx';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // QUADRO DA TURMA — RISCO DE O.E.R × DISCIPLINAS, COM ADAPTAÇÃO E DIAGNÓSTICO
@@ -3414,7 +3292,7 @@ function adSave(o){
   try{ localStorage.setItem(ADAPT_KEY, JSON.stringify(o)); return true; }
   catch(e){ alert('Não foi possível salvar o cadastro de adaptação neste navegador: '+e.message); return false; }
 }
-function adKey(className, name){ return normTurma(shortTurmaLabel(className))+'|'+libNorm(name); }
+function adKey(className, name){ return normTurma(shortTurmaLabel(className))+'|'+normNome(name); }
 function adGet(reg, className, name){ return Object.assign({a:'', d:'', r:false}, reg.items[adKey(className, name)]||{}); }
 function adSet(className, name, patch){
   const reg = adLoad(), k = adKey(className, name);
@@ -3462,9 +3340,8 @@ function repQuadroPage(cd, className){
     const cells = subs.map(s=>{ const x = by[s.name]; return x ? `<td class="x">X${x.parcial?'*':''}</td>` : `<td></td>`; }).join('');
     let obs;
     if(sim) obs = `<b>◆ ADAPTAÇÃO</b>${ad.d ? ' — <b>Diagnóstico:</b> '+escHtml(ad.d) : ' — <i>diagnóstico não informado</i>'}`;
-    else if(ad.a==='N') obs = `<span class="qd-mut">Sem demanda de adaptação</span>`;
-    else obs = `<span class="qd-mut"><i>adaptação não cadastrada</i></span>`;
-    if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>` + (sim ? '' : `<div>${obs}</div>`);
+    else obs = ''; // sem registro de adaptação/diagnóstico = não está nessa situação: coluna em branco
+    if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>`;
     if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)</div>`;
     const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '');
     return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}<td class="l qd-obs">${obs}</td></tr>`;
@@ -3480,15 +3357,8 @@ function repQuadroPage(cd, className){
   if(prio.length){
     aviso.push(`<div class="qd-prio"><b>ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R <u>e</u> situação especial (adaptação e/ou reforço):</b> confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado e dar atenção especial às atividades de final de ano. ${prio.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>[${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
   }
-  if(cnt.semInfo===cd.students.length){
-    aviso.push(`<div class="qd-warn">Nenhuma informação de adaptação/diagnóstico foi cadastrada para esta turma. Preencha o cadastro na tela de Relatórios antes de imprimir; a coluna Observações mostra “adaptação não cadastrada”, o que <b>não</b> significa que o aluno não precise de adaptação.</div>`);
-  } else if(cnt.semInfo>0){
-    const semInfoRisco = Object.keys(riskBy).filter(n=>{ const st = cd.students.find(s=>s.name===n); return st && !adGet(reg, className, st.name).a; }).length;
-    if(semInfoRisco) aviso.push(`<div class="qd-warn">${semInfoRisco} aluno${semInfoRisco>1?'s':''} em risco de O.E.R ainda sem informação de adaptação cadastrada (“adaptação não cadastrada”) — conferir com a coordenação/AEE.</div>`);
-  }
-
   const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
-  const foot = `<div class="rp-foot"><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
+  const foot = `<div class="rp-foot"><b>Coluna de observações:</b> traz o registro de adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação.<br><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
   const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', aviso.join('') + tabela) + rpMsg() + foot;
   return rpWrap(rpHeader('Quadro da turma — risco de O.E.R por disciplina', escHtml(turma)+' · '+escHtml(effectiveMesAno(cd))), body)
     .replace('<section class="rp-page">','<section class="rp-page rp-land">');
@@ -3536,7 +3406,7 @@ async function adSync(){
   const txt = v => (v && typeof v==='object') ? JSON.stringify(v) : String(v).trim();
   const idx = { porTurmaNome:new Map(), porNome:new Map(), porTurma:new Map() };
   rows.forEach(e=>{
-    const tn = normTurma(e.turma), nn = libNorm(e.nome);
+    const tn = normTurma(e.turma), nn = normNome(e.nome);
     idx.porTurmaNome.set(tn+'|'+nn, e);
     if(!idx.porNome.has(nn)) idx.porNome.set(nn, []); idx.porNome.get(nn).push(e);
     if(!idx.porTurma.has(tn)) idx.porTurma.set(tn, []); idx.porTurma.get(tn).push(e);
@@ -3545,7 +3415,7 @@ async function adSync(){
   Object.keys(currentClasses).forEach(cn=>{
     currentClasses[cn].students.forEach(st=>{
       total++;
-      const row = libAcharEstudante(idx, shortTurmaLabel(cn), st.name);
+      const row = acharEstudante(idx, shortTurmaLabel(cn), st.name);
       if(!row){ naoAchou++; return; }
       let a = '', d = '';
       colAd.forEach(c=>{
@@ -3606,7 +3476,7 @@ function adEditorHtml(S, names){
       <input type="text" class="rep-filtro ad-dx" data-n="${escHtml(st.name)}" placeholder="Diagnóstico (ex.: TDAH, TEA, deficiência intelectual…)" value="${escHtml(x.d)}">
     </div>`;
   }).join('');
-  return `<div class="rep-card"><h3>4 · Cadastro de adaptação e diagnóstico</h3>
+  return `<div class="rep-card"><h3>Cadastro de adaptação e diagnóstico</h3>
     <div class="rep-hint" style="margin-bottom:8px">Os alunos em risco de O.E.R aparecem primeiro. O diagnóstico vem do Monitoramento (prevalece sobre o que estiver salvo aqui); alunos sem dado lá mantêm o cadastro manual. Fica salvo neste navegador e não é apagado ao reimportar os PDFs.</div>
     <div class="rep-row"><label>Turma: <select id="adTurma" class="tri-select">${names.map(n=>`<option value="${escHtml(n)}" ${n===sel?'selected':''}>${escHtml(shortTurmaLabel(n))}</option>`).join('')}</select></label>
       <span class="rep-count" id="adCount">${c.sim} com adaptação · ${c.ref} em reforço · ${c.nao} sem · ${c.semInfo} não informado${c.semInfo===1?'':'s'}</span></div>
@@ -3656,20 +3526,20 @@ function adBindEditor(main, S, names){
   };
   document.getElementById('adPasteBtn').onclick = ()=>{
     const cd = currentClasses[sel];
-    const byNorm = new Map(cd.students.map(st=>[libNorm(st.name), st]));
+    const byNorm = new Map(cd.students.map(st=>[normNome(st.name), st]));
     let ok = 0; const falhou = [];
     document.getElementById('adPasteTxt').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).forEach(l=>{
       const p = l.split(/[;\t]/).map(x=>x.trim());
-      const st = byNorm.get(libNorm(p[0]));
+      const st = byNorm.get(normNome(p[0]));
       if(!st){ falhou.push(p[0]); return; }
-      const t = libNorm(p[1]||'');
+      const t = normNome(p[1]||'');
       let a, d;
       if(/^(SIM|S|X)$/.test(t)){ a='S'; d=p.slice(2).join('; '); }
       else if(/^(NAO|N)$/.test(t)){ a='N'; d=p.slice(2).join('; '); }
       else { a = p[1] ? 'S' : ''; d = p.slice(1).join('; '); }
       const extra = (d||'').split(';').map(x=>x.trim()).filter(Boolean);
-      const refl = extra.filter(x=>/^REFORCO$/.test(libNorm(x)));
-      d = extra.filter(x=>!/^REFORCO$/.test(libNorm(x))).join('; ');
+      const refl = extra.filter(x=>/^REFORCO$/.test(normNome(x)));
+      d = extra.filter(x=>!/^REFORCO$/.test(normNome(x))).join('; ');
       adSet(sel, st.name, refl.length ? {a, d, r:true} : {a, d}); ok++;
     });
     alert(ok+' aluno(s) atualizado(s).'+(falhou.length?'\n\nNão localizados nesta turma:\n'+falhou.join('\n'):''));
