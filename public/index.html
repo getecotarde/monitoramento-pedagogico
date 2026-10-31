@@ -1937,6 +1937,10 @@
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Reuniões GETECO
     </button>
+    <button class="nav-item" onclick="showView('montadores', this)" id="navMontadores">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
+      Montadores GETECO
+    </button>
     <button class="nav-item" onclick="showView('materiais', this)" id="navMateriais">
       <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
       Materiais
@@ -2948,6 +2952,23 @@
     </div>
     <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
       <iframe id="analiseTrimestralIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Análise Trimestral"></iframe>
+    </div>
+  </div>
+
+  <!-- ─── VIEW: MONTADORES GETECO (Prova Trimestral e Trabalho FICA) ─────────────────────────────────── -->
+  <div id="view-montadores" class="view">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h1>Montadores GETECO</h1>
+        <p>Montador da Prova Trimestral e Montador do Trabalho FICA (um trabalho individual por estudante)</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="recarregarMontadoresIframe()" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit">↻ Recarregar</button>
+        <a href="montadores-geteco.html" target="_blank" rel="noopener" style="padding:7px 12px;border:1px solid #E8E7E3;border-radius:6px;background:#fff;font-size:12.5px;color:#555;text-decoration:none;display:inline-flex;align-items:center;gap:4px">↗ Abrir em nova aba</a>
+      </div>
+    </div>
+    <div style="border:1px solid #E8E7E3;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:#fff">
+      <iframe id="montadoresIframe" src="" style="width:100%;height:calc(100vh - 190px);min-height:520px;border:none;display:block;background:#F8F9FA" title="Montadores GETECO"></iframe>
     </div>
   </div>
 
@@ -9254,6 +9275,10 @@ function showView(id, btn){
     const f=document.getElementById('reunioesIframe');
     if(f && !f.src) f.src='reunioes.html';
   }
+  if(id === 'montadores'){
+    const f=document.getElementById('montadoresIframe');
+    if(f && !f.src) f.src='montadores-geteco.html';
+  }
   if(id === 'eventos'){
     const f=document.getElementById('eventosGeteculturaIframe');
     if(f && !f.src) f.src='getecultura.html';
@@ -9299,6 +9324,11 @@ function recarregarSmaeIframe(){
 function recarregarReunioesIframe(){
   const f=document.getElementById('reunioesIframe');
   if(f) f.src='reunioes.html?_='+Date.now();
+}
+
+function recarregarMontadoresIframe(){
+  const f=document.getElementById('montadoresIframe');
+  if(f) f.src='montadores-geteco.html?_='+Date.now();
 }
 
 function recarregarGeradorCSVIframe(){
