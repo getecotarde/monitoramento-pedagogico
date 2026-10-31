@@ -9255,33 +9255,33 @@ function showView(id, btn){
   if(id === 'provas') provasAbrir();
   if(id === 'analisetrimestral'){
     const f=document.getElementById('analiseTrimestralIframe');
-    if(f && !f.src) f.src='analise-trimestral.html';
+    if(f && !f.getAttribute('src')) f.src='analise-trimestral.html';
   }
   if(id === 'fica') ficaAbrir();
   if(id === 'ata'){
     ficaGarantir().then(ficaRenderAta);
     const f=document.getElementById('ataIframe');
-    if(f && !f.src) f.src='ata.html';
+    if(f && !f.getAttribute('src')) f.src='ata.html';
   }
   if(id === 'pipleitura'){
     const f=document.getElementById('pipleituraIframe');
-    if(f && !f.src) f.src='pipleitura.html';
+    if(f && !f.getAttribute('src')) f.src='pipleitura.html';
   }
   if(id === 'smae'){
     const f=document.getElementById('smaeIframe');
-    if(f && !f.src) f.src='smae.html';
+    if(f && !f.getAttribute('src')) f.src='smae.html';
   }
   if(id === 'reunioes'){
     const f=document.getElementById('reunioesIframe');
-    if(f && !f.src) f.src='reunioes.html';
+    if(f && !f.getAttribute('src')) f.src='reunioes.html';
   }
   if(id === 'montadores'){
     const f=document.getElementById('montadoresIframe');
-    if(f && !f.src) f.src='montadores-geteco.html';
+    if(f && !f.getAttribute('src')) f.src='montadores-geteco.html';
   }
   if(id === 'eventos'){
     const f=document.getElementById('eventosGeteculturaIframe');
-    if(f && !f.src) f.src='getecultura.html';
+    if(f && !f.getAttribute('src')) f.src='getecultura.html';
   }
   if(id === 'timeline') initLinhaDoTempo();
   if(id === 'relencam'){ relEncamPopularTurmas(); atualizarResumoFiltrosRelEncam(); }
@@ -9289,7 +9289,7 @@ function showView(id, btn){
   if(id === 'geradorcsv'){
     initTodosEstudantesNav();
     const f=document.getElementById('geradorCSVIframe');
-    if(f && !f.src) f.src='gerador-csv-advertencias.html';
+    if(f && !f.getAttribute('src')) f.src='gerador-csv-advertencias.html';
   }
   // Fecha sidebar no mobile após navegar
   if(window.innerWidth <= 768){
@@ -9350,7 +9350,7 @@ function showEventosSub(sub, btn){
   interclasseF.style.display = isGete ? 'none' : 'block';
 
   const activeFrame = isGete ? geteculturaF : interclasseF;
-  if(activeFrame && !activeFrame.src) activeFrame.src = EVENTOS_SUB_FILES[sub];
+  if(activeFrame && !activeFrame.getAttribute('src')) activeFrame.src = EVENTOS_SUB_FILES[sub];
 
   const openLink = document.getElementById('eventosOpenNewTab');
   if(openLink) openLink.href = EVENTOS_SUB_FILES[sub];
