@@ -2105,7 +2105,7 @@
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Exportar CSV
       </button>
-      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar CSV: atualiza matrícula, nº e síntese de advertências dos estudantes já cadastrados (nomes comparados sem acentos) e cadastra estudantes novos com as demais colunas (arquivo sem coluna Matrícula). Use o botão Modelo CSV para gerar o arquivo base.">
+      <button id="btnImportCSV" class="action-btn" onclick="importCSVClick()" title="Importar CSV: atualiza matrícula, nº e síntese de advertências e Bolsa Família (coluna "Bolsa Família" com SIM/NÃO) dos estudantes já cadastrados (nomes comparados sem acentos) e cadastra estudantes novos com as demais colunas (arquivo sem coluna Matrícula). Use o botão Modelo CSV para gerar o arquivo base.">
         <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
         Importar CSV
       </button>
@@ -5491,8 +5491,8 @@ function changeFontSize(htmlSize, bodySize, btn){
    ════════════════════════════════════════════════════════════ */
 function baixarModeloCSV(){
   // Separador ";" abre direto em colunas no Excel em português; a importação detecta sozinha.
-  const headers = ['Turma','Nome do Estudante','Matrícula','Nº de Advertências','Síntese das Advertências','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Observações'];
-  const exemplo = ['6ºA','NOME DO ESTUDANTE (exemplo - apague esta linha)','123456','0','','Feminino','TÍPICO','N/A','N/A','REGULAR','',''];
+  const headers = ['Turma','Nome do Estudante','Matrícula','Nº de Advertências','Síntese das Advertências','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Observações','Bolsa Família'];
+  const exemplo = ['6ºA','NOME DO ESTUDANTE (exemplo - apague esta linha)','123456','0','','Feminino','TÍPICO','N/A','N/A','REGULAR','','',''];
   const bom = '\uFEFF';
   const blob = new Blob([bom + headers.join(';') + '\r\n' + exemplo.join(';') + '\r\n'], { type:'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -5551,17 +5551,18 @@ function handleCSVImport(evt){
         ocn:   findCol(headers,['nº de ocorrências','nº ocorrências','numero de ocorrencias','num. ocorrências','ocorrências','ocorrencias','nº ocorr.','qtd ocorrências','quantidade de ocorrências','nº de advertências','nº advertências','numero de advertencias','num. advertências','advertências','advertencias','nº adv.','qtd advertências','quantidade de advertências']),
         ocs:   findCol(headers,['síntese das ocorrências','sintese das ocorrencias','síntese','sintese','texto síntese das ocorrências','texto sintese das ocorrencias','resumo das ocorrências','síntese das advertências','sintese das advertencias','texto síntese das advertências','resumo das advertências']),
         obs:   findCol(headers,['observações','observacoes','obs']),
+        bf:    findCol(headers,['bolsa família','bolsa familia','bolsa','bf','pbf','programa bolsa família','recebe bolsa família','beneficiário bolsa família']),
       };
       if(colMap.nome === -1){
         showToast('CSV precisa ter a coluna "Nome do Estudante".','coral'); return;
       }
-      if(colMap.turma === -1 && colMap.mat === -1){
+      if(colMap.turma === -1 && colMap.mat === -1 && colMap.bf === -1){
         showToast('CSV precisa ter as colunas "Turma" e "Nome do Estudante" (ou "Matrícula" e "Nome").','coral'); return;
       }
       const rows = lines.slice(1).map(l=>parseCSVRow(l, delim)).filter(c=>!c.every(x=>!x.trim()));
       const plan = _impConstruirPlano(rows, colMap);
-      const total = plan.mat.length + plan.oc.length + plan.novos.length;
-      if(!total && !plan.naoEncontrados.length && !plan.ambiguos.length && !plan.conflitos.length){
+      const total = plan.mat.length + plan.oc.length + plan.bf.length + plan.novos.length;
+      if(!total && !plan.naoEncontrados.length && !plan.ambiguos.length && !plan.conflitos.length && !plan.bfInvalidos.length){
         showToast(`Nenhuma alteração: ${plan.semMudanca} registro${plan.semMudanca!==1?'s':''} já estava${plan.semMudanca!==1?'m':''} igual${plan.semMudanca!==1?'is':''}.`,'amber'); return;
       }
       _impMostrarPrevia(plan, ()=>_impAplicar(plan));
@@ -5574,10 +5575,25 @@ function handleCSVImport(evt){
   reader.readAsArrayBuffer(file);
 }
 
+// Interpreta o valor da coluna Bolsa Família: 'SIM' | 'NÃO' | null (vazio / "não informado": ignora) | undefined (não reconhecido)
+function _impBf(raw){
+  const v = _impNorm(raw);
+  if(v==='') return null;
+  if(['SIM','S','X','1','TRUE','VERDADEIRO','RECEBE','POSSUI','BENEFICIARIO','BENEFICIARIA','BOLSA FAMILIA','BF','PBF'].includes(v)) return 'SIM';
+  if(['NAO','N','0','FALSE','FALSO','NAO RECEBE','NAO POSSUI','NAO BENEFICIARIO','NAO BENEFICIARIA'].includes(v)) return 'NÃO';
+  if(['NAO INFORMADO','NI','N I'].includes(v)) return null;
+  return undefined;
+}
+
 // Compara o CSV com os estudantes (S) e monta o plano de alterações — não grava nada.
 function _impConstruirPlano(rows, colMap){
   const temMat = colMap.mat !== -1;
-  const plan = { mat:[], oc:[], novos:[], naoEncontrados:[], ambiguos:[], conflitos:[], semMudanca:0, ignoradas:0 };
+  const temBf = colMap.bf !== -1;
+  // Arquivo só de atualização do Bolsa Família (sem dados de cadastro): nunca cria aluno novo
+  const temCadastro = rows.some(c=>['sexo','perfil','aee','pip','encam','rotina','obs','ocn','ocs'].some(k=>get(c,colMap[k])!==''));
+  const soAtualizacao = temBf && !temCadastro;
+  const bfPlanejado = new Map();   // estudante -> valor novo (evita 2 linhas conflitantes pro mesmo aluno)
+  const plan = { mat:[], oc:[], bf:[], bfInvalidos:[], novos:[], naoEncontrados:[], ambiguos:[], conflitos:[], semMudanca:0, ignoradas:0 };
   const idx = new Map();
   S.forEach(x=>{ const k=_impNorm(x.n); if(!idx.has(k)) idx.set(k,[]); idx.get(k).push(x); });
   const matPlanejada = new Map();   // estudante -> matrícula nova (evita 2 linhas pro mesmo aluno)
@@ -5586,10 +5602,12 @@ function _impConstruirPlano(rows, colMap){
   for(const cells of rows){
     const nome = get(cells,colMap.nome);
     const turma = get(cells,colMap.turma);
-    if(!nome || (!temMat && !turma)){ plan.ignoradas++; continue; }
+    if(!nome || (!temMat && !turma && !soAtualizacao)){ plan.ignoradas++; continue; }
     const matNova = temMat ? _impMat(get(cells,colMap.mat)) : '';
     const ocnRaw = colMap.ocn !== -1 ? get(cells,colMap.ocn) : '';
     const ocsRaw = colMap.ocs !== -1 ? get(cells,colMap.ocs) : '';
+    const bfRaw = temBf ? get(cells,colMap.bf) : '';
+    const bfNovo = _impBf(bfRaw);   // 'SIM' | 'NÃO' | null (vazio) | undefined (não reconhecido)
 
     // Localiza o estudante ignorando acento/caixa/espaços
     const cands = idx.get(_impNorm(nome)) || [];
@@ -5597,7 +5615,7 @@ function _impConstruirPlano(rows, colMap){
     const porTurma = turma ? cands.filter(x=>_impNormTurma(x.t)===_impNormTurma(turma)) : [];
     if(porTurma.length===1) existente = porTurma[0];
     else if(porTurma.length>1) ambiguo = true;
-    else if(temMat){ // atualização de matrícula: aceita casar só pelo nome se for único
+    else if(temMat || soAtualizacao){ // atualização (matrícula ou Bolsa Família): aceita casar só pelo nome se for único
       if(cands.length===1) existente = cands[0];
       else if(cands.length>1) ambiguo = true;
     }
@@ -5622,6 +5640,22 @@ function _impConstruirPlano(rows, colMap){
           }
         }
       }
+      // Bolsa Família
+      if(temBf && bfRaw !== ''){
+        if(bfNovo === undefined){
+          plan.bfInvalidos.push({ nome:existente.n, turma:existente.t, valor:bfRaw });
+        } else if(bfNovo !== null){
+          const bfAtual = existente.bf || 'Não informado';
+          if(bfPlanejado.has(existente) && bfPlanejado.get(existente) !== bfNovo){
+            plan.conflitos.push({ nome:existente.n, turma:existente.t, mat:'—', motivo:'aparece no arquivo com valores diferentes de Bolsa Família' });
+            tratado = true;
+          } else if(!bfPlanejado.has(existente) && bfAtual !== bfNovo){
+            bfPlanejado.set(existente, bfNovo);
+            plan.bf.push({ est:existente, de:bfAtual, para:bfNovo });
+            mudou = true;
+          }
+        }
+      }
       // nº/síntese de advertências (comportamento anterior)
       const campos = {}; let ocMudou = false;
       if(ocnRaw !== ''){
@@ -5636,7 +5670,7 @@ function _impConstruirPlano(rows, colMap){
 
     if(ambiguo){ plan.ambiguos.push({ nome, turma, mat:matNova }); continue; }
     // Arquivo de matrícula: não cria aluno novo (evita duplicar por diferença de grafia)
-    if(temMat){ plan.naoEncontrados.push({ nome, turma, mat:matNova }); continue; }
+    if(temMat || soAtualizacao){ plan.naoEncontrados.push({ nome, turma, mat:matNova }); continue; }
 
     const sexoRaw = get(cells,colMap.sexo).toUpperCase();
     const perfilRaw = get(cells,colMap.perfil).toUpperCase();
@@ -5647,6 +5681,7 @@ function _impConstruirPlano(rows, colMap){
       e: get(cells,colMap.encam)||'REGULAR', r: get(cells,colMap.rotina)||'',
       ocn: ocnRaw !== '' ? Math.max(0, parseInt(ocnRaw,10) || 0) : 0,
       ocs: ocsRaw || '', o: get(cells,colMap.obs)||'',
+      bf: (bfNovo==='SIM'||bfNovo==='NÃO') ? bfNovo : 'Não informado',
     });
   }
   return plan;
@@ -5655,7 +5690,7 @@ function _impConstruirPlano(rows, colMap){
 // Janela de conferência antes de gravar
 function _impMostrarPrevia(plan, onConfirm){
   const velho = document.getElementById('impPreviaOverlay'); if(velho) velho.remove();
-  const total = plan.mat.length + plan.oc.length + plan.novos.length;
+  const total = plan.mat.length + plan.oc.length + plan.bf.length + plan.novos.length;
   const borda = '1px solid rgba(128,128,128,.28)';
   const tabela = (cols, linhas)=>`<div style="max-height:210px;overflow:auto;border:${borda};border-radius:8px;margin-top:6px">
     <table style="width:100%;border-collapse:collapse;font-size:12px">
@@ -5669,6 +5704,8 @@ function _impMostrarPrevia(plan, onConfirm){
       tabela(['Estudante','Turma','Matrícula atual','Nova matrícula'], plan.mat.map(m=>[m.est.n, m.est.t, m.de||'—', m.para])), true) +
     secao('Advertências a atualizar', plan.oc.length,
       tabela(['Estudante','Turma','Nº','Síntese'], plan.oc.map(o=>[o.est.n, o.est.t, o.campos.num_ocorrencias!==undefined?o.campos.num_ocorrencias:'—', o.campos.sintese_ocorrencias!==undefined?'alterada':'—'])), plan.mat.length===0) +
+    secao('Bolsa Família a atualizar', plan.bf.length,
+      tabela(['Estudante','Turma','Atual','Novo'], plan.bf.map(b=>[b.est.n, b.est.t, b.de, b.para])), true) +
     secao('Novos estudantes', plan.novos.length,
       tabela(['Nome','Turma'], plan.novos.map(n=>[n.n, n.t])), true) +
     secao('Não encontrados — nada será gravado para eles', plan.naoEncontrados.length,
@@ -5676,7 +5713,9 @@ function _impMostrarPrevia(plan, onConfirm){
     secao('Nome repetido em mais de um aluno — ignorados', plan.ambiguos.length,
       tabela(['Nome no arquivo','Turma','Matrícula'], plan.ambiguos.map(n=>[n.nome, n.turma||'—', n.mat||'—'])), true) +
     secao('Conflitos de matrícula — ignorados', plan.conflitos.length,
-      tabela(['Estudante','Turma','Matrícula','Motivo'], plan.conflitos.map(c=>[c.nome, c.turma, c.mat, c.motivo])), true);
+      tabela(['Estudante','Turma','Matrícula','Motivo'], plan.conflitos.map(c=>[c.nome, c.turma, c.mat, c.motivo])), true) +
+    secao('Valor de Bolsa Família não reconhecido (use SIM ou NÃO) — ignorados', plan.bfInvalidos.length,
+      tabela(['Estudante','Turma','Valor no arquivo'], plan.bfInvalidos.map(b=>[b.nome, b.turma, b.valor])), true);
 
   const ov = document.createElement('div');
   ov.id = 'impPreviaOverlay';
@@ -5707,7 +5746,7 @@ function _impMostrarPrevia(plan, onConfirm){
 async function _impAplicar(plan){
   const falhas = [];      // alunos cuja gravação falhou
   const cascFalhas = new Set();
-  let matOk = 0, ocOk = 0;
+  let matOk = 0, ocOk = 0, bfOk = 0;
 
   // Tabelas que usam a matrícula como vínculo com o aluno
   const CASCATA = [['fluencia_leitura','estudante_matricula'],['materiais_recebimento','aluno_matricula'],['rel_escolares','aluno_matricula'],['aprovacoes_pendentes','estudante_matricula']];
@@ -5747,6 +5786,22 @@ async function _impAplicar(plan){
     }
     ocOk++;
   }
+  // Bolsa Família (em lotes de 6 gravações simultâneas)
+  const totalBf = plan.bf.length;
+  for(let i=0;i<plan.bf.length;i+=6){
+    showToast(`Atualizando Bolsa Família… ${Math.min(i+6,totalBf)}/${totalBf}`,'amber');
+    await Promise.all(plan.bf.slice(i,i+6).map(async item=>{
+      const est = item.est;
+      if(est.id!==undefined && est.id!==null){
+        try {
+          const r = await sbPatch('estudantes', { bolsa_familia:item.para }, [`id=eq.${est.id}`]);
+          if(r.error || !Array.isArray(r.data) || !r.data.length){ falhas.push(est.n); return; }
+        } catch(err){ falhas.push(est.n); return; }
+      }
+      est.bf = item.para;
+      bfOk++;
+    }));
+  }
   plan.novos.forEach(n=>S.push(n));
 
   rebuildTurmas();
@@ -5756,6 +5811,7 @@ async function _impAplicar(plan){
   const partes = [];
   if(matOk) partes.push(`${matOk} matrícula${matOk!==1?'s':''} atualizada${matOk!==1?'s':''}`);
   if(ocOk) partes.push(`${ocOk} registro${ocOk!==1?'s':''} de advertências atualizado${ocOk!==1?'s':''}`);
+  if(bfOk) partes.push(`${bfOk} Bolsa Família atualizado${bfOk!==1?'s':''}`);
   if(plan.novos.length) partes.push(`${plan.novos.length} estudante${plan.novos.length!==1?'s':''} adicionado${plan.novos.length!==1?'s':''}`);
   let msg = `CSV importado: ${partes.join(', ')||'nenhuma alteração'}.`;
   if(falhas.length) msg += ` ATENÇÃO: ${falhas.length} não gravou no banco (${falhas.slice(0,3).join(', ')}${falhas.length>3?'…':''}).`;
