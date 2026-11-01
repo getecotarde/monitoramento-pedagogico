@@ -2046,7 +2046,7 @@
   <div id="view-students" class="view">
     <div class="page-header">
       <h1>Estudantes</h1>
-      <p>Lista completa com filtros por turma, perfil e encaminhamento</p>
+      <p>Lista completa com filtros por turma, perfil, Bolsa Família e encaminhamento</p>
     </div>
     <div class="filters-bar">
       <div class="search-wrap">
@@ -2059,6 +2059,11 @@
         <option value="TÍPICO">Típico</option>
         <option value="ATÍPICO">Atípico</option>
         <option value="EM ANÁLISE">Em análise</option>
+      </select>
+      <select id="filterBF" onchange="applyFilters()" title="Filtrar por Bolsa Família">
+        <option value="">Bolsa Família (todos)</option>
+        <option value="SIM">Recebe Bolsa Família</option>
+        <option value="NÃO">Não recebe</option>
       </select>
       <!-- Encaminhamento multi-select -->
       <div class="ms-wrap" id="msWrapEncam">
@@ -4418,12 +4423,19 @@ function applyFilters(){
   const q  = document.getElementById('searchInput').value.toLowerCase();
   const ft = document.getElementById('filterTurma').value;
   const fp = document.getElementById('filterPerfil').value;
+  const fbf = document.getElementById('filterBF').value;
 
   filtered = S.filter(x=>{
     if(x._transferido) return false;
     if(q  && !x.n.toLowerCase().includes(q)) return false;
     if(ft && x.t !== ft) return false;
     if(fp && x.p !== fp) return false;
+    if(fbf){
+      // Sem informação conta como "não recebe": só quem está marcado SIM recebe
+      const recebe = x.bf === 'SIM';
+      if(fbf==='SIM' && !recebe) return false;
+      if(fbf==='NÃO' && recebe) return false;
+    }
     if(MS_STATE.Encam.size>0 && !MS_STATE.Encam.has(encamKey(x.e))) return false;
     if(!matchAEE(x.a, MS_STATE.AEE)) return false;
     if(!matchPIP(x.pip, MS_STATE.PIP)) return false;
@@ -4586,7 +4598,7 @@ function renderModalContent(idx){
         <div class="modal-nome" style="display:flex;align-items:center;gap:6px">
           <span>${x.n}</span>${fieldEditBtn(idx,'n')}
         </div>
-        <div class="modal-sub" style="display:flex;align-items:center;gap:6px">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}${fieldEditBtn(idx,'s')} · Raça/cor: ${x.rc||'Não informado'}${fieldEditBtn(idx,'rc')} · Bolsa Família: ${x.bf||'Não informado'}${fieldEditBtn(idx,'bf')}</div>
+        <div class="modal-sub" style="display:flex;align-items:center;gap:6px">${x.t} · ${x.s==="M"?"Masculino":"Feminino"}${fieldEditBtn(idx,'s')} · Raça/cor: ${x.rc||'Não informado'}${fieldEditBtn(idx,'rc')} · Bolsa Família: ${x.bf==='SIM'?'SIM':'NÃO'}${fieldEditBtn(idx,'bf')}</div>
       </div>
       <button class="modal-close" onclick="closeModalBtn()">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -5217,7 +5229,7 @@ function showToast(msg, type='verde'){
    ════════════════════════════════════════════════════════════ */
 function exportCSV(){
   const rows = filtered;
-  const headers = ['Turma','Nome do Estudante','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Nº de Advertências','Síntese das Advertências','Observações'];
+  const headers = ['Turma','Nome do Estudante','Sexo','Perfil','AEE / Diagnóstico','PIP','Encaminhamento','Rotina / Recomendações AEE','Nº de Advertências','Síntese das Advertências','Observações','Bolsa Família'];
   const csvEscape = v => {
     const s = (v||'').replace(/"/g,'""');
     return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
@@ -5225,7 +5237,7 @@ function exportCSV(){
   const lines = [
     headers.join(','),
     ...rows.map(x => [
-      x.t, x.n, x.s==='M'?'Masculino':'Feminino', x.p, x.a||'', x.pip||'', x.e||'', x.r||'', x.ocn||0, x.ocs||'', x.o||''
+      x.t, x.n, x.s==='M'?'Masculino':'Feminino', x.p, x.a||'', x.pip||'', x.e||'', x.r||'', x.ocn||0, x.ocs||'', x.o||'', x.bf==='SIM'?'SIM':'NÃO'
     ].map(v=>csvEscape(String(v??''))).join(','))
   ];
   const bom = '\uFEFF'; // UTF-8 BOM para compatibilidade com Excel
@@ -5260,6 +5272,7 @@ const PRINT_COLS = [
   { key:'ocn',    label:'Nº Advertências',         default:false },
   { key:'ocs',    label:'Síntese das Advertências', default:false },
   { key:'obs',    label:'Observações',            default:false },
+  { key:'bf',     label:'Bolsa Família',          default:false },
 ];
 
 function printTable(){
@@ -5344,7 +5357,7 @@ function executePrint(){
   const activeCols = PRINT_COLS.filter(c=>active[c.key]);
 
   // Larguras relativas por coluna
-  const colWidths = {turma:'5%',matricula:'8%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%'};
+  const colWidths = {turma:'5%',matricula:'8%',nome:'18%',sexo:'4%',perfil:'9%',encam:'9%',rotina:'18%',aee:'9%',pip:'7%',ocn:'6%',ocs:'14%',obs:'12%',bf:'8%'};
 
   function buildRow(x, idx){
     const bg = idx%2===0 ? '#fff' : '#F8F9FA';
@@ -5362,6 +5375,7 @@ function executePrint(){
       else if(c.key==='ocn')    val = x.ocn||'—';
       else if(c.key==='ocs')    val = x.ocs||'—';
       else if(c.key==='obs')    val = x.o||'—';
+      else if(c.key==='bf')     val = (x.bf==='SIM')?'Sim':'Não';
       return `<td style="padding:5px 8px;border-bottom:1px solid #E2E1DC;vertical-align:top;word-break:break-word;white-space:normal;font-size:9.5px">${val}</td>`;
     }).join('') + '</tr>';
   }
@@ -5580,9 +5594,8 @@ function _impBf(raw){
   const v = _impNorm(raw);
   if(v==='') return null;
   if(['SIM','S','X','1','TRUE','VERDADEIRO','RECEBE','POSSUI','BENEFICIARIO','BENEFICIARIA','BOLSA FAMILIA','BF','PBF'].includes(v)) return 'SIM';
-  if(['NAO','N','0','FALSE','FALSO','NAO RECEBE','NAO POSSUI','NAO BENEFICIARIO','NAO BENEFICIARIA'].includes(v)) return 'NÃO';
-  if(['NAO INFORMADO','NI','N I'].includes(v)) return null;
-  return undefined;
+  if(['NAO','N','0','FALSE','FALSO','NAO RECEBE','NAO POSSUI','NAO BENEFICIARIO','NAO BENEFICIARIA','NAO INFORMADO','NI'].includes(v)) return 'NÃO';
+    return undefined;
 }
 
 // Compara o CSV com os estudantes (S) e monta o plano de alterações — não grava nada.
@@ -5645,7 +5658,7 @@ function _impConstruirPlano(rows, colMap){
         if(bfNovo === undefined){
           plan.bfInvalidos.push({ nome:existente.n, turma:existente.t, valor:bfRaw });
         } else if(bfNovo !== null){
-          const bfAtual = existente.bf || 'Não informado';
+          const bfAtual = existente.bf === 'SIM' ? 'SIM' : 'NÃO';   // sem informação = não recebe
           if(bfPlanejado.has(existente) && bfPlanejado.get(existente) !== bfNovo){
             plan.conflitos.push({ nome:existente.n, turma:existente.t, mat:'—', motivo:'aparece no arquivo com valores diferentes de Bolsa Família' });
             tratado = true;
@@ -5681,7 +5694,7 @@ function _impConstruirPlano(rows, colMap){
       e: get(cells,colMap.encam)||'REGULAR', r: get(cells,colMap.rotina)||'',
       ocn: ocnRaw !== '' ? Math.max(0, parseInt(ocnRaw,10) || 0) : 0,
       ocs: ocsRaw || '', o: get(cells,colMap.obs)||'',
-      bf: (bfNovo==='SIM'||bfNovo==='NÃO') ? bfNovo : 'Não informado',
+      bf: bfNovo==='SIM' ? 'SIM' : 'NÃO',
     });
   }
   return plan;
@@ -11762,7 +11775,7 @@ const RA_ORDEM = {
   perfil:['Típico','Atípico','Em análise'], leitura:['Alta','Média','Baixa','Sem registro'],
   pip:['PIP ativo','Avaliar PIP','Dispensado','Sem PIP'], sexo:['Feminino','Masculino'],
   notas:['Abaixo do limite','Destaque','Nota recuperada','Sem alerta/destaque'],
-  raca:['Branca','Preta','Parda','Amarela','Indígena','Não declarada',RA_NI], bf:['Recebe','Não recebe',RA_NI],
+  raca:['Branca','Preta','Parda','Amarela','Indígena','Não declarada',RA_NI], bf:['Recebe','Não recebe'],
 };
 const RA_PALETA = ['#0D9488','#6B65CC','#D85A30','#BA7517','#2563EB','#888780','#D4537E','#639922'];
 const raAno = x => { const m=/^(\d+)/.exec(x.t||''); return m ? m[1]+'º ano' : (x.t||'—'); };
@@ -11783,7 +11796,7 @@ const RA_DIMS = {
       return r.length?r:['Sem alerta/destaque']; } },
   sexo:{ label:'Sexo', v:x=>[x.s==='F'?'Feminino':'Masculino'] },
   raca:{ label:'Raça/cor', v:x=>[x.rc||RA_NI] },
-  bf:{ label:'Bolsa Família', v:x=>[x.bf==='SIM'?'Recebe':x.bf==='NÃO'?'Não recebe':RA_NI] },
+  bf:{ label:'Bolsa Família', v:x=>[x.bf==='SIM'?'Recebe':'Não recebe'] },
 };
 let _raMemo = new Map();
 const raVals = (dim,x) => { let m=_raMemo.get(x); if(!m){ m={}; _raMemo.set(x,m); } return m[dim] || (m[dim]=RA_DIMS[dim].v(x)); };
