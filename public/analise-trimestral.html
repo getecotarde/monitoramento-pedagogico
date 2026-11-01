@@ -334,6 +334,13 @@ body{
   .print-subj-table{ width:100%; border-collapse:collapse; font-size:11px; }
   .print-subj-table th, .print-subj-table td{ border:1px solid #000; padding:4px 7px; text-align:left; color:#000; }
   .print-subj-table th{ background:#fff; text-transform:uppercase; font-size:9.5px; }
+  .print-subj-table.ext{ table-layout:fixed; font-size:10px; }
+  .print-subj-table.ext th, .print-subj-table.ext td{ padding:3px 5px; vertical-align:top; word-wrap:break-word; overflow-wrap:anywhere; }
+  .print-subj-table.ext th{ font-size:8.5px; }
+  .print-subj-table.ext td.lt-alta{ font-weight:900; }
+  .print-subj-table.ext td.lt-na{ color:#444; font-style:italic; }
+  .print-subj-table.ext td.ata-c{ font-size:9.5px; line-height:1.25; }
+  .print-subj-leg{ margin-top:5px; font-size:9.5px; color:#222; }
   .print-risk-grid{ margin-top:6px; }
   .print-cards-doc .risk-card{ border:1px solid #000; break-inside:avoid; page-break-inside:avoid; }
   .print-cards-doc .risk-card .risk-count{ color:#000; }
@@ -688,6 +695,9 @@ body{
 .qd-table tr.pri td:first-child{ border-left:3.2px solid #000; }
 .qd-table tr.pri td.nm{ font-weight:800; }
 .qd-obs{ font-size:7.4pt; line-height:1.2; }
+.qd-lt{ font-size:7pt; line-height:1.15; word-break:break-word; }
+.qd-lt.alta{ font-weight:900; }
+.qd-table td.qd-ata{ font-size:7pt; line-height:1.2; }
 .qd-mut{ color:#333; }
 .qd-elev{ margin-top:1px; font-size:6.8pt; font-weight:700; font-style:italic; }
 .qd-chk{ font-size:7pt; line-height:1.25; text-align:left !important; padding-left:5px !important; }
@@ -1204,9 +1214,110 @@ function computeRetentionRiskBySubject(classData){
 
 // Monta e imprime, uma folha por disciplina, a lista de alunos em risco daquela
 // disciplina — pronta para ser destacada e entregue ao professor(a) responsável.
-function riskBySubjectHtml(className){
+// ---------- Leitura (PIP Leitura) e indicações da Ata do Conselho, lidas do Supabase ----------
+// Categorias da Ata (mesmos campos usados pelo Monitoramento) com rótulo curto para a listagem.
+const RC_ATA_CATS = [
+  {campo:'remanejamento_alunos', rot:'Remanejamento'},
+  {campo:'baixo_alunos',         rot:'Aproveit. abaixo do esperado'},
+  {campo:'disciplina_alunos',    rot:'Problema disciplinar'},
+  {campo:'retencao_alunos',      rot:'Risco de retenção'},
+  {campo:'enc_ped_alunos',       rot:'Enc.: acomp. pedagógico'},
+  {campo:'enc_familia_alunos',   rot:'Enc.: conversa com a família'},
+  {campo:'enc_medico_alunos',    rot:'Enc.: avaliação médica/psicológica'},
+  {campo:'destaque_alunos',      rot:'Aluno destaque'}
+];
+async function rcFetchTabela(tabela, select, order){
+  const out = [], page = 1000;
+  for(let off=0; ; off+=page){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${tabela}?select=${select}&order=${order}&limit=${page}&offset=${off}`, { headers: sbHeaders() });
+    const rows = await r.json().catch(()=>null);
+    if(!r.ok || !Array.isArray(rows)) throw new Error('erro '+r.status+' ao ler "'+tabela+'"');
+    out.push(...rows);
+    if(rows.length < page) break;
+  }
+  return out;
+}
+// Lê estudantes, fluencia_leitura e atas_conselho. Cada parte que falhar vira um aviso (e a coluna fica com "—").
+async function rcCarregar(){
+  const falhas = [];
+  const seguro = async (rotulo, fn) => { try{ return await fn(); }catch(e){ console.error(rotulo, e); falhas.push(rotulo+' ('+e.message+')'); return null; } };
+  const [est, flu, atas] = await Promise.all([
+    seguro('Cadastro de estudantes', ()=>adFetch(true)),
+    seguro('Fluência de leitura', ()=>rcFetchTabela('fluencia_leitura','estudante_matricula,nome,classificacao,prioridade,ppm,importado_em','importado_em.desc')),
+    seguro('Atas do Conselho', ()=>rcFetchTabela('atas_conselho','*','trimestre.asc'))
+  ]);
+  const idx = { porTurmaNome:new Map(), porNome:new Map(), porTurma:new Map() };
+  (est||[]).forEach(e=>{
+    const tn = normTurma(e.turma), nn = normNome(e.nome);
+    idx.porTurmaNome.set(tn+'|'+nn, e);
+    if(!idx.porNome.has(nn)) idx.porNome.set(nn, []); idx.porNome.get(nn).push(e);
+    if(!idx.porTurma.has(tn)) idx.porTurma.set(tn, []); idx.porTurma.get(tn).push(e);
+  });
+  // registros vêm do mais recente para o mais antigo: o primeiro de cada aluno é o vigente
+  const fluMatr = new Map(), fluNome = new Map();
+  (flu||[]).forEach(r=>{
+    if(r.estudante_matricula!=null && r.estudante_matricula!=='' && !fluMatr.has(String(r.estudante_matricula))) fluMatr.set(String(r.estudante_matricula), r);
+    const n = normNome(r.nome); if(n && !fluNome.has(n)) fluNome.set(n, r);
+  });
+  return { idx, fluMatr, fluNome, atas: atas||[], okEst:!!est, okFlu:!!flu, okAta:!!atas, falhas };
+}
+function rcPrioridade(rec){
+  const p = normNome(rec && rec.prioridade);
+  return p==='ALTA' ? 'Alta' : p==='MEDIA' ? 'Média' : p==='BAIXA' ? 'Baixa' : '';
+}
+// Reúne, para um aluno da turma, a prioridade de leitura e as indicações de Ata (por categoria, com os trimestres).
+function rcInfoAluno(rc, className, nome){
+  const turmaLbl = shortTurmaLabel(className), tn = normTurma(turmaLbl), nn = normNome(nome);
+  const est = rc.okEst ? acharEstudante(rc.idx, turmaLbl, nome) : null;
+  const matr = est && est.matricula!=null && est.matricula!=='' ? String(est.matricula) : null;
+  const nomes = new Set([nn]); if(est && est.nome) nomes.add(normNome(est.nome));
+  let leitura = null;
+  if(rc.okFlu){
+    const rec = (matr && rc.fluMatr.get(matr)) || [...nomes].map(n=>rc.fluNome.get(n)).find(Boolean) || null;
+    leitura = rec ? { prio: rcPrioridade(rec), classe: rec.classificacao||'', ppm: rec.ppm } : { prio:'', naoAvaliado:true };
+  }
+  let atas = null;
+  if(rc.okAta){
+    atas = new Map();
+    rc.atas.forEach(row=>{
+      if(normTurma(row.turma)!==tn && !(est && normTurma(row.turma)===normTurma(est.turma))) return;
+      RC_ATA_CATS.forEach(cat=>{
+        const lista = Array.isArray(row[cat.campo]) ? row[cat.campo] : [];
+        const bate = lista.some(item=>{
+          if(item && typeof item==='object'){
+            if(item.matricula!=null && item.matricula!=='' && matr) return String(item.matricula)===matr;
+            return nomes.has(normNome(item.nome));
+          }
+          return nomes.has(normNome(item));
+        });
+        if(!bate) return;
+        if(!atas.has(cat.rot)) atas.set(cat.rot, []);
+        const tri = parseInt(row.trimestre,10);
+        if(!isNaN(tri) && !atas.get(cat.rot).includes(tri)) atas.get(cat.rot).push(tri);
+      });
+    });
+  }
+  return { leitura, atas };
+}
+function rcCelulaLeitura(info, rc){
+  if(!info.leitura) return '<td class="lt-na">—</td>';
+  if(info.leitura.naoAvaliado) return '<td class="lt-na">Não avaliado</td>';
+  if(!info.leitura.prio) return '<td class="lt-na">Sem prioridade</td>';
+  return `<td class="${info.leitura.prio==='Alta'?'lt-alta':''}">${info.leitura.prio}</td>`;
+}
+function rcCelulaAta(info){
+  if(!info.atas) return '<td class="ata-c lt-na">—</td>';
+  if(!info.atas.size) return '<td class="ata-c lt-na">Nenhuma</td>';
+  const itens = [...info.atas.entries()].map(([rot,tris])=>`${rot}${tris.length?' ('+tris.sort((a,b)=>a-b).map(n=>n+'ºT').join(', ')+')':''}`);
+  return `<td class="ata-c">${itens.join('<br>')}</td>`;
+}
+
+// Mesma base de "risco de O.E.R", organizada por DISCIPLINA, com nível de leitura (PIP Leitura)
+// e indicações das Atas do Conselho de cada aluno — para entrega individual a cada professor(a).
+function riskBySubjectHtml(className, rc){
   const cd = currentClasses[className];
   if(!cd) return '';
+  rc = rc || { okEst:false, okFlu:false, okAta:false, idx:null, atas:[], fluMatr:new Map(), fluNome:new Map(), falhas:[] };
   const bySubject = computeRetentionRiskBySubject(cd);
   const cfg = loadGlobalConfig();
   cd.meta = cd.meta || {};
@@ -1217,6 +1328,8 @@ function riskBySubjectHtml(className){
       <p>Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em nenhuma disciplina.</p>
     </div>`;
   } else {
+    const infoCache = new Map();
+    const infoDe = nome => { if(!infoCache.has(nome)) infoCache.set(nome, rcInfoAluno(rc, className, nome)); return infoCache.get(nome); };
     html = bySubject.map(sec => `
       <div class="print-page">
         <div class="print-page-hdr">
@@ -1226,20 +1339,26 @@ function riskBySubjectHtml(className){
           </div>
           <div class="print-page-teacher">Professor(a): ______________________________</div>
         </div>
-        <table class="print-subj-table">
-          <thead><tr><th>Aluno</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma 1º+2º (máx. 60)</th><th>Precisa no 3º (máx. 40)</th><th>Obs.</th></tr></thead>
+        <table class="print-subj-table ext">
+          <colgroup><col style="width:21%"><col style="width:6%"><col style="width:6%"><col style="width:8%"><col style="width:8%"><col style="width:11%"><col style="width:27%"><col style="width:13%"></colgroup>
+          <thead><tr><th>Aluno</th><th>1º Trim.</th><th>2º Trim.</th><th>Soma 1º+2º (máx. 60)</th><th>Precisa no 3º (máx. 40)</th><th>Leitura (prioridade)</th><th>Indicações em ata do conselho</th><th>Obs.</th></tr></thead>
           <tbody>
-            ${sec.students.map(s=>`<tr><td>${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td>${s.precisa}${oerAst(s)}</td><td>${s.parcial ? '* sem nota no '+s.faltaTri+'º trim.' : ''}</td></tr>`).join('')}
+            ${sec.students.map(s=>{ const inf = infoDe(s.name); return `<tr><td>${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td>${s.precisa}${oerAst(s)}</td>${rcCelulaLeitura(inf, rc)}${rcCelulaAta(inf)}<td>${s.parcial ? '* sem nota no '+s.faltaTri+'º trim.' : ''}</td></tr>`; }).join('')}
           </tbody>
         </table>${oerLegendHtml(sec.students)}
+        <div class="print-subj-leg">Leitura: prioridade de intervenção registrada na Fluência de Leitura (PIP Leitura) — Alta = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); Média = necessidade intermediária; Baixa = menor necessidade (fluência mais próxima do esperado). O nível indica a prioridade de intervenção, não a qualidade da leitura. Indicações: o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses.</div>
       </div>`).join('');
   }
   return html;
 }
-function printRiskBySubject(names){
+async function printRiskBySubject(names){
   names = (Array.isArray(names) ? names : [names]).filter(n=>currentClasses[n]);
   if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
-  runPrintMode('printSubjectDoc', names.map(riskBySubjectHtml).join(''), 'print-mode-subjects');
+  let rc = null;
+  try{ rc = await rcCarregar(); }
+  catch(e){ console.error(e); alert('Não foi possível ler o Supabase para trazer leitura e atas ('+e.message+'). A listagem será gerada sem essas colunas preenchidas.'); }
+  if(rc && rc.falhas.length) alert('Atenção: não consegui ler parte dos dados do Supabase — '+rc.falhas.join('; ')+'.\nAs colunas correspondentes aparecem com "—" na listagem.');
+  runPrintMode('printSubjectDoc', names.map(n=>riskBySubjectHtml(n, rc)).join(''), 'print-mode-subjects');
 }
 
 // ---------- IMPRESSÕES DE O.E.R (por turma) ----------
@@ -2819,7 +2938,7 @@ function repBuild(){
   return idxs.map(i=> S.modo==='ind' ? repFamiliaPage(cd, S.turmaAluno, cd.students[i], t) : repIndividualPage(cd, S.turmaAluno, cd.students[i], V, t)).join('');
 }
 async function repPreview(){
-  if(repState.modo==='quadro'){ const r = await adSync(); quadroState.status = r.msg; }
+  if(repState.modo==='quadro') await quadroPrepara();
   const html = repBuild(); if(!html) return;
   repState.preview = html;
   const box = document.getElementById('repPreview');
@@ -2833,7 +2952,7 @@ async function repPrint(){
     if(!nomes.length){ alert('Selecione ao menos uma turma.'); return; }
     REP_DIRETOS[repState.modo](nomes); return;
   }
-  if(repState.modo==='quadro'){ const r = await adSync(); quadroState.status = r.msg; }
+  if(repState.modo==='quadro') await quadroPrepara();
   const html = repBuild(); if(!html) return;
   runPrintMode('printReportDoc', html, 'print-mode-report');
 }
@@ -2883,8 +3002,8 @@ function renderReportsTab(){
     ${modeCard('indp','Individual — detalhado (escolher variáveis)','Modelo em tabelas para conselho de classe e coordenação, só com as informações que você marcar')}
     ${modeCard('notas','Quadro de notas por aluno','Todas as notas por disciplina e trimestre, em uma folha A4 paisagem por turma (cores para recuperou e abaixo da média)')}
     ${modeCard('cards','Cards de O.E.R para entrega','Aviso individual em 2 vias (família e escola) para cada aluno em risco, com ciência do responsável')}
-    ${modeCard('prof','O.E.R por disciplina (professores)','Uma folha por disciplina com os alunos em risco, para entregar a cada professor(a)')}
-    ${modeCard('quadro','Quadro da turma — O.E.R × disciplinas (com adaptação)','Alunos nas linhas e disciplinas nas colunas, com X onde há risco de O.E.R; a coluna de observações mostra adaptação/diagnóstico só para quem tem registro (os demais ficam em branco)')}
+    ${modeCard('prof','O.E.R por disciplina (professores)','Uma folha por disciplina com os alunos em risco, com nível de leitura (PIP Leitura) e indicações das atas do conselho, para entregar a cada professor(a)')}
+    ${modeCard('quadro','Quadro da turma — O.E.R × disciplinas (com adaptação)','Alunos nas linhas e disciplinas nas colunas, com X onde há risco de O.E.R; traz também leitura (PIP Leitura) e indicações em ata do conselho; a coluna de observações mostra adaptação/diagnóstico só para quem tem registro (os demais ficam em branco)')}
   </div></div>`;
 
   if(multi){
@@ -3174,20 +3293,22 @@ function repQuadroRows(cd, className){
   const cnt = adClassCount(className);
   const prio = todos.filter(st=>riskBy[st.name] && comEsp(st));
   const temParcial = Object.values(riskBy).some(r=>r.parcial);
-  const nS = subs.length, N = Math.max(todos.length,1), nLast = 2+N;
-  const colS = subs.map((_,k)=>xlsCol(2+k)), colD = xlsCol(2+nS);
-  const colA = quadroState.aplicada ? xlsCol(3+nS) : null, colO = xlsCol(3+nS+(quadroState.aplicada?1:0));
+  const listados = todos.filter(st=>noEscopo.has(st));
+  const nS = subs.length, N = Math.max(listados.length,1), EXTRA = 5, nLast = 2+N+EXTRA; // EXTRA = linhas em branco no fim para alunos novos
+  // colunas: A Nº · B Aluno · C Leitura · disciplinas · Disc. em risco · [Adaptação aplicada?] · Observações · Indicações em ata
+  const colS = subs.map((_,k)=>xlsCol(3+k)), colD = xlsCol(3+nS);
+  const colA = quadroState.aplicada ? xlsCol(4+nS) : null, colO = xlsCol(4+nS+(quadroState.aplicada?1:0)), colAta = xlsCol(5+nS+(quadroState.aplicada?1:0));
   const R = [];
   // 1) Tabela já na primeira linha
-  const hdr = [H('Nº'),H('Aluno'),...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação e diagnóstico')];
+  const hdr = [H('Nº'),H('Aluno'),{v:'LEITURA (PRIORIDADE)', s:10},...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação e diagnóstico'),H('Indicações em ata do conselho')];
   hdr.ht = 95; R.push(hdr);
   // linha de totais logo abaixo dos nomes das disciplinas: soma automática dos X (alunos em O.E.R)
   const T = 18, TL = 19, TW = 20;
-  R.push([{v:'',s:T},{v:'Total em O.E.R',s:TL},
+  R.push([{v:'',s:T},{v:'Total em O.E.R',s:TL},{v:'',s:T},
     ...subs.map((s,k)=>({f:`COUNTIF(${colS[k]}3:${colS[k]}${nLast},"X*")`, v:Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length, s:T})),
-    {f:`COUNTIF(${colD}3:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:TW}, ...(colA?[{v:'',s:T}]:[]), {v:'',s:T}]);
+    {f:`COUNTIF(${colD}3:${colD}${nLast},">0")`, v:Object.keys(riskBy).length, s:TW}, ...(colA?[{v:'',s:T}]:[]), {v:'',s:T}, {v:'',s:T}]);
   const usadoS = subs.map(()=>false); let haObs = false, haApl = false;
-  todos.forEach((st,i)=>{
+  listados.forEach((st,i)=>{
     const r = riskBy[st.name], by = {}; if(r) r.subjects.forEach(s=>{ by[s.name] = s; });
     const ad = adGet(reg, className, st.name), sim = ad.a==='S';
     const obs = [];
@@ -3195,19 +3316,26 @@ function repQuadroRows(cd, className){
     if(ad.r) obs.push('▲ REFORÇO');
     if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs.push('Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)');
     const apl = (colA && sim && r) ? '☐ Sim  ☐ Não' : '';
+    const la = quadroLeituraAta(className, st.name);
     const hasX = !!r && subs.some(s=>by[s.name]);
     subs.forEach((s,k)=>{ if(by[s.name]) usadoS[k] = true; });
     if(obs.length) haObs = true; if(apl) haApl = true;
     const rn = i+3, rng = `${colS[0]}${rn}:${colS[nS-1]}${rn}`;
-    const row = [{v:i+1,s:12}, {v:st.name,s:11},
+    const row = [{v:i+1,s:12}, {v:st.name,s:11}, {v:la.leit, s:12},
       ...subs.map((s,k)=>{ const x = by[s.name];
         return {v: x ? 'X'+(x.parcial?'*':'') : '', s:12}; }),
       nS ? {f:`IF(COUNTIF(${rng},"X*")=0,"",COUNTIF(${rng},"X*"))`, v:r ? r.subjects.length : '', s:12} : {v:'',s:12},
-      ...(colA ? [{v:apl, s:12}] : []), {v:obs.join(' | '), s:14}];
-    row.hidden = !noEscopo.has(st) || (!hasX && !obs.length);
+      ...(colA ? [{v:apl, s:12}] : []), {v:obs.join(' | '), s:14}, {v:la.ata, s:14}];
     R.push(row);
   });
-  if(!todos.length) R.push([{v:'',s:12},{v:'Nenhum aluno.',s:11}]);
+  if(!listados.length) R.push([{v:'',s:12},{v:'Nenhum aluno nesta seleção.',s:11}]);
+  // linhas extras em branco (visíveis), já cobertas pelos totais, pelo resumo e pela formatação dos X
+  for(let e=0;e<EXTRA;e++){
+    const rn = N+3+e, rng = `${colS[0]}${rn}:${colS[nS-1]}${rn}`;
+    R.push([{v:listados.length+1+e,s:12}, {v:'',s:11}, {v:'',s:12}, ...subs.map(()=>({v:'',s:12})),
+      nS ? {f:`IF(COUNTIF(${rng},"X*")=0,"",COUNTIF(${rng},"X*"))`, v:'', s:12} : {v:'',s:12},
+      ...(colA ? [{v:'',s:12}] : []), {v:'',s:14}, {v:'',s:14}]);
+  }
   // 2) Microtexto abaixo da tabela, em bloco de células mescladas na largura da tabela
   R.push([]);
   xlsBloco(R, schoolName(), 16);
@@ -3219,13 +3347,13 @@ function repQuadroRows(cd, className){
     prio.forEach(st=>xlsBloco(R, `${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`));
   }
   xlsBloco(R, 'X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.'));
+  xlsBloco(R, 'Leitura (coluna C) = prioridade de intervenção da Fluência de Leitura (PIP Leitura): Alta = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); Média = necessidade intermediária; Baixa = menor necessidade (fluência mais próxima do esperado). Atenção: o nível mostra a prioridade de intervenção, não a qualidade da leitura — "Alta" não significa que o aluno lê bem. Indicações em ata do conselho (última coluna) = o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses; "—" significa que não foi possível ler o dado no Supabase.');
   xlsBloco(R, 'A linha "Total em O.E.R" (logo abaixo das disciplinas) e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
-  xlsBloco(R, 'Linhas e colunas sem nenhum preenchimento ficam ocultas (selecione ao redor e use "Reexibir" para vê-las). Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
+  xlsBloco(R, 'A tabela lista apenas os alunos do filtro escolhido ('+(quadroState.escopo==='risco'?'somente em risco de O.E.R':quadroState.escopo==='adapt'?'somente adaptação ou reforço':'toda a turma')+'); não há linhas ocultas. As 5 linhas em branco no fim da tabela ficam visíveis para incluir alunos novos: digite o nome, marque X nas disciplinas e a coluna "Disc. em risco", os totais e o Resumo já os contam. Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
   const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
-  const info = {alunos:cd.students.length, risco:Object.keys(riskBy).length, adapt:cnt.sim, reforco:cnt.ref, prio:prio.length, perSubj, discCol:colD, obsCol:colO, last:nLast, subjCol:Object.fromEntries(subs.map((s,k)=>[s.name,colS[k]])), nameCol:'B'};
-  const hid = []; subs.forEach((s,k)=>{ if(!usadoS[k]) hid.push(2+k); });
-  if(colA && !haApl) hid.push(2+nS+1); if(!haObs) hid.push(2+nS+1+(colA?1:0));
-  return {rows:R, freeze:2, info, hid, cf:nS ? `${colS[0]}3:${colS[nS-1]}${nLast}` : null, widths:[5,42,...subs.map(()=>8.5),11,...(colA?[15]:[]),80]};
+  const info = {cobreRisco:quadroState.escopo!=='adapt', extraFirst:N+3, alunos:cd.students.length, risco:Object.keys(riskBy).length, adapt:cnt.sim, reforco:cnt.ref, prio:prio.length, perSubj, discCol:colD, obsCol:colO, last:nLast, subjCol:Object.fromEntries(subs.map((s,k)=>[s.name,colS[k]])), nameCol:'B'};
+  const hid = []; // nenhuma coluna oculta: as linhas extras em branco podem precisar de qualquer disciplina
+  return {rows:R, freeze:2, info, hid, cf:nS ? `${colS[0]}3:${colS[nS-1]}${nLast}` : null, widths:[5,42,8.5,...subs.map(()=>8.5),11,...(colA?[15]:[]),70,46]};
 }
 // Aba "Resumo": só números, tudo por fórmula a partir das abas das turmas
 function repQuadroResumo(itens){
@@ -3236,15 +3364,15 @@ function repQuadroResumo(itens){
   hdr.ht = 95;
   const R = [hdr], q = n => "'"+n.replace(/'/g,"''")+"'";
   itens.forEach(it=>{
-    const i = it.info, a = q(it.aba), rng = c => `${a}!${c}3:${c}${i.last}`, D = rng(i.discCol), O = rng(i.obsCol);
+    const i = it.info, a = q(it.aba), rng = c => `${a}!${c}3:${c}${i.last}`, rngX = c => `${a}!${c}${i.extraFirst}:${c}${i.last}`, D = rng(i.discCol), O = rng(i.obsCol), OX = rngX(i.obsCol);
     const AD = '"*◆ ADAPTAÇÃO*"', RF = '"*▲ REFORÇO*"';
     R.push([{v:it.aba,s:11},
-      {f:`COUNTA(${rng(i.nameCol)})`, v:i.alunos, s:12},
-      {f:`COUNTIF(${D},">0")`, v:i.risco, s:12},
-      {f:`COUNTIF(${O},${AD})`, v:i.adapt, s:12},
-      {f:`COUNTIF(${O},${RF})`, v:i.reforco, s:12},
+      {f:`${i.alunos}+COUNTA(${rngX(i.nameCol)})`, v:i.alunos, s:12},
+      {f: i.cobreRisco ? `COUNTIF(${D},">0")` : `${i.risco}+COUNTIF(${rngX(i.discCol)},">0")`, v:i.risco, s:12},
+      {f:`${i.adapt}+COUNTIF(${OX},${AD})`, v:i.adapt, s:12},
+      {f:`${i.reforco}+COUNTIF(${OX},${RF})`, v:i.reforco, s:12},
       {f:`COUNTIFS(${D},">0",${O},${AD})+COUNTIFS(${D},">0",${O},${RF})-COUNTIFS(${D},">0",${O},${AD},${O},${RF})`, v:i.prio, s:12},
-      ...subjNames.map(n=> (n in i.perSubj) ? {f:`COUNTIF(${rng(i.subjCol[n])},"X*")`, v:i.perSubj[n], s:12} : C('–'))]);
+      ...subjNames.map(n=> (n in i.perSubj) ? {f: i.cobreRisco ? `COUNTIF(${rng(i.subjCol[n])},"X*")` : `${i.perSubj[n]}+COUNTIF(${rngX(i.subjCol[n])},"X*")`, v:i.perSubj[n], s:12} : C('–'))]);
   });
   const n = itens.length, tot = [{v:'Total',s:3}], soma = [0];
   for(let c=1;c<6+subjNames.length;c++){
@@ -3271,7 +3399,7 @@ async function repXlsx(){
   const names = Object.keys(currentClasses).filter(n=>S.turmas.has(n)).sort(ordemTurmas);
   if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
   if(!V.size){ alert('Marque ao menos uma variável para o relatório.'); return; }
-  if(quadro){ const r = await adSync(); quadroState.status = r.msg; }
+  if(quadro) await quadroPrepara();
   const usados = new Set();
   const nomeAba = n => { let b = shortTurmaLabel(n).replace(/[\[\]:*?\/\\]/g,'-').slice(0,28) || 'Turma', x = b, k = 2; while(usados.has(x.toLowerCase())) x = b+'-'+(k++); usados.add(x.toLowerCase()); return x; };
   const sheets = names.map(n=>({name:nomeAba(n), ...(quadro ? repQuadroRows(currentClasses[n], n) : repTurmaRows(currentClasses[n], n, V, repRefTri(currentClasses[n])))}));
@@ -3316,7 +3444,28 @@ function adClassCount(className){
 }
 
 // ---------- montagem do quadro (uma página A4 paisagem por turma) ----------
-const quadroState = { escopo:'risco', aplicada:true };
+const quadroState = { escopo:'risco', aplicada:true, rc:null };
+// Sincroniza adaptação/diagnóstico e lê leitura (PIP Leitura) + atas do conselho no Supabase antes de montar o quadro.
+async function quadroPrepara(){
+  const r = await adSync(); quadroState.status = r.msg;
+  try{ quadroState.rc = await rcCarregar(); }catch(e){ console.error(e); quadroState.rc = null; }
+  if(!quadroState.rc) quadroState.status += ' · Atenção: não consegui ler leitura e atas no Supabase (colunas ficam com "—").';
+  else if(quadroState.rc.falhas.length) quadroState.status += ' · Atenção: não li '+quadroState.rc.falhas.join('; ')+' (colunas correspondentes ficam com "—").';
+}
+// Texto simples de leitura e de indicações em ata do conselho de um aluno, para o quadro (tela/impressão e Excel).
+function quadroLeituraAta(className, nome){
+  const rc = quadroState.rc;
+  if(!rc) return { leit:'—', ata:'—', alta:false, semAta:true };
+  const inf = rcInfoAluno(rc, className, nome);
+  let leit = '—', alta = false;
+  if(inf.leitura){ if(inf.leitura.naoAvaliado) leit = 'Não avaliado'; else if(!inf.leitura.prio) leit = 'S/ prior.'; else { leit = inf.leitura.prio; alta = leit==='Alta'; } }
+  let ata = '—', semAta = true;
+  if(inf.atas){
+    const itens = [...inf.atas.entries()].map(([rot,tris])=>rot+(tris.length?' ('+tris.sort((a,b)=>a-b).map(n=>n+'ºT').join(', ')+')':''));
+    ata = itens.length ? itens.join('; ') : 'Nenhuma'; semAta = !itens.length;
+  }
+  return { leit, ata, alta, semAta };
+}
 
 function repQuadroPage(cd, className){
   cd.meta = cd.meta || {};
@@ -3350,14 +3499,15 @@ function repQuadroPage(cd, className){
     else obs = ''; // sem registro de adaptação/diagnóstico = não está nessa situação: coluna em branco
     if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>`;
     if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)</div>`;
+    const la = quadroLeituraAta(className, st.name);
     const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '');
-    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}<td class="l qd-obs">${obs}</td></tr>`;
+    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td><td class="qd-lt${la.alta?' alta':''}">${escHtml(la.leit)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}<td class="l qd-obs">${obs}</td><td class="l qd-ata">${escHtml(la.ata).replace(/; /g,'<br>')}</td></tr>`;
   }).join('');
 
   const nSub = subs.length;
-  const colgroup = `<colgroup><col style="width:7mm"><col style="width:${nSub>8?48:56}mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:18mm">':''}<col style="width:${nSub>8?66:78}mm"></colgroup>`;
+  const colgroup = `<colgroup><col style="width:7mm"><col style="width:${nSub>8?48:56}mm"><col style="width:11mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:18mm">':''}<col style="width:${nSub>8?46:56}mm"><col style="width:${nSub>8?40:46}mm"></colgroup>`;
   const tabela = lista.length
-    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th>Adaptação aplicada?</th>':''}<th class="l">Observações — adaptação e diagnóstico</th></tr></thead><tbody>${rows}</tbody></table>`
+    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th><th class="qd-d"><span>Leitura (prioridade)</span></th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th>Adaptação aplicada?</th>':''}<th class="l">Observações — adaptação e diagnóstico</th><th class="l">Indicações em ata do conselho</th></tr></thead><tbody>${rows}</tbody></table>`
     : `<div class="rp-ok">Nenhum aluno nesta seleção.</div>`;
 
   const aviso = [];
@@ -3365,7 +3515,7 @@ function repQuadroPage(cd, className){
     aviso.push(`<div class="qd-prio"><b>ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R <u>e</u> situação especial (adaptação e/ou reforço):</b> confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado e dar atenção especial às atividades de final de ano. ${prio.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>[${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
   }
   const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
-  const foot = `<div class="rp-foot"><b>Coluna de observações:</b> traz o registro de adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação.<br><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
+  const foot = `<div class="rp-foot"><b>Leitura:</b> prioridade de intervenção registrada na Fluência de Leitura (PIP Leitura) — <b>Alta</b> = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); <b>Média</b> = necessidade intermediária; <b>Baixa</b> = menor necessidade (fluência mais próxima do esperado). O nível indica a prioridade de intervenção, não a qualidade da leitura: “Alta” não significa que o aluno lê bem. <b>Indicações em ata:</b> o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses.<br><b>Coluna de observações:</b> traz o registro de adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação.<br><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
   const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', aviso.join('') + tabela) + rpMsg() + foot;
   return rpWrap(rpHeader('Quadro da turma — risco de O.E.R por disciplina', escHtml(turma)+' · '+escHtml(effectiveMesAno(cd))), body)
     .replace('<section class="rp-page">','<section class="rp-page rp-land">');
