@@ -206,7 +206,17 @@ async function readPdf(f){
  }
  return bl;
 }
-const readAny=f=>/\.pdf$/i.test(f.name)?readPdf(f):readDocx(f);
+const readAny=async f=>{const n=f.name||"";
+ if(/\.doc$/i.test(n))throw new Error("DOC");
+ if(/\.pdf$/i.test(n)){if(typeof pdfjsLib==="undefined")throw new Error("LIB");return readPdf(f)}
+ if(!/\.docx$/i.test(n))throw new Error("EXT");
+ if(typeof mammoth==="undefined")throw new Error("LIB");
+ return readDocx(f)};
+const errMsg=(e,what)=>{const m=e&&e.message;
+ if(m==="DOC")return"Arquivo .doc (Word antigo) não é aceito. Abra no Word e salve como .docx ou PDF.";
+ if(m==="EXT")return"Formato não suportado. Envie um arquivo .docx ou PDF.";
+ if(m==="LIB")return"O leitor de arquivos não carregou (sem internet ou bloqueio da rede). Verifique a conexão e recarregue a página.";
+ return"Não foi possível ler "+what+(m?" ("+m+")":".")};
 
 /* ---------- interpretação ---------- */
 const nA=q=>q.alts.filter(Boolean).length;
@@ -254,7 +264,7 @@ async function up(i,f){
   applyG(s);
   s.msg=r.qs.length?r.qs.length+" questões lidas.":"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";
   s.er=!r.qs.length;
- }catch(e){s.msg="Não foi possível ler este arquivo.";s.er=true}
+ }catch(e){s.msg=errMsg(e,"este arquivo");s.er=true}
  renderGrid();renderRev(i);
 }
 async function upG(i,f){
@@ -262,7 +272,7 @@ async function upG(i,f){
  try{
   const bl=await readAny(f),g=fmtG(parseG(bl.map(b=>b.text).join(" ")));
   if(g){s.gab=g;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
- }catch(e){s.msg="Não foi possível ler o gabarito.";s.er=true}
+ }catch(e){s.msg=errMsg(e,"o gabarito");s.er=true}
  renderGrid();renderRev(i);
 }
 function setG(i,v){S[i].gab=v;applyG(S[i]);renderGrid();renderRev(i)}
@@ -660,7 +670,17 @@ async function readPdf(f){
  }
  return bl;
 }
-const readAny=f=>/\.pdf$/i.test(f.name)?readPdf(f):readDocx(f);
+const readAny=async f=>{const n=f.name||"";
+ if(/\.doc$/i.test(n))throw new Error("DOC");
+ if(/\.pdf$/i.test(n)){if(typeof pdfjsLib==="undefined")throw new Error("LIB");return readPdf(f)}
+ if(!/\.docx$/i.test(n))throw new Error("EXT");
+ if(typeof mammoth==="undefined")throw new Error("LIB");
+ return readDocx(f)};
+const errMsg=(e,what)=>{const m=e&&e.message;
+ if(m==="DOC")return"Arquivo .doc (Word antigo) não é aceito. Abra no Word e salve como .docx ou PDF.";
+ if(m==="EXT")return"Formato não suportado. Envie um arquivo .docx ou PDF.";
+ if(m==="LIB")return"O leitor de arquivos não carregou (sem internet ou bloqueio da rede). Verifique a conexão e recarregue a página.";
+ return"Não foi possível ler "+what+(m?" ("+m+")":".")};
 
 
 const nA=q=>q.alts.filter(Boolean).length;
@@ -720,14 +740,14 @@ async function up(i,f){
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
   applyG(s);const[o,a]=cnt(s);
   s.msg=r.qs.length?`${o} objetivas e ${a} abertas lidas. Confira na revisão.`:"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";s.er=!r.qs.length;
- }catch(e){s.msg="Não foi possível ler este arquivo.";s.er=true}
+ }catch(e){s.msg=errMsg(e,"este arquivo");s.er=true}
  renderGrid();renderRev(i);
 }
 async function upG(i,f){
  if(!f)return;const s=S[i];
  try{const g=fmtG(parseG((await readAny(f)).map(b=>b.text).join(" ")));
   if(g){s.gab=g;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
- }catch(e){s.msg="Não foi possível ler o gabarito.";s.er=true}
+ }catch(e){s.msg=errMsg(e,"o gabarito");s.er=true}
  renderGrid();renderRev(i);
 }
 function setG(i,v){S[i].gab=v;applyG(S[i]);renderGrid();renderRev(i)}
