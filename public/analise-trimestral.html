@@ -242,13 +242,13 @@ body{
 .print-footer{display:none;}
 .print-subject-doc, .print-cards-doc, .print-oer-cards-doc, .print-oer-table-doc, .print-class-table-doc{ display:none; }
 .risk-actions{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
-@page oertable{ size:A4 landscape; margin:8mm 7mm; }
-@page oercards{ size:A4 landscape; margin:8mm 7mm; }
-@page classtable{ size:A4 landscape; margin:6mm; }
+@page oertable{ size:A4 landscape; margin:8mm 7mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
+@page oercards{ size:A4 landscape; margin:8mm 7mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
+@page classtable{ size:A4 landscape; margin:6mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
 
 /* ================= PRINT (economia de tinta / clareza em P&B / 1 folha) ================= */
 @media print{
-  @page{ margin:6mm 7mm; size:A4 portrait; }
+  @page{ margin:6mm 7mm; size:A4 portrait; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
   *{ box-shadow:none !important; text-shadow:none !important; }
   html, body{ background:#fff !important; color:#000 !important; font-size:11px; height:auto !important; }
   .app{ display:block; }
@@ -321,7 +321,7 @@ body{
      risco de todas as turmas. Cada uma some por padrão e só aparece quando o
      JS marca o <body> com a classe correspondente antes de chamar print(). */
   body.print-mode-subjects .app{ display:none !important; }
-  body.print-mode-subjects .print-subject-doc{ display:block !important; }
+  body.print-mode-subjects .print-subject-doc{ display:block !important; page:subjfit; }
   body.print-mode-cards .app{ display:none !important; }
   body.print-mode-cards .print-cards-doc{ display:block !important; }
 
@@ -486,7 +486,9 @@ body{
 .overview-btn.rep{background:#35607F;}
 .doc-brand{display:none;}
 .print-report-doc{display:none;}
-@page report{ size:A4 portrait; margin:7mm; }
+@page report{ size:A4 portrait; margin:7mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
+@page reportfit{ size:A4 portrait; margin:4mm 4mm 5mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
+@page subjfit{ size:A4 portrait; margin:4mm 4mm 5mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
 
 /* aba Relatórios (tela) */
 .rep-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 16px; margin:0 0 12px; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);}
@@ -572,7 +574,10 @@ body{
 .rp-foot .sw.mid{background:#ffeaa0;} .rp-foot .sw.bad{background:#f7b9b0;}
 .rp-wrap{width:100%; border-collapse:collapse;}
 .rp-wrap > thead{display:table-header-group;}
-.rp-wrap > thead > tr > td, .rp-wrap > tbody > tr > td{border:0; padding:0; vertical-align:top;}
+.rp-wrap > tfoot{display:table-footer-group;}
+.rp-wrap > thead > tr > td, .rp-wrap > tbody > tr > td, .rp-wrap > tfoot > tr > td{border:0; padding:0; vertical-align:top;}
+.rp-pgfoot .rp-pgmail{ font-size:6.5pt; }
+.rp-pgfoot{ margin-top:3px; border-top:.8px solid #000; padding-top:2px; text-align:center; font-size:8pt; line-height:1.2; color:#000; }
 /* densidade automática do relatório individual (muitas disciplinas / muitas em risco): continua cabendo em 1 folha */
 /* ===== visual moderno do modelo família e aluno: cantos arredondados, fundos claros, ótimo em P&B ===== */
 .fm .rp-hdr{border:1.3px solid #222; border-radius:14px; padding:5px 12px; margin-bottom:5px; gap:12px;}
@@ -651,6 +656,7 @@ body{
   /* relatórios */
   body.print-mode-report .app{display:none !important;}
   body.print-mode-report .print-report-doc{display:block !important; page:report;}
+  body.print-mode-report .print-report-doc.rp-fitdoc{page:reportfit;}
   .print-report-doc .rp-page{page-break-after:always; break-after:page;}
   .print-report-doc .rp-page:last-child{page-break-after:auto; break-after:auto;}
 }
@@ -678,7 +684,57 @@ body{
 .rep-preview .rp-page{border-radius:10px;}
 
 /* ===== Quadro da turma: risco de O.E.R x disciplinas, com adaptação/diagnóstico ===== */
-@page rpland{ size:A4 landscape; margin:7mm; }
+@page rpland{ size:A4 landscape; margin:7mm; @bottom-left{ content:'Coordenação Pedagógica / Prof. Everton Correa Alves (everton.correa@edu.pbh.gov.br)'; font-family:'Inter',Arial,sans-serif; font-size:6.5pt; line-height:1; color:#000; vertical-align:middle; text-align:left; } }
+/* ===== relatórios por turma: fonte nunca abaixo de 9pt; para caber em até 2 folhas, só se compacta espaçamento ===== */
+/* PROTEGIDO: nome dos alunos e das disciplinas nunca ficam abaixo de 9pt */
+.rp-page.mf9 .rp-table td.l, .rp-page.mf9 .rp-table th.l, .rp-page.mf9 .qd-table td.nm, .rp-page.mf9 .qd-table th.l:nth-child(2),
+.rp-page.mf9 .qd-table th.qd-d span, .rp-page.mf9 .qd-prio .qd-pn, .rp-page.mf9 .rp-col li, .rp-page.mf9 .rp-col li b{ font-size:9pt !important; }
+/* FLEXÍVEL: todo o resto (observações, ata, legendas, rodapé, tabelas auxiliares) parte de 9pt e pode encolher via --sf (ajustado pelo sistema para caber em 2 folhas) */
+.rp-page.mf9{ --sf:1; }
+.rp-page.mf9 .rp-table th, .rp-page.mf9 .rp-table td, .rp-page.mf9 .rp-table th small, .rp-page.mf9 .rp-evo td small,
+.rp-page.mf9 .rp-id td, .rp-page.mf9 .rp-id small, .rp-page.mf9 .rp-sub, .rp-page.mf9 .rp-hdr-right, .rp-page.mf9 .rp-note,
+.rp-page.mf9 .rp-foot, .rp-page.mf9 .rp-box span, .rp-page.mf9 .rp-col b, .rp-page.mf9 .rp-col li small, .rp-page.mf9 .rp-msg,
+.rp-page.mf9 .rp-sign, .rp-page.mf9 .rp-sign small, .rp-page.mf9 .rp-field, .rp-page.mf9 .rp-ok, .rp-page.mf9 .rp-p,
+.rp-page.mf9 .rp-dest, .rp-page.mf9 .rp-ol, .rp-page.mf9 .rp-sec-t, .rp-page.mf9 .rp-table td.l .oer-semnota,
+.rp-page.mf9 .qd-table, .rp-page.mf9 .qd-table th, .rp-page.mf9 .qd-table td,
+.rp-page.mf9 .qd-obs, .rp-page.mf9 .qd-lt, .rp-page.mf9 .qd-table td.qd-ata, .rp-page.mf9 .qd-elev, .rp-page.mf9 .qd-chk,
+.rp-page.mf9 .qd-prio, .rp-page.mf9 .qd-warn, .rp-page.mf9 .qd-prio .qd-pn small, .rp-page.mf9 .qd-ata-in{ font-size:calc(9pt * var(--sf,1)); }
+.rp-page.mf9 .qd-table td.x{ font-size:11pt; }
+.rp-page.mf9 .rp-sec{ break-inside:auto; page-break-inside:auto; overflow:visible; }
+.rp-page.mf9 .rp-sec-t{ break-after:avoid; page-break-after:avoid; }
+.rp-page.mf9 .rp-table tr, .rp-page.mf9 .rp-box{ break-inside:avoid; page-break-inside:avoid; }
+.rp-page.mf9.rp-tight{ line-height:1.15; }
+.rp-page.mf9.rp-tight .rp-table th, .rp-page.mf9.rp-tight .rp-table td{ padding:.3px 3px; line-height:1.1; }
+.rp-page.mf9.rp-tight .qd-table th, .rp-page.mf9.rp-tight .qd-table td{ padding:.6px 2px; line-height:1.1; }
+.rp-page.mf9.rp-tight .rp-sec{ margin:2px 0; }
+.rp-page.mf9.rp-tight .rp-hdr{ padding-bottom:2px; margin-bottom:3px; }
+.rp-page.mf9.rp-tight .rp-foot{ margin-top:2px; padding:2px 6px; }
+.rp-page.mf9.rp-tight .rp-boxes{ padding:3px 5px; }
+.rp-page.mf9.rp-tight .qd-prio, .rp-page.mf9.rp-tight .qd-warn{ margin:2px 4px; padding:2px 6px; }
+.rp-page.mf9.rp-tight2 .rp-lines div{ height:4.4mm; }
+.rp-page.mf9.rp-tight2 .rp-table.rp-plan tr.blank td, .rp-page.mf9.rp-tight2 .rp-table tr.blank td{ height:5mm; }
+.rp-page.mf9.rp-tight2 .rp-sign span{ height:5mm; }
+.rp-page.mf9.rp-tight2 .rp-list td.l:nth-child(2){ white-space:nowrap; }
+.rp-page.mf9.rp-tight2 .rp-sec{ margin:1.5px 0; }
+.rp-page.mf9.rp-tight3 .rp-lines div:nth-child(n+4){ display:none; }
+.rp-page.mf9.rp-tight3 .rp-table tr.blank:nth-child(n+3){ display:none; }
+.rp-page.mf9.rp-tight3 .rp-table tr.blank td{ height:4.5mm; }
+.rp-page.mf9.rp-tight3 .rp-box b{ font-size:12pt; }
+.qd-how{ margin:4px 0; padding:4px 8px; background:#ffd966; border:1.4px solid #000; border-left:6px solid #000; font-size:10pt; line-height:1.25; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.qd-how .qd-xm{ display:inline-block; min-width:1.3em; text-align:center; background:#fff; border:1px solid #000; font-weight:900; padding:0 3px; }
+.rp-page.mf9 .qd-how{ font-size:calc(10pt * var(--sf,1)); }
+.rp-page.mf9.rp-tight .qd-how{ margin:2px 4px; padding:2px 6px; }
+.qd-ata-in{ margin-top:2px; border-top:.5px dotted #555; padding-top:1px; }
+@media print{
+  /* por disciplina (professores): nome do aluno e da disciplina nunca abaixo de 9pt (12px); o resto pode encolher via --sf */
+  .print-page{ --sf:1; }
+  .print-subj-table.ext td:first-child, .print-subj-table.ext th:first-child, .print-page-hdr h1{ font-size:12px !important; }
+  .print-subj-table, .print-subj-table th, .print-subj-table.ext, .print-subj-table.ext th, .print-subj-table.ext td,
+  .print-subj-table.ext td.ata-c, .print-subj-leg, .print-page-sub, .print-page-teacher, .print-page .oer-legend{ font-size:calc(12px * var(--sf,1)); }
+  .print-page.rp-tight .print-subj-table.ext th, .print-page.rp-tight .print-subj-table.ext td{ padding:1px 4px; line-height:1.15; }
+  .print-page.rp-tight .print-page-hdr{ margin-bottom:6px; }
+}
+
 .rep-preview .rp-page.rp-land{ width:281mm; zoom:.9; }
 .qd-table{ width:100%; border-collapse:collapse; table-layout:fixed; color:#000; font-size:8pt; }
 .qd-table th, .qd-table td{ border:.7px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; background:#fff; }
@@ -706,6 +762,9 @@ body{
 .qd-prio .qd-pn small{ font-weight:400; }
 .qd-warn{ margin:4px 6px; padding:3px 8px; border:1px dashed #000; background:#fff; font-size:7.6pt; line-height:1.3; border-radius:8px; }
 .rp-land .rp-sec{ margin-bottom:4px; }
+.rp-land .rp-sec{ break-inside:auto; page-break-inside:auto; overflow:visible; }
+.rp-land .rp-sec-t{ break-after:avoid; page-break-after:avoid; }
+.rp-land .qd-prio, .rp-land .qd-warn{ break-inside:avoid; page-break-inside:avoid; }
 /* editor de cadastro (tela) */
 .ad-map{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin:6px 0; background:#fafaf5; font-size:12.5px; }
 .ad-map-t{ max-height:260px; overflow:auto; margin:6px 0; }
@@ -1303,7 +1362,7 @@ function rcCelulaLeitura(info, rc){
   if(!info.leitura) return '<td class="lt-na">—</td>';
   if(info.leitura.naoAvaliado) return '<td class="lt-na">N.A.</td>';
   if(!info.leitura.prio) return '<td class="lt-na">Sem prioridade</td>';
-  return `<td class="${info.leitura.prio==='Alta'?'lt-alta':''}">${info.leitura.prio}</td>`;
+  return `<td class="${info.leitura.prio==='Alta'?'lt-alta':''}">${info.leitura.prio==='Média'?'Méd.':info.leitura.prio}</td>`;
 }
 function rcCelulaAta(info){
   if(!info.atas) return '<td class="ata-c lt-na">—</td>';
@@ -1346,7 +1405,7 @@ function riskBySubjectHtml(className, rc){
             ${sec.students.map(s=>{ const inf = infoDe(s.name); return `<tr><td>${s.name}</td><td>${oerV(s.t1)}</td><td>${oerV(s.t2)}</td><td>${s.soma}${oerAst(s)}</td><td>${s.precisa}${oerAst(s)}</td>${rcCelulaLeitura(inf, rc)}${rcCelulaAta(inf)}<td>${s.parcial ? '* sem nota no '+s.faltaTri+'º trim.' : ''}</td></tr>`; }).join('')}
           </tbody>
         </table>${oerLegendHtml(sec.students)}
-        <div class="print-subj-leg">Leitura: prioridade de intervenção registrada na Fluência de Leitura (PIP Leitura) — Alta = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); Média = necessidade intermediária; Baixa = menor necessidade (fluência mais próxima do esperado). O nível indica a prioridade de intervenção, não a qualidade da leitura. N.A. = não avaliado (ainda não há avaliação de fluência de leitura registrada para o aluno). Indicações: o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses.</div>
+        <div class="print-subj-leg">Leitura (PIP Leitura) = prioridade de intervenção: Alta (maior necessidade), Méd. (= média) e Baixa (menor necessidade); não mede a qualidade da leitura. N.A. = não avaliado. Indicações: Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses.</div>
       </div>`).join('');
   }
   return html;
@@ -1358,7 +1417,7 @@ async function printRiskBySubject(names){
   try{ rc = await rcCarregar(); }
   catch(e){ console.error(e); alert('Não foi possível ler o Supabase para trazer leitura e atas ('+e.message+'). A listagem será gerada sem essas colunas preenchidas.'); }
   if(rc && rc.falhas.length) alert('Atenção: não consegui ler parte dos dados do Supabase — '+rc.falhas.join('; ')+'.\nAs colunas correspondentes aparecem com "—" na listagem.');
-  runPrintMode('printSubjectDoc', names.map(n=>riskBySubjectHtml(n, rc)).join(''), 'print-mode-subjects');
+  runPrintMode('printSubjectDoc', names.map(n=>riskBySubjectHtml(n, rc)).join(''), 'print-mode-subjects', {sel:'.print-page', w:202, h:288, portrait:true});
 }
 
 // ---------- IMPRESSÕES DE O.E.R (por turma) ----------
@@ -1374,8 +1433,72 @@ function oerPrintMeta(className){
     prof: cd.meta.professor || ''
   };
 }
-function runPrintMode(docId, html, mode){
-  document.getElementById(docId).innerHTML = html;
+/* Encolhe cada folha (zoom) até caber em UMA página A4 útil. A medição é feita fora da tela,
+   com as regras de @media print copiadas para um estilo temporário. */
+function printMeasureCss(){
+  let css = '';
+  for(const sh of Array.from(document.styleSheets)){
+    let rules; try{ rules = sh.cssRules; }catch(e){ continue; }
+    for(const r of Array.from(rules||[])){
+      if(r.type!==CSSRule.MEDIA_RULE || !/print/.test(r.media.mediaText)) continue;
+      for(const x of Array.from(r.cssRules)){
+        if(x.type!==1 || !/\.print-(page|subj|cards)/.test(x.selectorText) || /print-mode/.test(x.selectorText)) continue;
+        const sel = x.selectorText.split(',').map(p=>'.fit-measure '+p.trim()).join(',');
+        css += sel+'{'+x.style.cssText+'}\n';
+      }
+    }
+  }
+  return css;
+}
+const SF_MIN = 6/9;   // texto flexível nunca abaixo de 6pt (= 2/3 de 9pt)
+function fitPagesHtml(html, pageSel, wMm, hMm, pages, minZoom){
+  pages = pages || 1; minZoom = (minZoom==null) ? 1 : minZoom;   // minZoom 1 = nunca reduz a fonte
+  const MM = 96/25.4;
+  const st = document.createElement('style'); st.textContent = printMeasureCss();
+  const box = document.createElement('div');
+  box.className = 'fit-measure';
+  box.style.cssText = 'position:fixed;left:-99999px;top:0;visibility:hidden;font-size:11px;width:'+wMm+'mm;';
+  box.innerHTML = html;
+  document.head.appendChild(st); document.body.appendChild(box);
+  try{
+    box.querySelectorAll(pageSel).forEach(pg=>{
+      pg.style.zoom = 1;
+      const avail = ()=>{
+        const hdr = pg.querySelector('.rp-hdr');
+        const th = pg.querySelector('.qd-table thead');
+        const hdrH = (hdr ? hdr.getBoundingClientRect().height + 8 : 0) + (th ? th.getBoundingClientRect().height : 0);   // cabeçalho (e cabeçalho da tabela) se repetem em cada folha
+        const ft = pg.querySelector('.rp-pgfoot');
+        const ftH = ft ? ft.getBoundingClientRect().height + 4 : 0;   // rodapé repete em cada folha
+        return pages*hMm*MM - (pages-1)*(hdrH+ftH) - (pages>1 ? pages*14*MM : 0);
+      };
+      const over = ()=> pg.getBoundingClientRect().height > avail();
+      let z = 1;
+      if(over()) pg.classList.add('rp-tight');                 // 1º recurso: compactar espaçamentos
+      if(over()) pg.classList.add('rp-tight2');                // 2º: linhas em branco/assinatura menores
+      if(over()) pg.classList.add('rp-tight3');                // 3º: menos linhas em branco (parecer / plano)
+      // 4º recurso: encolher SÓ o texto flexível (observações, ata, legendas, rodapé...) via --sf, em passos de 5%,
+      // até caber. Nome dos alunos e das disciplinas é protegido (9pt) e não é afetado. Piso: 6pt (SF_MIN).
+      if(over() && (pg.classList.contains('mf9') || pg.classList.contains('print-page'))){
+        for(let sf=0.95; over(); sf-=0.05){
+          sf = Math.max(SF_MIN, sf);
+          pg.style.setProperty('--sf', sf.toFixed(3));
+          if(sf<=SF_MIN+1e-6) break;
+        }
+      }
+      for(let k=0; k<8 && over() && z>minZoom; k++){           // 2º recurso (só se permitido): reduzir
+        z = Math.max(minZoom, z * (avail()/pg.getBoundingClientRect().height) * 0.98);
+        pg.style.zoom = z;
+      }
+      if(pages===1 && !over()){ pg.style.breakInside = 'avoid'; pg.style.pageBreakInside = 'avoid'; }
+    });
+    return box.innerHTML;
+  } finally { box.remove(); st.remove(); }
+}
+function runPrintMode(docId, html, mode, fit){
+  const docEl = document.getElementById(docId);
+  if(fit) html = fitPagesHtml(html, fit.sel, fit.w, fit.h, fit.pages, fit.minZoom);
+  docEl.innerHTML = html;
+  docEl.classList.toggle('rp-fitdoc', !!fit && !!fit.portrait && docId==='printReportDoc');
   document.body.classList.add(mode);
   window.print();
   setTimeout(()=>{ document.body.classList.remove(mode); }, 300);
@@ -1843,7 +1966,7 @@ function renderMain(){
   html += `</div>`;
 
   html += `<div class="print-footer">
-    <div>Coordenador(a) Pedagógico(a): <strong>Prof. Everton Correa</strong></div>
+    <div>Coordenador(a) Pedagógico(a): <strong>Prof. Everton Correa Alves</strong></div>
     <div>Coordenadora Geral: <strong>Leila Cardoso</strong></div>
   </div>`;
   html += `<div id="detailPanel"></div>`;
@@ -2588,7 +2711,7 @@ const rpBar = p => p===null ? '' : `<div class="rp-bar"><i style="width:${Math.m
 function rpLines(n){ return `<div class="rp-lines">${'<div></div>'.repeat(n)}</div>`; }
 function rpMsg(){ return repState.msg.trim() ? `<div class="rp-msg"><b>Recado da coordenação:</b> ${escHtml(repState.msg.trim()).replace(/\n/g,'<br>')}</div>` : ''; }
 function rpAssin(){
-  return `<div class="rp-sign"><div><span></span>Prof. Everton Correa<br><small>Coordenador(a) Pedagógico(a)</small></div><div><span></span>Leila Cardoso<br><small>Coordenadora Geral</small></div></div>`;
+  return `<div class="rp-sign"><div><span></span>Prof. Everton Correa Alves<br><small>Coordenador(a) Pedagógico(a)</small></div><div><span></span>Leila Cardoso<br><small>Coordenadora Geral</small></div></div>`;
 }
 const RP_TINT_NOTE = 'Cores: branco = na média; <span class="sw mid"></span>amarelo = recuperou (ou entre 40% e 69%); <span class="sw bad"></span><b>vermelho</b> = abaixo da média (ou abaixo de 40%).';
 
@@ -2929,7 +3052,7 @@ function repBuild(){
     if(!names.length){ alert('Selecione ao menos uma turma.'); return null; }
     let html = names.map(n=>repTurmaPage(currentClasses[n], n, V, repRefTri(currentClasses[n]))).join('');
     if(V.has('comparativo') && names.length>1) html += repComparativoPage(names, V);
-    return html;
+    return html.replace(/<section class="rp-page">/g, '<section class="rp-page mf9">');
   }
   const cd = currentClasses[S.turmaAluno];
   const idxs = [...S.alunos].filter(i=>cd && cd.students[i]).sort((a,b)=>cd.students[a].name.localeCompare(cd.students[b].name));
@@ -2954,7 +3077,7 @@ async function repPrint(){
   }
   if(repState.modo==='quadro') await quadroPrepara();
   const html = repBuild(); if(!html) return;
-  runPrintMode('printReportDoc', html, 'print-mode-report');
+  runPrintMode('printReportDoc', html, 'print-mode-report', repState.modo==='turma' ? {sel:'.rp-page', w:202, h:288, pages:2, portrait:true} : (repState.modo==='quadro' ? (quadroState.orient==='port' ? {sel:'.rp-page', w:202, h:288, pages:2, portrait:true} : {sel:'.rp-page', w:283, h:196, pages:2}) : null));
 }
 function repLogoUpload(file){
   if(!file) return;
@@ -3031,6 +3154,7 @@ function renderReportsTab(){
   if(S.modo==='quadro'){
     const esc = (v,t)=>`<label class="oer-chip${quadroState.escopo===v?' on':''}"><input type="radio" name="qdEscopo" value="${v}" ${quadroState.escopo===v?'checked':''}> ${t}</label>`;
     h += `<div class="rep-card"><h3>Opções do quadro</h3><div class="rep-row"><b style="font-size:12.5px">Alunos no quadro:</b>${esc('risco','Somente em risco de O.E.R')}${esc('todos','Toda a turma')}${esc('adapt','Somente adaptação ou reforço')}</div>
+      <div class="rep-row"><b style="font-size:12.5px">Orientação da folha:</b><label class="oer-chip${quadroState.orient!=='port'?' on':''}"><input type="radio" name="qdOri" value="land" ${quadroState.orient!=='port'?'checked':''}> Paisagem</label><label class="oer-chip${quadroState.orient==='port'?' on':''}"><input type="radio" name="qdOri" value="port" ${quadroState.orient==='port'?'checked':''}> Retrato</label></div>
       <div class="rep-row"><label class="oer-chip${quadroState.aplicada?' on':''}"><input type="checkbox" id="qdAplicada" ${quadroState.aplicada?'checked':''}> Coluna “Adaptação aplicada?” (☐ Sim ☐ Não) para conferência dos alunos com adaptação</label></div>
       <div class="rep-hint">O X marca a disciplina em risco de O.E.R (soma do 1º+2º trimestres abaixo de 36). A coluna Observações mostra se o aluno tem demanda de adaptação e o diagnóstico cadastrado abaixo.</div></div>`;
     h += adEditorHtml(S, names);
@@ -3087,6 +3211,7 @@ function renderReportsTab(){
   const tri = document.getElementById('repTri');
   if(tri) tri.onchange = chg(()=>{ S.tri = (tri.value==='auto'||tri.value==='ALL') ? tri.value : Number(tri.value); });
   main.querySelectorAll('input[name="qdEscopo"]').forEach(r=> r.onchange = chg(()=>{ quadroState.escopo = r.value; }));
+  main.querySelectorAll('input[name="qdOri"]').forEach(r=> r.onchange = chg(()=>{ quadroState.orient = r.value; }));
   const qa = document.getElementById('qdAplicada');
   if(qa) qa.onchange = chg(()=>{ quadroState.aplicada = qa.checked; });
   if(S.modo==='quadro') adBindEditor(main, S, names);
@@ -3347,7 +3472,7 @@ function repQuadroRows(cd, className){
     prio.forEach(st=>xlsBloco(R, `${st.name} [${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>s.name).join(', ')})`));
   }
   xlsBloco(R, 'X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.'));
-  xlsBloco(R, 'Leitura (coluna C) = prioridade de intervenção da Fluência de Leitura (PIP Leitura): Alta = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); Média = necessidade intermediária; Baixa = menor necessidade (fluência mais próxima do esperado). Atenção: o nível mostra a prioridade de intervenção, não a qualidade da leitura — "Alta" não significa que o aluno lê bem. N.A. = não avaliado (ainda não há avaliação de fluência de leitura registrada para o aluno); S/ prior. = avaliado, mas sem prioridade registrada. Indicações em ata do conselho (última coluna) = o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses; "—" significa que não foi possível ler o dado no Supabase.');
+  xlsBloco(R, 'Leitura (coluna C) = prioridade de intervenção (PIP Leitura): Alta (maior necessidade), Méd. (= média) e Baixa (menor necessidade); não mede a qualidade da leitura. N.A. = não avaliado; S/ prior. = sem prioridade registrada. Indicações em ata (última coluna) = Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses; "—" = não foi possível ler o dado no Supabase.');
   xlsBloco(R, 'A linha "Total em O.E.R" (logo abaixo das disciplinas) e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
   xlsBloco(R, 'A tabela lista apenas os alunos do filtro escolhido ('+(quadroState.escopo==='risco'?'somente em risco de O.E.R':quadroState.escopo==='adapt'?'somente adaptação ou reforço':'toda a turma')+'); não há linhas ocultas. As 5 linhas em branco no fim da tabela ficam visíveis para incluir alunos novos: digite o nome, marque X nas disciplinas e a coluna "Disc. em risco", os totais e o Resumo já os contam. Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
   const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
@@ -3444,7 +3569,7 @@ function adClassCount(className){
 }
 
 // ---------- montagem do quadro (uma página A4 paisagem por turma) ----------
-const quadroState = { escopo:'risco', aplicada:true, rc:null };
+const quadroState = { escopo:'risco', aplicada:true, orient:'land', rc:null };
 // Sincroniza adaptação/diagnóstico e lê leitura (PIP Leitura) + atas do conselho no Supabase antes de montar o quadro.
 async function quadroPrepara(){
   const r = await adSync(); quadroState.status = r.msg;
@@ -3458,7 +3583,7 @@ function quadroLeituraAta(className, nome){
   if(!rc) return { leit:'—', ata:'—', alta:false, semAta:true };
   const inf = rcInfoAluno(rc, className, nome);
   let leit = '—', alta = false;
-  if(inf.leitura){ if(inf.leitura.naoAvaliado) leit = 'N.A.'; else if(!inf.leitura.prio) leit = 'S/ prior.'; else { leit = inf.leitura.prio; alta = leit==='Alta'; } }
+  if(inf.leitura){ if(inf.leitura.naoAvaliado) leit = 'N.A.'; else if(!inf.leitura.prio) leit = 'S/ prior.'; else { leit = inf.leitura.prio; alta = leit==='Alta'; if(leit==='Média') leit = 'Méd.'; } }
   let ata = '—', semAta = true;
   if(inf.atas){
     const itens = [...inf.atas.entries()].map(([rot,tris])=>rot+(tris.length?' ('+tris.sort((a,b)=>a-b).map(n=>n+'ºT').join(', ')+')':''));
@@ -3486,6 +3611,7 @@ function repQuadroPage(cd, className){
   const cnt = adClassCount(className);
   const temParcial = Object.values(riskBy).some(r=>r.parcial);
   const mostrarAplicada = quadroState.aplicada;
+  const portrait = quadroState.orient==='port';
 
   const head = subs.map(s=>`<th class="qd-d"><span>${escHtml(s.name)}</span></th>`).join('');
   const rows = lista.map((st,i)=>{
@@ -3498,16 +3624,19 @@ function repQuadroPage(cd, className){
     if(sim) obs = `<b>◆ ADAPTAÇÃO</b>${ad.d ? ' — <b>Diagnóstico:</b> '+escHtml(ad.d) : ' — <i>diagnóstico não informado</i>'}`;
     else obs = ''; // sem registro de adaptação/diagnóstico = não está nessa situação: coluna em branco
     if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>`;
-    if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)</div>`;
+    if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">${(portrait || subs.length>8) ? (portrait ? 'Risco elevadíssimo de Rec. Final (>28 pts no 3º tri)' : 'Risco elevadíssimo de Rec. Final (>28 pts no 3º)') : 'Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)'}</div>`;
     const la = quadroLeituraAta(className, st.name);
     const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '');
-    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td><td class="qd-lt${la.alta?' alta':''}">${escHtml(la.leit)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}<td class="l qd-obs">${obs}</td><td class="l qd-ata">${escHtml(la.ata).replace(/; /g,'<br>')}</td></tr>`;
+    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td><td class="qd-lt${la.alta?' alta':''}">${escHtml(la.leit)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}${portrait ? `<td class="l qd-obs">${obs}${(la.ata && la.ata!=='—' && la.ata!=='Nenhuma') ? `<div class="qd-ata-in"><b>Ata:</b> ${escHtml(la.ata)}</div>` : ''}</td>` : `<td class="l qd-obs">${obs}</td><td class="l qd-ata">${escHtml(la.ata).replace(/; /g,'<br>')}</td>`}</tr>`;
   }).join('');
 
   const nSub = subs.length;
-  const colgroup = `<colgroup><col style="width:7mm"><col style="width:${nSub>8?48:56}mm"><col style="width:11mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:18mm">':''}<col style="width:${nSub>8?46:56}mm"><col style="width:${nSub>8?40:46}mm"></colgroup>`;
+  const wS = nSub>13 ? 5.4 : (nSub>10 ? 5.8 : 6.3);
+  const colgroup = portrait
+    ? `<colgroup><col style="width:7mm"><col style="width:40mm"><col style="width:10mm">${subs.map(()=>`<col style="width:${wS}mm">`).join('')}<col style="width:8mm">${mostrarAplicada?'<col style="width:11mm">':''}<col></colgroup>`
+    : `<colgroup><col style="width:7mm"><col style="width:${nSub>8?52:56}mm"><col style="width:11mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:13mm">':''}<col style="width:${nSub>8?76:56}mm"><col style="width:${nSub>8?30:46}mm"></colgroup>`;
   const tabela = lista.length
-    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th><th class="qd-d"><span>Leitura (prioridade)</span></th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th>Adaptação aplicada?</th>':''}<th class="l">Observações — adaptação e diagnóstico</th><th class="l">Indicações em ata do conselho</th></tr></thead><tbody>${rows}</tbody></table>`
+    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th><th class="qd-d"><span>Leitura (prioridade)</span></th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th class="qd-d"><span>Adaptação aplicada?</span></th>':''}${portrait ? '<th class="l">Observações — adaptação, diagnóstico e indicações em ata do conselho</th>' : '<th class="l">Observações — adaptação e diagnóstico</th><th class="l">Indicações em ata do conselho</th>'}</tr></thead><tbody>${rows}</tbody></table>`
     : `<div class="rp-ok">Nenhum aluno nesta seleção.</div>`;
 
   const aviso = [];
@@ -3515,10 +3644,11 @@ function repQuadroPage(cd, className){
     aviso.push(`<div class="qd-prio"><b>ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R <u>e</u> situação especial (adaptação e/ou reforço):</b> confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado e dar atenção especial às atividades de final de ano. ${prio.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>[${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
   }
   const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
-  const foot = `<div class="rp-foot"><b>Leitura:</b> prioridade de intervenção registrada na Fluência de Leitura (PIP Leitura) — <b>Alta</b> = maior necessidade de intervenção em leitura (fluência mais baixa; atenção prioritária); <b>Média</b> = necessidade intermediária; <b>Baixa</b> = menor necessidade (fluência mais próxima do esperado). O nível indica a prioridade de intervenção, não a qualidade da leitura: “Alta” não significa que o aluno lê bem. <b>N.A.</b> = não avaliado (ainda não há avaliação de fluência de leitura registrada para o aluno); <b>S/ prior.</b> = avaliado, mas sem prioridade registrada. <b>Indicações em ata:</b> o que consta nas Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses.<br><b>Coluna de observações:</b> traz o registro de adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação.<br><b>Como ler:</b> <b>X</b> = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'; <b>X*</b> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}. <b>◆ ADAPTAÇÃO</b> = aluno com demanda de adaptação (linha em cinza claro), com o diagnóstico informado; <b>▲ REFORÇO</b> = aluno em reforço (linha em cinza claro). <b>Barra preta</b> à esquerda do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Documento de uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
-  const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', aviso.join('') + tabela) + rpMsg() + foot;
+  const foot = `<div class="rp-foot"><b>Leitura</b> (PIP Leitura) = prioridade de intervenção: <b>Alta</b> (maior necessidade), <b>Méd.</b> (= média) e <b>Baixa</b> (menor necessidade); não mede a qualidade da leitura. <b>N.A.</b> = não avaliado; <b>S/ prior.</b> = sem prioridade registrada. <b>Ata:</b> indicações das Atas do Conselho de Classe (trimestre entre parênteses).<br><b>Observações:</b> adaptação/diagnóstico só para atenção do professor; em branco = sem registro. <b>◆ ADAPTAÇÃO</b> e <b>▲ REFORÇO</b> = linha em cinza; <b>barra preta</b> ao lado do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
+  const como = `<div class="qd-how"><b>Como ler:</b> a marca <span class="qd-xm">X</span> indica o <b>aluno em risco de O.E.R naquela disciplina</b> (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'. <span class="qd-xm">X*</span> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}.</div>`;
+  const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', como + aviso.join('') + tabela) + rpMsg() + foot;
   return rpWrap(rpHeader('Quadro da turma — risco de O.E.R por disciplina', escHtml(turma)+' · '+escHtml(effectiveMesAno(cd))), body)
-    .replace('<section class="rp-page">','<section class="rp-page rp-land">');
+    .replace('<section class="rp-page">', portrait ? '<section class="rp-page rp-qport mf9">' : '<section class="rp-page rp-land mf9">');
 }
 
 // ---------- sincronização com o Monitoramento (Supabase, tabela "estudantes") ----------
