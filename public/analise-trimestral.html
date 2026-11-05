@@ -1373,18 +1373,19 @@ function rcCelulaAta(info){
 
 // Mesma base de "risco de O.E.R", organizada por DISCIPLINA, com nível de leitura (PIP Leitura)
 // e indicações das Atas do Conselho de cada aluno — para entrega individual a cada professor(a).
-function riskBySubjectHtml(className, rc){
+function riskBySubjectHtml(className, rc, subjOk){
   const cd = currentClasses[className];
   if(!cd) return '';
   rc = rc || { okEst:false, okFlu:false, okAta:false, idx:null, atas:[], fluMatr:new Map(), fluNome:new Map(), falhas:[] };
-  const bySubject = computeRetentionRiskBySubject(cd);
+  let bySubject = computeRetentionRiskBySubject(cd);
+  if(subjOk) bySubject = bySubject.filter(sec=>subjOk(sec.subject));
   const cfg = loadGlobalConfig();
   cd.meta = cd.meta || {};
   let html;
   if(bySubject.length===0){
     html = `<div class="print-page">
       <div class="print-page-hdr"><div><h1>${className}</h1><div class="print-page-sub">${(cfg.escola||'')} · ${effectiveMesAno(cd)}</div></div></div>
-      <p>Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em nenhuma disciplina.</p>
+      <p>Nenhum aluno com risco de O.E.R (somatória do 1º+2º trimestres abaixo de 36, precisando de mais de 24 pontos no 3º) em nenhuma disciplina${subjOk?' selecionada':''}.</p>
     </div>`;
   } else {
     const infoCache = new Map();
@@ -1410,14 +1411,14 @@ function riskBySubjectHtml(className, rc){
   }
   return html;
 }
-async function printRiskBySubject(names){
+async function printRiskBySubject(names, subjOk){
   names = (Array.isArray(names) ? names : [names]).filter(n=>currentClasses[n]);
   if(!names.length){ alert('Selecione ao menos uma turma.'); return; }
   let rc = null;
   try{ rc = await rcCarregar(); }
   catch(e){ console.error(e); alert('Não foi possível ler o Supabase para trazer leitura e atas ('+e.message+'). A listagem será gerada sem essas colunas preenchidas.'); }
   if(rc && rc.falhas.length) alert('Atenção: não consegui ler parte dos dados do Supabase — '+rc.falhas.join('; ')+'.\nAs colunas correspondentes aparecem com "—" na listagem.');
-  runPrintMode('printSubjectDoc', names.map(n=>riskBySubjectHtml(n, rc)).join(''), 'print-mode-subjects', {sel:'.print-page', w:202, h:288, portrait:true});
+  runPrintMode('printSubjectDoc', names.map(n=>riskBySubjectHtml(n, rc, subjOk)).join(''), 'print-mode-subjects', {sel:'.print-page', w:202, h:288, portrait:true});
 }
 
 // ---------- IMPRESSÕES DE O.E.R (por turma) ----------
@@ -1506,7 +1507,7 @@ function runPrintMode(docId, html, mode, fit){
 
 // Quadro A4 (paisagem) por turma: uma linha por aluno, e para cada disciplina uma coluna por
 // trimestre com a nota. Cores claras: amarelo = recuperou, vermelho = abaixo da média.
-function printClassTable(only){
+function printClassTable(only, subjOk){
   const names = Array.isArray(only) ? only : (only ? [only] : Object.keys(currentClasses).sort());
   const cfg = loadGlobalConfig();
   const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -1516,7 +1517,8 @@ function printClassTable(only){
     cd.meta = cd.meta || {};
     const tris = availableTris(cd);
     if(!tris.length) return '';
-    const idxs = cd.subjects.map((s,i)=>i).filter(i=>!isLiteratura(cd.subjects[i]));
+    const idxs = cd.subjects.map((s,i)=>i).filter(i=>!isLiteratura(cd.subjects[i]) && (!subjOk || subjOk(cd.subjects[i])));
+    if(!idxs.length) return '';
     const students = cd.students.slice().sort((a,b)=> a.name.localeCompare(b.name));
     const n = students.length;
     const rh = Math.max(3.4, Math.min(6.2, 136/(n+2)));
@@ -2651,7 +2653,7 @@ const REP_TUR_PRESETS = {
 const repState = {
   modo:'ind', turmas:new Set(), turmaAluno:null, alunos:new Set(), filtro:'', tri:'auto',
   indPreset:'padrao', varsInd:new Set(REP_IND_PRESETS.padrao.vars),
-  turPreset:'completo', varsTur:new Set(REP_TUR_ALL), msg:'', started:false, preview:null
+  turPreset:'completo', varsTur:new Set(REP_TUR_ALL), discOff:new Set(), msg:'', started:false, preview:null
 };
 
 // ---------- cálculos ----------
@@ -3069,11 +3071,23 @@ async function repPreview(){
   box.scrollIntoView({behavior:'smooth', block:'start'});
 }
 const REP_DIRETOS = {notas:printClassTable, cards:printOerCards, prof:printRiskBySubject};
+// Disciplinas existentes nas turmas indicadas (para o filtro de disciplinas)
+function repDiscNomes(nomes){
+  const s = new Set();
+  nomes.forEach(n=>{ const cd = currentClasses[n]; if(cd) cd.subjects.forEach(x=>{ if(!isLiteratura(x)) s.add(x); }); });
+  return [...s].sort((a,b)=>a.localeCompare(b));
+}
 async function repPrint(){
   if(REP_DIRETOS[repState.modo]){
     const nomes = Object.keys(currentClasses).sort().filter(n=>repState.turmas.has(n));
     if(!nomes.length){ alert('Selecione ao menos uma turma.'); return; }
-    REP_DIRETOS[repState.modo](nomes); return;
+    let ok = null;
+    if(repState.modo==='prof' || repState.modo==='notas'){
+      const todas = repDiscNomes(nomes), sel = todas.filter(d=>!repState.discOff.has(d));
+      if(!sel.length){ alert('Selecione ao menos uma disciplina.'); return; }
+      if(sel.length<todas.length){ const set = new Set(sel); ok = d=>set.has(d); }
+    }
+    REP_DIRETOS[repState.modo](nomes, ok); return;
   }
   if(repState.modo==='quadro') await quadroPrepara();
   const html = repBuild(); if(!html) return;
@@ -3145,6 +3159,14 @@ function renderReportsTab(){
       <div class="rep-alunos" id="repAlunos">${ord.map(o=>`<label class="rep-al${S.alunos.has(o.i)?' on':''}" data-nome="${escHtml(o.st.name.toLowerCase())}"><input type="checkbox" class="rep-al-cb" value="${o.i}" ${S.alunos.has(o.i)?'checked':''}> ${escHtml(o.st.name)}</label>`).join('')}</div></div>`;
   }
 
+  if(['prof','notas'].includes(S.modo)){
+    const todas = repDiscNomes(scopeNames), allD = todas.every(d=>!S.discOff.has(d));
+    h += `<div class="rep-card"><h3>Disciplinas</h3><div class="oer-tab-controls" style="margin:0">
+      <label class="oer-chip all${allD?' on':''}"><input type="checkbox" id="repDiscAll" ${allD?'checked':''}> Todas</label>
+      ${todas.map(d=>`<label class="oer-chip${S.discOff.has(d)?'':' on'}"><input type="checkbox" class="rep-disc-cb" value="${escHtml(d)}" ${S.discOff.has(d)?'':'checked'}> ${escHtml(d)}</label>`).join('')}
+    </div><div class="rep-hint">${S.modo==='prof' ? 'Só as disciplinas marcadas terão folha impressa.' : 'Só as disciplinas marcadas entram como colunas do quadro.'}</div></div>`;
+  }
+
   if(['turma','ind','indp'].includes(S.modo)) h += `<div class="rep-card"><h3>Trimestre de referência</h3><div class="rep-row"><select id="repTri" class="tri-select">
       <option value="auto" ${S.tri==='auto'?'selected':''}>Último trimestre com notas (recomendado para fim de trimestre)</option>
       ${triUnion.map(i=>`<option value="${i}" ${S.tri===i?'selected':''}>${i+1}º trimestre</option>`).join('')}
@@ -3208,6 +3230,9 @@ function renderReportsTab(){
       cdA.students.forEach((st,i)=>{ if(!q || st.name.toLowerCase().includes(q)) S.alunos.add(i); }); });
     document.getElementById('repMarkNone').onclick = chg(()=>{ S.alunos = new Set(); });
   }
+  const dAll = document.getElementById('repDiscAll');
+  if(dAll) dAll.onchange = chg(()=>{ S.discOff = dAll.checked ? new Set() : new Set(repDiscNomes(scopeNames)); });
+  main.querySelectorAll('.rep-disc-cb').forEach(cb=> cb.onchange = chg(()=>{ cb.checked ? S.discOff.delete(cb.value) : S.discOff.add(cb.value); }));
   const tri = document.getElementById('repTri');
   if(tri) tri.onchange = chg(()=>{ S.tri = (tri.value==='auto'||tri.value==='ALL') ? tri.value : Number(tri.value); });
   main.querySelectorAll('input[name="qdEscopo"]').forEach(r=> r.onchange = chg(()=>{ quadroState.escopo = r.value; }));
