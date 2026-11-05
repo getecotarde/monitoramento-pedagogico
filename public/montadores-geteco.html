@@ -511,7 +511,10 @@ summary{cursor:pointer;font-weight:700}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}.ov[hidden]{display:none}.bx{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:18px;max-width:420px}.bx div{display:flex;gap:8px;justify-content:flex-end}
 .empty{color:var(--mut);padding:30px 0}
 @media print{body,.tb,.tb input{color:#000!important;background:#fff!important}.ui .noprint,.tabs,.bar,#v-build,.wr,h1,.sub{display:none!important}.ui{padding:0}body{background:#fff}.pv{padding:0;overflow:visible}
-body[data-p=exam] #keyOut{display:none}body[data-p=key] #examOut{display:none}@page{margin:12mm}}
+body[data-p=exam] #keyOut{display:none}body[data-p=key] #examOut{display:none}@page{margin:12mm}
+#v-sum{page:sumpg}.sumhd{display:block!important}.tb{box-shadow:none!important}.tb th,.tb td{border:1px solid #000!important;padding:3px 5px!important;font-size:9pt}.pv{overflow:visible!important}}
+@page sumpg{size:A4 landscape;margin:12mm}
+.sumhd{display:none;text-align:center;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:8px;color:#111}.sumhd img{height:18mm;vertical-align:middle;margin-right:10px}.sumhd small{display:block;margin-top:4px}
 </style>
 <style>
 :root{--r:12px;--sh:0 1px 2px rgba(20,41,61,.06),0 4px 14px rgba(20,41,61,.07)}
@@ -581,7 +584,7 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="rv"><h2>Revisão das questões lidas</h2>
  <p class="sub">A leitura é automática: questões com alternativas viram objetivas e as sem alternativas viram abertas. Corrija o texto, o tipo, a resposta certa ou desmarque questões que não devem entrar.</p>
  <div id="rev"><p class="empty">Envie ao menos um arquivo de questões para revisar aqui.</p></div></div>
- <div class="cta"><span>Cada disciplina usa 7 objetivas + 3 abertas desta turma e modalidade.</span><button class="p" onclick="show('stu')">Ir para estudantes</button></div>
+ <div class="cta"><span>Cada disciplina usa 7 objetivas + 3 abertas desta turma e modalidade. Não precisa esperar todas: a geração parcial inclui só as disciplinas já carregadas.</span><button class="p" onclick="show('stu')">Ir para estudantes</button></div>
 </section>
 
 <section id="v-stu" hidden>
@@ -591,7 +594,7 @@ progress{height:10px;accent-color:var(--ok)}
  <label>Ou cole a lista<textarea id="pst" rows="4" placeholder="6B;NOME DO ESTUDANTE;32"></textarea></label>
  <div><button onclick="pasteS()">Adicionar da lista</button> <button onclick="addOne()">+ Linha em branco</button></div><div class="sm" id="smS"></div></div>
  <div id="stuOut"></div>
- <div class="cta"><span id="stuN"></span><button class="p" onclick="gen()">Gerar trabalhos individuais</button></div>
+ <div class="cta"><span id="stuN"></span><button class="p" onclick="gen()">Gerar trabalhos (disciplinas carregadas)</button></div>
 </section>
 
 <section id="v-exam" hidden>
@@ -608,7 +611,9 @@ progress{height:10px;accent-color:var(--ok)}
 </section>
 
 <section id="v-sum" hidden>
+ <div class="sumhd" id="sumHd"></div>
  <h2>Quadro resumo do recebimento</h2>
+ <p class="noprint"><button class="p" onclick="pr('sum')">Imprimir quadro resumo</button> <button onclick="dlSum()">Baixar para Word (.doc)</button></p>
  <div id="sumOut"></div>
 </section>
 <div id="dlg" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><p id="dlgT" style="margin-top:0"></p><div><button id="dlgNo">Cancelar</button><button class="p" id="dlgOk">Sim, excluir</button></div></div></div>
@@ -728,6 +733,7 @@ const PCSS=`.paper{background:#fff;color:#111;font:12pt/1.4 Arial,Helvetica,sans
 .paper .cr{columns:3;column-gap:20px}.paper .cr div{break-inside:avoid;margin:3px 0}`;
 const st=document.createElement("style");st.textContent=PCSS;document.head.appendChild(st);
 function applyG(s){if(!s.gab.trim())return;const a=parseG(s.gab);s.qs.filter(q=>q.o).forEach((q,k)=>q.ans=a[k]||"")}
+const ld=s=>s.qs.some(q=>q.inc);
 const cnt=s=>[s.qs.filter(q=>q.inc&&q.o).length,s.qs.filter(q=>q.inc&&!q.o).length];
 const pk=s=>[s.qs.filter(q=>q.inc&&q.o).slice(0,NO),s.qs.filter(q=>q.inc&&!q.o).slice(0,NA)];
 const nt=t=>String(t).replace(/[º°\s]/g,"").toUpperCase(),isT=x=>/^[5-9]\s*[º°]?\s*[A-Za-z]$/.test(x.trim());
@@ -802,7 +808,7 @@ function cover(st,v){
  return `<div class="paper pg">${hd()}<div class="cvt"><h1>PROJETO FICA</h1><p>Trabalho de recomposição das aprendizagens<br>${esc($("tri").value)}</p></div>
  <div class="nm"><small>Estudante</small><b>${esc(st.n)}</b></div>
  <div class="fl"><span style="flex:0 0 120px">Turma: ${esc(st.t)}</span><span>Professor(a) aplicador(a):&nbsp;</span><span style="flex:0 0 150px">Data: ${esc($("dt").value)}&nbsp;</span></div>
- <h2>Conteúdo</h2><table><tr><th>Disciplina</th><th>Questões</th><th>Nota</th></tr>${v.map(s=>`<tr><td>${s.name}</td><td>${NO} objetivas + ${NA} abertas</td><td>&nbsp;/ 10</td></tr>`).join("")}</table>
+ ${v.length<SUBJ.length?`<p style="text-align:center"><b>Trabalho parcial:</b> ${v.length} de ${SUBJ.length} disciplinas.</p>`:""}<h2>Conteúdo</h2><table><tr><th>Disciplina</th><th>Questões</th><th>Nota</th></tr>${v.map(s=>`<tr><td>${s.name}</td><td>${NO} objetivas + ${NA} abertas</td><td>&nbsp;/ 10</td></tr>`).join("")}</table>
  <div class="ins"><p><b>📋 Cada disciplina tem 10 questões: 7 objetivas (marque apenas uma alternativa) e 3 abertas (responda nas linhas).</b></p><p><b>✏️ Use caneta azul ou preta e não use corretivo.</b></p><p><b>🔍 Leia cada questão com atenção antes de responder.</b></p><p><b>📥 Ao terminar, entregue o trabalho à coordenação pedagógica.</b></p></div></div>`;
 }
 function disc(st,s){
@@ -812,10 +818,18 @@ function disc(st,s){
 }
 function gen(){
  if(!STU.length){$("smS").textContent="Adicione os estudantes primeiro.";return}
+ if(!STU.some(st=>(VER[grp(st.t)+"|"+st.m]||[]).some(ld))){$("smS").textContent="Carregue as questões de ao menos uma disciplina na aba Montar antes de gerar.";return}
  const w=[],seen={};
  BK=STU.map((st,i)=>{
-  const k=grp(st.t)+"|"+st.m,v=VER[k]||mkS();
-  if(!seen[k]){seen[k]=1;v.forEach(s=>{const[o,a]=pk(s);if(o.length<NO||a.length<NA)w.push(`${k.replace("|"," · ")} – ${s.name}: ${o.length}/${NO} objetivas e ${a.length}/${NA} abertas.`);else if(o.some(x=>!x.ans))w.push(`${k.replace("|"," · ")} – ${s.name}: objetiva(s) sem gabarito.`)})}
+  const k=grp(st.t)+"|"+st.m,all=VER[k]||mkS(),v=all.filter(ld);
+  if(!seen[k]){seen[k]=1;
+   if(!v.length)w.push(`${k.replace("|"," · ")}: nenhuma disciplina carregada; os estudantes desta versão receberão só a capa.`);
+   else{
+    const fora=all.filter(s=>!ld(s)).map(s=>s.name);
+    if(fora.length)w.push(`${k.replace("|"," · ")}: trabalho parcial com ${v.length} de ${SUBJ.length} disciplinas. Ainda não carregadas: ${fora.join(", ")}.`);
+    v.forEach(s=>{const[o,a]=pk(s);if(o.length<NO||a.length<NA)w.push(`${k.replace("|"," · ")} – ${s.name}: ${o.length}/${NO} objetivas e ${a.length}/${NA} abertas.`);else if(o.some(x=>!x.ans))w.push(`${k.replace("|"," · ")} – ${s.name}: objetiva(s) sem gabarito.`)})
+   }
+  }
   return{i,html:cover(st,v)+v.map(s=>disc(st,s)).join("")};
  });
  show("exam");const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
@@ -827,7 +841,7 @@ function renderEx(){
 }
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
- $("keyOut").innerHTML=ks.length?ks.map(k=>`<div class="paper pg">${hd()}<h2>Gabarito do professor – ${esc(k.replace("|"," · "))}</h2><table><tr><th>Disciplina</th><th>Objetivas 01 a 07</th></tr>${VER[k].map(s=>`<tr><td>${s.name}</td><td>${pk(s)[0].map((x,n)=>p2(n+1)+"-"+(x.ans||"?")).join(" ")||"—"}</td></tr>`).join("")}</table><p>As questões 08 a 10 de cada disciplina são abertas e corrigidas pelo professor.</p></div>`).join(""):'<p class="empty">Envie as questões para ver o gabarito.</p>';
+ $("keyOut").innerHTML=ks.length?ks.map(k=>`<div class="paper pg">${hd()}<h2>Gabarito do professor – ${esc(k.replace("|"," · "))}</h2><table><tr><th>Disciplina</th><th>Objetivas 01 a 07</th></tr>${VER[k].filter(ld).map(s=>`<tr><td>${s.name}</td><td>${pk(s)[0].map((x,n)=>p2(n+1)+"-"+(x.ans||"?")).join(" ")||"—"}</td></tr>`).join("")}</table><p>As questões 08 a 10 de cada disciplina são abertas e corrigidas pelo professor.</p></div>`).join(""):'<p class="empty">Envie as questões para ver o gabarito.</p>';
 }
 function renderSum(){
  const rows=TURMAS.flatMap(t=>MODS.map(md=>{const v=VER[t+"|"+md];let ok=0;
@@ -835,6 +849,23 @@ function renderSum(){
    return `<td style="text-align:center;cursor:pointer" onclick="goV('${t}','${md}',${i})">${d?'<b style="color:var(--ok)">✔</b>':o+a?`<span style="color:var(--wn)">${o}/${NO} · ${a}/${NA}${g<o?" (sem gab.)":""}</span>`:'<span style="color:var(--er)">—</span>'}</td>`}).join("");
   return `<tr><td><b>${t}</b></td><td>${md}</td><td style="text-align:center">${STU.filter(s=>grp(s.t)===t&&s.m===md).length}</td>${c}<td style="text-align:center"><b>${ok}/8</b></td></tr>`}));
  $("sumOut").innerHTML=`<p class="sub">✔ = 7 objetivas com gabarito + 3 abertas. Clique numa célula para abrir a disciplina.</p><div class="pv"><table class="tb"><tr><th>Turmas</th><th>Modalidade</th><th>Alunos</th>${SUBJ.map(n=>`<th>${n}</th>`).join("")}<th>Completas</th></tr>${rows.join("")}</table></div>`;
+ $("sumHd").innerHTML=sumHdHtml();
+}
+function sumHdHtml(){return `<img src="${LOGO}" alt="Logo GETECO"><b>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA – GETECO</b><br>Projeto FICA – Quadro resumo do recebimento das questões<small>${esc($("tri").value)}${$("dt").value?" · Entrega: "+esc($("dt").value):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}</small>`}
+async function dlSum(){
+ renderSum();
+ const tb=document.querySelector("#sumOut table");
+ if(!tb){alert("Não há quadro resumo para baixar.");return}
+ const cl=tb.cloneNode(true);
+ cl.querySelectorAll("td").forEach(td=>{td.removeAttribute("onclick");td.removeAttribute("style");td.setAttribute("align","center")});
+ cl.querySelectorAll("td:first-child,td:nth-child(2)").forEach(td=>td.removeAttribute("align"));
+ const tbl=cl.outerHTML.replace(/var\(--ok\)/g,"#1f7a45").replace(/var\(--wn\)/g,"#a35f00").replace(/var\(--er\)/g,"#b3261e").replace(/ class="tb"/,"");
+ const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Quadro resumo – Projeto FICA</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>@page Section1{size:297mm 210mm;mso-page-orientation:landscape;margin:12mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#000}h1{font-size:13pt;text-align:center;margin:0}p.c{text-align:center;margin:2px 0 10px}h2{font-size:12pt;margin:8px 0}table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:3px 6px;font-size:9pt;vertical-align:middle}th{background:#e8eef2;text-align:left}</style></head><body><div class="Section1"><h1>ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA – GETECO</h1><p class="c">Projeto FICA – Frequência Integral com Aprendizagem<br>${esc($("tri").value)}${$("dt").value?" · Entrega: "+esc($("dt").value):""}</p><h2>Quadro resumo do recebimento</h2>${tbl}<p style="font-size:9pt">✔ = 7 objetivas com gabarito + 3 abertas. Demais células: objetivas · abertas recebidas.</p></div></body></html>`;
+ const blob=new Blob(["\ufeff",html],{type:"application/msword"}),fn="quadro-resumo-fica.doc";
+ try{let d=null;try{d=await claude.use("downloads")}catch(e){}
+  if(d){await d.save({filename:fn,data:blob});return}
+ }catch(e){if(e&&e.code==="declined")return}
+ try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
 }
 function show(v){VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="stu")renderStu();if(v==="exam")renderEx();if(v==="key")renderKey();if(v==="sum")renderSum();window.scrollTo(0,0)}
 function pr(w){document.body.dataset.p=w;try{window.print()}catch(e){}}
