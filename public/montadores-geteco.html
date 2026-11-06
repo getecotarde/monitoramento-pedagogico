@@ -33,7 +33,7 @@ button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
   <section class="c"><div class="ic">📝</div><h2>Montador da Prova Trimestral</h2><p>Reúne as questões enviadas pelos professores e gera a prova final por turma e modalidade, com cartão-resposta e gabarito.</p><button onclick="openApp('a1','Montador da Prova Trimestral')">Abrir montador de prova</button></section>
   <section class="c"><div class="ic">📚</div><h2>Montador do Trabalho FICA</h2><p>Reúne 10 questões por disciplina (qualquer combinação de objetivas e abertas) e gera o trabalho individual de cada estudante, com capa. Revise e edite cada bloco (6º ABC, 6º DEF…) antes de gerar.</p><button onclick="openApp('a2','Montador do Trabalho FICA')">Abrir montador FICA</button></section>
  </div>
- <p class="ft">Cada montador guarda seus dados separadamente neste navegador. Use sempre o mesmo navegador para não perder o trabalho.</p>
+ <p class="ft">Cada montador guarda seus dados separadamente. <span id="sbst"></span> <button style="background:none;color:var(--ac);border:0;text-decoration:underline;padding:0;font-weight:400" onclick="sbConfig()">Conectar ao Supabase</button></p>
 </div></main>
 <div id="stage" hidden></div>
 <script type="text/plain" id="a1"><!DOCTYPE html>
@@ -416,6 +416,33 @@ function renderGen(){
  $("genOut").innerHTML=`<p><b>${n} de ${TURMAS.length*MODS.length}</b> provas geradas</p><div class="pv"><table class="tb"><tr><th>Turmas</th><th>Modalidade</th><th>Situação</th><th>Ações</th></tr>${rows.join("")}</table></div>`;
 }
 function openG(t,m,w){$("serie").value=t;$("mod").value=m;swV();show(w)}
+const SBN="prova",SB=window.SBCFG||{},SBON=!!(SB.url&&SB.key);
+let _t=0;const ts=()=>{if(!_t){_t=Date.now();Promise.resolve().then(()=>{_t=0})}return _t};
+const sbMsg=t=>{const e=document.getElementById("sv");if(e)e.textContent=t};
+const sbH={apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};
+const hhmm=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+async function sbPull(){
+ if(!SBON)return;
+ try{
+  const r=await fetch(SB.url+"/rest/v1/geteco_dados?chave=eq."+SBN+"&select=valor",{headers:sbH,...(AbortSignal.timeout?{signal:AbortSignal.timeout(6000)}:{})});
+  if(!r.ok)throw 0;const j=await r.json();if(!j.length)return;
+  const rem=j[0].valor,loc=JSON.parse(localStorage.getItem(LS)||"null");
+  if(rem&&rem.VER&&(!loc||(rem.savedAt||0)>=(loc.savedAt||0)))localStorage.setItem(LS,JSON.stringify(rem));
+ }catch(e){sbMsg("Sem conexão com o Supabase; usando os dados deste navegador.")}
+}
+let _b="",_k=false,_pt,_fin="";
+function lsSet(k,v){
+ if(SBON){if(!_k){_k=true;_b=v;Promise.resolve().then(()=>{_k=false;_fin=_b;clearTimeout(_pt);_pt=setTimeout(sbPush,3000)})}else if(v.length>_b.length)_b=v}
+ localStorage.setItem(k,v);
+}
+async function sbPush(){
+ const v=_fin;if(!v)return;_fin="";
+ try{
+  const r=await fetch(SB.url+"/rest/v1/geteco_dados?on_conflict=chave",{method:"POST",headers:{...sbH,Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({chave:SBN,valor:JSON.parse(v),atualizado:new Date().toISOString()})});
+  if(!r.ok)throw 0;sbMsg("Salvo no Supabase às "+hhmm()+".");
+ }catch(e){_fin=v;sbMsg("Não foi possível salvar no Supabase. Seus dados continuam neste navegador; a próxima alteração tenta de novo.")}
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&_fin){clearTimeout(_pt);sbPush()}});
 const LS="geteco_prova_v1";let saveT;
 function save(){clearTimeout(saveT);saveT=setTimeout(doSave,500)}
 function setSv(t){$("sv").textContent=t}
@@ -423,8 +450,8 @@ function doSave(){
  try{
   const od=OUT[KEY];if(od){od.exam=$("examOut").innerHTML;od.key=$("keyOut").innerHTML}
   const b={VER,KEY,tri:$("tri").value,dt:$("dt").value,val:$("val").value};let msg="";
-  try{localStorage.setItem(LS,JSON.stringify({...b,OUT}))}
-  catch(e){localStorage.setItem(LS,JSON.stringify(b));msg=" Atenção: espaço do navegador cheio; as provas já geradas não foram salvas (os uploads foram)."}
+  try{lsSet(LS,JSON.stringify({...b,OUT,savedAt:ts()}))}
+  catch(e){lsSet(LS,JSON.stringify({...b,savedAt:ts()}));msg=" Atenção: espaço do navegador cheio; as provas já geradas não foram salvas (os uploads foram)."}
   setSv("Salvo automaticamente neste navegador às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+"."+msg);
  }catch(e){setSv("Salvamento automático indisponível neste navegador.")}
 }
@@ -442,7 +469,7 @@ function load(){
  }catch(e){}
 }
 function askClear(){
- $("dlgT").textContent="Apagar TODOS os dados salvos neste navegador (provas, gabaritos e provas geradas)? Esta ação não pode ser desfeita.";
+ $("dlgT").textContent="Apagar TODOS os dados salvos neste navegador e no Supabase (provas, gabaritos e provas geradas)? Esta ação não pode ser desfeita.";
  $("dlg").hidden=false;$("dlgNo").focus();
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
  $("dlgOk").onclick=()=>{
@@ -456,8 +483,7 @@ function askClear(){
 document.addEventListener("input",save);document.addEventListener("change",save);document.addEventListener("click",save);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)doSave()});
 $("brand").src=LOGO;
-load();
-renderGrid();
+sbPull().then(()=>{load();renderGrid()});
 <\/script>
 </body>
 </html>
@@ -855,7 +881,7 @@ function swV(){KEY=$("serie").value+"|"+$("mod").value;S=VER[KEY]||(VER[KEY]=mkS
 function goV(t,m,i){$("serie").value=t;$("mod").value=m;swV();cur=i;renderGrid();show("build")}
 function ask(t,f){$("dlgT").textContent=t;$("dlg").hidden=false;$("dlgNo").focus();$("dlgNo").onclick=()=>{$("dlg").hidden=true};$("dlgOk").onclick=()=>{$("dlg").hidden=true;f()}}
 function askDel(i){ask("Excluir o arquivo enviado e as questões lidas de "+S[i].name+"?",()=>{Object.assign(S[i],{file:"",qs:[],gab:"",msg:"Arquivo excluído.",er:false});renderGrid();renderRev()})}
-function askClear(){ask("Apagar TODOS os dados salvos neste navegador (questões, gabaritos e estudantes)? Esta ação não pode ser desfeita.",()=>{Object.keys(VER).forEach(k=>delete VER[k]);KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();STU=[];BK=[];$("serie").value=TURMAS[0];$("mod").value="Regular";renderGrid();renderRev();renderStu()})}
+function askClear(){ask("Apagar TODOS os dados salvos neste navegador e no Supabase (questões, gabaritos e estudantes)? Esta ação não pode ser desfeita.",()=>{Object.keys(VER).forEach(k=>delete VER[k]);KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();STU=[];BK=[];$("serie").value=TURMAS[0];$("mod").value="Regular";renderGrid();renderRev();renderStu()})}
 
 /* ---------- estudantes ---------- */
 function addS(l){let n=0;l.forEach(x=>{if(!STU.some(s=>s.t===x.t&&s.n===x.n)){STU.push({...x,m:"Regular"});n++}});$("smS").textContent=n+" estudante(s) adicionado(s)."+(l.length-n?" "+(l.length-n)+" já estavam na lista.":"");renderStu()}
@@ -921,7 +947,7 @@ function gen(){
   }
   return{i,html:cover(st,v)+v.map((s,ix)=>disc(st,s,ix===0)).join("")};
  });
- SEL=new Set(STU.map((x,i)=>i));show("exam");const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
+ SEL=new Set(STU.map((x,i)=>i));save();show("exam");const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
 }
 let SEL=new Set(),TL=[];
 const selIx=f=>STU.map((x,i)=>i).filter(i=>f(STU[i]));
@@ -965,7 +991,7 @@ function modApply(){
  ask("Aplicar este modelo aos "+ix.length+" estudantes de "+k.replace("|"," · ")+"? Edições feitas à mão nos trabalhos individuais deles serão substituídas.",()=>{
   $("examOut").innerHTML="";
   ix.forEach(b=>{const st=STU[b.i];b.html=cover(st,[])+m.html.split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))});
-  setMode("ind");
+  setMode("ind");save();
  });
 }
 function renderKey(){
@@ -1037,25 +1063,79 @@ function renderBlk(){
 }
 
 /* ---------- salvamento ---------- */
+const SBN="fica",SB=window.SBCFG||{},SBON=!!(SB.url&&SB.key);
+let _t=0;const ts=()=>{if(!_t){_t=Date.now();Promise.resolve().then(()=>{_t=0})}return _t};
+const sbMsg=t=>{const e=document.getElementById("sv");if(e)e.textContent=t};
+const sbH={apikey:SB.key,Authorization:"Bearer "+SB.key,"Content-Type":"application/json"};
+const hhmm=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+async function sbPull(){
+ if(!SBON)return;
+ try{
+  const r=await fetch(SB.url+"/rest/v1/geteco_dados?chave=eq."+SBN+"&select=valor",{headers:sbH,...(AbortSignal.timeout?{signal:AbortSignal.timeout(6000)}:{})});
+  if(!r.ok)throw 0;const j=await r.json();if(!j.length)return;
+  const rem=j[0].valor,loc=JSON.parse(localStorage.getItem(LS)||"null");
+  if(rem&&rem.VER&&(!loc||(rem.savedAt||0)>=(loc.savedAt||0)))localStorage.setItem(LS,JSON.stringify(rem));
+ }catch(e){sbMsg("Sem conexão com o Supabase; usando os dados deste navegador.")}
+}
+let _b="",_k=false,_pt,_fin="";
+function lsSet(k,v){
+ if(SBON){if(!_k){_k=true;_b=v;Promise.resolve().then(()=>{_k=false;_fin=_b;clearTimeout(_pt);_pt=setTimeout(sbPush,3000)})}else if(v.length>_b.length)_b=v}
+ localStorage.setItem(k,v);
+}
+async function sbPush(){
+ const v=_fin;if(!v)return;_fin="";
+ try{
+  const r=await fetch(SB.url+"/rest/v1/geteco_dados?on_conflict=chave",{method:"POST",headers:{...sbH,Prefer:"resolution=merge-duplicates,return=minimal"},body:JSON.stringify({chave:SBN,valor:JSON.parse(v),atualizado:new Date().toISOString()})});
+  if(!r.ok)throw 0;sbMsg("Salvo no Supabase às "+hhmm()+".");
+ }catch(e){_fin=v;sbMsg("Não foi possível salvar no Supabase. Seus dados continuam neste navegador; a próxima alteração tenta de novo.")}
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&_fin){clearTimeout(_pt);sbPush()}});
 const LS="geteco_fica_v1";let sT;
 function save(){clearTimeout(sT);sT=setTimeout(doSave,500)}
-function doSave(){try{localStorage.setItem(LS,JSON.stringify({VER,KEY,STU,tri:$("tri").value,dt:$("dt").value}));$("sv").textContent="Salvo automaticamente neste navegador às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+"."}catch(e){$("sv").textContent="Salvamento automático indisponível ou espaço do navegador cheio."}}
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||"null");if(!d||!d.VER)return;Object.assign(VER,d.VER);STU=d.STU||STU;Object.values(VER).forEach(v=>SUBJ.forEach((n,i)=>{if(!v[i])v[i]=mkS()[i]}));
+function syncEx(){grabMod();document.querySelectorAll("#examOut .stu").forEach(d=>{const x=BK.find(y=>String(y.i)===d.dataset.i);if(x)x.html=d.innerHTML})}
+function packG(){
+ syncEx();const bodies=[],ix=new Map(),list=[];
+ BK.forEach(x=>{const st=STU[x.i];if(!st)return;
+  const k=x.html.indexOf('<div class="paper pg dp">'),t0=k<0?"":x.html.slice(k);
+  let t=t0.split("Turma "+esc(st.t)).join("Turma "+PH_T);if(st.n)t=t.split(esc(st.n)).join(PH_N);
+  if(!ix.has(t)){ix.set(t,bodies.length);bodies.push(t)}list.push({i:x.i,b:ix.get(t)})});
+ return{bodies,list,MOD,MODE,MK,STALE};
+}
+function restoreG(d){
+ const g=d.G;if(!g)return;MOD=g.MOD||{};MODE=g.MODE||"mod";MK=g.MK||"";STALE=!!g.STALE;
+ BK=g.list.filter(x=>STU[x.i]).map(x=>{const st=STU[x.i];return{i:x.i,html:cover(st,[])+g.bodies[x.b].split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))}});
+ SEL=new Set(BK.map(x=>x.i));
+}
+function doSave(){const base={VER,KEY,STU,tri:$("tri").value,dt:$("dt").value};let msg="";
+ try{
+  try{lsSet(LS,JSON.stringify({...base,G:BK.length?packG():null,savedAt:ts()}))}
+  catch(e){lsSet(LS,JSON.stringify({...base,savedAt:ts()}));msg=" Atenção: espaço do navegador cheio; as edições dos trabalhos gerados não foram salvas (questões e estudantes foram)."}
+  $("sv").textContent="Salvo automaticamente neste navegador às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+"."+msg;
+ }catch(e){$("sv").textContent="Salvamento automático indisponível ou espaço do navegador cheio."}
+}
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||"null");if(!d||!d.VER)return;Object.assign(VER,d.VER);STU=d.STU||STU;restoreG(d);Object.values(VER).forEach(v=>SUBJ.forEach((n,i)=>{if(!v[i])v[i]=mkS()[i]}));
  if(VER[d.KEY])KEY=d.KEY;S=VER[KEY]=VER[KEY]||mkS();const[t,m]=KEY.split("|");$("serie").value=t;$("mod").value=m;["tri","dt"].forEach(k=>{if(d[k]!=null)$(k).value=d[k]});$("sv").textContent="Dados restaurados do navegador."}catch(e){}}
 {const a=renderGrid,b=renderRev,c=renderStu;renderGrid=function(){a();save()};renderRev=function(o){b(o);save()};renderStu=function(){c();save()}}
 document.addEventListener("input",save);document.addEventListener("change",save);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)doSave()});
 $("serie").innerHTML=TURMAS.map(t=>`<option>${t}</option>`).join("");$("mod").innerHTML=MODS.map(t=>`<option>${t}</option>`).join("");
-$("brand").src=LOGO;load();renderGrid();renderRev();
+$("brand").src=LOGO;sbPull().then(()=>{load();renderGrid();renderRev()});
 <\/script>
 </body>
 </html>
 </script>
 <script>
 const $=id=>document.getElementById(id);
+const SUPABASE=(()=>{try{return JSON.parse(localStorage.getItem("geteco_sb")||"{}")}catch(e){return{}}})();
+function sbConfig(){
+ const u=prompt("Cole a URL do projeto no Supabase (ex.: https://abcdxyz.supabase.co).\nDeixe vazio para desconectar.",SUPABASE.url||"");if(u===null)return;
+ let k="";if(u.trim()){k=prompt("Cole a chave pública do projeto (anon public / publishable key).",SUPABASE.key||"");if(k===null)return}
+ localStorage.setItem("geteco_sb",JSON.stringify(u.trim()?{url:u.trim().replace(/\/+$/,""),key:k.trim()}:{}));location.reload();
+}
+$("sbst").textContent=SUPABASE.url?"☁️ Supabase conectado.":"Supabase não conectado: os dados ficam só neste navegador.";
 function openApp(id,t){
  let f=$("f-"+id);
- if(!f){f=document.createElement("iframe");f.id="f-"+id;f.title=t;f.srcdoc=$(id).textContent.replace(/<\\\/script/g,"</script");$("stage").appendChild(f)}
+ if(!f){f=document.createElement("iframe");f.id="f-"+id;f.title=t;f.srcdoc=$(id).textContent.replace(/<\\\/script/g,"</script").replace("<head>","<head><script>window.SBCFG="+JSON.stringify(SUPABASE)+"<\/script>");$("stage").appendChild(f)}
  document.querySelectorAll("#stage iframe").forEach(x=>x.hidden=x!==f);
  $("home").hidden=true;$("bar").hidden=false;$("stage").hidden=false;$("ttl").textContent=t;
 }
