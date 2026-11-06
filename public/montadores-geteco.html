@@ -634,7 +634,7 @@ progress{height:10px;accent-color:var(--ok)}
 }
 </style>
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
-<style>#modOut img{cursor:pointer}#modOut img.sel{outline:3px solid var(--ac);outline-offset:2px}</style>
+<style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}}</style>
 </head>
 <body>
 <div class="ui">
@@ -688,6 +688,8 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
   <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda.</div>
   <div class="chips" id="modKeys"></div>
+  <div><button class="p" onclick="modApply()">Aplicar a todos do bloco</button></div></div>
+ <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:12px;position:sticky;top:56px;z-index:15"><b>Formatação</b><div class="sm">Vale para o modelo ou para o estudante, conforme a visão aberta.</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Texto:</b>
    <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
    <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
@@ -698,10 +700,9 @@ progress{height:10px;accent-color:var(--ok)}
     <label style="display:flex;gap:6px;align-items:center">Tamanho <input type="range" id="imgSz" min="10" max="100" step="5" oninput="imgSize(this.value)"> <span id="imgPct"></span></label>
     <button onclick="imgPos('left')">À esquerda do texto</button><button onclick="imgPos('right')">À direita do texto</button>
     <button onclick="imgPos('top')">Acima do texto</button><button onclick="imgPos('bottom')">Abaixo do texto</button>
-    <button onclick="imgReset()">Restaurar imagem</button></span></div>
-  <div><button class="p" onclick="modApply()">Aplicar a todos do bloco</button></div></div>
+    <button onclick="imgReset()">Restaurar imagem</button></span></div></div>
  <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
- <p class="sub noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Para mudar todos de um bloco de uma vez, use “Editar modelo do bloco”. Aqui, clique em qualquer texto para ajustar só este estudante.</p>
+ <p class="sub noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Para mudar todos de um bloco de uma vez, use “Editar modelo do bloco”. Aqui, clique em qualquer texto ou imagem para ajustar só este estudante.</p>
  <div class="card noprint" id="selBox" style="max-width:none;margin-bottom:12px">
   <div class="ch"><b>Quem imprimir</b><span class="bd" id="selN"></span></div>
   <div class="sm">Marque um bloco, uma turma ou estudantes individuais. Clique de novo para desmarcar. Só os selecionados aparecem abaixo e saem na impressão.</div>
@@ -976,9 +977,8 @@ function renderSel(){
  $("selN").textContent=n+" de "+STU.length+" selecionados";
 }
 function renderEx(){
- grabMod();$("stale").hidden=!(STALE&&BK.length);
- document.querySelectorAll("#examOut .stu").forEach(d=>{const b=BK.find(x=>String(x.i)===d.dataset.i);if(b)b.html=d.innerHTML});
- renderSel();
+ syncEx();$("stale").hidden=!(STALE&&BK.length);
+  renderSel();
  const pick=BK.filter(b=>SEL.has(b.i));
  $("examOut").innerHTML=!BK.length?'<p class="empty">Gere os trabalhos na aba Estudantes.</p>':pick.length?pick.map(b=>`<div class="stu" data-i="${b.i}">${b.html}</div>`).join(""):'<p class="empty">Nenhum estudante selecionado. Marque um bloco, uma turma ou estudantes acima.</p>';
  renderMod();
@@ -992,7 +992,7 @@ function renderMod(){
  const keys=Object.keys(MOD).filter(k=>BK.some(b=>kOf(b)===k)),md=MODE==="mod",d=(id,on)=>{$(id).style.display=on?"":"none"};
  if(!keys.includes(MK))MK=keys[0]||"";
  $("exModeW").innerHTML=BK.length?'<div class="chips seg">'+[["mod","Editar modelo do bloco"],["ind","Revisar por estudante e imprimir"]].map(([m,t])=>`<button class="${MODE===m?"on":""}" onclick="setMode('${m}')">${t}</button>`).join("")+"</div>":"";
- ["modBox","modPv"].forEach(id=>d(id,md&&BK.length));["selBox","exSub","exPr","indPv"].forEach(id=>d(id,!md||!BK.length));
+ ["modBox","modPv"].forEach(id=>d(id,md&&BK.length));["selBox","exSub","exPr","indPv"].forEach(id=>d(id,!md||!BK.length));d("fmtBar",!!BK.length);
  $("modKeys").innerHTML=keys.map(k=>`<button class="${k===MK?"on":""}" onclick="modGo('${k}')">${esc(k.replace("|"," · "))} <small>${BK.filter(b=>kOf(b)===k).length}</small></button>`).join("");
  $("modOut").dataset.k=MK;
  $("modOut").innerHTML=MK&&MOD[MK]?(MOD[MK].html||'<p class="empty">Nenhuma disciplina carregada neste bloco.</p>'):"";selImg(null);
@@ -1032,10 +1032,11 @@ function imgReset(){
 }
 function fmt(c){
  const sel=getSelection();
- if(!sel.rangeCount||sel.isCollapsed||!$("modOut").contains(sel.anchorNode)){$("fmtMsg").textContent="Primeiro selecione, no modelo, o trecho que deseja formatar.";return}
- document.execCommand(c);$("fmtMsg").textContent="Formatação aplicada ao modelo. Clique em “Aplicar a todos do bloco” para valer para todos.";
+ const ed=MODE==="mod"?$("modOut"):$("examOut");
+ if(!sel.rangeCount||sel.isCollapsed||!ed.contains(sel.anchorNode)){$("fmtMsg").textContent="Primeiro selecione, no trabalho aberto abaixo, o trecho que deseja formatar.";return}
+ document.execCommand(c);$("fmtMsg").textContent=MODE==="mod"?"Formatação aplicada ao modelo. Clique em “Aplicar a todos do bloco” para valer para todos.":"Formatação aplicada só a este estudante.";
 }
-$("modOut").addEventListener("click",e=>{selImg(e.target.tagName==="IMG"?e.target:null)});
+["modOut","examOut"].forEach(id=>$(id).addEventListener("click",e=>{selImg(e.target.tagName==="IMG"&&e.target.closest(".qb")?e.target:null)}));
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
  $("keyOut").innerHTML=ks.length?ks.map(k=>`<div class="paper pg">${hd()}<h2>Gabarito do professor – ${esc(k.replace("|"," · "))}</h2><table><tr><th>Disciplina</th><th>Gabarito das objetivas</th></tr>${VER[k].filter(ld).map(s=>`<tr><td>${s.name}</td><td>${pk(s)[0].map((x,n)=>p2(n+1)+"-"+(x.ans||"?")).join(" ")||"—"}</td></tr>`).join("")}</table><p>As questões abertas (as que vêm depois das objetivas em cada disciplina) são corrigidas pelo professor.</p></div>`).join(""):'<p class="empty">Envie as questões para ver o gabarito.</p>';
@@ -1134,7 +1135,8 @@ async function sbPush(){
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&_fin){clearTimeout(_pt);sbPush()}});
 const LS="geteco_fica_v1";let sT;
 function save(){clearTimeout(sT);sT=setTimeout(doSave,500)}
-function syncEx(){grabMod();document.querySelectorAll("#examOut .stu").forEach(d=>{const x=BK.find(y=>String(y.i)===d.dataset.i);if(x)x.html=d.innerHTML})}
+function cleanHTML(el){const c=el.cloneNode(true);c.querySelectorAll("img.sel").forEach(i=>{i.classList.remove("sel");if(!i.getAttribute("class"))i.removeAttribute("class")});return c.innerHTML}
+function syncEx(){grabMod();document.querySelectorAll("#examOut .stu").forEach(d=>{const x=BK.find(y=>String(y.i)===d.dataset.i);if(x)x.html=cleanHTML(d)})}
 function packG(){
  syncEx();const bodies=[],ix=new Map(),list=[];
  BK.forEach(x=>{const st=STU[x.i];if(!st)return;
