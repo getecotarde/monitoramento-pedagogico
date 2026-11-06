@@ -634,6 +634,7 @@ progress{height:10px;accent-color:var(--ok)}
 }
 </style>
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
+<style>#modOut img{cursor:pointer}#modOut img.sel{outline:3px solid var(--ac);outline-offset:2px}</style>
 </head>
 <body>
 <div class="ui">
@@ -687,6 +688,17 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
   <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda.</div>
   <div class="chips" id="modKeys"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Texto:</b>
+   <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
+   <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
+   <span class="sm" id="fmtMsg">Selecione um trecho do modelo e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Imagem:</b>
+   <span class="sm" id="imgHint">clique numa imagem do modelo para selecioná-la.</span>
+   <span id="imgCtl" style="display:none;gap:6px;flex-wrap:wrap;align-items:center">
+    <label style="display:flex;gap:6px;align-items:center">Tamanho <input type="range" id="imgSz" min="10" max="100" step="5" oninput="imgSize(this.value)"> <span id="imgPct"></span></label>
+    <button onclick="imgPos('left')">À esquerda do texto</button><button onclick="imgPos('right')">À direita do texto</button>
+    <button onclick="imgPos('top')">Acima do texto</button><button onclick="imgPos('bottom')">Abaixo do texto</button>
+    <button onclick="imgReset()">Restaurar imagem</button></span></div>
   <div><button class="p" onclick="modApply()">Aplicar a todos do bloco</button></div></div>
  <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
  <p class="sub noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Para mudar todos de um bloco de uma vez, use “Editar modelo do bloco”. Aqui, clique em qualquer texto para ajustar só este estudante.</p>
@@ -973,7 +985,7 @@ function renderEx(){
 }
 let MODE="mod",MOD={},MK="";const PH_N="[Nome do estudante]",PH_T="[turma]";
 const kOf=b=>{const st=STU[b.i];return grp(st.t)+"|"+st.m};
-function grabMod(){const k=$("modOut").dataset.k;if(k&&MOD[k]&&$("modOut").querySelector(".paper"))MOD[k].html=$("modOut").innerHTML}
+function grabMod(){const k=$("modOut").dataset.k;if(k&&MOD[k]&&$("modOut").querySelector(".paper")){const c=$("modOut").cloneNode(true);c.querySelectorAll("img.sel").forEach(i=>{i.classList.remove("sel");if(!i.getAttribute("class"))i.removeAttribute("class")});MOD[k].html=c.innerHTML}}
 function setMode(m){grabMod();MODE=m;renderEx()}
 function modGo(k){grabMod();MK=k;renderMod()}
 function renderMod(){
@@ -983,7 +995,7 @@ function renderMod(){
  ["modBox","modPv"].forEach(id=>d(id,md&&BK.length));["selBox","exSub","exPr","indPv"].forEach(id=>d(id,!md||!BK.length));
  $("modKeys").innerHTML=keys.map(k=>`<button class="${k===MK?"on":""}" onclick="modGo('${k}')">${esc(k.replace("|"," · "))} <small>${BK.filter(b=>kOf(b)===k).length}</small></button>`).join("");
  $("modOut").dataset.k=MK;
- $("modOut").innerHTML=MK&&MOD[MK]?(MOD[MK].html||'<p class="empty">Nenhuma disciplina carregada neste bloco.</p>'):"";
+ $("modOut").innerHTML=MK&&MOD[MK]?(MOD[MK].html||'<p class="empty">Nenhuma disciplina carregada neste bloco.</p>'):"";selImg(null);
 }
 function modApply(){
  grabMod();const k=MK,m=MOD[k];if(!m||!m.html)return;
@@ -994,6 +1006,36 @@ function modApply(){
   setMode("ind");save();
  });
 }
+let SELIMG=null;
+function selImg(im){
+ if(SELIMG)SELIMG.classList.remove("sel");SELIMG=im;
+ $("imgCtl").style.display=im?"flex":"none";$("imgHint").style.display=im?"none":"";
+ if(!im)return;im.classList.add("sel");
+ const qi=im.closest(".qi"),qb=im.closest(".qb"),one=qi.querySelectorAll("img").length===1;
+ const r=one?qi.getBoundingClientRect().width/qb.getBoundingClientRect().width:im.getBoundingClientRect().width/qi.getBoundingClientRect().width;
+ $("imgSz").value=Math.round(Math.max(10,Math.min(100,r*100))/5)*5;$("imgPct").textContent=$("imgSz").value+"%";
+}
+function imgSize(v){
+ const im=SELIMG;if(!im)return;const qi=im.closest(".qi"),one=qi.querySelectorAll("img").length===1;
+ $("imgPct").textContent=v+"%";im.style.maxHeight="none";im.style.maxWidth="100%";
+ if(one){qi.style.width=v+"%";qi.style.flex="none";im.style.width="100%"}else im.style.width=v+"%";
+}
+function imgPos(p){
+ const im=SELIMG;if(!im)return;const qi=im.closest(".qi"),qb=im.closest(".qb"),qa=qb.querySelector(".qa"),col=p==="top"||p==="bottom";
+ qb.style.flexDirection=col?"column":"row";qb.style.alignItems=col?"center":"flex-start";
+ qa.style.flex=col?"none":"1 1 0";qa.style.width=col?"100%":"";
+ qi.style.order=(p==="left"||p==="top")?"-1":"1";imgSize($("imgSz").value);
+}
+function imgReset(){
+ const im=SELIMG;if(!im)return;
+ [im,im.closest(".qi"),im.closest(".qb"),im.closest(".qb").querySelector(".qa")].forEach(e=>e.removeAttribute("style"));selImg(im);
+}
+function fmt(c){
+ const sel=getSelection();
+ if(!sel.rangeCount||sel.isCollapsed||!$("modOut").contains(sel.anchorNode)){$("fmtMsg").textContent="Primeiro selecione, no modelo, o trecho que deseja formatar.";return}
+ document.execCommand(c);$("fmtMsg").textContent="Formatação aplicada ao modelo. Clique em “Aplicar a todos do bloco” para valer para todos.";
+}
+$("modOut").addEventListener("click",e=>{selImg(e.target.tagName==="IMG"?e.target:null)});
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
  $("keyOut").innerHTML=ks.length?ks.map(k=>`<div class="paper pg">${hd()}<h2>Gabarito do professor – ${esc(k.replace("|"," · "))}</h2><table><tr><th>Disciplina</th><th>Gabarito das objetivas</th></tr>${VER[k].filter(ld).map(s=>`<tr><td>${s.name}</td><td>${pk(s)[0].map((x,n)=>p2(n+1)+"-"+(x.ans||"?")).join(" ")||"—"}</td></tr>`).join("")}</table><p>As questões abertas (as que vêm depois das objetivas em cada disciplina) são corrigidas pelo professor.</p></div>`).join(""):'<p class="empty">Envie as questões para ver o gabarito.</p>';
