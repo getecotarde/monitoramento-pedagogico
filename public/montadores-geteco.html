@@ -119,21 +119,21 @@ progress{height:10px;accent-color:var(--ok)}
 </head>
 <body>
 <div class="ui">
-<header class="top"><img id="brand" alt="Logo GETECO"><div><h1>Montador da prova trimestral</h1>
+<header class="top" style="display:none"><img id="brand" alt="Logo GETECO"><div><h1>Montador da prova trimestral</h1>
 <p class="sub">Escola Municipal Geraldo Teixeira da Costa · GETECO. Envie as provas, revise e gere a prova final.</p></div></header>
 <div class="bar ctx">
  <label>Turmas<select id="serie" onchange="swV()"></select></label>
- <select id="mod" hidden onchange="swV()"></select>
+ <label>Modalidade<select id="mod" onchange="swV()"></select></label>
  <label>Trimestre<input class="t" id="tri" value="3º Trimestre de 2026"></label>
  <label>Data da prova<input class="t" id="dt" placeholder="__/__/____"></label>
  <label>Valor por questão<input class="t" id="val" value="0,6" inputmode="decimal"></label>
 </div>
 <div class="tabs">
- <button id="b-build" class="on" onclick="show('build')">📝 Montar</button>
- <button id="b-exam" onclick="show('exam')">📄 Prova</button>
- <button id="b-key" onclick="show('key')">🔑 Gabarito</button>
- <button id="b-sum" onclick="show('sum')">📊 Quadro resumo</button>
- <button id="b-gen" onclick="show('gen')">🗂️ Provas geradas</button>
+ <button id="b-build" class="on" onclick="show('build')">1 · Receber questões</button>
+ <button id="b-exam" onclick="show('exam')">2 · Prova</button>
+ <button id="b-key" onclick="show('key')">3 · Gabarito</button>
+ <button id="b-sum" onclick="show('sum')">📊 Andamento</button>
+ 
 </div>
 
 <p class="svbar noprint"><span id="sv"></span> <button class="lk" onclick="askClear()">Apagar dados salvos</button></p>
@@ -149,24 +149,20 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="wr" id="warn" hidden></div>
  <p class="sub noprint">Ajuste final: clique em qualquer texto da prova abaixo para editar. Imagens podem ser coladas diretamente.</p>
  <p class="noprint"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF</button> <button onclick="dl('exam')">Baixar para Word (.html)</button></p>
- <div class="pv"><div id="examOut"><p class="empty">Gere a prova na etapa 1.</p></div></div>
+ <div class="pv"><div id="examOut"><p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p></div></div>
 </section>
 
-<section id="v-gen" hidden>
- <h2>Provas geradas</h2>
- <p class="sub">Clique para abrir e visualizar a prova ou o gabarito de cada turma e modalidade.</p>
- <div id="genOut"></div>
-</section>
 <div id="dlg" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><p id="dlgT" style="margin-top:0"></p><div><button id="dlgNo">Cancelar</button><button class="p" id="dlgOk">Sim, excluir</button></div></div></div>
 <section id="v-sum" hidden>
  <h2>Quadro resumo do recebimento</h2>
  <p class="noprint"><button class="p" onclick="pr('sum')">Imprimir / salvar PDF</button></p>
  <div id="sumOut"></div>
+ <div class="noprint"><h2>Provas geradas</h2><p class="sub">Abra a prova ou o gabarito de cada turma e modalidade.</p><div id="genOut"></div></div>
 </section>
 
 <section id="v-key" hidden>
  <p class="noprint"><button class="p" onclick="pr('key')">Imprimir / salvar PDF</button> <button onclick="dl('key')">Baixar para Word (.html)</button></p>
- <div class="pv"><div id="keyOut"><p class="empty">Gere a prova na etapa 1.</p></div></div>
+ <div class="pv"><div id="keyOut"><p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p></div></div>
 </section>
 </div>
 
@@ -348,7 +344,7 @@ function gen(){
  show("exam");
 }
 function show(v){
- ["build","exam","key","sum","gen"].forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="sum")renderSum();if(v==="gen")renderGen();
+ ["build","exam","key","sum"].forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="sum"){renderSum();renderGen()}
  window.scrollTo(0,0);
 }
 function pr(w){document.body.dataset.p=w;try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar” e imprima o arquivo.")}}
@@ -394,11 +390,11 @@ function askDel(i,w){
   $("dlg").hidden=true;renderGrid();renderRev();
  };
 }
-function chips(){return '<div class="chips seg">'+MODS.map(m=>`<button class="${$("mod").value===m?"on":""}" onclick="setM('${m}')">${m.toUpperCase()}</button>`).join("")+'</div><p><b>Editando:</b> '+esc(KEY.replace("|"," · "))+'</p><div class="chips">'+S.map((s,i)=>{const c=s.qs.filter(q=>q.inc).length;return `<button class="${i===cur?"on":""}" onclick="cur=${i};renderGrid()">${s.name} <small>${s.qs.length&&c===s.n?"✔":c+"/"+s.n}</small></button>`}).join("")+'</div>'}
+function chips(){return '<div class="chips">'+S.map((s,i)=>{const c=s.qs.filter(q=>q.inc).length;return `<button class="${i===cur?"on":""}" onclick="cur=${i};renderGrid()">${s.name} <small>${s.qs.length&&c===s.n?"✔":c+"/"+s.n}</small></button>`}).join("")+'</div>'}
 function swV(){
  const od=OUT[KEY];if(od){od.exam=$("examOut").innerHTML;od.key=$("keyOut").innerHTML}
  KEY=$("serie").value+"|"+$("mod").value;S=VER[KEY]||(VER[KEY]=mkS());
- const o=OUT[KEY],e='<p class="empty">Gere a prova na etapa 1.</p>';
+ const o=OUT[KEY],e='<p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p>';
  $("examOut").innerHTML=o?o.exam:e;$("keyOut").innerHTML=o?o.key:e;last=o?{exam:o.exam,key:o.key}:{exam:"",key:""};$("warn").hidden=true;
  renderGrid();renderRev();
 }
@@ -452,7 +448,7 @@ function askClear(){
  $("dlgOk").onclick=()=>{
   Object.keys(VER).forEach(k=>delete VER[k]);Object.keys(OUT).forEach(k=>delete OUT[k]);
   KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();$("serie").value=TURMAS[0];$("mod").value="Regular";
-  const e='<p class="empty">Gere a prova na etapa 1.</p>';$("examOut").innerHTML=e;$("keyOut").innerHTML=e;last={exam:"",key:""};
+  const e='<p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p>';$("examOut").innerHTML=e;$("keyOut").innerHTML=e;last={exam:"",key:""};
   $("dlg").hidden=true;renderGrid();renderRev();
  };
 }
@@ -597,6 +593,8 @@ progress{height:10px;accent-color:var(--ok)}
 .paper h2{break-after:avoid}
 .paper h2{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #pgframe{display:none}
+#examOut>.stu:first-child>.paper:first-child{break-before:auto}
+.sl{columns:2 260px;column-gap:20px;margin-top:6px}.sl label{display:block;break-inside:avoid;font-size:.88rem;color:var(--ink);padding:2px 0}.sl input{margin-right:6px}
 .paper.dp::before{content:"";position:absolute;left:7mm;right:7mm;top:7mm;bottom:7mm;border:1.6pt solid #111;border-radius:3mm;pointer-events:none}
 @media screen{.paper.dp{min-height:297mm}}
 @media print{
@@ -613,37 +611,37 @@ progress{height:10px;accent-color:var(--ok)}
 </head>
 <body>
 <div class="ui">
-<header class="top"><img id="brand" alt="Logo GETECO"><div><h1>Montador do Trabalho FICA</h1>
+<header class="top" style="display:none"><img id="brand" alt="Logo GETECO"><div><h1>Montador do Trabalho FICA</h1>
 <p class="sub">Escola Municipal Geraldo Teixeira da Costa · GETECO. Cada professor envia 10 questões (qualquer combinação de objetivas e abertas); gere um trabalho individual para cada estudante.</p></div></header>
 <div class="bar ctx">
  <label>Turmas<select id="serie" onchange="swV()"></select></label>
- <select id="mod" hidden onchange="swV()"></select>
+ <label>Modalidade<select id="mod" onchange="swV()"></select></label>
  <label>Trimestre<input class="t" id="tri" value="3º Trimestre de 2026"></label>
  <label>Data de entrega<input class="t" id="dt" placeholder="__/__/____"></label>
 </div>
 <div class="tabs">
- <button id="b-build" class="on" onclick="show('build')">📝 Montar</button>
- <button id="b-blk" onclick="show('blk')">🧱 Blocos</button>
- <button id="b-stu" onclick="show('stu')">👥 Estudantes</button>
- <button id="b-exam" onclick="show('exam')">📄 Trabalhos</button>
+ <button id="b-build" class="on" onclick="show('build')">1 · Receber questões</button>
+ <button id="b-blk" onclick="show('blk')">2 · Conferir blocos</button>
+ <button id="b-stu" onclick="show('stu')">3 · Estudantes</button>
+ <button id="b-exam" onclick="show('exam')">4 · Trabalhos</button>
  <button id="b-key" onclick="show('key')">🔑 Gabarito</button>
- <button id="b-sum" onclick="show('sum')">📊 Quadro resumo</button>
+ <button id="b-sum" onclick="show('sum')">📊 Andamento</button>
 </div>
 <p class="svbar noprint"><span id="sv"></span> <button class="lk" onclick="askClear()">Apagar dados salvos</button></p>
 
 <section id="v-build">
  <div class="grid" id="grid"></div>
  <div class="rv"><h2>Revisão das questões lidas</h2>
- <p class="sub">A leitura é automática: questões com alternativas viram objetivas e as sem alternativas viram abertas. Corrija o texto, o tipo, a resposta certa ou desmarque questões que não devem entrar.</p>
+ <p class="sub">A leitura é automática: questões com alternativas viram objetivas e as sem alternativas viram abertas. Aqui você só marca quais questões entram, o tipo e a resposta certa. Para corrigir texto, alternativas e imagens, use o passo 2 · Conferir blocos.</p>
  <div id="rev"><p class="empty">Envie ao menos um arquivo de questões para revisar aqui.</p></div></div>
- <div class="cta"><span>Cada disciplina usa 10 questões (objetivas e abertas, em qualquer proporção) desta turma e modalidade; fica conferida automaticamente ao chegar a 10. Não precisa esperar todas: a geração parcial inclui só as disciplinas já carregadas.</span><button class="p" onclick="show('stu')">Ir para estudantes</button></div>
+ <div class="cta"><span>Cada disciplina precisa de 10 questões. Não é preciso esperar todas as disciplinas.</span><button class="p" onclick="show('blk')">Próximo: conferir blocos</button></div>
 </section>
 
 <section id="v-blk" hidden>
  <h2 style="margin-top:0">Blocos do Trabalho FICA</h2>
  <p class="sub">Veja como cada bloco (6º ABC, 6º DEF, 7º ABC…) ficará e corrija o que precisar antes de gerar. Tudo o que você editar aqui vale para todos os estudantes do bloco.</p>
  <div id="blkOut"></div>
- <div class="cta"><span id="blkN"></span><button class="p" onclick="show('stu')">Ir para estudantes e gerar</button></div>
+ <div class="cta"><span id="blkN"></span><button class="p" onclick="show('stu')">Próximo: estudantes</button></div>
 </section>
 
 <section id="v-stu" hidden>
@@ -660,8 +658,15 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="wr" id="warn" hidden></div>
  <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
  <p class="sub noprint">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Clique em qualquer texto para editar antes de imprimir.</p>
- <p class="noprint"><label style="max-width:380px">Estudante<select id="who" onchange="renderEx()"></select></label></p>
- <p class="noprint"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF</button></p>
+ <div class="card noprint" id="selBox" style="max-width:none;margin-bottom:12px">
+  <div class="ch"><b>Quem imprimir</b><span class="bd" id="selN"></span></div>
+  <div class="sm">Marque um bloco, uma turma ou estudantes individuais. Clique de novo para desmarcar. Só os selecionados aparecem abaixo e saem na impressão.</div>
+  <div><b class="sm">Blocos</b><div class="chips" id="selBlk"></div></div>
+  <div><b class="sm">Turmas</b><div class="chips" id="selTur"></div></div>
+  <div><button onclick="selAll(true)">Marcar todos</button> <button onclick="selAll(false)">Limpar seleção</button></div>
+  <details><summary>Escolher estudantes um a um</summary><div id="selList" class="sl"></div></details>
+ </div>
+ <p class="noprint"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF dos selecionados</button></p>
  <div class="pv"><div id="examOut" contenteditable="true"></div></div>
  <div id="pgframe" aria-hidden="true"></div>
 </section>
@@ -820,7 +825,7 @@ async function upG(i,f){
  renderGrid();renderRev(i);
 }
 function setG(i,v){S[i].gab=v;applyG(S[i]);renderGrid();renderRev(i)}
-function chips(){return '<div class="chips seg">'+MODS.map(m=>`<button class="${$("mod").value===m?"on":""}" onclick="setM('${m}')">${m.toUpperCase()}</button>`).join("")+'</div><p><b>Editando:</b> '+esc(KEY.replace("|"," · "))+'</p><div class="chips">'+S.map((s,i)=>{const[o,a]=cnt(s);return `<button class="${i===cur?"on":""}" onclick="cur=${i};renderGrid()">${s.name} <small>${o+a===NT?"✔":o+"+"+a}</small></button>`}).join("")+'</div>'}
+function chips(){return '<div class="chips">'+S.map((s,i)=>{const[o,a]=cnt(s);return `<button class="${i===cur?"on":""}" onclick="cur=${i};renderGrid()">${s.name} <small>${o+a===NT?"✔":o+"+"+a}</small></button>`}).join("")+'</div>'}
 function renderGrid(){
  $("grid").innerHTML=chips()+S.map((s,i)=>{if(i!==cur)return"";const[o,a]=cnt(s),g=pk(s)[0].filter(x=>x.ans).length;
   return `<div class="card"><div class="ch"><b>${s.name}</b><span class="bd ${o+a===NT?"ok":s.qs.length?"wn":""}">${o} objetivas · ${a} abertas · ${o+a}/${NT}${o+a===NT&&g<o?" · falta gabarito":""}</span></div>
@@ -834,9 +839,7 @@ function renderRev(open){
  const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas (precisa de ${NT} questões marcadas no total, em qualquer combinação de objetivas e abertas)</summary>${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid()"> Incluir questão ${j+1}</label>
   <label>Tipo <select onchange="S[${i}].qs[${j}].o=this.value==='o';applyG(S[${i}]);renderGrid();renderRev(${i})"><option value="o" ${q.o?"selected":""}>Objetiva</option><option value="a" ${q.o?"":"selected"}>Aberta</option></select></label>
   ${q.o?`<label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:""}</div>
-  <textarea rows="3" oninput="S[${i}].qs[${j}].stem=this.value">${esc(q.stem)}</textarea>
-  <div class="r">${q.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="rmImg(${i},${j},${m})">Remover</button></span>`).join("")}<label>Adicionar imagem<input type="file" accept="image/*" onchange="addImg(${i},${j},this.files[0])"></label></div>
-  ${q.o?L.map((l,k)=>`<div class="al"><b>${l}</b><input value="${esc(q.alts[k])}" oninput="S[${i}].qs[${j}].alts[${k}]=this.value"></div>`).join(""):""}</div>`).join("")}</details>`).join("");
+  <p class="sm">${esc(q.stem.length>140?q.stem.slice(0,140)+"…":q.stem)}</p></div>`).join("")}</details>`).join("");
  $("rev").innerHTML=h||'<p class="empty">Envie ao menos um arquivo de questões para revisar aqui.</p>';
 }
 function rmImg(i,j,m){S[i].qs[j].imgs.splice(m,1);renderRev(i)}
@@ -898,7 +901,7 @@ function disc(st,s,first){
 function gen(){
  STALE=false;
  if(!STU.length){$("smS").textContent="Adicione os estudantes primeiro.";return}
- if(!STU.some(st=>(VER[grp(st.t)+"|"+st.m]||[]).some(ld))){$("smS").textContent="Carregue as questões de ao menos uma disciplina na aba Montar antes de gerar.";return}
+ if(!STU.some(st=>(VER[grp(st.t)+"|"+st.m]||[]).some(ld))){$("smS").textContent="Carregue as questões de ao menos uma disciplina na aba 1 · Receber questões antes de gerar.";return}
  const w=[],seen={};
  BK=STU.map((st,i)=>{
   const k=grp(st.t)+"|"+st.m,all=VER[k]||mkS(),v=all.filter(ld);
@@ -912,13 +915,28 @@ function gen(){
   }
   return{i,html:cover(st,v)+v.map((s,ix)=>disc(st,s,ix===0)).join("")};
  });
- show("exam");const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
+ SEL=new Set(STU.map((x,i)=>i));show("exam");const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
+}
+let SEL=new Set(),TL=[];
+const selIx=f=>STU.map((x,i)=>i).filter(i=>f(STU[i]));
+function selTog(f){const ix=selIx(f),all=ix.length&&ix.every(i=>SEL.has(i));ix.forEach(i=>all?SEL.delete(i):SEL.add(i));renderEx()}
+function selAll(v){SEL=new Set(v?STU.map((x,i)=>i):[]);renderEx()}
+function selOne(i,v){v?SEL.add(i):SEL.delete(i);renderEx()}
+function renderSel(){
+ TL=[...new Set(STU.map(x=>x.t))].sort();
+ const on=f=>{const ix=selIx(f);return ix.length&&ix.every(i=>SEL.has(i))};
+ $("selBlk").innerHTML=TURMAS.map((b,k)=>{const f=x=>grp(x.t)===b,n=selIx(f).length;return n?`<button class="${on(f)?"on":""}" onclick="selTog(x=>grp(x.t)===TURMAS[${k}])">${esc(b)} <small>${n}</small></button>`:""}).join("")||'<span class="sm">Sem estudantes.</span>';
+ $("selTur").innerHTML=TL.map((tt,k)=>{const f=x=>x.t===tt,n=selIx(f).length;return `<button class="${on(f)?"on":""}" onclick="selTog(x=>x.t===TL[${k}])">${esc(tt)} <small>${n}</small></button>`}).join("");
+ $("selList").innerHTML=STU.map((x,i)=>`<label><input type="checkbox" ${SEL.has(i)?"checked":""} onchange="selOne(${i},this.checked)">${esc(x.t)} – ${esc(x.n)}</label>`).join("");
+ const n=[...SEL].filter(i=>BK.some(b=>b.i===i)).length;
+ $("selN").textContent=n+" de "+STU.length+" selecionados";
 }
 function renderEx(){
  $("stale").hidden=!(STALE&&BK.length);
- const w=$("who"),v=w.value;
- w.innerHTML='<option value="">Todos os estudantes ('+STU.length+')</option>'+STU.map((s,i)=>`<option value="${i}">${esc(s.t)} – ${esc(s.n)}</option>`).join("");w.value=v;
- $("examOut").innerHTML=BK.length?BK.filter(b=>v===""||b.i==v).map(b=>b.html).join(""):'<p class="empty">Gere os trabalhos na aba Estudantes.</p>';
+ document.querySelectorAll("#examOut .stu").forEach(d=>{const b=BK.find(x=>String(x.i)===d.dataset.i);if(b)b.html=d.innerHTML});
+ renderSel();
+ const pick=BK.filter(b=>SEL.has(b.i));
+ $("examOut").innerHTML=!BK.length?'<p class="empty">Gere os trabalhos na aba Estudantes.</p>':pick.length?pick.map(b=>`<div class="stu" data-i="${b.i}">${b.html}</div>`).join(""):'<p class="empty">Nenhum estudante selecionado. Marque um bloco, uma turma ou estudantes acima.</p>';
 }
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
@@ -949,7 +967,7 @@ async function dlSum(){
  try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
 }
 function show(v){VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam")renderEx();if(v==="key")renderKey();if(v==="sum")renderSum();window.scrollTo(0,0)}
-function pr(w){document.body.dataset.p=w;try{window.print()}catch(e){}}
+function pr(w){if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}document.body.dataset.p=w;try{window.print()}catch(e){}}
 
 /* ---------- blocos ---------- */
 let BSUB=-1,STALE=false;
@@ -977,13 +995,13 @@ function renderBlk(){
  const subs='<div class="chips"><button class="'+(BSUB<0?"on":"")+'" onclick="blkSub(-1)">Todas as disciplinas</button>'+S.map((s,i)=>{const[o,a]=cnt(s);return `<button class="${BSUB===i?"on":""}" onclick="blkSub(${i})">${s.name} <small>${o+a===NT?"✔":o+a?o+"+"+a:"—"}</small></button>`}).join("")+"</div>";
  const body=S.map((s,i)=>i).filter(i=>BSUB<0||BSUB===i).map(i=>{
   const s=S[i];
-  if(!ld(s))return `<div class="card blk"><div class="ch"><b>${s.name}</b><span class="bd">sem questões</span></div><div class="sm">Ainda não carregada neste bloco.</div><div><button onclick="goV('${t}','${m}',${i})">Enviar na aba Montar</button></div></div>`;
+  if(!ld(s))return `<div class="card blk"><div class="ch"><b>${s.name}</b><span class="bd">sem questões</span></div><div class="sm">Ainda não carregada neste bloco.</div><div><button onclick="goV('${t}','${m}',${i})">Enviar na aba 1 · Receber questões</button></div></div>`;
   const[o,a]=pk(s),[co,ca]=cnt(s),full=o.length+a.length===NT,gab=o.every(x=>x.ans);let n=0;
   return `<div class="card blk"><div class="ch"><b>${s.name}</b><span class="bd ${full&&gab?"ok":"wn"}">${o.length} objetivas · ${a.length} abertas · ${o.length+a.length}/${NT}${full&&!gab?" · falta gabarito":""}</span></div>
-  ${co>o.length||ca>a.length?`<div class="sm">Há ${co-o.length} objetiva(s) e ${ca-a.length} aberta(s) a mais, que não entram no trabalho. <button class="lk" onclick="goV('${t}','${m}',${i})">Ver na aba Montar</button></div>`:""}
+  ${co>o.length||ca>a.length?`<div class="sm">Há ${co-o.length} objetiva(s) e ${ca-a.length} aberta(s) a mais, que não entram no trabalho. <button class="lk" onclick="goV('${t}','${m}',${i})">Ver na aba 1 · Receber questões</button></div>`:""}
   <p><b>Parte I – Questões objetivas</b></p>${o.map(x=>blkQ(i,x,++n)).join("")||'<p class="sm">Nenhuma objetiva.</p>'}
   <p><b>Parte II – Questões abertas</b></p>${a.map(x=>blkQ(i,x,++n)).join("")||'<p class="sm">Nenhuma aberta.</p>'}</div>`}).join("");
- $("blkOut").innerHTML=blocos+mods+`<p><b>${esc(t)} · ${m}</b> — ${nst.length?nst.length+" estudante(s) recebem este bloco ("+esc(tl)+")":"nenhum estudante cadastrado neste bloco ainda"}.</p>`+subs+body;
+ $("blkOut").innerHTML=blocos+`<p><b>${esc(t)} · ${m}</b> — ${nst.length?nst.length+" estudante(s) recebem este bloco ("+esc(tl)+")":"nenhum estudante cadastrado neste bloco ainda"}.</p>`+subs+body;
  $("blkN").textContent=doneN(KEY)+" de "+SUBJ.length+" disciplinas completas neste bloco. As mudanças valem para todos os estudantes dele.";
  document.querySelectorAll("#blkOut textarea").forEach(grow);window.scrollTo(0,y);
 }
