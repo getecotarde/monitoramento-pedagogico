@@ -634,7 +634,7 @@ progress{height:10px;accent-color:var(--ok)}
 }
 </style>
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
-<style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}}</style>
+<style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}#modOut img,#examOut .qb img{touch-action:none}#imgHandle{position:fixed;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;z-index:40;touch-action:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}#dropBar{position:fixed;background:var(--ac);opacity:.85;border-radius:3px;z-index:40;pointer-events:none;display:none}</style>
 </head>
 <body>
 <div class="ui">
@@ -695,7 +695,7 @@ progress{height:10px;accent-color:var(--ok)}
    <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
    <span class="sm" id="fmtMsg">Selecione um trecho do modelo e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Imagem:</b>
-   <span class="sm" id="imgHint">clique numa imagem do modelo para selecioná-la.</span>
+   <span class="sm" id="imgHint">clique numa imagem para selecioná-la. Depois arraste a imagem para outro lado do texto, ou arraste o quadradinho do canto para mudar o tamanho.</span>
    <span id="imgCtl" style="display:none;gap:6px;flex-wrap:wrap;align-items:center">
     <label style="display:flex;gap:6px;align-items:center">Tamanho <input type="range" id="imgSz" min="10" max="100" step="5" oninput="imgSize(this.value)"> <span id="imgPct"></span></label>
     <button onclick="imgPos('left')">À esquerda do texto</button><button onclick="imgPos('right')">À direita do texto</button>
@@ -1010,15 +1010,16 @@ let SELIMG=null;
 function selImg(im){
  if(SELIMG)SELIMG.classList.remove("sel");SELIMG=im;
  $("imgCtl").style.display=im?"flex":"none";$("imgHint").style.display=im?"none":"";
- if(!im)return;im.classList.add("sel");
+ if(!im){posHandle();return}im.classList.add("sel");
  const qi=im.closest(".qi"),qb=im.closest(".qb"),one=qi.querySelectorAll("img").length===1;
  const r=one?qi.getBoundingClientRect().width/qb.getBoundingClientRect().width:im.getBoundingClientRect().width/qi.getBoundingClientRect().width;
- $("imgSz").value=Math.round(Math.max(10,Math.min(100,r*100))/5)*5;$("imgPct").textContent=$("imgSz").value+"%";
+ $("imgSz").value=Math.round(Math.max(10,Math.min(100,r*100))/5)*5;$("imgPct").textContent=$("imgSz").value+"%";posHandle();
 }
 function imgSize(v){
  const im=SELIMG;if(!im)return;const qi=im.closest(".qi"),one=qi.querySelectorAll("img").length===1;
  $("imgPct").textContent=v+"%";im.style.maxHeight="none";im.style.maxWidth="100%";
  if(one){qi.style.width=v+"%";qi.style.flex="none";im.style.width="100%"}else im.style.width=v+"%";
+ posHandle();save();
 }
 function imgPos(p){
  const im=SELIMG;if(!im)return;const qi=im.closest(".qi"),qb=im.closest(".qb"),qa=qb.querySelector(".qa"),col=p==="top"||p==="bottom";
@@ -1028,7 +1029,7 @@ function imgPos(p){
 }
 function imgReset(){
  const im=SELIMG;if(!im)return;
- [im,im.closest(".qi"),im.closest(".qb"),im.closest(".qb").querySelector(".qa")].forEach(e=>e.removeAttribute("style"));selImg(im);
+ [im,im.closest(".qi"),im.closest(".qb"),im.closest(".qb").querySelector(".qa")].forEach(e=>e.removeAttribute("style"));selImg(im);save();
 }
 function fmt(c){
  const sel=getSelection();
@@ -1037,6 +1038,41 @@ function fmt(c){
  document.execCommand(c);$("fmtMsg").textContent=MODE==="mod"?"Formatação aplicada ao modelo. Clique em “Aplicar a todos do bloco” para valer para todos.":"Formatação aplicada só a este estudante.";
 }
 ["modOut","examOut"].forEach(id=>$(id).addEventListener("click",e=>{selImg(e.target.tagName==="IMG"&&e.target.closest(".qb")?e.target:null)}));
+function corner(){const qb=SELIMG.closest(".qb"),qi=SELIMG.closest(".qi"),qa=qb.querySelector(".qa"),col=getComputedStyle(qb).flexDirection==="column";return{left:!col&&qi.getBoundingClientRect().left>=qa.getBoundingClientRect().right-2,col}}
+function posHandle(){
+ const h=$("imgHandle");
+ if(!SELIMG||!SELIMG.isConnected){h.style.display="none";return}
+ const r=SELIMG.getBoundingClientRect();
+ if(!r.width||r.bottom<0||r.top>innerHeight){h.style.display="none";return}
+ const c=corner();h.style.display="block";h.style.cursor=c.left?"nesw-resize":"nwse-resize";
+ h.style.left=(c.left?r.left-9:r.right-5)+"px";h.style.top=(r.bottom-9)+"px";
+}
+{const h=document.createElement("div");h.id="imgHandle";h.title="Arraste para mudar o tamanho";document.body.appendChild(h);
+ const d=document.createElement("div");d.id="dropBar";document.body.appendChild(d)}
+setInterval(posHandle,300);addEventListener("scroll",posHandle,true);addEventListener("resize",posHandle);
+$("imgHandle").addEventListener("pointerdown",e=>{
+ if(!SELIMG)return;e.preventDefault();e.stopPropagation();
+ const qi=SELIMG.closest(".qi"),qb=SELIMG.closest(".qb"),one=qi.querySelectorAll("img").length===1,
+  bw=(one?qb:qi).getBoundingClientRect().width||1,c=corner(),k=c.left?-1:c.col?2:1,x0=e.clientX,v0=+$("imgSz").value;
+ const mv=ev=>{const v=Math.max(10,Math.min(100,Math.round(v0+k*(ev.clientX-x0)/bw*100)));$("imgSz").value=v;imgSize(v)};
+ const up=()=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);save()};
+ document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);
+});
+function onImgDown(e){
+ const im=e.target;if(im.tagName!=="IMG"||!im.closest(".qb")||(e.button||0)!==0)return;
+ e.preventDefault();selImg(im);
+ const qb=im.closest(".qb"),qa=qb.querySelector(".qa"),x0=e.clientX,y0=e.clientY,bar=$("dropBar");let drag=false,dest=null;
+ const mv=ev=>{
+  if(!drag&&Math.hypot(ev.clientX-x0,ev.clientY-y0)<6)return;drag=true;
+  const r=qa.getBoundingClientRect(),nx=(ev.clientX-(r.left+r.width/2))/Math.max(r.width/2,1),ny=(ev.clientY-(r.top+r.height/2))/Math.max(r.height/2,1);
+  dest=Math.abs(nx)>Math.abs(ny)?(nx<0?"left":"right"):(ny<0?"top":"bottom");
+  const q=qb.getBoundingClientRect(),t=5,g={left:[q.left-t,q.top,t,q.height],right:[q.right,q.top,t,q.height],top:[q.left,q.top-t,q.width,t],bottom:[q.left,q.bottom,q.width,t]}[dest];
+  Object.assign(bar.style,{display:"block",left:g[0]+"px",top:g[1]+"px",width:g[2]+"px",height:g[3]+"px"});
+ };
+ const up=()=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);bar.style.display="none";if(drag&&dest)imgPos(dest)};
+ document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);
+}
+["modOut","examOut"].forEach(id=>{$(id).addEventListener("pointerdown",onImgDown);$(id).addEventListener("dragstart",e=>{if(e.target.tagName==="IMG")e.preventDefault()})});
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
  $("keyOut").innerHTML=ks.length?ks.map(k=>`<div class="paper pg">${hd()}<h2>Gabarito do professor – ${esc(k.replace("|"," · "))}</h2><table><tr><th>Disciplina</th><th>Gabarito das objetivas</th></tr>${VER[k].filter(ld).map(s=>`<tr><td>${s.name}</td><td>${pk(s)[0].map((x,n)=>p2(n+1)+"-"+(x.ans||"?")).join(" ")||"—"}</td></tr>`).join("")}</table><p>As questões abertas (as que vêm depois das objetivas em cada disciplina) são corrigidas pelo professor.</p></div>`).join(""):'<p class="empty">Envie as questões para ver o gabarito.</p>';
