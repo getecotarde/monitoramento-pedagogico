@@ -657,7 +657,13 @@ progress{height:10px;accent-color:var(--ok)}
 <section id="v-exam" hidden>
  <div class="wr" id="warn" hidden></div>
  <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
- <p class="sub noprint">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Clique em qualquer texto para editar antes de imprimir.</p>
+ <div class="noprint" id="exModeW"></div>
+ <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
+  <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda.</div>
+  <div class="chips" id="modKeys"></div>
+  <div><button class="p" onclick="modApply()">Aplicar a todos do bloco</button></div></div>
+ <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
+ <p class="sub noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Para mudar todos de um bloco de uma vez, use “Editar modelo do bloco”. Aqui, clique em qualquer texto para ajustar só este estudante.</p>
  <div class="card noprint" id="selBox" style="max-width:none;margin-bottom:12px">
   <div class="ch"><b>Quem imprimir</b><span class="bd" id="selN"></span></div>
   <div class="sm">Marque um bloco, uma turma ou estudantes individuais. Clique de novo para desmarcar. Só os selecionados aparecem abaixo e saem na impressão.</div>
@@ -666,8 +672,8 @@ progress{height:10px;accent-color:var(--ok)}
   <div><button onclick="selAll(true)">Marcar todos</button> <button onclick="selAll(false)">Limpar seleção</button></div>
   <details><summary>Escolher estudantes um a um</summary><div id="selList" class="sl"></div></details>
  </div>
- <p class="noprint"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF dos selecionados</button></p>
- <div class="pv"><div id="examOut" contenteditable="true"></div></div>
+ <p class="noprint" id="exPr"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF dos selecionados</button></p>
+ <div class="pv" id="indPv"><div id="examOut" contenteditable="true"></div></div>
  <div id="pgframe" aria-hidden="true"></div>
 </section>
 
@@ -903,9 +909,9 @@ function gen(){
  if(!STU.length){$("smS").textContent="Adicione os estudantes primeiro.";return}
  if(!STU.some(st=>(VER[grp(st.t)+"|"+st.m]||[]).some(ld))){$("smS").textContent="Carregue as questões de ao menos uma disciplina na aba 1 · Receber questões antes de gerar.";return}
  const w=[],seen={};
- BK=STU.map((st,i)=>{
+ MOD={};$("modOut").dataset.k="";$("modOut").innerHTML="";BK=STU.map((st,i)=>{
   const k=grp(st.t)+"|"+st.m,all=VER[k]||mkS(),v=all.filter(ld);
-  if(!seen[k]){seen[k]=1;
+  if(!seen[k]){seen[k]=1;MOD[k]={html:v.map((s,ix)=>disc({n:PH_N,t:PH_T},s,ix===0)).join("")};
    if(!v.length)w.push(`${k.replace("|"," · ")}: nenhuma disciplina carregada; os estudantes desta versão receberão só a capa.`);
    else{
     const fora=all.filter(s=>!ld(s)).map(s=>s.name);
@@ -932,11 +938,35 @@ function renderSel(){
  $("selN").textContent=n+" de "+STU.length+" selecionados";
 }
 function renderEx(){
- $("stale").hidden=!(STALE&&BK.length);
+ grabMod();$("stale").hidden=!(STALE&&BK.length);
  document.querySelectorAll("#examOut .stu").forEach(d=>{const b=BK.find(x=>String(x.i)===d.dataset.i);if(b)b.html=d.innerHTML});
  renderSel();
  const pick=BK.filter(b=>SEL.has(b.i));
  $("examOut").innerHTML=!BK.length?'<p class="empty">Gere os trabalhos na aba Estudantes.</p>':pick.length?pick.map(b=>`<div class="stu" data-i="${b.i}">${b.html}</div>`).join(""):'<p class="empty">Nenhum estudante selecionado. Marque um bloco, uma turma ou estudantes acima.</p>';
+ renderMod();
+}
+let MODE="mod",MOD={},MK="";const PH_N="[Nome do estudante]",PH_T="[turma]";
+const kOf=b=>{const st=STU[b.i];return grp(st.t)+"|"+st.m};
+function grabMod(){const k=$("modOut").dataset.k;if(k&&MOD[k]&&$("modOut").querySelector(".paper"))MOD[k].html=$("modOut").innerHTML}
+function setMode(m){grabMod();MODE=m;renderEx()}
+function modGo(k){grabMod();MK=k;renderMod()}
+function renderMod(){
+ const keys=Object.keys(MOD).filter(k=>BK.some(b=>kOf(b)===k)),md=MODE==="mod",d=(id,on)=>{$(id).style.display=on?"":"none"};
+ if(!keys.includes(MK))MK=keys[0]||"";
+ $("exModeW").innerHTML=BK.length?'<div class="chips seg">'+[["mod","Editar modelo do bloco"],["ind","Revisar por estudante e imprimir"]].map(([m,t])=>`<button class="${MODE===m?"on":""}" onclick="setMode('${m}')">${t}</button>`).join("")+"</div>":"";
+ ["modBox","modPv"].forEach(id=>d(id,md&&BK.length));["selBox","exSub","exPr","indPv"].forEach(id=>d(id,!md||!BK.length));
+ $("modKeys").innerHTML=keys.map(k=>`<button class="${k===MK?"on":""}" onclick="modGo('${k}')">${esc(k.replace("|"," · "))} <small>${BK.filter(b=>kOf(b)===k).length}</small></button>`).join("");
+ $("modOut").dataset.k=MK;
+ $("modOut").innerHTML=MK&&MOD[MK]?(MOD[MK].html||'<p class="empty">Nenhuma disciplina carregada neste bloco.</p>'):"";
+}
+function modApply(){
+ grabMod();const k=MK,m=MOD[k];if(!m||!m.html)return;
+ const ix=BK.filter(b=>kOf(b)===k);
+ ask("Aplicar este modelo aos "+ix.length+" estudantes de "+k.replace("|"," · ")+"? Edições feitas à mão nos trabalhos individuais deles serão substituídas.",()=>{
+  $("examOut").innerHTML="";
+  ix.forEach(b=>{const st=STU[b.i];b.html=cover(st,[])+m.html.split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))});
+  setMode("ind");
+ });
 }
 function renderKey(){
  const ks=Object.keys(VER).filter(k=>VER[k].some(s=>s.qs.length));
