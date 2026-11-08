@@ -170,7 +170,7 @@ progress{height:10px;accent-color:var(--ok)}
 const SUBJ=[["Português",5],["Matemática",5],["Ciências",3],["Geografia",3],["História",3],["Inglês",2],["Educação Física",2],["Arte",2]];
 const OPT=n=>n==="Educação Física";
 const TURMAS=["6º ano - turmas ABC","6º ano - turmas DEF","7º ano - turmas ABC","7º ano - turmas DE","8º ano - turma X"],MODS=["Regular","Adaptada"];
-const mkS=()=>SUBJ.map(([name,n])=>({name,n,qs:[],file:"",gab:"",msg:"",er:false,prof:"",rev:false}));
+const mkS=()=>SUBJ.map(([name,n])=>({name,n,qs:[],txs:[],file:"",gab:"",msg:"",er:false,prof:"",rev:false}));
 const VER={},OUT={};let KEY=TURMAS[0]+"|Regular",S=mkS();VER[KEY]=S;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -227,26 +227,33 @@ function parseG(txt){
 function parse(bl){
  let gtxt="";const gi=bl.findIndex(b=>/^\s*gabarito/i.test(b.text));
  if(gi>=0){gtxt=bl.slice(gi).map(b=>b.text).join(" ");bl=bl.slice(0,gi)}
- const qs=[];let cur=null;
+ const qs=[],txs=[];let cur=null,curT=null,actT="";
  const qre=/^\s*(?:quest[ãa]o\s*)?(\d{1,2})\s*[\.\)\-–:]\s*(.*)$/i,are=/^\s*\(?([A-Da-d])\s*[\)\.\-–]\s*(.*)$/;
  const skip=/^(prova|avalia|escola|nome|professor|prof\.|turma|data|aluno|disciplina|trimestre)\b/i;
- const mk=(stem,imgs,num)=>{cur={stem,alts:["","","",""],ans:"",imgs:[...imgs],inc:true,last:-1,num};qs.push(cur)};
+ const mk=(stem,imgs,num)=>{cur={stem,alts:["","","",""],ans:"",imgs:[...imgs],inc:true,last:-1,num,tid:actT};qs.push(cur)};
+ const tre=/^\s*texto\s*\d{1,2}\b/i,ire=/^\s*leia\b.*\btextos?\b/i,fim=/boa\s+prova|somos\s+eternos\s+aprendizes/i,nl=/^[^A-Za-zÀ-ú0-9]*$/;
+ const shut=()=>{if(!curT)return;txs.push({id:curT.id,body:curT.body.join("\n").trim(),imgs:curT.imgs});actT=curT.id;curT=null};
  for(const b of bl){
   const t=b.text;let m;
-  if(cur&&(m=t.match(are))&&!cur.alts[L.indexOf(m[1].toUpperCase())]){
+  if((fim.test(t)&&t.length<200)||(nl.test(t)&&!b.imgs.length))continue;
+  if(!curT&&cur&&(m=t.match(are))&&!cur.alts[L.indexOf(m[1].toUpperCase())]){
    const k=L.indexOf(m[1].toUpperCase());cur.alts[k]=m[2];cur.last=k;cur.imgs.push(...b.imgs);continue;
   }
   if(m=t.match(qre)){
+   shut();
    if(cur&&!cur.num&&nA(cur)===0){cur.num=m[1];cur.stem=(cur.stem+"\n"+m[2]).trim();cur.imgs.push(...b.imgs)}
    else mk(m[2],b.imgs,m[1]);
    continue;
   }
+  /* texto de apoio: tudo entre "Texto N"/"Leia os textos..." e a próxima questão numerada */
+  if(curT){curT.body.push(t);curT.imgs.push(...b.imgs);continue}
+  if((tre.test(t)&&t.length<=90)||(ire.test(t)&&t.length<220)){curT={id:"t"+(txs.length+1),body:[t],imgs:[...b.imgs]};cur=null;continue}
   if(skip.test(t)&&t.length<90&&(!cur||nA(cur)>=4))continue;
   if(b.li&&cur&&cur.stem&&nA(cur)<4){const k=cur.alts.findIndex(a=>!a);cur.alts[k]=t;cur.last=k;cur.imgs.push(...b.imgs)}
   else if(!cur||nA(cur)>=4)mk(t,b.imgs);
   else{cur.imgs.push(...b.imgs);if(cur.last>=0)cur.alts[cur.last]+=" "+t;else cur.stem=(cur.stem+"\n"+t).trim()}
  }
- return{qs:qs.filter(q=>nA(q)>0),gtxt};
+ const out=qs.filter(q=>nA(q)>0),used=new Set(out.map(q=>q.tid));return{qs:out,txs:txs.filter(t=>used.has(t.id)&&(t.body||t.imgs.length)),gtxt};
 }
 const fmtG=arr=>arr.some(Boolean)?arr.map((a,k)=>(k+1)+"-"+(a||"?")).join(" "):"";
 function applyG(s){const a=parseG(s.gab);if(!s.gab.trim())return;s.qs.forEach((q,k)=>q.ans=a[k]||"")}
@@ -256,7 +263,7 @@ async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
  try{
   const r=parse(await readAny(f));
-  s.file=f.name;s.qs=r.qs;
+  s.file=f.name;s.qs=r.qs;s.txs=r.txs;
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
   applyG(s);
   s.msg=r.qs.length?r.qs.length+" questões lidas.":"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";
@@ -288,8 +295,8 @@ function renderGrid(){
 }
 function renderRev(open){
  const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas, ${s.n} necessárias</summary>
- ${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid()"> Incluir questão ${j+1}</label>
- <label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label></div>
+ ${txBox(i)}${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid()"> Incluir questão ${j+1}</label>
+ <label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>${txSel(i,j,q)}</div>
  <textarea rows="3" oninput="S[${i}].qs[${j}].stem=this.value">${esc(q.stem)}</textarea>
  <div class="r">${q.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="rmImg(${i},${j},${m})">Remover</button></span>`).join("")}<label>Adicionar imagem<input type="file" accept="image/*" onchange="addImg(${i},${j},this.files[0])"></label></div>
  ${L.map((l,k)=>`<div class="al"><b>${l}</b><input value="${esc(q.alts[k])}" oninput="S[${i}].qs[${j}].alts[${k}]=this.value"></div>`).join("")}</div>`).join("")}</details>`).join("");
@@ -305,7 +312,8 @@ const PCSS=`.paper{background:#fff;color:#111;font:12pt/1.4 Arial,Helvetica,sans
 .paper .q{text-align:justify;break-inside:avoid;margin:0 0 11px}.paper .alt{margin-left:20px}.paper img{max-width:100%;max-height:70mm;display:block;margin:4px 0}
 .paper .pb{break-before:page}.paper table{border-collapse:collapse;width:100%}.paper td,.paper th{border:1px solid #111;padding:3px 8px;text-align:left}
 .paper .bb{display:inline-block;width:16px;height:16px;border:1.3px solid #111;border-radius:50%;text-align:center;font-size:8pt;line-height:14px;margin-right:5px}
-.paper .cr{columns:3;column-gap:20px}.paper .cr div{break-inside:avoid;margin:3px 0}`;
+.paper .cr{columns:3;column-gap:20px}.paper .cr div{break-inside:avoid;margin:3px 0}
+.paper .tx{border:1px solid #888;background:#f7f7f7;padding:6px 9px;margin:8px 0 10px;font-size:11pt;line-height:1.35;text-align:justify}.paper .tx .ti{margin:0 0 4px;font-weight:700;font-size:10pt;break-after:avoid}.paper .tx img{margin:4px auto;max-height:60mm}`;
 const st=document.createElement("style");st.textContent=PCSS;document.head.appendChild(st);
 
 function head(){
@@ -327,8 +335,9 @@ function gen(){
  sel.forEach(({s,q})=>{
   if(!q.length)return;const a=n+1;
   body+=`<h2>${s.name} (questões ${p2(a)} a ${p2(n+q.length)})</h2>`;cr+=`<div><b>${s.name}</b></div>`;
-  q.forEach(x=>{
+  q.forEach((x,k)=>{
    n++;
+   if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;body+=txHtml(t,n,n+e-k)}}
    body+=`<div class="q"><b>${p2(n)}.</b> <b>(${pv})</b> ${br(x.stem)}${x.imgs.map(u=>`<img src="${u}" alt="">`).join("")}${L.map((l,k)=>`<div class="alt">${l}) ${esc(x.alts[k])}</div>`).join("")}</div>`;
    cr+=`<div>${String(n).padStart(2,"0")} ${L.map(l=>`<span class="bb">${l}</span>`).join("")}</div>`;
    rows+=`<tr><td>${p2(n)}</td><td>${s.name}</td><td><b>${x.ans||"?"}</b></td><td>${f2(pq)}</td></tr>`;
@@ -356,6 +365,19 @@ async function dl(w){
  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Prova</title><style>body{margin:0}${PCSS}</style></head><body>${$(w+"Out").innerHTML}</body></html>`;
  try{await d.save({filename:(w==="exam"?"prova-":"gabarito-")+($("serie").value+$("mod").value).replace(/\W/g,"")+".html",data:new Blob([html],{type:"text/html"})})}catch(e){if(e&&e.code!=="declined")alert("Não foi possível salvar o arquivo.")}
 }
+const txF=(i,id)=>(S[i].txs||[]).find(t=>t.id===id);
+const txHtml=(t,a,b)=>`<div class="tx"><p class="ti">📖 Leia o texto abaixo e responda ${a===b?"à questão "+p2(a):"às questões "+p2(a)+(b-a===1?" e ":" a ")+p2(b)}.</p><div>${br(t.body)}</div>${t.imgs.map(u=>`<img src="${u}" alt="">`).join("")}</div>`;
+function txBox(i){const s=S[i];s.txs=s.txs||[];
+ return `<div class="qe"><div class="r"><b>📖 Textos de apoio</b><span class="sm">Para um texto que serve a duas ou mais questões: crie o texto aqui e, em cada questão, escolha o “Texto de apoio”. Ele sai uma vez, antes da primeira questão do grupo, com o aviso “Leia o texto abaixo e responda às questões…”.</span></div>`
+ +s.txs.map((t,k)=>`<div class="qe"><div class="r"><b>Texto ${k+1}</b><span class="sm">usado em ${s.qs.filter(q=>q.tid===t.id&&q.inc).length} questão(ões)</span><button onclick="txDel(${i},'${t.id}')">Excluir texto</button></div>
+ <textarea rows="6" aria-label="Texto de apoio ${k+1}" oninput="txF(${i},'${t.id}').body=this.value">${esc(t.body)}</textarea>
+ <div class="r">${t.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="txRmImg(${i},'${t.id}',${m})">Remover</button></span>`).join("")}<label>Adicionar imagem ao texto<input type="file" accept="image/*" onchange="txAddImg(${i},'${t.id}',this.files[0])"></label></div></div>`).join("")
+ +`<div><button onclick="txAdd(${i})">+ Adicionar texto de apoio</button></div></div>`}
+const txSel=(i,j,q)=>{const t=S[i].txs||[];return t.length?`<label>Texto de apoio <select onchange="S[${i}].qs[${j}].tid=this.value;renderRev(${i})"><option value="">nenhum</option>${t.map((x,k)=>`<option value="${x.id}" ${q.tid===x.id?"selected":""}>Texto ${k+1}: ${esc(x.body.replace(/\s+/g," ").slice(0,28))}</option>`).join("")}</select></label>`:""};
+function txAdd(i){const s=S[i];s.txs=s.txs||[];let n=1;while(s.txs.some(t=>t.id==="t"+n))n++;s.txs.push({id:"t"+n,body:"",imgs:[]});renderRev(i)}
+function txDel(i,id){S[i].txs=S[i].txs.filter(t=>t.id!==id);S[i].qs.forEach(q=>{if(q.tid===id)q.tid=""});renderRev(i)}
+function txRmImg(i,id,m){txF(i,id).imgs.splice(m,1);renderRev(i)}
+function txAddImg(i,id,f){if(!f)return;const r=new FileReader();r.onload=()=>{txF(i,id).imgs.push(r.result);renderRev(i)};r.readAsDataURL(f)}
 function rmImg(i,j,m){S[i].qs[j].imgs.splice(m,1);renderRev(i)}
 function addImg(i,j,f){if(!f)return;const r=new FileReader();r.onload=()=>{S[i].qs[j].imgs.push(r.result);renderRev(i)};r.readAsDataURL(f)}
 function renderSum(){
@@ -387,7 +409,7 @@ function askDel(i,w){
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
  $("dlgOk").onclick=()=>{
   if(w==="g"){s.gab="";s.qs.forEach(q=>q.ans="");s.msg="Gabarito excluído."}
-  else{s.file="";s.qs=[];s.gab="";s.msg="Prova excluída.";s.er=false;s.rev=false}
+  else{s.file="";s.qs=[];s.txs=[];s.gab="";s.msg="Prova excluída.";s.er=false;s.rev=false}
   $("dlg").hidden=true;renderGrid();renderRev();
  };
 }
@@ -615,6 +637,7 @@ progress{height:10px;accent-color:var(--ok)}
 .paper .qb.wide{flex-direction:column;gap:2mm}
 .paper .qb.wide .qi{flex:none;width:100%}
 .paper .qb.wide .qi img{max-height:42mm}
+.paper .tx{border:1px solid #888;background:#f7f7f7;padding:6px 9px;margin:6px 0 10px;font-size:11pt;line-height:1.35;text-align:justify}.paper .tx .tt{white-space:normal}
 .paper .ln{height:7.5mm}
 .paper .ph{break-after:avoid;margin:6px 0 4px}
 .paper h2{break-after:avoid}
@@ -735,7 +758,7 @@ progress{height:10px;accent-color:var(--ok)}
 const SUBJ=["Português","Matemática","Ciências","Geografia","História","Inglês","Educação Física","Arte"],NT=10;
 const TURMAS=["6º ano - turmas ABC","6º ano - turmas DEF","7º ano - turmas ABC","7º ano - turmas DE","8º ano - turma X"],MODS=["Regular","Adaptada"];
 const L=["A","B","C","D"],VW=["build","blk","stu","exam","key","sum"];
-const mkS=()=>SUBJ.map(name=>({name,qs:[],file:"",gab:"",msg:"",er:false}));
+const mkS=()=>SUBJ.map(name=>({name,qs:[],txs:[],file:"",gab:"",msg:"",er:false}));
 const DEF=`6B;ARTHUR OLIVEIRA DE FREITAS;32
 6B;KAILLANY EVILLYN FLORENÇO LABOURE DA SILVA;38
 6B;SOFIA ESTER ALMEIDA DE MENEZES;32
@@ -811,26 +834,36 @@ function parseG(txt){
 function parse(bl){
  let gtxt="";const gi=bl.findIndex(b=>/^\s*gabarito/i.test(b.text));
  if(gi>=0){gtxt=bl.slice(gi).map(b=>b.text).join(" ");bl=bl.slice(0,gi)}
- const qs=[];let cur=null;
+ const qs=[],txs=[];let cur=null,curT=null,actT="";
  const qre=/^\s*(?:quest[ãa]o\s*)?(\d{1,2})\s*[\.\)\-–:]\s*(.*)$/i,are=/^\s*\(?([A-Da-d])\s*[\)\.\-–]\s*(.*)$/;
  const skip=/^(parte|quest[õo]es|discursiv|abert|objetiv|prova|avalia|escola|nome|professor|prof\.|turma|data|aluno|disciplina|trimestre)\b/i;
- const mk=(stem,imgs,num)=>{cur={stem,alts:["","","",""],ans:"",imgs:[...imgs],inc:true,last:-1,num};qs.push(cur)};
+ const tre=/^\s*texto\s*\d{1,2}\b/i,ire=/^\s*leia\b.*\btextos?\b/i,fim=/boa\s+prova|somos\s+eternos\s+aprendizes/i;
+ const mk=(stem,imgs,num)=>{cur={stem,alts:["","","",""],ans:"",imgs:[...imgs],inc:true,last:-1,num,tid:actT};qs.push(cur)};
+ const shut=()=>{if(!curT)return;txs.push({id:curT.id,body:curT.body.join("\n").trim(),imgs:curT.imgs});actT=curT.id;curT=null};
  for(const b of bl){
   const t=b.text;let m;
-  if(cur&&(m=t.match(are))&&!cur.alts[L.indexOf(m[1].toUpperCase())]){
+  if(fim.test(t)&&t.length<200)continue;
+  if(!curT&&cur&&(m=t.match(are))&&!cur.alts[L.indexOf(m[1].toUpperCase())]){
    const k=L.indexOf(m[1].toUpperCase());cur.alts[k]=m[2];cur.last=k;cur.imgs.push(...b.imgs);continue;
   }
   if(m=t.match(qre)){
+   shut();
    if(cur&&!cur.num&&nA(cur)===0){cur.num=m[1];cur.stem=(cur.stem+"\n"+m[2]).trim();cur.imgs.push(...b.imgs)}
    else mk(m[2],b.imgs,m[1]);
    continue;
   }
+  /* texto de apoio: tudo entre "Texto N"/"Leia os textos..." e a próxima questão numerada */
+  if(curT){curT.body.push(t);curT.imgs.push(...b.imgs);continue}
+  if((tre.test(t)&&t.length<=90)||(ire.test(t)&&t.length<220)){curT={id:"t"+(txs.length+1),body:[t],imgs:[...b.imgs]};cur=null;continue}
   if(skip.test(t)&&t.length<90&&(!cur||nA(cur)>=4))continue;
   if(b.li&&cur&&cur.stem&&nA(cur)<4){const k=cur.alts.findIndex(a=>!a);cur.alts[k]=t;cur.last=k;cur.imgs.push(...b.imgs)}
   else if(!cur||nA(cur)>=4)mk(t,b.imgs);
   else{cur.imgs.push(...b.imgs);if(cur.last>=0)cur.alts[cur.last]+=" "+t;else cur.stem=(cur.stem+"\n"+t).trim()}
  }
- return{qs:qs.filter(q=>q.stem.trim()||nA(q)>0),gtxt};
+ const first=qs.findIndex(q=>q.num);
+ const out=qs.filter((q,i)=>(q.stem.trim()||nA(q)>0)&&(first<0||q.num||i>first));
+ const used=new Set(out.map(q=>q.tid));
+ return{qs:out,txs:txs.filter(t=>used.has(t.id)&&(t.body||t.imgs.length)),gtxt};
 }
 const fmtG=arr=>arr.some(Boolean)?arr.map((a,k)=>(k+1)+"-"+(a||"?")).join(" "):"";
 
@@ -857,7 +890,7 @@ const grp=t=>{const y=t[0],l=t[1]||"";return y==="6"?(l<"D"?TURMAS[0]:TURMAS[1])
 /* ---------- montar ---------- */
 async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
- try{const r=parse(await readAny(f));s.file=f.name;s.qs=r.qs.map(q=>({...q,o:nA(q)>0}));
+ try{const r=parse(await readAny(f));s.file=f.name;s.txs=r.txs;s.qs=r.qs.map(q=>{if(nA(q)>=4)return{...q,o:true};const sub=q.alts.map((a,k)=>a?L[k]+") "+a:"").filter(Boolean).join("\n");return{...q,o:false,stem:(q.stem+(sub?"\n"+sub:"")).trim(),alts:["","","",""]}});
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
   applyG(s);const[o,a]=cnt(s);
   s.msg=r.qs.length?`${o} objetivas e ${a} abertas lidas (total ${o+a}). ${o+a===NT?"Total de 10 questões: disciplina conferida automaticamente.":"Faltam ou sobram questões para chegar a 10: ajuste na revisão."}`:"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";s.er=!r.qs.length;
@@ -883,10 +916,10 @@ function renderGrid(){
   <div class="sm ${s.er?"er":""}">${esc(s.msg)}</div></div>`}).join("");
 }
 function renderRev(open){
- const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas (precisa de ${NT} questões marcadas no total, em qualquer combinação de objetivas e abertas)</summary>${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid()"> Incluir questão ${j+1}</label>
+ const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas (precisa de ${NT} questões marcadas no total, em qualquer combinação de objetivas e abertas)</summary>${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid();renderRev(${i})"> Incluir questão ${j+1}${(()=>{const[po,pa]=pk(s),a=po.indexOf(q),b=pa.indexOf(q);const n=a>=0?a+1:b>=0?po.length+b+1:0;return n?`<small class="sm"> → nº ${p2(n)} no trabalho</small>`:""})()}</label>
   <label>Tipo <select onchange="S[${i}].qs[${j}].o=this.value==='o';applyG(S[${i}]);renderGrid();renderRev(${i})"><option value="o" ${q.o?"selected":""}>Objetiva</option><option value="a" ${q.o?"":"selected"}>Aberta</option></select></label>
   ${q.o?`<label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:""}</div>
-  <p class="sm">${esc(q.stem.length>140?q.stem.slice(0,140)+"…":q.stem)}</p></div>`).join("")}</details>`).join("");
+  <p class="sm">${q.tid?"📄 (com texto de apoio) ":""}${esc(q.stem.length>140?q.stem.slice(0,140)+"…":q.stem)}</p></div>`).join("")}</details>`).join("");
  $("rev").innerHTML=h||'<p class="empty">Envie ao menos um arquivo de questões para revisar aqui.</p>';
 }
 function rmImg(i,j,m){S[i].qs[j].imgs.splice(m,1);renderRev(i)}
@@ -895,7 +928,7 @@ function setM(m){$("mod").value=m;swV()}
 function swV(){KEY=$("serie").value+"|"+$("mod").value;S=VER[KEY]||(VER[KEY]=mkS());renderGrid();renderRev();if(!$("v-blk").hidden)renderBlk()}
 function goV(t,m,i){$("serie").value=t;$("mod").value=m;swV();cur=i;renderGrid();show("build")}
 function ask(t,f){$("dlgT").textContent=t;$("dlg").hidden=false;$("dlgNo").focus();$("dlgNo").onclick=()=>{$("dlg").hidden=true};$("dlgOk").onclick=()=>{$("dlg").hidden=true;f()}}
-function askDel(i){ask("Excluir o arquivo enviado e as questões lidas de "+S[i].name+"?",()=>{Object.assign(S[i],{file:"",qs:[],gab:"",msg:"Arquivo excluído.",er:false});renderGrid();renderRev()})}
+function askDel(i){ask("Excluir o arquivo enviado e as questões lidas de "+S[i].name+"?",()=>{Object.assign(S[i],{file:"",qs:[],txs:[],gab:"",msg:"Arquivo excluído.",er:false});renderGrid();renderRev()})}
 function askClear(){ask("Apagar TODOS os dados salvos neste navegador e no Supabase (questões, gabaritos e estudantes)? Esta ação não pode ser desfeita.",()=>{Object.keys(VER).forEach(k=>delete VER[k]);KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();STU=[];BK=[];$("serie").value=TURMAS[0];$("mod").value="Regular";renderGrid();renderRev();renderStu()})}
 
 /* ---------- estudantes ---------- */
@@ -940,9 +973,12 @@ function disc(st,s,first){
   const ln='<div class="ln"></div>'.repeat(5);
   return `<div class="q">${hi?`<div class="qb"><div class="qa">${stem}</div>${imgs(x)}</div>`:stem}${ln}</div>`;
  };
+ const tm={};(s.txs||[]).forEach(t=>tm[t.id]=t);
+ const txh=t=>{const bd=`<div class="tt">${br(t.body)}</div>`;return `<div class="tx">${t.imgs&&t.imgs.length?`<div class="qb"><div class="qa">${bd}</div>${imgs(t)}</div>`:bd}</div>`};
+ const gq=(arr,op)=>{let lt="";return arr.map(x=>{const h=x.tid&&x.tid!==lt&&tm[x.tid]?txh(tm[x.tid]):"";lt=x.tid||"";return h+q(x,op)}).join("")};
  const info=[esc(st.n),"Turma "+esc(st.t),"Projeto FICA",esc($("tri").value)];if($("dt").value)info.push("Entrega: "+esc($("dt").value));
  const ins=first?`<div class="ins2"><b>Orientações:</b> cada disciplina tem 10 questões. Nas objetivas, marque apenas uma alternativa; nas abertas, responda nas linhas. Use caneta azul ou preta e não use corretivo. Leia cada questão com atenção e, ao terminar, entregue o trabalho à coordenação pedagógica.</div>`:"";
- const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${o.map(x=>q(x,1)).join("")}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${a.map(x=>q(x,0)).join("")}`:""}`;
+ const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${gq(o,1)}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${gq(a,0)}`:""}`;
  return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
 }
 function gen(){
@@ -1118,9 +1154,23 @@ function blkAlt(i,j,k,v){S[i].qs[j].alts[k]=v;mark()}
 function blkOut(i,j){S[i].qs[j].inc=false;mark();renderBlk();save()}
 function blkRmImg(i,j,m){S[i].qs[j].imgs.splice(m,1);mark();renderBlk();save()}
 function blkAddImg(i,j,f){if(!f)return;const r=new FileReader();r.onload=()=>{S[i].qs[j].imgs.push(r.result);mark();renderBlk();save()};r.readAsDataURL(f)}
+function blkType(i,j,v){const q=S[i].qs[j];q.o=v==="o";if(q.o)q.ans="";applyG(S[i]);mark();renderBlk();save()}
+const txF=(i,id)=>(S[i].txs||[]).find(t=>t.id===id);
+function txSet(i,id,v){txF(i,id).body=v;mark()}
+function txRmImg(i,id,m){txF(i,id).imgs.splice(m,1);mark();renderBlk();save()}
+function txAddImg(i,id,f){if(!f)return;const r=new FileReader();r.onload=()=>{txF(i,id).imgs.push(r.result);mark();renderBlk();save()};r.readAsDataURL(f)}
+function txDel(i,id){S[i].txs=S[i].txs.filter(t=>t.id!==id);S[i].qs.forEach(q=>{if(q.tid===id)q.tid=""});mark();renderBlk();save()}
+function txAdd(i){const s=S[i];s.txs=s.txs||[];let n=1;while(s.txs.some(t=>t.id==="t"+n))n++;s.txs.push({id:"t"+n,body:"Texto "+(s.txs.length+1)+"\n",imgs:[]});mark();renderBlk();save()}
+function blkTid(i,j,v){S[i].qs[j].tid=v;mark();renderBlk();save()}
+function blkTx(i,t){
+ const nq=S[i].qs.filter(q=>q.tid===t.id&&q.inc).length;
+ return `<div class="qe tx-e"><div class="r"><b>📄 Texto de apoio</b><span class="sm">usado em ${nq} questão(ões) · aparece antes da primeira delas em cada parte</span><button onclick="txDel(${i},'${t.id}')">Excluir texto</button></div>
+ <textarea rows="6" aria-label="Texto de apoio" oninput="txSet(${i},'${t.id}',this.value);grow(this)">${esc(t.body)}</textarea>
+ <div class="r">${t.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="txRmImg(${i},'${t.id}',${m})">Remover</button></span>`).join("")}<label>Adicionar imagem<input type="file" accept="image/*" onchange="txAddImg(${i},'${t.id}',this.files[0])"></label></div></div>`}
+function blkG(i,arr,nx){let lt="";return arr.map(x=>{const t=txF(i,x.tid),h=t&&x.tid!==lt?blkTx(i,t):"";lt=x.tid||"";return h+blkQ(i,x,nx())}).join("")}
 function blkQ(i,x,n){
  const j=S[i].qs.indexOf(x),o=x.o;
- return `<div class="qe"><div class="r"><b>${p2(n)}</b>${o?`<label>Resposta certa <select onchange="blkSet(${i},${j},'ans',this.value)"><option value="">?</option>${L.map(l=>`<option ${x.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:'<span class="sm">Aberta · 5 linhas para a resposta</span>'}<button onclick="blkOut(${i},${j})">Tirar do trabalho</button></div>
+ return `<div class="qe"><div class="r"><b>${p2(n)}</b><small class="sm">(questão ${j+1} na aba 1)</small><label>Tipo <select onchange="blkType(${i},${j},this.value)"><option value="o" ${o?"selected":""}>Objetiva</option><option value="a" ${o?"":"selected"}>Aberta</option></select></label>${S[i].txs&&S[i].txs.length?`<label>Texto de apoio <select onchange="blkTid(${i},${j},this.value)"><option value="">nenhum</option>${S[i].txs.map((t,k)=>`<option value="${t.id}" ${x.tid===t.id?"selected":""}>${k+1}: ${esc(t.body.replace(/\s+/g," ").slice(0,28))}</option>`).join("")}</select></label>`:""}${o?`<label>Resposta certa <select onchange="blkSet(${i},${j},'ans',this.value)"><option value="">?</option>${L.map(l=>`<option ${x.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:'<span class="sm">Aberta · 5 linhas para a resposta</span>'}<button onclick="blkOut(${i},${j})">Tirar do trabalho</button></div>
  <textarea rows="2" aria-label="Enunciado da questão ${p2(n)}" oninput="blkSet(${i},${j},'stem',this.value);grow(this)">${esc(x.stem)}</textarea>
  <div class="r">${x.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="blkRmImg(${i},${j},${m})">Remover</button></span>`).join("")}<label>Adicionar imagem<input type="file" accept="image/*" onchange="blkAddImg(${i},${j},this.files[0])"></label></div>
  ${o?L.map((l,k)=>`<div class="al"><b>${l}</b><input value="${esc(x.alts[k])}" aria-label="Alternativa ${l}" oninput="blkAlt(${i},${j},${k},this.value)"></div>`).join(""):""}</div>`;
@@ -1136,8 +1186,8 @@ function renderBlk(){
   const[o,a]=pk(s),[co,ca]=cnt(s),full=o.length+a.length===NT,gab=o.every(x=>x.ans);let n=0;
   return `<div class="card blk"><div class="ch"><b>${s.name}</b><span class="bd ${full&&gab?"ok":"wn"}">${o.length} objetivas · ${a.length} abertas · ${o.length+a.length}/${NT}${full&&!gab?" · falta gabarito":""}</span></div>
   ${co>o.length||ca>a.length?`<div class="sm">Há ${co-o.length} objetiva(s) e ${ca-a.length} aberta(s) a mais, que não entram no trabalho. <button class="lk" onclick="goV('${t}','${m}',${i})">Ver na aba 1 · Receber questões</button></div>`:""}
-  <p><b>Parte I – Questões objetivas</b></p>${o.map(x=>blkQ(i,x,++n)).join("")||'<p class="sm">Nenhuma objetiva.</p>'}
-  <p><b>Parte II – Questões abertas</b></p>${a.map(x=>blkQ(i,x,++n)).join("")||'<p class="sm">Nenhuma aberta.</p>'}</div>`}).join("");
+  ${(()=>{const u=new Set([...o,...a].map(x=>x.tid));return (s.txs||[]).filter(t=>!u.has(t.id)).map(t=>blkTx(i,t)).join("")})()}<p><button onclick="txAdd(${i})">+ Adicionar texto de apoio</button></p><p><b>Parte I – Questões objetivas</b></p>${blkG(i,o,()=>++n)||'<p class="sm">Nenhuma objetiva.</p>'}
+  <p><b>Parte II – Questões abertas</b></p>${blkG(i,a,()=>++n)||'<p class="sm">Nenhuma aberta.</p>'}</div>`}).join("");
  $("blkOut").innerHTML=blocos+`<p><b>${esc(t)} · ${m}</b> — ${nst.length?nst.length+" estudante(s) recebem este bloco ("+esc(tl)+")":"nenhum estudante cadastrado neste bloco ainda"}.</p>`+subs+body;
  $("blkN").textContent=doneN(KEY)+" de "+SUBJ.length+" disciplinas completas neste bloco. As mudanças valem para todos os estudantes dele.";
  document.querySelectorAll("#blkOut textarea").forEach(grow);window.scrollTo(0,y);
