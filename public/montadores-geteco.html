@@ -842,7 +842,7 @@ function parse(bl){
  const shut=()=>{if(!curT)return;txs.push({id:curT.id,body:curT.body.join("\n").trim(),imgs:curT.imgs});actT=curT.id;curT=null};
  for(const b of bl){
   const t=b.text;let m;
-  if(fim.test(t)&&t.length<200)continue;
+  if((fim.test(t)&&t.length<200)||(/^[^A-Za-zÀ-ú0-9]*$/.test(t)&&!b.imgs.length))continue;
   if(!curT&&cur&&(m=t.match(are))&&!cur.alts[L.indexOf(m[1].toUpperCase())]){
    const k=L.indexOf(m[1].toUpperCase());cur.alts[k]=m[2];cur.last=k;cur.imgs.push(...b.imgs);continue;
   }
@@ -892,7 +892,7 @@ async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
  try{const r=parse(await readAny(f));s.file=f.name;s.txs=r.txs;s.qs=r.qs.map(q=>{if(nA(q)>=4)return{...q,o:true};const sub=q.alts.map((a,k)=>a?L[k]+") "+a:"").filter(Boolean).join("\n");return{...q,o:false,stem:(q.stem+(sub?"\n"+sub:"")).trim(),alts:["","","",""]}});
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
-  applyG(s);const[o,a]=cnt(s);
+  mark();applyG(s);const[o,a]=cnt(s);
   s.msg=r.qs.length?`${o} objetivas e ${a} abertas lidas (total ${o+a}). ${o+a===NT?"Total de 10 questões: disciplina conferida automaticamente.":"Faltam ou sobram questões para chegar a 10: ajuste na revisão."}`:"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";s.er=!r.qs.length;
  }catch(e){s.msg=errMsg(e,"este arquivo");s.er=true}
  renderGrid();renderRev(i);
@@ -916,9 +916,9 @@ function renderGrid(){
   <div class="sm ${s.er?"er":""}">${esc(s.msg)}</div></div>`}).join("");
 }
 function renderRev(open){
- const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas (precisa de ${NT} questões marcadas no total, em qualquer combinação de objetivas e abertas)</summary>${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;renderGrid();renderRev(${i})"> Incluir questão ${j+1}${(()=>{const[po,pa]=pk(s),a=po.indexOf(q),b=pa.indexOf(q);const n=a>=0?a+1:b>=0?po.length+b+1:0;return n?`<small class="sm"> → nº ${p2(n)} no trabalho</small>`:""})()}</label>
-  <label>Tipo <select onchange="S[${i}].qs[${j}].o=this.value==='o';applyG(S[${i}]);renderGrid();renderRev(${i})"><option value="o" ${q.o?"selected":""}>Objetiva</option><option value="a" ${q.o?"":"selected"}>Aberta</option></select></label>
-  ${q.o?`<label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:""}</div>
+ const h=S.map((s,i)=>!s.qs.length?"":`<details ${i===open?"open":""}><summary>${s.name} – ${s.qs.length} lidas (precisa de ${NT} questões marcadas no total, em qualquer combinação de objetivas e abertas)</summary>${s.qs.map((q,j)=>`<div class="qe"><div class="r"><label><input type="checkbox" ${q.inc?"checked":""} onchange="S[${i}].qs[${j}].inc=this.checked;mark();renderGrid();renderRev(${i})"> Incluir questão ${j+1}${(()=>{const[po,pa]=pk(s),a=po.indexOf(q),b=pa.indexOf(q);const n=a>=0?a+1:b>=0?po.length+b+1:0;return n?`<small class="sm"> → nº ${p2(n)} no trabalho</small>`:""})()}</label>
+  <label>Tipo <select onchange="S[${i}].qs[${j}].o=this.value==='o';mark();applyG(S[${i}]);renderGrid();renderRev(${i})"><option value="o" ${q.o?"selected":""}>Objetiva</option><option value="a" ${q.o?"":"selected"}>Aberta</option></select></label>
+  ${q.o?`<label>Resposta certa <select onchange="S[${i}].qs[${j}].ans=this.value;mark()"><option value="">?</option>${L.map(l=>`<option ${q.ans===l?"selected":""}>${l}</option>`).join("")}</select></label>`:""}</div>
   <p class="sm">${q.tid?"📄 (com texto de apoio) ":""}${esc(q.stem.length>140?q.stem.slice(0,140)+"…":q.stem)}</p></div>`).join("")}</details>`).join("");
  $("rev").innerHTML=h||'<p class="empty">Envie ao menos um arquivo de questões para revisar aqui.</p>';
 }
