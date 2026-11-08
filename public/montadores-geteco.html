@@ -628,6 +628,10 @@ progress{height:10px;accent-color:var(--ok)}
 .paper .qs,.paper .alt,.paper .qa p{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto}
 .paper .q{margin:0 0 9px;break-inside:avoid}.paper .q+.q::before{content:"";display:block;height:1px;margin:0 0 9px;background:linear-gradient(90deg,#444 0,#999 30%,rgba(0,0,0,0) 100%);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper .alt{margin-left:6mm;margin-bottom:1px}
+.paper.dp .q+.q::before{display:none!important}
+.paper.dp .sep{display:flex;align-items:center;gap:7px;margin:7px 0 9px;height:7px;break-inside:avoid;break-after:avoid;user-select:none}
+.paper.dp .sep u{flex:1;height:0;border-top:.6pt solid #b8b8b8;text-decoration:none}
+.paper.dp .sep i{flex:none;width:4px;height:4px;border:1pt solid #6b6b6b;transform:rotate(45deg)}
 .paper .qb{display:flex;gap:4mm;align-items:flex-start;margin-top:2px}
 .paper .qa{flex:1 1 0;min-width:0}
 .paper .qi{flex:0 0 42%;display:flex;flex-direction:column;align-items:center;gap:2mm}
@@ -970,14 +974,15 @@ function disc(st,s,first){
  const imgs=x=>`<div class="qi n${Math.min(x.imgs.length,4)}">${x.imgs.map(u=>`<img src="${u}" alt="" onload="fitQ(this)">`).join("")}</div>`;
  const q=(x,op)=>{n++;
   const num=`<b>${p2(n)}.</b> `,stem=`<div class="qs">${num}${br(x.stem)}</div>`,hi=x.imgs.length>0;
-  const alts=op?L.map((l,k)=>x.alts[k]?`<div class="alt">( ) ${l}) ${esc(x.alts[k])}</div>`:"").join(""):"";
+  const alts=op?L.map((l,k)=>x.alts[k]?`<div class="alt"><b>(${l})</b> ${esc(x.alts[k])}</div>`:"").join(""):"";
   if(op)return `<div class="q">${stem}${hi?`<div class="qb"><div class="qa">${alts}</div>${imgs(x)}</div>`:alts}</div>`;
   const ln='<div class="ln"></div>'.repeat(5);
   return `<div class="q">${hi?`<div class="qb"><div class="qa">${stem}</div>${imgs(x)}</div>`:stem}${ln}</div>`;
  };
  const tm={};(s.txs||[]).forEach(t=>tm[t.id]=t);
  const txh=t=>{const bd=`<div class="tt">${br(t.body)}</div>`;return `<div class="tx">${t.imgs&&t.imgs.length?`<div class="qb"><div class="qa">${bd}</div>${imgs(t)}</div>`:bd}</div>`};
- const gq=(arr,op)=>{let lt="";return arr.map(x=>{const h=x.tid&&x.tid!==lt&&tm[x.tid]?txh(tm[x.tid]):"";lt=x.tid||"";return h+q(x,op)}).join("")};
+ const SEP='<div class="sep" contenteditable="false"><u></u><i></i><u></u></div>';
+ const gq=(arr,op)=>{let lt="";return arr.map((x,ix)=>{const h=x.tid&&x.tid!==lt&&tm[x.tid]?txh(tm[x.tid]):"";lt=x.tid||"";return (ix?SEP:"")+h+q(x,op)}).join("")};
  const info=[esc(st.n),"Turma "+esc(st.t),"Projeto FICA",esc($("tri").value)];if($("dt").value)info.push("Entrega: "+esc($("dt").value));
  const ins=first?`<div class="ins2"><b>Orientações:</b> cada disciplina tem 10 questões. Nas objetivas, marque apenas uma alternativa; nas abertas, responda nas linhas. Use caneta azul ou preta e não use corretivo. Leia cada questão com atenção e, ao terminar, entregue o trabalho à coordenação pedagógica.</div>`:"";
  const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${gq(o,1)}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${gq(a,0)}`:""}`;
