@@ -664,6 +664,13 @@ progress{height:10px;accent-color:var(--ok)}
 </style>
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
 <style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}#modOut img,#examOut .qb img{touch-action:none}#imgHandle{position:fixed;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;z-index:40;touch-action:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}#dropBar{position:fixed;background:var(--ac);opacity:.85;border-radius:3px;z-index:40;pointer-events:none;display:none}</style>
+<style>
+.paper .gbw{break-inside:avoid;margin-top:12px}.paper .gbt{font-weight:700;font-size:10pt;margin:0 0 4px}
+.paper table.gb{border-collapse:collapse;margin:0;width:auto}
+.paper table.wrap table.gb th,.paper table.wrap table.gb td{border:1px solid #111;padding:2px 0;width:10mm;min-width:10mm;text-align:center;font-size:11pt;line-height:1.35;background:#fff;color:#111}
+.paper table.wrap table.gb th{background:#e8eef2;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper table.wrap table.gb td{font-size:13pt}
+</style>
 </head>
 <body>
 <div class="ui">
@@ -717,7 +724,7 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
   <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda.</div>
   <div class="chips" id="modKeys"></div>
-  <div><button class="p" onclick="modApply()">Aplicar a todos do bloco</button></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" onclick="modApply()">Aplicar a todos do bloco</button><button onclick="prMod()">🖨️ Imprimir este bloco</button><button onclick="dlMod()">⬇️ Baixar em Word (.doc)</button></div></div>
  <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:12px;position:sticky;top:56px;z-index:15"><b>Formatação</b><div class="sm">Vale para o modelo ou para o estudante, conforme a visão aberta.</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Texto:</b>
    <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
@@ -756,7 +763,7 @@ progress{height:10px;accent-color:var(--ok)}
  <p class="noprint"><button class="p" onclick="pr('sum')">Imprimir quadro resumo</button> <button onclick="dlSum()">Baixar para Word (.doc)</button></p>
  <div id="sumOut"></div>
 </section>
-<div id="big" hidden><div id="bigTb" class="noprint"><b>Visualização ampliada</b><button onclick="bigZ(-.1)" aria-label="Diminuir">−</button><span id="bigZv"></span><button onclick="bigZ(.1)" aria-label="Aumentar">+</button><button onclick="bigFit()">Ajustar à largura</button><button id="bigPr" onclick="bigClose();pr('exam')">Imprimir</button><button class="p" onclick="bigClose()" style="margin-left:auto">Fechar ✕</button></div><div id="bigBd"></div></div>
+<div id="big" hidden><div id="bigTb" class="noprint"><b>Visualização ampliada</b><button onclick="bigZ(-.1)" aria-label="Diminuir">−</button><span id="bigZv"></span><button onclick="bigZ(.1)" aria-label="Aumentar">+</button><button onclick="bigFit()">Ajustar à largura</button><button id="bigPr" onclick="bigClose();MODE==='mod'?prMod():pr('exam')">Imprimir</button><button class="p" onclick="bigClose()" style="margin-left:auto">Fechar ✕</button></div><div id="bigBd"></div></div>
 <div id="dlg" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><p id="dlgT" style="margin-top:0"></p><div><button id="dlgNo">Cancelar</button><button class="p" id="dlgOk">Sim, excluir</button></div></div></div>
 </div>
 
@@ -986,7 +993,8 @@ function disc(st,s,first){
  const info=[esc(st.n),"Turma "+esc(st.t),"Projeto FICA",esc($("tri").value)];if($("dt").value)info.push("Entrega: "+esc($("dt").value));
  const ins=first?`<div class="ins2"><b>Orientações:</b> cada disciplina tem 10 questões. Nas objetivas, marque apenas uma alternativa; nas abertas, responda nas linhas. Use caneta azul ou preta e não use corretivo. Leia cada questão com atenção e, ao terminar, entregue o trabalho à coordenação pedagógica.</div>`:"";
  const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${gq(o,1)}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${gq(a,0)}`:""}`;
- return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
+ const gbT=o.length?`<div class="gbw"><p class="gbt">Gabarito do estudante – ${esc(s.name)} (objetivas)</p><table class="gb" border="1" cellspacing="0" cellpadding="3"><tr><th></th>${o.map((x,i)=>`<th>${p2(i+1)}</th>`).join("")}</tr>${L.map(l=>`<tr><th>${l}</th>${o.map(()=>"<td>○</td>").join("")}</tr>`).join("")}</table></div>`:"";
+ return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}${gbT}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
 }
 function gen(){
  STALE=false;
@@ -1050,6 +1058,64 @@ function modApply(){
   ix.forEach(b=>{const st=STU[b.i];b.html=cover(st,[])+m.html.split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))});
   setMode("ind");save();
  });
+}
+
+/* ---------- imprimir / baixar o modelo do bloco ---------- */
+function prMod(){grabMod();selImg(null);document.body.dataset.p="exam";try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar em Word” e imprima o arquivo.")}}
+const b64u=u=>{let s="";for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
+const w76=s=>s.replace(/.{1,76}/g,"$&\r\n");
+async function saveBlob(blob,fn){
+ try{let d=null;try{d=await claude.use("downloads")}catch(e){}
+  if(d){await d.save({filename:fn,data:blob});return}
+ }catch(e){if(e&&e.code==="declined")return}
+ try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
+}
+function wordTable(qb){
+ const qa=qb.querySelector(".qa"),qi=qb.querySelector(".qi");if(!qa||!qi)return;
+ const fd=qb.style.flexDirection,col=fd?fd==="column":qb.classList.contains("wide"),first=qi.style.order==="-1";
+ const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");
+ const mk=(el,w,al)=>{const td=document.createElement("td");td.setAttribute("valign","top");if(w)td.setAttribute("width",w);if(al)td.setAttribute("align",al);td.innerHTML=el.innerHTML;return td};
+ const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%","center")];if(first)cells.reverse();
+ if(col)cells.forEach(td=>{const tr=document.createElement("tr");tr.appendChild(td);t.appendChild(tr)});
+ else{const tr=document.createElement("tr");cells.forEach(td=>tr.appendChild(td));t.appendChild(tr)}
+ qb.replaceWith(t);
+}
+async function dlMod(){
+ grabMod();const k=MK;
+ if(!k||!MOD[k]||!MOD[k].html||!$("modOut").querySelector(".paper")){alert("Não há trabalho modelo para baixar. Gere os trabalhos primeiro.");return}
+ selImg(null);
+ const live=[...$("modOut").querySelectorAll("img")],root=$("modOut").cloneNode(true);
+ const lp=$("modOut").querySelector(".paper"),cw=lp?lp.getBoundingClientRect().width-2*13*3.78:696,sc=Math.min(1,695/Math.max(cw,1));
+ const parts=[];
+ [...root.querySelectorAll("img")].forEach((im,i)=>{
+  const lv=live[i],r=lv?lv.getBoundingClientRect():null,m=/^data:(image\/[a-z0-9.+-]+);base64,(.*)$/i.exec(im.getAttribute("src")||"");
+  if(!m||/svg/i.test(m[1])){im.remove();return}
+  const ext=(m[1].split("/")[1]||"png").replace("jpeg","jpg"),loc="file:///C:/fica/img"+(parts.length+1)+"."+ext;
+  parts.push({loc,mime:m[1],data:m[2]});im.setAttribute("src",loc);
+  ["class","style","onload","draggable","contenteditable"].forEach(x=>im.removeAttribute(x));
+  if(r&&r.width){im.setAttribute("width",Math.max(10,Math.round(r.width*sc)));im.setAttribute("height",Math.max(10,Math.round(r.height*sc)))}
+ });
+ let body="";
+ [...root.querySelectorAll(".paper")].forEach((p,pi)=>{
+  const td=p.querySelector("table.wrap tbody td")||p,c=td.cloneNode(true);
+  c.querySelectorAll("[contenteditable]").forEach(e=>e.removeAttribute("contenteditable"));
+  c.querySelectorAll(".qb").forEach(wordTable);
+  c.querySelectorAll(".sep").forEach(e=>{const x=document.createElement("p");x.setAttribute("style","border-bottom:.75pt solid #b8b8b8;margin:5pt 0 7pt;font-size:2pt;line-height:2pt");x.innerHTML="&nbsp;";e.replaceWith(x)});
+  c.querySelectorAll(".ln").forEach(e=>{const x=document.createElement("p");x.setAttribute("style","border-bottom:1pt solid #000;margin:0;line-height:21pt;height:21pt");x.innerHTML="&nbsp;";e.replaceWith(x)});
+  c.querySelectorAll("h2").forEach(h=>{const sp=h.querySelector("span"),nota=sp?sp.textContent:"";if(sp)sp.remove();
+   const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");
+   t.innerHTML='<tr><td valign="bottom"></td><td align="right" valign="bottom" style="white-space:nowrap;font-size:11pt"></td></tr>';
+   t.rows[0].cells[0].appendChild(h.cloneNode(true));t.rows[0].cells[1].textContent=nota;h.replaceWith(t)});
+  body+='<div'+(pi?' style="page-break-before:always"':'')+'>'+c.innerHTML+'</div>';
+ });
+ const css='@page Section1{size:210mm 297mm;margin:15mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000}p{margin:0 0 3pt}h2{font-size:14pt;margin:8pt 0 4pt;color:#1d6a87}.tp{font-size:9pt;color:#444;margin:0 0 4pt}.ins2{font-size:9pt;border:1px solid #999;padding:4pt 6pt;margin:4pt 0 8pt;text-align:justify}.ph{margin:6pt 0 4pt}.q{margin:0 0 6pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 17pt}.tx{border:1px solid #888;background:#f7f7f7;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}.gbw{margin-top:12pt}.gbt{font-weight:bold;font-size:10pt;margin:0 0 4pt}table.gb{border-collapse:collapse}table.gb td,table.gb th{border:1px solid #000;width:28pt;text-align:center;font-size:11pt;padding:2pt}table.gb th{background:#e8eef2}img{margin:2pt}';
+ const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Trabalho FICA – '+esc(k.replace("|"," · "))+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>'+css+'</style></head><body><div class="Section1">'+body+'</div></body></html>';
+ const bd="----=_NextPart_FICA_"+Date.now();
+ let mh="MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary=\""+bd+"\"; type=\"text/html\"\r\n\r\n--"+bd+"\r\nContent-Type: text/html; charset=\"utf-8\"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/fica/trabalho.htm\r\n\r\n"+w76(b64u(new TextEncoder().encode(html)))+"\r\n";
+ parts.forEach(p=>{mh+="--"+bd+"\r\nContent-Type: "+p.mime+"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: "+p.loc+"\r\n\r\n"+w76(p.data)+"\r\n"});
+ mh+="--"+bd+"--\r\n";
+ const fn="trabalho-fica-"+k.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase()+".doc";
+ await saveBlob(new Blob([mh],{type:"application/msword"}),fn);
 }
 let SELIMG=null;
 function selImg(im){
@@ -1152,7 +1218,7 @@ function bigPv(){return $(MODE==="mod"?"modPv":"indPv")}
 function bigApply(){const e=bigPv();e.style.zoom=BIGZ;$("bigZv").textContent=Math.round(BIGZ*100)+"%"}
 function bigOpen(){if(!BK.length)return;const pv=bigPv();
  BIGM=[$("fmtBar"),pv].map(el=>{const ph=document.createComment("");el.parentNode.insertBefore(ph,el);return{el,ph}});
- BIGM.forEach(m=>$("bigBd").appendChild(m.el));$("bigPr").style.display=MODE==="mod"?"none":"";
+ BIGM.forEach(m=>$("bigBd").appendChild(m.el));$("bigPr").style.display="";
  $("big").classList.remove("ed");$("big").hidden=false;document.body.style.overflow="hidden";bigFit()}
 function bigClose(){if(!BIGM.length)return;bigPv().style.zoom="";BIGM.forEach(m=>{m.ph.parentNode.insertBefore(m.el,m.ph);m.ph.remove()});BIGM=[];$("big").classList.remove("ed");$("big").hidden=true;document.body.style.overflow=""}
 function bigZ(d){BIGZ=Math.max(.5,Math.min(2.5,Math.round((BIGZ+d)*10)/10));bigApply()}
