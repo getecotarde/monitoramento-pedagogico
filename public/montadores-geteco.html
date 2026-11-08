@@ -553,6 +553,7 @@ summary{cursor:pointer;font-weight:700}
 .wr li{color:var(--wn)}
 .pv{overflow-x:auto;padding:8px 0}
 .tb{width:100%;border-collapse:collapse;background:var(--sf)}.tb th,.tb td{border:1px solid var(--ln);padding:8px;text-align:left;vertical-align:middle}.tb th{background:var(--bg)}
+#big{position:fixed;inset:0;z-index:60;background:#dfe6e9;display:flex;flex-direction:column}#big[hidden]{display:none}#bigTb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:var(--sf,#fff);border-bottom:1px solid var(--ln,#ccc)}#bigBd{flex:1;overflow:auto;padding:14px}#bigBd #fmtBar{top:0!important;position:sticky}#bigBd .pv{max-width:none}@media print{#big{display:none!important}}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}.ov[hidden]{display:none}.bx{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:18px;max-width:420px}.bx div{display:flex;gap:8px;justify-content:flex-end}
 .empty{color:var(--mut);padding:30px 0}
 @media print{body,.tb,.tb input{color:#000!important;background:#fff!important}.ui .noprint,.tabs,.bar,#v-build,.wr,h1,.sub{display:none!important}.ui{padding:0}body{background:#fff}.pv{padding:0;overflow:visible}
@@ -751,6 +752,7 @@ progress{height:10px;accent-color:var(--ok)}
  <p class="noprint"><button class="p" onclick="pr('sum')">Imprimir quadro resumo</button> <button onclick="dlSum()">Baixar para Word (.doc)</button></p>
  <div id="sumOut"></div>
 </section>
+<div id="big" hidden><div id="bigTb" class="noprint"><b>Visualização ampliada</b><button onclick="bigZ(-.1)" aria-label="Diminuir">−</button><span id="bigZv"></span><button onclick="bigZ(.1)" aria-label="Aumentar">+</button><button onclick="bigFit()">Ajustar à largura</button><button id="bigPr" onclick="bigClose();pr('exam')">Imprimir</button><button class="p" onclick="bigClose()" style="margin-left:auto">Fechar ✕</button></div><div id="bigBd"></div></div>
 <div id="dlg" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><p id="dlgT" style="margin-top:0"></p><div><button id="dlgNo">Cancelar</button><button class="p" id="dlgOk">Sim, excluir</button></div></div></div>
 </div>
 
@@ -1029,7 +1031,7 @@ function modGo(k){grabMod();MK=k;renderMod()}
 function renderMod(){
  const keys=Object.keys(MOD).filter(k=>BK.some(b=>kOf(b)===k)),md=MODE==="mod",d=(id,on)=>{$(id).style.display=on?"":"none"};
  if(!keys.includes(MK))MK=keys[0]||"";
- $("exModeW").innerHTML=BK.length?'<div class="chips seg">'+[["mod","Editar modelo do bloco"],["ind","Revisar por estudante e imprimir"]].map(([m,t])=>`<button class="${MODE===m?"on":""}" onclick="setMode('${m}')">${t}</button>`).join("")+"</div>":"";
+ $("exModeW").innerHTML=BK.length?'<div class="chips seg">'+[["mod","Editar modelo do bloco"],["ind","Revisar por estudante e imprimir"]].map(([m,t])=>`<button class="${MODE===m?"on":""}" onclick="setMode('${m}')">${t}</button>`).join("")+'</div> <button class="p" style="margin:6px 0" onclick="bigOpen()">🔍 Ampliar em janela</button>':"";
  ["modBox","modPv"].forEach(id=>d(id,md&&BK.length));["selBox","exSub","exPr","indPv"].forEach(id=>d(id,!md||!BK.length));d("fmtBar",!!BK.length);
  $("modKeys").innerHTML=keys.map(k=>`<button class="${k===MK?"on":""}" onclick="modGo('${k}')">${esc(k.replace("|"," · "))} <small>${BK.filter(b=>kOf(b)===k).length}</small></button>`).join("");
  $("modOut").dataset.k=MK;
@@ -1140,6 +1142,17 @@ async function dlSum(){
  try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
 }
 function show(v){VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam")renderEx();if(v==="key")renderKey();if(v==="sum")renderSum();window.scrollTo(0,0)}
+let BIGM=[],BIGZ=1;
+function bigPv(){return $(MODE==="mod"?"modPv":"indPv")}
+function bigApply(){const e=bigPv();e.style.zoom=BIGZ;$("bigZv").textContent=Math.round(BIGZ*100)+"%"}
+function bigOpen(){if(!BK.length)return;const pv=bigPv();
+ BIGM=[$("fmtBar"),pv].map(el=>{const ph=document.createComment("");el.parentNode.insertBefore(ph,el);return{el,ph}});
+ BIGM.forEach(m=>$("bigBd").appendChild(m.el));$("bigPr").style.display=MODE==="mod"?"none":"";
+ $("big").hidden=false;document.body.style.overflow="hidden";bigFit()}
+function bigClose(){if(!BIGM.length)return;bigPv().style.zoom="";BIGM.forEach(m=>{m.ph.parentNode.insertBefore(m.el,m.ph);m.ph.remove()});BIGM=[];$("big").hidden=true;document.body.style.overflow=""}
+function bigZ(d){BIGZ=Math.max(.5,Math.min(2.5,Math.round((BIGZ+d)*10)/10));bigApply()}
+function bigFit(){const e=bigPv();e.style.zoom=1;const p=e.querySelector(".paper"),w=p?p.offsetWidth:794;BIGZ=Math.max(.5,Math.min(2.5,Math.floor(($("bigBd").clientWidth-40)/w*10)/10));bigApply()}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&BIGM.length)bigClose()});
 function pr(w){if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}document.body.dataset.p=w;try{window.print()}catch(e){}}
 
 /* ---------- blocos ---------- */
