@@ -754,7 +754,7 @@ progress{height:10px;accent-color:var(--ok)}
   <div><button onclick="selAll(true)">Marcar todos</button> <button onclick="selAll(false)">Limpar seleção</button></div>
   <details><summary>Escolher estudantes um a um</summary><div id="selList" class="sl"></div></details>
  </div>
- <p class="noprint" id="exPr"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF dos selecionados</button></p>
+ <p class="noprint" id="exPr"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF dos selecionados</button> <button onclick="askEach()">Um arquivo por estudante</button></p>
  <div class="pv" id="indPv"><div id="examOut" contenteditable="true"></div></div>
  <div id="pgframe" aria-hidden="true"></div>
 </section>
@@ -1085,7 +1085,7 @@ function modApply(){
 }
 
 /* ---------- imprimir / baixar o modelo do bloco ---------- */
-function prMod(){grabMod();selImg(null);document.body.dataset.p="exam";try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar em Word” e imprima o arquivo.")}}
+function prMod(){grabMod();selImg(null);doPrint("Trabalho FICA "+(MK||"").replace("|"," "),"exam")}
 const b64u=u=>{let s="";for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
 const w76=s=>s.replace(/.{1,76}/g,"$&\r\n");
 async function saveBlob(blob,fn){
@@ -1265,7 +1265,29 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&BIGM.length)bigClos
 function bigEd(){if(!BIGM.length)return;const g=getSelection(),pv=bigPv();
  $("big").classList.toggle("ed",!!(SELIMG&&SELIMG.isConnected)||!!(g&&g.rangeCount&&!g.isCollapsed&&pv.contains(g.anchorNode)))}
 document.addEventListener("selectionchange",bigEd);$("bigBd").addEventListener("click",()=>setTimeout(bigEd,0));
-function pr(w){if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}document.body.dataset.p=w;try{window.print()}catch(e){}}
+const fnClean=t=>String(t).replace(/[\\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim();
+function doPrint(title,w){
+ const dt=[[document,document.title]];try{if(parent&&parent!==window&&parent.document)dt.push([parent.document,parent.document.title])}catch(e){}
+ const t=fnClean(title).slice(0,120);
+ if(t)dt.forEach(([d])=>{try{d.title=t}catch(e){}});
+ window.addEventListener("afterprint",()=>dt.forEach(([d,o])=>{try{d.title=o}catch(e){}}),{once:true});
+ document.body.dataset.p=w;try{window.print()}catch(e){alert("A impressão não está disponível aqui.")}
+}
+function selNames(){return[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i)).map(i=>String(STU[i].n||"").trim()).filter(Boolean)}
+function pr(w){
+ if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}
+ let t="";if(w==="exam"){const n=selNames();t=n.length<=3?n.join(" - "):n.slice(0,3).join(" - ")+" e mais "+(n.length-3)}
+ doPrint(t,w);
+}
+function askEach(){
+ const ids=[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i));
+ if(!ids.length){alert("Selecione ao menos um estudante para imprimir.");return}
+ ask("Será aberta a janela de impressão uma vez para cada um dos "+ids.length+" estudantes selecionados, já com o nome do estudante como nome do arquivo. Continuar?",async()=>{
+  const keep=new Set(SEL);
+  for(const i of ids){SEL=new Set([i]);renderEx();await new Promise(r=>setTimeout(r,500));doPrint(STU[i].n,"exam");await new Promise(r=>setTimeout(r,800))}
+  SEL=keep;renderEx();
+ });
+}
 
 /* ---------- blocos ---------- */
 let BSUB=-1,STALE=false;
