@@ -665,7 +665,7 @@ progress{height:10px;accent-color:var(--ok)}
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
 <style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}#modOut img,#examOut .qb img{touch-action:none}#imgHandle{position:fixed;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;z-index:40;touch-action:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}#dropBar{position:fixed;background:var(--ac);opacity:.85;border-radius:3px;z-index:40;pointer-events:none;display:none}</style>
 <style>
-.paper .gbw{break-inside:avoid;margin-top:12px}.paper .gbt{font-weight:700;font-size:10pt;margin:0 0 4px}
+.paper .gbw{break-inside:avoid;margin-top:12px}.paper .gbt{font-weight:700;font-size:10pt;margin:0 0 4px}.paper .gbn{font-size:8pt;color:#444;margin:3px 0 0}
 .paper table.gb{border-collapse:collapse;margin:0;width:auto}
 .paper table.wrap table.gb th,.paper table.wrap table.gb td{border:1px solid #111;padding:2px 0;width:10mm;min-width:10mm;text-align:center;font-size:11pt;line-height:1.35;background:#fff;color:#111}
 .paper table.wrap table.gb th{background:#e8eef2;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -722,7 +722,7 @@ progress{height:10px;accent-color:var(--ok)}
  <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
  <div class="noprint" id="exModeW"></div>
  <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
-  <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda.</div>
+  <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda. Ciências, Geografia, História e Arte valem para os dois blocos do mesmo ano (6º ABC e DEF; 7º ABC e DE); Inglês vale para os dois blocos só no 6º ano (no 7º é diferente em cada bloco); Português e Matemática valem só para o bloco aberto.</div>
   <div class="chips" id="modKeys"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" onclick="modApply()">Aplicar a todos do bloco</button><button onclick="prMod()">🖨️ Imprimir este bloco</button><button onclick="dlMod()">⬇️ Baixar em Word (.doc)</button></div></div>
  <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:12px;position:sticky;top:56px;z-index:15"><b>Formatação</b><div class="sm">Vale para o modelo ou para o estudante, conforme a visão aberta.</div>
@@ -730,6 +730,13 @@ progress{height:10px;accent-color:var(--ok)}
    <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
    <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
    <span class="sm" id="fmtMsg">Selecione um trecho do modelo e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Espaçamento entre linhas:</b>
+   <button onmousedown="event.preventDefault()" onclick="lh(1)">Simples</button>
+   <button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button>
+   <button onmousedown="event.preventDefault()" onclick="lh(1.35)">1,35 (padrão)</button>
+   <button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button>
+   <button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button>
+   <span class="sm" id="lhMsg">Selecione um trecho para mudar só ele; sem seleção, vale para todo o modelo do bloco.</span></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Imagem:</b>
    <span class="sm" id="imgHint">clique numa imagem para selecioná-la. Depois arraste a imagem para outro lado do texto, ou arraste o quadradinho do canto para mudar o tamanho.</span>
    <span id="imgCtl" style="display:none;gap:6px;flex-wrap:wrap;align-items:center">
@@ -993,7 +1000,7 @@ function disc(st,s,first){
  const info=[esc(st.n),"Turma "+esc(st.t),"Projeto FICA",esc($("tri").value)];if($("dt").value)info.push("Entrega: "+esc($("dt").value));
  const ins=first?`<div class="ins2"><b>Orientações:</b> cada disciplina tem 10 questões. Nas objetivas, marque apenas uma alternativa; nas abertas, responda nas linhas. Use caneta azul ou preta e não use corretivo. Leia cada questão com atenção e, ao terminar, entregue o trabalho à coordenação pedagógica.</div>`:"";
  const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${gq(o,1)}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${gq(a,0)}`:""}`;
- const gbT=o.length?`<div class="gbw"><p class="gbt">Gabarito do estudante – ${esc(s.name)} (objetivas)</p><table class="gb" border="1" cellspacing="0" cellpadding="3"><tr><th></th>${o.map((x,i)=>`<th>${p2(i+1)}</th>`).join("")}</tr>${L.map(l=>`<tr><th>${l}</th>${o.map(()=>"<td>○</td>").join("")}</tr>`).join("")}</table></div>`:"";
+ const gbT=o.length?`<div class="gbw"><p class="gbt">Gabarito do estudante – ${esc(s.name)} (objetivas)</p><table class="gb" border="1" cellspacing="0" cellpadding="3"><tr><th></th>${o.map((x,i)=>`<th>${p2(i+1)}</th>`).join("")}</tr>${L.map(l=>`<tr><th>${l}</th>${o.map(()=>"<td>○</td>").join("")}</tr>`).join("")}</table><p class="gbn">${esc(st.n)} · Turma ${esc(st.t)}</p></div>`:"";
  return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}${gbT}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
 }
 function gen(){
@@ -1050,12 +1057,29 @@ function renderMod(){
  $("modOut").dataset.k=MK;
  $("modOut").innerHTML=MK&&MOD[MK]?(MOD[MK].html||'<p class="empty">Nenhuma disciplina carregada neste bloco.</p>'):"";selImg(null);
 }
+const SHARED=["Ciências","Geografia","História","Inglês","Arte"];
+const discName=p=>{const h=p.querySelector("h2");if(!h)return"";const t=(h.childNodes[0]?h.childNodes[0].textContent:h.textContent).trim();return SUBJ.find(n=>t.startsWith(n))||""};
+const sharedFor=k=>k.charAt(0)==="7"?SHARED.filter(n=>n!=="Inglês"):SHARED;
+function mergeShared(html,src,tf,sh){
+ const d=document.createElement("div"),m=document.createElement("div"),pg={};d.innerHTML=html;m.innerHTML=src;
+ m.querySelectorAll(".paper.dp").forEach(p=>{const n=discName(p);if(sh.includes(n))pg[n]=p.outerHTML});
+ let c=0;
+ d.querySelectorAll(".paper.dp").forEach(p=>{const n=discName(p);if(pg[n]){p.outerHTML=tf(pg[n]);c++}});
+ return{html:d.innerHTML,c};
+}
+const subst=(h,st)=>h.split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t));
 function modApply(){
  grabMod();const k=MK,m=MOD[k];if(!m||!m.html)return;
- const ix=BK.filter(b=>kOf(b)===k);
- ask("Aplicar este modelo aos "+ix.length+" estudantes de "+k.replace("|"," · ")+"? Edições feitas à mão nos trabalhos individuais deles serão substituídas.",()=>{
+ const ix=BK.filter(b=>kOf(b)===k),[kb,km]=k.split("|");
+ const sib=Object.keys(MOD).filter(x=>x!==k&&x.charAt(0)===k.charAt(0)&&x.split("|")[1]===km&&BK.some(b=>kOf(b)===x));
+ const sh=sharedFor(k),nS=sib.reduce((a,x)=>a+BK.filter(b=>kOf(b)===x).length,0);
+ ask("Aplicar este modelo aos "+ix.length+" estudantes de "+k.replace("|"," · ")+"?"+(sib.length?" As disciplinas "+sh.join(", ")+" também serão aplicadas aos "+nS+" estudantes de "+sib.map(x=>x.replace("|"," · ")).join(" e ")+" (Português, Matemática"+(k.charAt(0)==="7"?" e Inglês":"")+" ficam só neste bloco).":"")+" Edições feitas à mão nos trabalhos individuais desses estudantes serão substituídas.",()=>{
   $("examOut").innerHTML="";
-  ix.forEach(b=>{const st=STU[b.i];b.html=cover(st,[])+m.html.split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))});
+  ix.forEach(b=>{const st=STU[b.i];b.html=cover(st,[])+subst(m.html,st)});
+  sib.forEach(x=>{
+   BK.filter(b=>kOf(b)===x).forEach(b=>{const st=STU[b.i];b.html=mergeShared(b.html,m.html,h=>subst(h,st),sh).html});
+   if(MOD[x]&&MOD[x].html)MOD[x].html=mergeShared(MOD[x].html,m.html,h=>h,sh).html;
+  });
   setMode("ind");save();
  });
 }
@@ -1108,7 +1132,7 @@ async function dlMod(){
    t.rows[0].cells[0].appendChild(h.cloneNode(true));t.rows[0].cells[1].textContent=nota;h.replaceWith(t)});
   body+='<div'+(pi?' style="page-break-before:always"':'')+'>'+c.innerHTML+'</div>';
  });
- const css='@page Section1{size:210mm 297mm;margin:15mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000}p{margin:0 0 3pt}h2{font-size:14pt;margin:8pt 0 4pt;color:#1d6a87}.tp{font-size:9pt;color:#444;margin:0 0 4pt}.ins2{font-size:9pt;border:1px solid #999;padding:4pt 6pt;margin:4pt 0 8pt;text-align:justify}.ph{margin:6pt 0 4pt}.q{margin:0 0 6pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 17pt}.tx{border:1px solid #888;background:#f7f7f7;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}.gbw{margin-top:12pt}.gbt{font-weight:bold;font-size:10pt;margin:0 0 4pt}table.gb{border-collapse:collapse}table.gb td,table.gb th{border:1px solid #000;width:28pt;text-align:center;font-size:11pt;padding:2pt}table.gb th{background:#e8eef2}img{margin:2pt}';
+ const css='@page Section1{size:210mm 297mm;margin:15mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000}p{margin:0 0 3pt}h2{font-size:14pt;margin:8pt 0 4pt;color:#1d6a87}.tp{font-size:9pt;color:#444;margin:0 0 4pt}.ins2{font-size:9pt;border:1px solid #999;padding:4pt 6pt;margin:4pt 0 8pt;text-align:justify}.ph{margin:6pt 0 4pt}.q{margin:0 0 6pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 17pt}.tx{border:1px solid #888;background:#f7f7f7;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}.gbw{margin-top:12pt}.gbt{font-weight:bold;font-size:10pt;margin:0 0 4pt}.gbn{font-size:8pt;color:#444;margin:3pt 0 0}table.gb{border-collapse:collapse}table.gb td,table.gb th{border:1px solid #000;width:28pt;text-align:center;font-size:11pt;padding:2pt}table.gb th{background:#e8eef2}img{margin:2pt}';
  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Trabalho FICA – '+esc(k.replace("|"," · "))+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>'+css+'</style></head><body><div class="Section1">'+body+'</div></body></html>';
  const bd="----=_NextPart_FICA_"+Date.now();
  let mh="MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary=\""+bd+"\"; type=\"text/html\"\r\n\r\n--"+bd+"\r\nContent-Type: text/html; charset=\"utf-8\"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/fica/trabalho.htm\r\n\r\n"+w76(b64u(new TextEncoder().encode(html)))+"\r\n";
@@ -1141,6 +1165,20 @@ function imgPos(p){
 function imgReset(){
  const im=SELIMG;if(!im)return;
  [im,im.closest(".qi"),im.closest(".qb"),im.closest(".qb").querySelector(".qa")].forEach(e=>e.removeAttribute("style"));selImg(im);save();
+}
+
+function lh(v){
+ const ed=MODE==="mod"?$("modOut"):$("examOut"),sel=getSelection(),SELQ=".qs,.alt,.tt,.ph,.tp,.ins2,.tx";
+ const has=sel.rangeCount&&!sel.isCollapsed&&ed.contains(sel.anchorNode);
+ let els;
+ if(has){const r=sel.getRangeAt(0);els=[...ed.querySelectorAll(SELQ)].filter(e=>r.intersectsNode(e));
+  if(!els.length){let n=sel.anchorNode;n=n.nodeType===1?n:n.parentElement;const b=n&&n.closest(SELQ);if(b)els=[b]}}
+ else if(MODE==="mod")els=[...ed.querySelectorAll(SELQ)];
+ else{$("lhMsg").textContent="Primeiro selecione, no trabalho aberto abaixo, o trecho que deseja ajustar.";return}
+ if(!els.length){$("lhMsg").textContent="Clique dentro do texto que deseja ajustar.";return}
+ els.forEach(e=>{e.style.lineHeight=v});
+ $("lhMsg").textContent="Espaçamento "+(v===1?"simples":String(v).replace(".",","))+" aplicado "+(has?"ao trecho selecionado":"a todo o modelo")+(MODE==="mod"?". Clique em “Aplicar a todos do bloco” para valer para todos.":" (só a este estudante).");
+ if(MODE==="mod")grabMod();
 }
 function fmt(c){
  const sel=getSelection();
