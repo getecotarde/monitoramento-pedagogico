@@ -2509,7 +2509,7 @@
                         <button type="button" id="btnQuadroGeralOrientPaisagem" data-or="paisagem" class="grade-orient-btn qg-orient-btn" onclick="definirOrientacaoQuadroGeral('paisagem', this)">▭ Paisagem</button>
                     </div>
                 </div>
-                <p style="color: var(--text-muted);">Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º lugares e depois por nº de 2º lugares.</p>
+                <p style="color: var(--text-muted);">Calculado automaticamente a partir dos pódios já lançados nas abas 🗓️ Grade de Horários &amp; Placares e 🏆 Chaveamento (Basquete/Damas). Em caso de empate em pontos, desempata por nº de 1º, 2º e 3º lugares e, persistindo, pela final direta entre as turmas empatadas (veja os critérios abaixo do quadro).</p>
                 <div class="table-responsive" style="margin-top:0.8rem;">
                     <table class="qg-tabela">
                         <thead>
@@ -9084,6 +9084,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         }
         // Campo de observação: modalidades sem pódio definido, marcadas com **.
         function htmlObservacaoQuadro(lista) {
+            return _htmlObservacaoBase(lista) + _htmlCriteriosDesempate(lista);
+        }
+        function _htmlObservacaoBase(lista) {
             var pend = (lista.pendencias || []).slice().sort(function (a, b) { return ORDEM_SIGLAS_QUADRO.indexOf(a.sigla) - ORDEM_SIGLAS_QUADRO.indexOf(b.sigla); });
             if (!pend.length) return '<div class="qg-obs"><strong>Observação:</strong> todas as modalidades já têm o pódio (1º, 2º e 3º lugares) definido.</div>';
             var itens = pend.map(function (p) {
@@ -9306,6 +9309,48 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (el) el.innerHTML = htmlAvisoAnalise(lista, false);
         }
 
+        // ===== DESEMPATE POR DECISÃO DIRETA =====
+        // Persistindo o empate em pontos e nº de 1º, 2º e 3º lugares, vale a final direta:
+        // se numa modalidade uma turma foi 1ª e a outra 2ª, as duas se enfrentaram na final
+        // e quem a venceu fica na frente. Retorna <0 se 'a' vence, >0 se 'b' vence, 0 se não houve.
+        function _finaisVencidasSobre(a, b) {
+            return a.ouro.filter(function (x) { return b.prata.indexOf(x) !== -1; });
+        }
+        function _siglaFinalDireta(a, b) {
+            var v = _finaisVencidasSobre(a, b);
+            return (v.length > _finaisVencidasSobre(b, a).length) ? v[0] : null;
+        }
+        function _desempateDireto(a, b) {
+            var x = _finaisVencidasSobre(a, b).length, y = _finaisVencidasSobre(b, a).length;
+            return x === y ? 0 : (x > y ? -1 : 1);
+        }
+        // Posições do quadro: turmas empatadas em tudo (pontos, medalhas e final direta)
+        // dividem a mesma colocação (ex.: dois 2ºs lugares; o seguinte passa a 4º).
+        function _posicoesQuadro(lista) {
+            var r = [];
+            lista.forEach(function (l, i) {
+                r.push(i > 0 && _mesmaCampanha(lista[i - 1], l) && _desempateDireto(lista[i - 1], l) === 0 ? r[i - 1] : i + 1);
+            });
+            return r;
+        }
+        function _textoPosicao(lista, i, medalhaPos) {
+            var r = _posicoesQuadro(lista), rk = r[i];
+            var dividida = r.filter(function (x) { return x === rk; }).length > 1;
+            return (rk <= 3 ? medalhaPos[rk - 1] + ' ' : '') + rk + 'º' + (dividida ? ' <span style="font-size:0.7em;font-weight:600;white-space:nowrap;">(empate)</span>' : '');
+        }
+        function _htmlCriteriosDesempate(lista) {
+            var notas = '';
+            for (var i = 0; i + 1 < lista.length; i++) {
+                var a = lista[i], b = lista[i + 1];
+                if (_mesmaCampanha(a, b)) {
+                    var sg = _siglaFinalDireta(a, b);
+                    if (sg) notas += '<li>Empate entre <strong>' + a.selecao.pais + ' (' + a.turma + ')</strong> e <strong>' + b.selecao.pais + ' (' + b.turma + ')</strong> em pontos e medalhas: vantagem para ' + a.selecao.pais + ', que venceu a final direta de ' + (NOME_POR_SIGLA_QUADRO[sg] || sg) + ' (' + sg + ').</li>';
+                    else notas += '<li>Empate mantido entre <strong>' + a.selecao.pais + ' (' + a.turma + ')</strong> e <strong>' + b.selecao.pais + ' (' + b.turma + ')</strong> em todos os critérios: as duas dividem a mesma colocação.</li>';
+                }
+            }
+            return '<div class="qg-obs"><strong>Critérios de desempate:</strong> 1º) pontos; 2º) nº de 1ºs lugares; 3º) nº de 2ºs lugares; 4º) nº de 3ºs lugares; 5º) persistindo o empate, vantagem para quem venceu a final direta contra o outro, em alguma modalidade; 6º) mantido o empate, as turmas dividem a mesma colocação (ex.: dois 2ºs ou dois 3ºs lugares).' + (notas ? '<ul>' + notas + '</ul>' : '') + '</div>';
+        }
+
         // ===== CLASSIFICAÇÃO FINAL + GRANDE CAMPEÃO =====
         // Quando todas as modalidades do ano já têm pódio completo (sem pendências),
         // o quadro vira "Classificação Final" e o 1º colocado ganha destaque de Grande Campeão.
@@ -9316,7 +9361,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             return a.pontos === b.pontos && a.ouro.length === b.ouro.length && a.prata.length === b.prata.length && a.bronze.length === b.bronze.length;
         }
         function _ehGrandeCampeao(lista, i) {
-            return quadroConcluido(lista) && (i === 0 || _mesmaCampanha(lista[0], lista[i]));
+            return quadroConcluido(lista) && (i === 0 || (_mesmaCampanha(lista[0], lista[i]) && _desempateDireto(lista[0], lista[i]) === 0));
         }
         function tituloQuadro(sete, lista) {
             return (quadroConcluido(lista) ? '🏆 Quadro Geral — Classificação Final — ' : '🥇 Quadro Geral — ') + (sete ? '7º Anos' : '6º Anos');
@@ -9377,7 +9422,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (b.pontos !== a.pontos) return b.pontos - a.pontos;
                 if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
                 if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
-                return b.bronze.length - a.bronze.length;
+                if (b.bronze.length !== a.bronze.length) return b.bronze.length - a.bronze.length;
+                return _desempateDireto(a, b);
             });
             lista.pendencias = pendencias;
             return lista;
@@ -9394,7 +9440,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '<div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap;">' + arr.join(', ') + '</div>';
             };
             corpo.innerHTML = lista.map(function (linha, i) {
-                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                var posicao = _textoPosicao(lista, i, medalhaPos);
                 return '<tr' + _estiloLinha(linha, i, lista, false) + '>' +
                     '<td style="font-weight:700;">' + posicao + '</td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span>' + _selosAnalise(linha, false) + '</td>' +
@@ -9423,7 +9469,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 return arr.length + '<span class="qg-sigla">' + arr.join(', ') + '</span>';
             };
             var linhas = lista.map(function (linha, i) {
-                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                var posicao = _textoPosicao(lista, i, medalhaPos);
                 return '<tr' + _estiloLinha(linha, i, lista, true) + '>' +
                     '<td><b>' + posicao + '</b></td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' (' + linha.turma + ')' + _selosAnalise(linha, true) + '</td>' +
@@ -11095,7 +11141,8 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 if (b.pontos !== a.pontos) return b.pontos - a.pontos;
                 if (b.ouro.length !== a.ouro.length) return b.ouro.length - a.ouro.length;
                 if (b.prata.length !== a.prata.length) return b.prata.length - a.prata.length;
-                return b.bronze.length - a.bronze.length;
+                if (b.bronze.length !== a.bronze.length) return b.bronze.length - a.bronze.length;
+                return _desempateDireto(a, b);
             });
             lista.pendencias = pendencias;
             return lista;
@@ -11111,7 +11158,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                 return '<div style="font-weight:700;">' + arr.length + '</div><div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap;">' + arr.join(', ') + '</div>';
             };
             corpo.innerHTML = lista.map(function (linha, i) {
-                var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
+                var posicao = _textoPosicao(lista, i, medalhaPos);
                 return '<tr' + _estiloLinha(linha, i, lista, false) + '><td style="font-weight:700;">' + posicao + '</td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
                     '<td>' + celulaMedalha(linha.ouro) + '</td><td>' + celulaMedalha(linha.prata) + '</td><td>' + celulaMedalha(linha.bronze) + '</td>' +
