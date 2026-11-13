@@ -2500,6 +2500,7 @@
 
             <div id="quadrogeralAno6">
             <div class="card">
+                <h3 id="tituloQG6" style="margin:0 0 0.4rem 0;"></h3><div id="bannerCampeao6"></div>
                 <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
                     <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral()">🖨️ Imprimir Quadro Geral (PDF A4)</button>
                     <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
@@ -2533,6 +2534,7 @@
 
             <div id="quadrogeralAno7" style="display:none;">
             <div class="card">
+                <h3 id="tituloQG7" style="margin:0 0 0.4rem 0;"></h3><div id="bannerCampeao7"></div>
                 <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.6rem;">
                     <button type="button" class="tab-btn" style="width:auto; background: var(--secondary); color:#fff;" onclick="imprimirQuadroGeral('7')">🖨️ Imprimir Quadro Geral (PDF A4)</button>
                     <span style="font-size:0.82rem; color:var(--text-muted);">Orientação da folha:</span>
@@ -9304,6 +9306,50 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             if (el) el.innerHTML = htmlAvisoAnalise(lista, false);
         }
 
+        // ===== CLASSIFICAÇÃO FINAL + GRANDE CAMPEÃO =====
+        // Quando todas as modalidades do ano já têm pódio completo (sem pendências),
+        // o quadro vira "Classificação Final" e o 1º colocado ganha destaque de Grande Campeão.
+        function quadroConcluido(lista) {
+            return !!lista && !(lista.pendencias && lista.pendencias.length) && lista.length > 0;
+        }
+        function _mesmaCampanha(a, b) {
+            return a.pontos === b.pontos && a.ouro.length === b.ouro.length && a.prata.length === b.prata.length && a.bronze.length === b.bronze.length;
+        }
+        function _ehGrandeCampeao(lista, i) {
+            return quadroConcluido(lista) && (i === 0 || _mesmaCampanha(lista[0], lista[i]));
+        }
+        function tituloQuadro(sete, lista) {
+            return (quadroConcluido(lista) ? '🏆 Quadro Geral — Classificação Final — ' : '🥇 Quadro Geral — ') + (sete ? '7º Anos' : '6º Anos');
+        }
+        function _estiloLinha(linha, i, lista, impressao) {
+            if (_ehGrandeCampeao(lista, i)) {
+                return ' style="background:#fde68a;color:#451a03;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact;' + (impressao ? 'font-size:calc(21px * var(--qgs, 1));' : 'font-size:1.25rem;') + '"';
+            }
+            return _estiloLinhaAnalise(linha);
+        }
+        function htmlGrandeCampeao(lista, impressao) {
+            if (!quadroConcluido(lista)) return '';
+            var campeoes = lista.filter(function (l, i) { return _ehGrandeCampeao(lista, i); });
+            var c0 = campeoes[0];
+            var nomes = campeoes.map(function (l) { return l.selecao.bandeira + ' ' + l.selecao.pais + ' (' + l.turma + ')'; }).join(' e ');
+            var plural = campeoes.length > 1;
+            var u = function (px, rem) { return impressao ? 'calc(' + px + 'px * var(--qgs, 1))' : rem; };
+            var estilo = 'text-align:center;margin:' + u(10, '0.8rem') + ' 0;padding:' + u(14, '1.1rem') + ' ' + u(16, '1.2rem') + ';' +
+                'background:linear-gradient(135deg,#fef3c7 0%,#fcd34d 50%,#f59e0b 100%);border:' + u(4, '4px') + ' solid #b45309;border-radius:' + u(14, '14px') + ';' +
+                'color:#451a03;-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:0 2px 10px rgba(180,83,9,0.35);';
+            return '<div class="qg-grande-campeao" style="' + estilo + '">' +
+                '<div style="font-size:' + u(18, '1.05rem') + ';font-weight:800;letter-spacing:0.18em;color:#78350f;">🏆 ' + (plural ? 'GRANDES CAMPEÕES (EMPATE)' : 'GRANDE CAMPEÃO') + ' 🏆</div>' +
+                '<div style="font-size:' + u(40, '2.3rem') + ';font-weight:900;line-height:1.15;margin:' + u(6, '0.3rem') + ' 0;">' + nomes + '</div>' +
+                '<div style="font-size:' + u(18, '1.1rem') + ';font-weight:700;">' + c0.pontos + ' pontos · 🥇 ' + c0.ouro.length + ' · 🥈 ' + c0.prata.length + ' · 🥉 ' + c0.bronze.length + '</div>' +
+                '</div>';
+        }
+        function renderDestaqueFinal(ano, lista) {
+            var t = document.getElementById('tituloQG' + ano);
+            if (t) t.textContent = tituloQuadro(ano === '7', lista);
+            var b = document.getElementById('bannerCampeao' + ano);
+            if (b) b.innerHTML = htmlGrandeCampeao(lista, false);
+        }
+
         function calcularQuadroGeral() {
             var placares = carregarPlacaresSalvos();
             var turmasOrdem = Object.keys(SELECOES_TURMA);
@@ -9349,7 +9395,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             };
             corpo.innerHTML = lista.map(function (linha, i) {
                 var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
-                return '<tr' + _estiloLinhaAnalise(linha) + '>' +
+                return '<tr' + _estiloLinha(linha, i, lista, false) + '>' +
                     '<td style="font-weight:700;">' + posicao + '</td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span>' + _selosAnalise(linha, false) + '</td>' +
                     '<td>' + celulaMedalha(linha.ouro) + '</td>' +
@@ -9359,6 +9405,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '</tr>';
             }).join('');
             renderAvisoAnalise('6', lista);
+            renderDestaqueFinal('6', lista);
             renderLegendaEObs('6', lista);
             renderNotasDescontos('6', lista);
             renderPenalidadesUI('6');
@@ -9377,7 +9424,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             };
             var linhas = lista.map(function (linha, i) {
                 var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
-                return '<tr' + _estiloLinhaAnalise(linha) + '>' +
+                return '<tr' + _estiloLinha(linha, i, lista, true) + '>' +
                     '<td><b>' + posicao + '</b></td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' (' + linha.turma + ')' + _selosAnalise(linha, true) + '</td>' +
                     '<td>' + celula(linha.ouro) + '</td>' +
@@ -9387,8 +9434,9 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
                     '</tr>';
             }).join('');
             return '<div class="qg-print-page">' +
-                '<h1>🥇 Quadro Geral — ' + (sete ? '7º Anos' : '6º Anos') + ' — Interclasse GETECO 2026</h1>' +
+                '<h1>' + tituloQuadro(sete, lista) + ' — Interclasse GETECO 2026</h1>' +
                 '<p class="qg-print-sub">Escola Municipal Geraldo Teixeira Costa • Realizado de 08/09 a 11/09</p>' +
+                htmlGrandeCampeao(lista, true) +
                 (sete ? htmlAvisoDecisoes7(true) : htmlAvisoAnalise(lista, true)) +
                 '<table><thead><tr><th>Pos.</th><th>Seleção / Turma</th><th>' + _marcasCabecalho(lista).ouro + '</th><th>' + _marcasCabecalho(lista).prata + '</th><th>' + _marcasCabecalho(lista).bronze + '</th><th>Pontos</th></tr></thead>' +
                 '<tbody>' + linhas + '</tbody></table>' +
@@ -11002,8 +11050,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // Para retirar os avisos, esvazie SIGLAS_CANCELADAS_7 e AVISOS_DECISOES_7.
         var SIGLAS_CANCELADAS_7 = ['QUE'];
         var AVISOS_DECISOES_7 = [
-            '<strong>Queimada Mista (QUE)</strong>: cancelada — não conta pontos no Quadro Geral dos 7º Anos.',
-            '<strong>Futsal (FUT-M / FUT-F)</strong>: as finais serão realizadas em data próxima (a definir); os pontos entram no quadro após o resultado ser lançado.'
+            '<strong>Queimada Mista (QUE)</strong>: cancelada — não conta pontos no Quadro Geral dos 7º Anos.'
         ];
         function htmlAvisoDecisoes7(impressao) {
             if (!AVISOS_DECISOES_7.length) return '';
@@ -11065,13 +11112,14 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             };
             corpo.innerHTML = lista.map(function (linha, i) {
                 var posicao = (i < 3 ? medalhaPos[i] + ' ' : '') + (i + 1) + 'º';
-                return '<tr><td style="font-weight:700;">' + posicao + '</td>' +
+                return '<tr' + _estiloLinha(linha, i, lista, false) + '><td style="font-weight:700;">' + posicao + '</td>' +
                     '<td>' + linha.selecao.bandeira + ' ' + linha.selecao.pais + ' <span style="color:var(--text-muted); font-size:0.85rem;">(' + linha.turma + ')</span></td>' +
                     '<td>' + celulaMedalha(linha.ouro) + '</td><td>' + celulaMedalha(linha.prata) + '</td><td>' + celulaMedalha(linha.bronze) + '</td>' +
                     '<td style="font-weight:700;">' + htmlCelulaPontos(linha, false) + '</td></tr>';
             }).join('');
             var avisoEl7 = document.getElementById('avisoDecisoes7');
             if (avisoEl7) avisoEl7.innerHTML = htmlAvisoDecisoes7(false);
+            renderDestaqueFinal('7', lista);
             renderLegendaEObs('7', lista);
             renderNotasDescontos('7', lista);
             renderPenalidadesUI('7');
