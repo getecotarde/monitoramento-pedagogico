@@ -11092,11 +11092,12 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
         // ----- Quadro Geral — 7º Ano -----
         var SIGLA_MODALIDADE_7 = { 'Futsal Masculino 7': 'FUT-M', 'Futsal Feminino 7': 'FUT-F', 'Queimada Mista 7': 'QUE' };
 
-        // ===== DECISÕES DA ORGANIZAÇÃO — 7º ANOS (até o momento) =====
+        // ===== DECISÕES FINAIS DA ORGANIZAÇÃO — 7º ANOS =====
         // Para retirar os avisos, esvazie SIGLAS_CANCELADAS_7 e AVISOS_DECISOES_7.
         var SIGLAS_CANCELADAS_7 = ['QUE'];
         var AVISOS_DECISOES_7 = [
-            '<strong>Queimada Mista (QUE)</strong>: cancelada — não conta pontos no Quadro Geral dos 7º Anos.'
+            '<strong>Queimada Mista (QUE)</strong>: cancelada — decisão final: não conta pontos no Quadro Geral dos 7º Anos.',
+            '<strong>Futsal Feminino (FUT-F)</strong>: as disputas foram realizadas em 12 de novembro.'
         ];
         function htmlAvisoDecisoes7(impressao) {
             if (!AVISOS_DECISOES_7.length) return '';
@@ -11104,7 +11105,7 @@ document.getElementById('modal-horarios').addEventListener('click',function(e){i
             var estilo = impressao
                 ? 'font-size:calc(17px * var(--qgs, 1));margin:calc(8px * var(--qgs, 1)) 0;padding:calc(6px * var(--qgs, 1)) calc(10px * var(--qgs, 1));border:1.5px solid #1d4ed8;border-left:calc(6px * var(--qgs, 1)) solid #1d4ed8;background:#eff6ff;color:#1e3a8a;'
                 : 'font-size:1.05rem;margin:0.8rem 0;padding:0.7rem 0.9rem;border:1px solid #1d4ed8;border-left:6px solid #1d4ed8;background:#eff6ff;color:#1e3a8a;border-radius:6px;';
-            return '<div class="qg-aviso-analise" style="' + estilo + '"><strong>ℹ️ AVISO — Decisões até o momento (7º Anos):</strong>' + itens + '</div>';
+            return '<div class="qg-aviso-analise" style="' + estilo + '"><strong>ℹ️ AVISO — Decisões finais (7º Anos):</strong>' + itens + '</div>';
         }
 
         function calcularQuadroGeral7() {
