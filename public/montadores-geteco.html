@@ -887,6 +887,41 @@ body[data-v=exam] .svbar{margin-bottom:8px}
  #exSideD{background:none!important;border:0!important;padding:0!important}
 }
 </style>
+<style id="fmtdock">
+/* barra de formatação encaixada logo abaixo das abas, opaca, sem deixar o texto aparecer por cima */
+#fmtBar{position:sticky!important;top:var(--th,46px)!important;z-index:15;margin:0 0 12px!important;padding:6px 12px!important;background:var(--sf)!important;border:1px solid var(--ln)!important;border-top:0!important;border-radius:0 0 10px 10px!important;box-shadow:0 -16px 0 var(--bg),0 3px 8px rgba(0,0,0,.12)}
+#fmtBar .fb{gap:8px 10px}
+#fmtBar .ftt{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+#fmtBar .fgrp{display:inline-flex}
+#fmtBar .fgrp button{border-radius:0;margin-left:-1px;padding:4px 11px;min-width:34px}
+#fmtBar .fgrp button:first-child{border-radius:6px 0 0 6px;margin-left:0}
+#fmtBar .fgrp button:last-child{border-radius:0 6px 6px 0}
+#fmtBar .fgrp button:only-child{border-radius:6px}
+#fmtBar .fgrp button:hover{background:var(--ac);color:var(--acx)}
+#fmtBar .fdock{margin-left:auto;font-size:.8rem;padding:3px 10px}
+#fmtBar #imgHint{font-size:.78rem}
+/* modo vertical: a barra vai para o topo do painel lateral (só em tela larga) */
+#exSide #fmtBar{top:0!important;z-index:5;margin:0 0 10px!important;border-top:1px solid var(--ln)!important;border-radius:10px!important;box-shadow:0 3px 8px rgba(0,0,0,.1)}
+#exSide #fmtBar .fb{flex-direction:column;align-items:stretch;gap:8px}
+#exSide #fmtBar .fgrp{display:flex}#exSide #fmtBar .fgrp button{flex:1;padding:6px 4px}
+#exSide #fmtBar .fsep{width:auto;height:1px}
+#exSide #fmtBar .fdock{margin-left:0}
+#exSide #fmtBar #imgCtl{flex-direction:column;align-items:stretch}
+#exSide #fmtBar #imgCtl label{flex-wrap:wrap}
+#exSide #fmtBar #imgCtl input[type=range]{width:100%}
+</style>
+<style id="ctxmin">
+/* abas primeiro; contexto (turma, modalidade, trimestre, entrega) logo abaixo, discreto, para dar destaque ao conteúdo */
+.bar.ctx{background:transparent;border:0;border-bottom:1px solid var(--ln);border-radius:0;box-shadow:none;padding:0 2px 8px;margin:0 0 6px;gap:6px 22px;align-items:center}
+.bar.ctx label{flex:0 1 auto;display:flex;align-items:center;gap:8px;margin:0;font-size:.76rem;color:var(--mut);white-space:nowrap}
+.bar.ctx label:first-child{flex:0 1 auto}
+.bar.ctx select,.bar.ctx input.t{display:inline-block;width:auto;margin:0;padding:4px 8px;font-size:.84rem;border-radius:6px;border-color:transparent;background:var(--sf);color:var(--ink)}
+.bar.ctx select:hover,.bar.ctx input.t:hover,.bar.ctx select:focus,.bar.ctx input.t:focus{border-color:var(--ln)}
+.bar.ctx #serie{min-width:180px}.bar.ctx #tri{width:170px}.bar.ctx #dt{width:112px}
+.ui .tabs{margin-bottom:4px}
+.svbar{font-size:.72rem;margin:0 2px 10px;opacity:.85}
+@media (max-width:860px){.bar.ctx label{flex:1 1 44%}.bar.ctx select,.bar.ctx input.t,.bar.ctx #serie,.bar.ctx #tri,.bar.ctx #dt{width:100%;min-width:0}}
+</style>
 <style id="blankcss">
 #blankOut{display:none}
 @media print{
@@ -906,12 +941,6 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 <div class="ui">
 <header class="top" style="display:none"><img id="brand" alt="Logo GETECO"><div><h1>Montador do Trabalho FICA</h1>
 <p class="sub">Escola Municipal Geraldo Teixeira da Costa · GETECO. Cada professor envia 10 questões (qualquer combinação de objetivas e abertas); gere um trabalho individual para cada estudante.</p></div></header>
-<div class="bar ctx">
- <label>Turmas<select id="serie" onchange="swV()"></select></label>
- <label>Modalidade<select id="mod" onchange="swV()"></select></label>
- <label>Trimestre<input class="t" id="tri" value="3º Trimestre de 2026"></label>
- <label>Data de entrega<input class="t" id="dt" placeholder="__/__/____"></label>
-</div>
 <div class="tabs">
  <button id="b-build" class="on" onclick="show('build')">1 · Receber questões</button>
  <button id="b-blk" onclick="show('blk')">2 · Conferir blocos</button>
@@ -921,6 +950,12 @@ body[data-v=exam] .svbar{margin-bottom:8px}
  <button id="b-sum" onclick="show('sum')">📊 Andamento</button>
  <button id="b-term" onclick="show('term')">📄 Termos</button>
  <button id="b-ctl" onclick="show('ctl')">✅ Entrega dos termos</button>
+</div>
+<div class="bar ctx">
+ <label>Turmas<select id="serie" onchange="swV()"></select></label>
+ <label>Modalidade<select id="mod" onchange="swV()"></select></label>
+ <label>Trimestre<input class="t" id="tri" value="3º Trimestre de 2026"></label>
+ <label>Data de entrega<input class="t" id="dt" placeholder="__/__/____"></label>
 </div>
 <p class="svbar noprint"><span id="sv"></span> <button class="lk" onclick="askClear()">Apagar dados salvos</button></p>
 
@@ -977,16 +1012,11 @@ body[data-v=exam] .svbar{margin-bottom:8px}
   <div class="wr" id="warn" hidden></div>
   <p class="sm noprint" id="autoNote" hidden></p>
   <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
-  <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:10px;position:sticky;top:50px;z-index:15"><div class="fb">
-   <b>Formatação</b>
-   <button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button>
-   <button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button>
-   <span class="fsep"></span><span class="sm">Linhas:</span>
-   <button onmousedown="event.preventDefault()" onclick="lh(1)" title="Espaçamento simples">Simples</button>
-   <button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button>
-   <button onmousedown="event.preventDefault()" onclick="lh(1.35)" title="Espaçamento padrão">1,35</button>
-   <button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button>
-   <button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button>
+  <div class="card noprint" id="fmtBar" style="max-width:none"><div class="fb">
+   <b class="ftt">Formatação</b>
+   <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button><button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button></span>
+   <span class="fsep"></span><span class="sm">Linhas</span>
+   <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="lh(1)" title="Espaçamento simples">Simples</button><button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button><button onmousedown="event.preventDefault()" onclick="lh(1.35)" title="Espaçamento padrão">1,35</button><button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button><button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button></span>
    <span class="fsep"></span>
    <span class="sm" id="imgHint">Imagem: clique nela para ajustar tamanho e posição</span>
    <span id="imgCtl" style="display:none;gap:6px;flex-wrap:wrap;align-items:center">
@@ -994,7 +1024,8 @@ body[data-v=exam] .svbar{margin-bottom:8px}
     <button onclick="imgPos('left')" title="À esquerda do texto">◀ Esquerda</button><button onclick="imgPos('right')" title="À direita do texto">Direita ▶</button>
     <button onclick="imgPos('top')" title="Acima do texto">▲ Acima</button><button onclick="imgPos('bottom')" title="Abaixo do texto">▼ Abaixo</button>
     <button onclick="imgReset()">Restaurar</button></span>
-   <span class="sm" id="fmtMsg"></span><span class="sm" id="lhMsg"></span></div></div>
+   <span class="sm" id="fmtMsg"></span><span class="sm" id="lhMsg"></span>
+   <button id="fdBtn" class="fdock" onmousedown="event.preventDefault()" onclick="fmtDock()" title="Mover a barra de formatação para o painel lateral (vertical) ou de volta para o topo">⇅ Vertical</button></div></div>
   <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
   <div class="pv" id="indPv"><div id="examOut" contenteditable="true"></div></div>
   <div id="blankOut" aria-hidden="true"></div>
@@ -1328,7 +1359,7 @@ function buildAll(){
    else{
     const fora=all.filter(s=>!ld(s)&&!OPT(s.name)).map(s=>s.name);
     if(fora.length)w.push(`${k.replace("|"," · ")}: trabalho parcial com ${v.length} de ${all.filter(s=>!OPT(s.name)||ld(s)).length} disciplinas. Ainda não carregadas: ${fora.join(", ")}.`);
-    v.forEach(s=>{const[o,a]=pk(s),[co,ca]=cnt(s);if(o.length+a.length<NT)w.push(`${k.replace("|"," · ")} – ${s.name}: ${o.length+a.length} de ${NT} questões (${o.length} objetivas e ${a.length} abertas).`);else if(co+ca>NT)w.push(`${k.replace("|"," · ")} – ${s.name}: ${co+ca} questões marcadas; só as ${NT} primeiras entram no trabalho.`);else if(o.some(x=>!x.ans))w.push(`${k.replace("|"," · ")} – ${s.name}: objetiva(s) sem gabarito.`)})
+    v.forEach(s=>{const[o,a]=pk(s),[co,ca]=cnt(s);{const u=new Set([...o,...a].map(x=>x.tid));if((s.txs||[]).some(t=>!u.has(t.id)&&((t.body||"").trim()||(t.imgs||[]).length)))w.push(`${k.replace("|"," · ")} – ${s.name}: há texto de apoio que não está ligado a nenhuma questão e, por isso, não entra no trabalho. Ligue-o a uma questão em Conferir blocos.`)}if(o.length+a.length<NT)w.push(`${k.replace("|"," · ")} – ${s.name}: ${o.length+a.length} de ${NT} questões (${o.length} objetivas e ${a.length} abertas).`);else if(co+ca>NT)w.push(`${k.replace("|"," · ")} – ${s.name}: ${co+ca} questões marcadas; só as ${NT} primeiras entram no trabalho.`);else if(o.some(x=>!x.ans))w.push(`${k.replace("|"," · ")} – ${s.name}: objetiva(s) sem gabarito.`)})
    }
   }
   return{i,html:cover(st,v)+v.map((s,ix)=>disc(st,s,ix===0)).join("")};
@@ -1613,6 +1644,23 @@ function askEach(){
 let SIDEI=false;const WIDE=window.matchMedia("(min-width:1100px)");
 function sideInit(){const d=$("exSideD");if(!d||SIDEI)return;SIDEI=true;d.open=WIDE.matches}
 if(WIDE.addEventListener)WIDE.addEventListener("change",e=>{const d=$("exSideD");if(d)d.open=e.matches});
+
+/* barra de formatação: altura das abas, encaixe e modo vertical */
+(function(){
+ let FD="h";try{FD=localStorage.getItem("fmtDock")==="v"?"v":"h"}catch(e){}
+ function th(){const t=document.querySelector(".ui .tabs");const h=t?t.offsetHeight:0;if(h)document.documentElement.style.setProperty("--th",h+"px")}
+ function apply(){
+  const b=document.getElementById("fmtBar"),side=document.getElementById("exSide"),pv=document.getElementById("modPv"),btn=document.getElementById("fdBtn");
+  if(b&&side&&pv){const v=FD==="v"&&WIDE.matches;
+   if(v){if(b.parentNode!==side)side.insertBefore(b,side.firstChild)}else if(b.parentNode===side)pv.parentNode.insertBefore(b,pv)}
+  if(btn){btn.textContent=FD==="v"?"⇄ Horizontal":"⇅ Vertical";btn.style.display=WIDE.matches?"":"none"}
+  th()}
+ window.fmtDock=function(){FD=FD==="v"?"h":"v";try{localStorage.setItem("fmtDock",FD)}catch(e){}apply()};
+ window.addEventListener("resize",apply);
+ if(WIDE.addEventListener)WIDE.addEventListener("change",apply);
+ const t=document.querySelector(".ui .tabs");if(t&&window.ResizeObserver)new ResizeObserver(th).observe(t);
+ apply();
+})();
 ["fmtMsg","lhMsg"].forEach(id=>{const e=$(id);if(!e)return;let tm;new MutationObserver(()=>{clearTimeout(tm);if(e.textContent)tm=setTimeout(()=>{e.textContent=""},7000)}).observe(e,{childList:true,characterData:true,subtree:true})});
 
 /* ---------- trabalho em branco (sem nome) ---------- */
@@ -1740,11 +1788,13 @@ function txSet(i,id,v){txF(i,id).body=v;mark()}
 function txRmImg(i,id,m){txF(i,id).imgs.splice(m,1);mark();renderBlk();save()}
 function txAddImg(i,id,f){if(!f)return;const r=new FileReader();r.onload=()=>{txF(i,id).imgs.push(r.result);mark();renderBlk();save()};r.readAsDataURL(f)}
 function txDel(i,id){S[i].txs=S[i].txs.filter(t=>t.id!==id);S[i].qs.forEach(q=>{if(q.tid===id)q.tid=""});mark();renderBlk();save()}
-function txAdd(i){const s=S[i];s.txs=s.txs||[];let n=1;while(s.txs.some(t=>t.id==="t"+n))n++;s.txs.push({id:"t"+n,body:"Texto "+(s.txs.length+1)+"\n",imgs:[]});mark();renderBlk();save()}
+function txAdd(i){const s=S[i];s.txs=s.txs||[];let n=1;while(s.txs.some(t=>t.id==="t"+n))n++;s.txs.push({id:"t"+n,body:"Texto "+(s.txs.length+1)+"\n",imgs:[]});txFirst(i,"t"+n);mark();renderBlk();save()}
+function txFirst(i,id){const[o,a]=pk(S[i]);const f=[...o,...a].find(q=>!q.tid);if(f){f.tid=id;return true}return false}
+function txLink(i,id){txFirst(i,id);mark();renderBlk();save()}
 function blkTid(i,j,v){S[i].qs[j].tid=v;mark();renderBlk();save()}
 function blkTx(i,t){
- const nq=S[i].qs.filter(q=>q.tid===t.id&&q.inc).length;
- return `<div class="qe tx-e"><div class="r"><b>📄 Texto de apoio</b><span class="sm">usado em ${nq} questão(ões) · aparece antes da primeira delas em cada parte</span><button onclick="txDel(${i},'${t.id}')">Excluir texto</button></div>
+ const[po,pa]=pk(S[i]),nq=[...po,...pa].filter(q=>q.tid===t.id).length;
+ return `<div class="qe tx-e"><div class="r"><b>📄 Texto de apoio</b>${nq?`<span class="sm">usado em ${nq} questão(ões) · aparece antes da primeira delas em cada parte</span>`:`<span class="sm" style="color:var(--er);font-weight:700">⚠ Não está ligado a nenhuma questão: este texto NÃO sai no trabalho.</span><button onclick="txLink(${i},'${t.id}')">Ligar à 1ª questão sem texto</button>`}<button onclick="txDel(${i},'${t.id}')">Excluir texto</button></div>
  <textarea rows="6" aria-label="Texto de apoio" oninput="txSet(${i},'${t.id}',this.value);grow(this)">${esc(t.body)}</textarea>
  <div class="r">${t.imgs.map((u,m)=>`<span><img src="${u}" alt="" style="max-height:70px;max-width:120px;display:block;border:1px solid var(--ln)"><button onclick="txRmImg(${i},'${t.id}',${m})">Remover</button></span>`).join("")}<label>Adicionar imagem<input type="file" accept="image/*" onchange="txAddImg(${i},'${t.id}',this.files[0])"></label></div></div>`}
 function blkG(i,arr,nx){let lt="";return arr.map(x=>{const t=txF(i,x.tid),h=t&&x.tid!==lt?blkTx(i,t):"";lt=x.tid||"";return h+blkQ(i,x,nx())}).join("")}
