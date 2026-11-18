@@ -1009,7 +1009,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 
 <section id="v-ctl" hidden>
  <h2 class="noprint" style="margin-top:0">Controle de entrega dos termos</h2>
- <p class="sub">Marque quem recebeu o termo e quem já devolveu assinado. Ao marcar “Devolveu”, “Recebeu” é marcado junto. Fica salvo automaticamente neste navegador.</p>
+ <p class="sub">Marque quem recebeu o termo, quem já devolveu assinado e quem devolveu o trabalho. Ao marcar “Devolveu”, “Recebeu” é marcado junto. Fica salvo automaticamente neste navegador.</p>
  <div class="card noprint" style="max-width:none;margin-bottom:12px">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
    <label>Mostrar <select id="ctlF" onchange="CF=this.value;renderCtl()"></select></label>
@@ -1717,9 +1717,9 @@ function renderCtl(){
  const all=selIx(tmOkS),tl=[...new Set(all.map(i=>STU[i].t))].sort();
  $("ctlF").innerHTML='<option value="">Todos os estudantes</option>'+TURMAS.filter(b=>all.some(i=>grp(STU[i].t)===b)).map(b=>`<option ${CF===b?"selected":""}>${esc(b)}</option>`).join("")+tl.map(t=>`<option ${CF===t?"selected":""}>${esc(t)}</option>`).join("");
  $("ctlP").checked=CP;
- const base=ctlIx(false),ix=ctlIx(CP),n=base.length,r=base.filter(i=>STU[i].r).length,d=base.filter(i=>STU[i].d).length;
- const hd=`<div class="ctlhd"><b>Projeto FICA – Controle de entrega do Termo de Compromisso</b><br>Escola Municipal Geraldo Teixeira da Costa – GETECO${CF?" · "+esc(CF):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}<br><b style="font-size:10pt">Receberam: ${r} de ${n} · Devolveram assinado: ${d} de ${n} · Faltam devolver: ${r-d} · Ainda sem termo: ${n-r}</b></div>`;
- $("ctlOut").innerHTML=!all.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':hd+`<div class="pv"><table class="tb"><thead><tr><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:110px;text-align:center">Recebeu o termo</th><th style="width:130px;text-align:center">Devolveu assinado</th></tr></thead><tbody>${ix.map((i,k)=>{const s=STU[i];return `<tr class="${s.r&&!s.d?"pend":""}"><td>${k+1}</td><td>${esc(s.t)}</td><td>${esc(s.n)}</td><td class="ck"><input type="checkbox" aria-label="Recebeu o termo: ${esc(s.n)}" ${s.r?"checked":""} onchange="ctlSet(${i},'r',this.checked)"></td><td class="ck"><input type="checkbox" aria-label="Devolveu assinado: ${esc(s.n)}" ${s.d?"checked":""} onchange="ctlSet(${i},'d',this.checked)"></td></tr>`}).join("")||'<tr><td colspan="5" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div>`;
+ const base=ctlIx(false),ix=ctlIx(CP),n=base.length,r=base.filter(i=>STU[i].r).length,d=base.filter(i=>STU[i].d).length,w=base.filter(i=>STU[i].w).length;
+ const hd=`<div class="ctlhd"><b>Projeto FICA – Controle de entrega do Termo de Compromisso</b><br>Escola Municipal Geraldo Teixeira da Costa – GETECO${CF?" · "+esc(CF):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}<br><b style="font-size:10pt">Receberam: ${r} de ${n} · Devolveram assinado: ${d} de ${n} · Faltam devolver: ${r-d} · Ainda sem termo: ${n-r} · Trabalho devolvido: ${w} de ${n}</b></div>`;
+ $("ctlOut").innerHTML=!all.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':hd+`<div class="pv"><table class="tb"><thead><tr><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:110px;text-align:center">Recebeu o termo</th><th style="width:130px;text-align:center">Devolveu assinado</th><th style="width:130px;text-align:center">Trabalho devolvido</th></tr></thead><tbody>${ix.map((i,k)=>{const s=STU[i];return `<tr class="${s.r&&!s.d?"pend":""}"><td>${k+1}</td><td>${esc(s.t)}</td><td>${esc(s.n)}</td><td class="ck"><input type="checkbox" aria-label="Recebeu o termo: ${esc(s.n)}" ${s.r?"checked":""} onchange="ctlSet(${i},'r',this.checked)"></td><td class="ck"><input type="checkbox" aria-label="Devolveu assinado: ${esc(s.n)}" ${s.d?"checked":""} onchange="ctlSet(${i},'d',this.checked)"></td><td class="ck"><input type="checkbox" aria-label="Trabalho devolvido: ${esc(s.n)}" ${s.w?"checked":""} onchange="ctlSet(${i},'w',this.checked)"></td></tr>`}).join("")||'<tr><td colspan="6" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div>`;
 }
 
 /* ---------- blocos ---------- */
