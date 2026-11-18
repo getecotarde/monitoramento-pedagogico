@@ -859,6 +859,34 @@ progress{height:10px;accent-color:var(--ok)}
 .paper.tm+.paper.tm{break-before:page}
 @media print{body[data-p=term] .ui{padding:0!important;max-width:none!important;margin:0!important}body[data-p=term] .paper.tm{margin:0!important;height:296.6mm!important}}
 </style>
+<style id="exlay">
+/* abas mais baixas (uma linha) e barra de contexto escondida na aba Trabalhos */
+.ui .tabs{flex-wrap:nowrap;padding:4px 0;margin-bottom:8px;gap:4px}
+.ui .tabs button{padding:6px 11px;font-size:.9rem;flex:none}
+body[data-v=exam] .bar.ctx{display:none}
+body[data-v=exam] .svbar{margin-bottom:8px}
+#exMain{min-width:0}
+#exSideD>summary{font-weight:700;padding:6px 2px;cursor:pointer}
+#exSide .card{padding:10px;gap:6px;margin-bottom:10px!important}
+#exSide details{background:none;border:0;padding:0;margin:0}
+#exSideD{background:var(--sf)!important;border:1px solid var(--ln)!important;border-radius:8px;padding:6px 10px!important;margin-bottom:10px!important}
+#exSide .sbtn{display:flex;gap:6px;flex-wrap:wrap;margin:0}#exSide .sbtn button{flex:1 1 100%;text-align:left}
+#exSide .seg{display:flex}#exSide .seg button{flex:1;padding:8px 6px}
+#exSide .chips button{padding:5px 9px;font-size:.85rem}
+#exSide .sm{font-size:.78rem}#exSide #exModeW{margin-bottom:6px}#exSide #exModeW>button{width:100%;margin:2px 0 8px}
+#fmtBar{padding:5px 10px!important;gap:2px!important}
+#fmtBar .fb{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#fmtBar button{padding:3px 10px;font-size:.85rem}
+#fmtBar .fsep{width:1px;height:20px;background:var(--ln)}
+#fmtMsg:empty,#lhMsg:empty{display:none}
+#exMain .wr{padding:6px 12px;margin:0 0 8px;font-size:.85rem}#exMain .wr ul{margin:4px 0 0;padding-left:20px}#exMain #autoNote{margin:0 0 6px}
+@media screen and (min-width:1100px){
+ #exLay{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+ #exSide{position:sticky;top:52px;max-height:calc(100vh - 62px);overflow-y:auto}
+ #exSideD>summary{display:none}
+ #exSideD{background:none!important;border:0!important;padding:0!important}
+}
+</style>
 <style id="blankcss">
 #blankOut{display:none}
 @media print{
@@ -922,51 +950,55 @@ progress{height:10px;accent-color:var(--ok)}
 </section>
 
 <section id="v-exam" hidden>
- <div class="card noprint" id="blankBox" style="max-width:none;margin-bottom:12px"><b>🖨️ Trabalho em branco (sem nome do estudante)</b>
-  <div class="sm">Imprime o trabalho do bloco com a capa e os campos de nome e turma em branco, para fotocopiar ou preencher à mão. Não depende de estudantes nem de gerar os trabalhos: usa as questões já carregadas. Marque um ou mais blocos.</div>
-  <div class="chips" id="blankKeys"></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" id="blankPr" onclick="prBlank()">🖨️ Imprimir em branco / salvar PDF</button><button onclick="blankAll()">Marcar todos os blocos</button></div>
-  <div class="sm" id="blankMsg"></div></div>
- <div class="wr" id="warn" hidden></div>
- <p class="sm noprint" id="autoNote" hidden></p>
- <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
- <div class="noprint" id="exModeW"></div>
- <div class="card noprint" id="modBox" style="max-width:none;margin-bottom:12px"><b>Trabalho modelo do bloco</b>
-  <div class="sm">Escolha o bloco e edite o modelo abaixo (clique em qualquer texto). Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda. Ciências, Geografia, História e Arte valem para os dois blocos do mesmo ano (6º ABC e DEF; 7º ABC e DE); Inglês vale para os dois blocos só no 6º ano (no 7º é diferente em cada bloco); Português e Matemática valem só para o bloco aberto.</div>
-  <div class="chips" id="modKeys"></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="p" onclick="modApply()">Aplicar a todos do bloco</button><button onclick="prMod()">🖨️ Imprimir este bloco</button><button onclick="dlMod()">⬇️ Baixar em Word (.doc)</button></div></div>
- <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:12px;position:sticky;top:56px;z-index:15"><b>Formatação</b><div class="sm">Vale para o modelo ou para o estudante, conforme a visão aberta.</div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Texto:</b>
-   <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
-   <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
-   <span class="sm" id="fmtMsg">Selecione um trecho do modelo e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Espaçamento entre linhas:</b>
-   <button onmousedown="event.preventDefault()" onclick="lh(1)">Simples</button>
+ <div id="exLay">
+ <aside id="exSide" class="noprint"><details id="exSideD"><summary>⚙ Opções do trabalho (modo, bloco, quem imprimir, em branco)</summary>
+  <div id="exModeW"></div>
+  <p class="sm noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Clique em qualquer texto ou imagem do trabalho para ajustar só este estudante. Para mudar todos de um bloco, use “Editar modelo do bloco”.</p>
+  <div class="card noprint" id="modBox" style="max-width:none"><b>Trabalho modelo do bloco</b>
+   <div class="chips" id="modKeys"></div>
+   <div class="sbtn"><button class="p" onclick="modApply()">Aplicar a todos do bloco</button><button onclick="prMod()">🖨️ Imprimir este bloco</button><button onclick="dlMod()">⬇️ Baixar em Word (.doc)</button></div>
+   <details><summary class="sm">Como funciona</summary><div class="sm">Edite o modelo clicando em qualquer texto. Depois clique em “Aplicar a todos do bloco”: a mudança vale para todos os estudantes dele. Nome e turma de cada um são preenchidos sozinhos. A capa não muda. Ciências, Geografia, História e Arte valem para os dois blocos do mesmo ano (6º ABC e DEF; 7º ABC e DE); Inglês vale para os dois blocos só no 6º ano; Português e Matemática valem só para o bloco aberto.</div></details></div>
+  <div class="card noprint" id="selBox" style="max-width:none">
+   <div class="ch"><b>Quem imprimir</b><span class="bd" id="selN"></span></div>
+   <div class="sm">Marque um bloco, uma turma ou estudantes. Só os selecionados aparecem no trabalho e saem na impressão.</div>
+   <div><b class="sm">Blocos</b><div class="chips" id="selBlk"></div></div>
+   <div><b class="sm">Turmas</b><div class="chips" id="selTur"></div></div>
+   <div class="sbtn" style="flex-direction:row"><button onclick="selAll(true)" style="flex:1 1 40%">Marcar todos</button><button onclick="selAll(false)" style="flex:1 1 40%">Limpar seleção</button></div>
+   <details><summary>Escolher estudantes um a um</summary><div id="selList" class="sl"></div></details>
+  </div>
+  <p class="noprint sbtn" id="exPr"><button class="p" onclick="prSel()">Imprimir / salvar PDF (um arquivo com o nome de cada estudante)</button><button onclick="pr('exam')">Todos juntos em um só arquivo</button></p>
+  <div class="card noprint" id="blankBox" style="max-width:none"><details><summary><b>🖨️ Trabalho em branco (sem nome)</b></summary>
+   <div class="sm">Imprime o trabalho do bloco com a capa e os campos de nome e turma em branco, para fotocopiar ou preencher à mão. Não depende de estudantes nem de gerar os trabalhos. Marque um ou mais blocos.</div>
+   <div class="chips" id="blankKeys"></div>
+   <div class="sbtn"><button class="p" id="blankPr" onclick="prBlank()">🖨️ Imprimir em branco / salvar PDF</button><button onclick="blankAll()">Marcar todos os blocos</button></div>
+   <div class="sm" id="blankMsg"></div></details></div>
+ </details></aside>
+ <div id="exMain">
+  <div class="wr" id="warn" hidden></div>
+  <p class="sm noprint" id="autoNote" hidden></p>
+  <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
+  <div class="card noprint" id="fmtBar" style="max-width:none;margin-bottom:10px;position:sticky;top:50px;z-index:15"><div class="fb">
+   <b>Formatação</b>
+   <button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button>
+   <button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button>
+   <span class="fsep"></span><span class="sm">Linhas:</span>
+   <button onmousedown="event.preventDefault()" onclick="lh(1)" title="Espaçamento simples">Simples</button>
    <button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button>
-   <button onmousedown="event.preventDefault()" onclick="lh(1.35)">1,35 (padrão)</button>
+   <button onmousedown="event.preventDefault()" onclick="lh(1.35)" title="Espaçamento padrão">1,35</button>
    <button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button>
    <button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button>
-   <span class="sm" id="lhMsg">Selecione um trecho para mudar só ele; sem seleção, vale para todo o modelo do bloco.</span></div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b>Imagem:</b>
-   <span class="sm" id="imgHint">clique numa imagem para selecioná-la. Depois arraste a imagem para outro lado do texto, ou arraste o quadradinho do canto para mudar o tamanho.</span>
+   <span class="fsep"></span>
+   <span class="sm" id="imgHint">Imagem: clique nela para ajustar tamanho e posição</span>
    <span id="imgCtl" style="display:none;gap:6px;flex-wrap:wrap;align-items:center">
     <label style="display:flex;gap:6px;align-items:center">Tamanho <input type="range" id="imgSz" min="10" max="100" step="5" oninput="imgSize(this.value)"> <span id="imgPct"></span></label>
-    <button onclick="imgPos('left')">À esquerda do texto</button><button onclick="imgPos('right')">À direita do texto</button>
-    <button onclick="imgPos('top')">Acima do texto</button><button onclick="imgPos('bottom')">Abaixo do texto</button>
-    <button onclick="imgReset()">Restaurar imagem</button></span></div></div>
- <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
- <p class="sub noprint" id="exSub">Cada estudante recebe o seu trabalho: capa e uma página por disciplina. Para mudar todos de um bloco de uma vez, use “Editar modelo do bloco”. Aqui, clique em qualquer texto ou imagem para ajustar só este estudante.</p>
- <div class="card noprint" id="selBox" style="max-width:none;margin-bottom:12px">
-  <div class="ch"><b>Quem imprimir</b><span class="bd" id="selN"></span></div>
-  <div class="sm">Marque um bloco, uma turma ou estudantes individuais. Clique de novo para desmarcar. Só os selecionados aparecem abaixo e saem na impressão.</div>
-  <div><b class="sm">Blocos</b><div class="chips" id="selBlk"></div></div>
-  <div><b class="sm">Turmas</b><div class="chips" id="selTur"></div></div>
-  <div><button onclick="selAll(true)">Marcar todos</button> <button onclick="selAll(false)">Limpar seleção</button></div>
-  <details><summary>Escolher estudantes um a um</summary><div id="selList" class="sl"></div></details>
- </div>
- <p class="noprint" id="exPr"><button class="p" onclick="prSel()">Imprimir / salvar PDF (um arquivo com o nome de cada estudante)</button> <button onclick="pr('exam')">Todos juntos em um só arquivo</button></p>
- <div class="pv" id="indPv"><div id="examOut" contenteditable="true"></div></div>
- <div id="blankOut" aria-hidden="true"></div>
+    <button onclick="imgPos('left')" title="À esquerda do texto">◀ Esquerda</button><button onclick="imgPos('right')" title="À direita do texto">Direita ▶</button>
+    <button onclick="imgPos('top')" title="Acima do texto">▲ Acima</button><button onclick="imgPos('bottom')" title="Abaixo do texto">▼ Abaixo</button>
+    <button onclick="imgReset()">Restaurar</button></span>
+   <span class="sm" id="fmtMsg"></span><span class="sm" id="lhMsg"></span></div></div>
+  <div class="pv" id="modPv"><div id="modOut" contenteditable="true"></div></div>
+  <div class="pv" id="indPv"><div id="examOut" contenteditable="true"></div></div>
+  <div id="blankOut" aria-hidden="true"></div>
+ </div></div>
  <div id="pgframe" aria-hidden="true"></div>
 </section>
 
@@ -1286,6 +1318,8 @@ function autoGen(){
  const n=$("autoNote");n.textContent="Os trabalhos foram montados agora, automaticamente, com as questões e os estudantes salvos (não havia trabalhos gerados guardados neste computador).";n.hidden=false;
 }
 function buildAll(){
+ /* limpa a tela dos trabalhos antigos: senão syncEx() relê o HTML velho e sobrescreve os trabalhos recém-gerados */
+ $("examOut").innerHTML="";
  const w=[],seen={};
  MOD={};$("modOut").dataset.k="";$("modOut").innerHTML="";BK=STU.map((st,i)=>{
   const k=grp(st.t)+"|"+st.m,all=VER[k]||mkS(),v=all.filter(ld);
@@ -1529,7 +1563,7 @@ async function dlSum(){
  }catch(e){if(e&&e.code==="declined")return}
  try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
 }
-function show(v){VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam"){if(!BK.length&&canGen())autoGen();renderEx()}if(v==="key")renderKey();if(v==="sum")renderSum();if(v==="term")renderTerm();if(v==="ctl")renderCtl();window.scrollTo(0,0)}
+function show(v){document.body.dataset.v=v;if(v==="exam")sideInit();VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam"){if(!BK.length&&canGen())autoGen();renderEx()}if(v==="key")renderKey();if(v==="sum")renderSum();if(v==="term")renderTerm();if(v==="ctl")renderCtl();window.scrollTo(0,0)}
 let BIGM=[],BIGZ=1;
 function bigPv(){return $(MODE==="mod"?"modPv":"indPv")}
 function bigApply(){const e=bigPv();e.style.zoom=BIGZ;$("bigZv").textContent=Math.round(BIGZ*100)+"%"}
@@ -1574,6 +1608,12 @@ function askEach(){
   SEL=keep;renderEx();
  });
 }
+
+/* ---------- layout da aba Trabalhos ---------- */
+let SIDEI=false;const WIDE=window.matchMedia("(min-width:1100px)");
+function sideInit(){const d=$("exSideD");if(!d||SIDEI)return;SIDEI=true;d.open=WIDE.matches}
+if(WIDE.addEventListener)WIDE.addEventListener("change",e=>{const d=$("exSideD");if(d)d.open=e.matches});
+["fmtMsg","lhMsg"].forEach(id=>{const e=$(id);if(!e)return;let tm;new MutationObserver(()=>{clearTimeout(tm);if(e.textContent)tm=setTimeout(()=>{e.textContent=""},7000)}).observe(e,{childList:true,characterData:true,subtree:true})});
 
 /* ---------- trabalho em branco (sem nome) ---------- */
 const BLANK_N="Nome: "+"_".repeat(34),BLANK_T="Turma: "+"_".repeat(8);
