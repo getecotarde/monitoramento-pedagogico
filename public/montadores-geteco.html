@@ -1619,7 +1619,9 @@ function doPrint(title,w,keep){
  window.addEventListener("afterprint",()=>dt.forEach(([d,o])=>{try{d.title=o}catch(e){}}),{once:true});
  document.body.dataset.p=w;try{window.print()}catch(e){alert("A impressão não está disponível aqui.")}
 }
-function selNames(){return[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i)).map(i=>String(STU[i].n||"").trim()).filter(Boolean)}
+/* nome do arquivo de cada estudante: TURMA_NOME */
+const stuFile=st=>[st.t,st.n].map(x=>String(x||"").trim()).filter(Boolean).join("_");
+function selNames(){return[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i)).map(i=>stuFile(STU[i])).filter(Boolean)}
 function pr(w){
  if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}
  let t="";if(w==="exam"){const n=selNames();t=n.length<=3?n.join(" - "):n.slice(0,3).join(" - ")+" e mais "+(n.length-3)}
@@ -1633,9 +1635,9 @@ function prSel(){
 function askEach(){
  const ids=[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i));
  if(!ids.length){alert("Selecione ao menos um estudante para imprimir.");return}
- ask("Será aberta a janela de impressão uma vez para cada um dos "+ids.length+" estudantes selecionados, já com o nome do estudante como nome do arquivo. Em cada janela, escolha “Salvar como PDF” e confirme. Continuar?",async()=>{
+ ask("Será aberta a janela de impressão uma vez para cada um dos "+ids.length+" estudantes selecionados, já com o nome do arquivo no formato turma_nome do estudante (ex.: 6A_MARIA DA SILVA). Em cada janela, escolha “Salvar como PDF” e confirme. Continuar?",async()=>{
   const keep=new Set(SEL);
-  for(const i of ids){SEL=new Set([i]);renderEx();await new Promise(r=>setTimeout(r,500));doPrint(STU[i].n,"exam");await new Promise(r=>setTimeout(r,800))}
+  for(const i of ids){SEL=new Set([i]);renderEx();await new Promise(r=>setTimeout(r,500));doPrint(stuFile(STU[i]),"exam");await new Promise(r=>setTimeout(r,800))}
   SEL=keep;renderEx();
  });
 }
@@ -1696,7 +1698,7 @@ async function prBlank(){
  document.body.classList.add("bp");
  window.addEventListener("afterprint",()=>{document.body.classList.remove("bp");out.innerHTML=""},{once:true});
  msg.textContent="Em branco: "+ks.map(k=>k.replace("|"," · ")).join(", ")+(STALE?" (usando as questões mais recentes do passo 2).":".");
- doPrint("Trabalho FICA em branco - "+ks.map(k=>k.replace("|"," ")).join(" e "),"exam",true);
+ doPrint(ks.map(k=>{const[b,md]=k.split("|");return b+(md&&md!=="Regular"?" "+md:"")}).join(" e ")+"_em branco","exam",true);
 }
 
 /* ---------- termo de compromisso da família ---------- */
