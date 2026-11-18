@@ -849,6 +849,7 @@ progress{height:10px;accent-color:var(--ok)}
 .paper.tm .rw{display:flex;align-items:flex-end;gap:2mm;margin:0 0 5mm;white-space:nowrap}
 .paper.tm .rw i{display:block;border-bottom:.8pt solid #000;height:1.15em;flex:1}
 .paper.tm .rw .g{margin-left:4mm}
+.paper.tm .rw i.tsg{font-style:normal;font-weight:700;text-align:center;line-height:1.15em;overflow:hidden}
 .paper.tm .tx{text-align:justify;text-justify:inter-word;line-height:1.55;margin:0 0 4mm;border:0;background:none;padding:0;font-size:11pt}
 .paper.tm .dt{margin:14mm 0 0 25mm}
 .paper.tm .dt .rw{width:120mm;margin:0}
@@ -904,9 +905,9 @@ progress{height:10px;accent-color:var(--ok)}
 
 <section id="v-stu" hidden>
  <h2>Estudantes do Projeto FICA</h2>
- <p class="sub">Envie o Word do projeto (tabela com turma e nome) ou cole a lista: Turma;Nome;Faltas, uma linha por estudante.</p>
+ <p class="sub">Envie o Word do projeto (tabela com turma e nome) ou cole a lista: Turma;Nome;Faltas;Código SGE, uma linha por estudante. Também aceita as linhas da listagem do SGE (Turma Código Estudante). Quem já está na lista só tem o código atualizado.</p>
  <div class="card"><label>Arquivo Word com a tabela<input type="file" accept=".docx" onchange="upS(this.files[0])"></label>
- <label>Ou cole a lista<textarea id="pst" rows="4" placeholder="6B;NOME DO ESTUDANTE;32"></textarea></label>
+ <label>Ou cole a lista<textarea id="pst" rows="4" placeholder="6B;NOME DO ESTUDANTE;32;201912345"></textarea></label>
  <div><button onclick="pasteS()">Adicionar da lista</button> <button onclick="addOne()">+ Linha em branco</button></div><div class="sm" id="smS"></div></div>
  <div id="stuOut"></div>
  <div class="cta"><span id="stuN"></span><button class="p" onclick="gen()">Gerar trabalhos (disciplinas carregadas)</button></div>
@@ -1021,6 +1022,35 @@ const DEF=`6B;ARTHUR OLIVEIRA DE FREITAS;32
 7D;DAVI SOARES DE SOUSA;33
 7D;MARCELLO HENRIQUE FORTES COSTA;36
 7E;GIOVANNA VITORIA RODRIGUES DE FREITAS;34`.split("\n").map(r=>{const c=r.split(";");return{t:c[0],n:c[1],f:c[2],m:"Regular"}});
+/* ---------- códigos SGE (listagem) ---------- */
+const SGE_V=1;
+const SGE=`7A;201921590;GABRIEL RODRIGO FERREIRA DE AQUINO
+7A;201837075;NIKOLAS MATHEUS NUNES CURVELANO
+7A;202516785;VITORIA HANNA CASTRO APOSTOLO
+7B;201833760;DERICK ALEJANDRO DOS SANTOS
+7B;201729024;SOPHYA GABRIELLY VIEIRA SOUZA
+7C;201732615;JOAO LUCAS SOARES ALVES
+7D;20162205;DAVI SOARES DE SOUSA
+7D;2019820;MARCELLO HENRIQUE FORTES COSTA
+7E;201724001;IZADORA EMANUELLY DE MOURA ANDRADE
+6A;202419191;BERNARDO MARTINS EMIGDIO DE SOUSA
+6A;202516945;ESTHER ALMEIDA BRITO
+6B;202417658;ARTHUR OLIVEIRA DE FREITAS
+6B;201832542;DAVI VILAS BOAS MORAIS
+6B;20188541;KAILLANY EVILLYN FLORENÇO LABOURE DA SILVA
+6B;201723765;SARA VITORIA DOS ANJOS SILVA
+6B;202524850;SOFIA ESTER ALMEIDA DE MENEZES
+6C;202516769;ANA BEATRIZ CASTRO APOSTOLO
+6C;201815321;GUSTAVO FELIPE CAETANO MIRANDA
+6C;202215268;PEROLA MARIA PIRES SANTANA
+6D;201839622;DAVI KENEDY DO ESPIRITO SANTO AZEVEDO
+6E;201811033;HENRIQUE DA SILVA JARDIM
+6E;201812431;SOPHIA VICTORIA SANTOS DO NASCIMENTO
+6F;202227097;KETULLY GABRIELLA RAMALHO GOMES
+6F;202610585;SAMUEL LUCCA DE SOUSA PEREIRA`.split("\n").map(r=>{const c=r.split(";");return{t:c[0],c:c[1],n:c[2]}});
+const nk=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toUpperCase();
+function applySGE(arr){let up=0,nw=0;SGE.forEach(x=>{const s=arr.find(y=>nk(y.n)===nk(x.n));if(s){if(s.c!==x.c){s.c=x.c;up++}}else{arr.push({t:x.t,n:x.n,f:"",m:"Regular",c:x.c});nw++}});return[up,nw]}
+applySGE(DEF);
 const VER={};let KEY=TURMAS[0]+"|Regular",S=mkS(),STU=DEF,BK=[],cur=0;VER[KEY]=S;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1173,8 +1203,11 @@ function askDel(i){ask("Excluir o arquivo enviado e as questões lidas de "+S[i]
 function askClear(){ask("Apagar TODOS os dados salvos neste navegador e no Supabase (questões, gabaritos e estudantes)? Esta ação não pode ser desfeita.",()=>{Object.keys(VER).forEach(k=>delete VER[k]);KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();STU=[];BK=[];$("serie").value=TURMAS[0];$("mod").value="Regular";renderGrid();renderRev();renderStu()})}
 
 /* ---------- estudantes ---------- */
-function addS(l){let n=0;l.forEach(x=>{if(!STU.some(s=>s.t===x.t&&s.n===x.n)){STU.push({...x,m:"Regular"});n++}});$("smS").textContent=n+" estudante(s) adicionado(s)."+(l.length-n?" "+(l.length-n)+" já estavam na lista.":"");renderStu()}
-const rowS=c=>{const i=c.findIndex(isT);return i>=0&&c[i+1]?{t:nt(c[i]),n:c[i+1],f:(c[i+2]||"").replace(/\D/g,"")}:null};
+function addS(l){let n=0,u=0;l.forEach(x=>{const s=STU.find(y=>nk(y.n)===nk(x.n));if(s){if(x.c&&s.c!==x.c){s.c=x.c;u++}}else{STU.push({...x,m:"Regular"});n++}});$("smS").textContent=n+" estudante(s) adicionado(s)."+(u?" "+u+" código(s) SGE atualizado(s).":"")+(l.length-n-u?" "+(l.length-n-u)+" já estavam na lista.":"");renderStu()}
+const rowS=c=>{
+ if(c.length===1){const m=/^([A-Z]+\d[A-Z]+)\s+(\d{5,})\s+(.+)$/i.exec(c[0].trim()),a=m&&/^[A-Z]+(\d)T?([A-Z])$/i.exec(m[1]),y=a&&{1:7,2:8,3:6}[a[1]];
+  if(y){const l=a[2].toUpperCase();return{t:y+(l==="X"?"C":l),n:m[3].trim(),f:"",c:m[2]}}}
+ const i=c.findIndex(isT);return i>=0&&c[i+1]?{t:nt(c[i]),n:c[i+1],f:(c[i+2]||"").replace(/\D/g,""),c:(c[i+3]||"").replace(/\D/g,"")}:null};
 async function upS(f){
  if(!f)return;
  try{const d=new DOMParser().parseFromString((await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()})).value,"text/html"),l=[];
@@ -1182,11 +1215,11 @@ async function upS(f){
   l.length?addS(l):$("smS").textContent="Nenhuma linha com turma e nome encontrada na tabela.";
  }catch(e){$("smS").textContent="Não foi possível ler o arquivo."}
 }
-function pasteS(){const l=[];$("pst").value.split("\n").forEach(r=>{const x=rowS(r.split(/\t|;|\|/).map(c=>c.trim()));if(x)l.push(x)});if(l.length){addS(l);$("pst").value=""}else $("smS").textContent="Use: Turma;Nome;Faltas (uma linha por estudante)."}
-function addOne(){STU.push({t:"6A",n:"",f:"",m:"Regular"});renderStu()}
+function pasteS(){const l=[];$("pst").value.split("\n").forEach(r=>{const x=rowS(r.split(/\t|;|\|/).map(c=>c.trim()));if(x)l.push(x)});if(l.length){addS(l);$("pst").value=""}else $("smS").textContent="Use: Turma;Nome;Faltas;Código SGE (uma linha por estudante) ou Turma Código Nome, como na listagem do SGE."}
+function addOne(){STU.push({t:"6A",n:"",f:"",c:"",m:"Regular"});renderStu()}
 function renderStu(){
  $("stuN").textContent=STU.length+" estudante(s) · "+STU.filter(s=>s.m==="Adaptada").length+" na modalidade adaptada";
- $("stuOut").innerHTML=STU.length?`<div class="pv"><table class="tb"><tr><th>Turma</th><th>Estudante</th><th>Faltas</th><th>Modalidade</th><th>Questões usadas de</th><th></th></tr>${STU.map((s,i)=>`<tr><td><input class="t" style="width:70px" value="${esc(s.t)}" onchange="STU[${i}].t=nt(this.value);renderStu()"></td><td><input class="t" value="${esc(s.n)}" onchange="STU[${i}].n=this.value"></td><td><input class="t" style="width:70px" value="${esc(s.f)}" onchange="STU[${i}].f=this.value"></td><td><select onchange="STU[${i}].m=this.value;renderStu()">${MODS.map(m=>`<option ${s.m===m?"selected":""}>${m}</option>`).join("")}</select></td><td>${esc(grp(s.t))}</td><td><button onclick="STU.splice(${i},1);renderStu()">Remover</button></td></tr>`).join("")}</table></div>`:'<p class="empty">Nenhum estudante ainda.</p>';
+ $("stuOut").innerHTML=STU.length?`<div class="pv"><table class="tb"><tr><th>Turma</th><th>Estudante</th><th>Código SGE</th><th>Faltas</th><th>Modalidade</th><th>Questões usadas de</th><th></th></tr>${STU.map((s,i)=>`<tr><td><input class="t" style="width:70px" value="${esc(s.t)}" onchange="STU[${i}].t=nt(this.value);renderStu()"></td><td><input class="t" value="${esc(s.n)}" onchange="STU[${i}].n=this.value"></td><td><input class="t" style="width:110px" value="${esc(s.c)}" onchange="STU[${i}].c=this.value.trim()"></td><td><input class="t" style="width:70px" value="${esc(s.f)}" onchange="STU[${i}].f=this.value"></td><td><select onchange="STU[${i}].m=this.value;renderStu()">${MODS.map(m=>`<option ${s.m===m?"selected":""}>${m}</option>`).join("")}</select></td><td>${esc(grp(s.t))}</td><td><button onclick="STU.splice(${i},1);renderStu()">Remover</button></td></tr>`).join("")}</table></div>`:'<p class="empty">Nenhum estudante ainda.</p>';
 }
 
 /* ---------- geração ---------- */
@@ -1532,7 +1565,7 @@ function tmPage(st){
  <div class="t2">Termo de Compromisso da Família/Responsável Legal</div>
  <div class="t3">1. DADOS DO(A) ESTUDANTE</div>
  <p>Nome Completo: <span class="tnm">${nm}</span></p>
- <div class="rw"><span>Data de Nascimento:</span><i style="flex:0 0 40mm"></i><span class="g">Código SGE:</span><i style="flex:0 0 40mm"></i></div>
+ <div class="rw"><span>Data de Nascimento:</span><i style="flex:0 0 40mm"></i><span class="g">Código SGE:</span><i class="tsg" style="flex:0 0 40mm">${esc(st.c||"")}</i></div>
  <div class="t3 b2">2. DADOS DO(A) RESPONSÁVEL</div>
  <div class="rw"><span>Nome Completo:</span><i></i></div>
  <div class="rw"><span>Grau de Parentesco:</span><i style="flex:0 0 42mm"></i><span class="g">Telefone para Contato: (</span><i style="flex:0 0 9mm"></i><span>)</span><i></i></div>
@@ -1678,14 +1711,14 @@ function restoreG(d){
  BK=g.list.filter(x=>STU[x.i]).map(x=>{const st=STU[x.i];return{i:x.i,html:cover(st,[])+g.bodies[x.b].split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))}});
  SEL=new Set(BK.map(x=>x.i));
 }
-function doSave(){const base={VER,KEY,STU,tri:$("tri").value,dt:$("dt").value};let msg="";
+function doSave(){const base={VER,KEY,STU,sgeV:SGE_V,tri:$("tri").value,dt:$("dt").value};let msg="";
  try{
   try{lsSet(LS,JSON.stringify({...base,G:BK.length?packG():null,savedAt:ts()}))}
   catch(e){lsSet(LS,JSON.stringify({...base,savedAt:ts()}));msg=" Atenção: espaço do navegador cheio; as edições dos trabalhos gerados não foram salvas (questões e estudantes foram)."}
   $("sv").textContent="Salvo automaticamente neste navegador às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+"."+msg;
  }catch(e){$("sv").textContent="Salvamento automático indisponível ou espaço do navegador cheio."}
 }
-function load(){try{const d=JSON.parse(localStorage.getItem(LS)||"null");if(!d||!d.VER)return;Object.assign(VER,d.VER);STU=d.STU||STU;restoreG(d);Object.values(VER).forEach(v=>SUBJ.forEach((n,i)=>{if(!v[i])v[i]=mkS()[i]}));
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||"null");if(!d||!d.VER)return;Object.assign(VER,d.VER);STU=d.STU||STU;if(d.sgeV!==SGE_V)applySGE(STU);restoreG(d);Object.values(VER).forEach(v=>SUBJ.forEach((n,i)=>{if(!v[i])v[i]=mkS()[i]}));
  if(VER[d.KEY])KEY=d.KEY;S=VER[KEY]=VER[KEY]||mkS();const[t,m]=KEY.split("|");$("serie").value=t;$("mod").value=m;["tri","dt"].forEach(k=>{if(d[k]!=null)$(k).value=d[k]});$("sv").textContent="Dados restaurados do navegador."}catch(e){}}
 {const a=renderGrid,b=renderRev,c=renderStu;renderGrid=function(){a();save()};renderRev=function(o){b(o);save()};renderStu=function(){c();save()}}
 document.addEventListener("input",save);document.addEventListener("change",save);
