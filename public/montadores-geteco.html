@@ -936,6 +936,18 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 .ctlhd{margin:0 0 8px}.ctlhd b{font-size:13pt}
 @media print{body[data-p=ctl] .ui{padding:10mm!important;max-width:none!important;margin:0!important}body[data-p=ctl] #ctlOut .tb td,body[data-p=ctl] #ctlOut .tb th{font-size:10pt!important}body[data-p=ctl] #ctlOut tr{break-inside:avoid}body[data-p=ctl] #ctlOut tr.pend td{background:none!important}}
 </style>
+<style id="ctlpg">
+/* controle de entrega: margem real em TODAS as páginas (o padding do .ui só valia na primeira e na última) */
+@page ctlpg{size:A4;margin:14mm 10mm}
+@media print{
+ #v-ctl{page:ctlpg}
+ body[data-p=ctl] .ui{padding:0!important}
+ body[data-p=ctl] #ctlOut .pv{padding:0!important;overflow:visible!important}
+ body[data-p=ctl] #ctlOut .tb{box-shadow:none!important;border-radius:0!important;overflow:visible!important}
+ body[data-p=ctl] #ctlOut thead{display:table-header-group}
+ body[data-p=ctl] #ctlOut tr{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
 </head>
 <body>
 <div class="ui">
