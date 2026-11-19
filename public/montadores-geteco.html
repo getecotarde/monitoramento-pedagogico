@@ -1311,7 +1311,7 @@ function pasteS(){const l=[];$("pst").value.split("\n").forEach(r=>{const x=rowS
 function addOne(){STU.push({t:"6A",n:"",f:"",c:"",m:"Regular"});renderStu()}
 function renderStu(){
  $("stuN").textContent=STU.length+" estudante(s) · "+STU.filter(s=>s.m==="Adaptada").length+" na modalidade adaptada";
- $("stuOut").innerHTML=STU.length?`<div class="pv"><table class="tb"><tr><th>Turma</th><th>Estudante</th><th>Código SGE</th><th>Faltas</th><th>Modalidade</th><th>Questões usadas de</th><th></th></tr>${STU.map((s,i)=>`<tr><td><input class="t" style="width:70px" value="${esc(s.t)}" onchange="STU[${i}].t=nt(this.value);renderStu()"></td><td><input class="t" value="${esc(s.n)}" onchange="STU[${i}].n=this.value"></td><td><input class="t" style="width:110px" value="${esc(s.c)}" onchange="STU[${i}].c=this.value.trim()"></td><td><input class="t" style="width:70px" value="${esc(s.f)}" onchange="STU[${i}].f=this.value"></td><td><select onchange="STU[${i}].m=this.value;renderStu()">${MODS.map(m=>`<option ${s.m===m?"selected":""}>${m}</option>`).join("")}</select></td><td>${esc(grp(s.t))}</td><td><button onclick="STU.splice(${i},1);renderStu()">Remover</button></td></tr>`).join("")}</table></div>`:'<p class="empty">Nenhum estudante ainda.</p>';
+ $("stuOut").innerHTML=STU.length?`<div class="pv"><table class="tb"><tr><th>Turma</th><th>Estudante</th><th>Código SGE</th><th>Faltas</th><th>Modalidade</th><th>Questões usadas de</th><th></th></tr>${stuOrd().map(i=>{const s=STU[i];return `<tr><td><input class="t" style="width:70px" value="${esc(s.t)}" onchange="STU[${i}].t=nt(this.value);renderStu()"></td><td><input class="t" value="${esc(s.n)}" onchange="STU[${i}].n=this.value"></td><td><input class="t" style="width:110px" value="${esc(s.c)}" onchange="STU[${i}].c=this.value.trim()"></td><td><input class="t" style="width:70px" value="${esc(s.f)}" onchange="STU[${i}].f=this.value"></td><td><select onchange="STU[${i}].m=this.value;renderStu()">${MODS.map(m=>`<option ${s.m===m?"selected":""}>${m}</option>`).join("")}</select></td><td>${esc(grp(s.t))}</td><td><button onclick="STU.splice(${i},1);renderStu()">Remover</button></td></tr>`}).join("")}</table></div>`:'<p class="empty">Nenhum estudante ainda.</p>';
 }
 
 /* ---------- geração ---------- */
@@ -1366,7 +1366,7 @@ function buildAll(){
  /* limpa a tela dos trabalhos antigos: senão syncEx() relê o HTML velho e sobrescreve os trabalhos recém-gerados */
  $("examOut").innerHTML="";
  const w=[],seen={};
- MOD={};$("modOut").dataset.k="";$("modOut").innerHTML="";BK=STU.map((st,i)=>{
+ MOD={};$("modOut").dataset.k="";$("modOut").innerHTML="";BK=stuOrd().map(i=>{const st=STU[i];
   const k=grp(st.t)+"|"+st.m,all=VER[k]||mkS(),v=all.filter(ld);
   if(!seen[k]){seen[k]=1;MOD[k]={html:v.map((s,ix)=>disc({n:PH_N,t:PH_T},s,ix===0)).join("")};
    if(!v.length)w.push(`${k.replace("|"," · ")}: nenhuma disciplina carregada; os estudantes desta versão receberão só a capa.`);
@@ -1381,7 +1381,15 @@ function buildAll(){
  SEL=new Set(STU.map((x,i)=>i));return w;
 }
 let SEL=new Set(),TL=[];
-const selIx=f=>STU.map((x,i)=>i).filter(i=>f(STU[i]));
+/* ordem de TODAS as listagens de estudantes: 6º ABC, 7º ABC e, depois, os demais blocos em ordem alfabética; dentro de cada bloco, nome em ordem alfabética (linhas sem nome vão para o fim) */
+const BLKORD=[TURMAS[0],TURMAS[2]];
+const blkRank=t=>{const k=BLKORD.indexOf(grp(t));return k>=0?k:BLKORD.length};
+const cmpStu=(a,b)=>{const x=STU[a],y=STU[b],ea=!String(x.n||"").trim(),eb=!String(y.n||"").trim();if(ea!==eb)return ea?1:-1;
+ const ra=blkRank(x.t),rb=blkRank(y.t);if(ra!==rb)return ra-rb;
+ if(ra===BLKORD.length){const c=grp(x.t).localeCompare(grp(y.t),"pt");if(c)return c}
+ return nk(x.n).localeCompare(nk(y.n),"pt")||String(x.t).localeCompare(String(y.t),"pt")||a-b};
+const stuOrd=()=>STU.map((x,i)=>i).sort(cmpStu);
+const selIx=f=>stuOrd().filter(i=>f(STU[i]));
 function selTog(f){const ix=selIx(f),all=ix.length&&ix.every(i=>SEL.has(i));ix.forEach(i=>all?SEL.delete(i):SEL.add(i));renderEx()}
 function selAll(v){SEL=new Set(v?STU.map((x,i)=>i):[]);renderEx()}
 function selOne(i,v){v?SEL.add(i):SEL.delete(i);renderEx()}
@@ -1390,7 +1398,7 @@ function renderSel(){
  const on=f=>{const ix=selIx(f);return ix.length&&ix.every(i=>SEL.has(i))};
  $("selBlk").innerHTML=TURMAS.map((b,k)=>{const f=x=>grp(x.t)===b,n=selIx(f).length;return n?`<button class="${on(f)?"on":""}" onclick="selTog(x=>grp(x.t)===TURMAS[${k}])">${esc(b)} <small>${n}</small></button>`:""}).join("")||'<span class="sm">Sem estudantes.</span>';
  $("selTur").innerHTML=TL.map((tt,k)=>{const f=x=>x.t===tt,n=selIx(f).length;return `<button class="${on(f)?"on":""}" onclick="selTog(x=>x.t===TL[${k}])">${esc(tt)} <small>${n}</small></button>`}).join("");
- $("selList").innerHTML=STU.map((x,i)=>`<label><input type="checkbox" ${SEL.has(i)?"checked":""} onchange="selOne(${i},this.checked)">${esc(x.t)} – ${esc(x.n)}</label>`).join("");
+ $("selList").innerHTML=stuOrd().map(i=>{const x=STU[i];return `<label><input type="checkbox" ${SEL.has(i)?"checked":""} onchange="selOne(${i},this.checked)">${esc(x.t)} – ${esc(x.n)}</label>`}).join("");
  const n=[...SEL].filter(i=>BK.some(b=>b.i===i)).length;
  $("selN").textContent=n+" de "+STU.length+" selecionados";
 }
@@ -1635,7 +1643,7 @@ function doPrint(title,w,keep){
 }
 /* nome do arquivo de cada estudante: TURMA_NOME */
 const stuFile=st=>[st.t,st.n].map(x=>String(x||"").trim()).filter(Boolean).join("_");
-function selNames(){return[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i)).map(i=>stuFile(STU[i])).filter(Boolean)}
+function selNames(){return[...SEL].sort(cmpStu).filter(i=>BK.some(b=>b.i===i)).map(i=>stuFile(STU[i])).filter(Boolean)}
 function pr(w){
  if(w==="exam"&&!SEL.size){alert("Selecione ao menos um estudante para imprimir.");return}
  let t="";if(w==="exam"){const n=selNames();t=n.length<=3?n.join(" - "):n.slice(0,3).join(" - ")+" e mais "+(n.length-3)}
@@ -1647,7 +1655,7 @@ function prSel(){
  if(ids.length===1)pr("exam");else askEach();
 }
 function askEach(){
- const ids=[...SEL].sort((a,b)=>a-b).filter(i=>BK.some(b=>b.i===i));
+ const ids=[...SEL].sort(cmpStu).filter(i=>BK.some(b=>b.i===i));
  if(!ids.length){alert("Selecione ao menos um estudante para imprimir.");return}
  ask("Será aberta a janela de impressão uma vez para cada um dos "+ids.length+" estudantes selecionados, já com o nome do arquivo no formato turma_nome do estudante (ex.: 6A_MARIA DA SILVA). Em cada janela, escolha “Salvar como PDF” e confirme. Continuar?",async()=>{
   const keep=new Set(SEL);
@@ -1724,7 +1732,7 @@ function tmInit(){
  else for(let i=TLEN;i<STU.length;i++)TSEL.add(i);
  TLEN=STU.length;
 }
-const tmPick=()=>[...TSEL].filter(tmOk).sort((a,b)=>a-b);
+const tmPick=()=>[...TSEL].filter(tmOk).sort(cmpStu);
 function tmTog(f){const ix=selIx(f).filter(tmOk),all=ix.length&&ix.every(i=>TSEL.has(i));ix.forEach(i=>all?TSEL.delete(i):TSEL.add(i));renderTerm()}
 function tmAll(v){TSEL=new Set(v?STU.map((x,i)=>i):[]);renderTerm()}
 function tmOne(i,v){v?TSEL.add(i):TSEL.delete(i);renderTerm()}
@@ -1753,7 +1761,7 @@ function renderTerm(){
  TMT=[...new Set(STU.filter((x,i)=>tmOk(i)).map(x=>x.t))].sort();
  $("tmBlk").innerHTML=TURMAS.map((b,k)=>{const f=x=>grp(x.t)===b,n=selIx(f).filter(tmOk).length;return n?`<button class="${on(f)?"on":""}" onclick="tmTog(x=>grp(x.t)===TURMAS[${k}])">${esc(b)} <small>${n}</small></button>`:""}).join("")||'<span class="sm">Sem estudantes. Adicione-os na aba 3 · Estudantes.</span>';
  $("tmTur").innerHTML=TMT.map((tt,k)=>{const f=x=>x.t===tt,n=selIx(f).filter(tmOk).length;return `<button class="${on(f)?"on":""}" onclick="tmTog(x=>x.t===TMT[${k}])">${esc(tt)} <small>${n}</small></button>`}).join("");
- $("tmList").innerHTML=STU.map((x,i)=>tmOk(i)?`<label><input type="checkbox" ${TSEL.has(i)?"checked":""} onchange="tmOne(${i},this.checked)">${esc(x.t)} – ${esc(x.n)}</label>`:"").join("");
+ $("tmList").innerHTML=stuOrd().map(i=>{const x=STU[i];return tmOk(i)?`<label><input type="checkbox" ${TSEL.has(i)?"checked":""} onchange="tmOne(${i},this.checked)">${esc(x.t)} – ${esc(x.n)}</label>`:""}).join("");
  const pick=tmPick();
  $("tmN").textContent=pick.length+" de "+ok.length+" selecionados";
  $("termOut").innerHTML=!ok.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':pick.length?pick.map(i=>tmPage(STU[i])).join(""):'<p class="empty">Nenhum estudante selecionado. Marque um bloco, uma turma ou estudantes acima.</p>';
@@ -1886,7 +1894,7 @@ function packG(){
 function restoreG(d){
  const g=d.G;if(!g)return;MOD=g.MOD||{};MODE=g.MODE||"mod";MK=g.MK||"";STALE=!!g.STALE;
  BK=g.list.filter(x=>STU[x.i]).map(x=>{const st=STU[x.i];return{i:x.i,html:cover(st,[])+g.bodies[x.b].split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))}});
- SEL=new Set(BK.map(x=>x.i));
+ BK.sort((a,b)=>cmpStu(a.i,b.i));SEL=new Set(BK.map(x=>x.i));
 }
 function doSave(){const base={VER,KEY,STU,sgeV:SGE_V,tri:$("tri").value,dt:$("dt").value};let msg="";
  try{
