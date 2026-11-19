@@ -932,7 +932,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 </style>
 <style id="ctlcss">
 #ctlOut input[type=checkbox]{width:20px;height:20px;cursor:pointer;accent-color:#1d6a87}
-#ctlOut td.ck{text-align:center}#ctlOut tr.np td:not(.pc){opacity:.4}#ctlOut tr.np td:nth-child(4){text-decoration:line-through}#ctlOut input:disabled{cursor:not-allowed}#ctlOut tr.pend td{background:rgba(240,170,0,.16)}
+#ctlOut td.ck{text-align:center}#ctlOut .ctlf th{background:var(--sf);padding:4px 5px;font-weight:400;text-transform:none;letter-spacing:0;vertical-align:top}#ctlOut .ctlf select,#ctlOut .ctlf input.t{width:100%;margin:0;padding:3px 4px;font-size:.78rem;display:block}#ctlOut .mk{display:flex;gap:5px;align-items:center;justify-content:center;font-size:.72rem;color:var(--mut);margin:0 0 4px;cursor:pointer}#ctlOut .mk input{width:18px;height:18px}#ctlOut tr.np td:not(.pc){opacity:.4}#ctlOut tr.np td:nth-child(4){text-decoration:line-through}#ctlOut input:disabled{cursor:not-allowed}#ctlOut tr.pend td{background:rgba(240,170,0,.16)}
 .ctlhd{margin:0 0 8px}.ctlhd b{font-size:13pt}
 @media print{body[data-p=ctl] .ui{padding:10mm!important;max-width:none!important;margin:0!important}body[data-p=ctl] #ctlOut .tb td,body[data-p=ctl] #ctlOut .tb th{font-size:10pt!important}body[data-p=ctl] #ctlOut tr{break-inside:avoid}body[data-p=ctl] #ctlOut tr.pend td{background:none!important}}
 </style>
@@ -1052,15 +1052,13 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 
 <section id="v-ctl" hidden>
  <h2 class="noprint" style="margin-top:0">Controle de entrega dos termos</h2>
- <p class="sub">Na 1ª coluna, marque se o estudante participa de fato do FICA (quem não participa fica apagado e não entra nos totais). Depois marque quem recebeu o termo, quem já devolveu assinado e quem devolveu o trabalho. Ao marcar “Devolveu”, “Recebeu” é marcado junto. Fica salvo automaticamente neste navegador.</p>
+ <p class="sub">Na 1ª coluna, marque se o estudante participa de fato do FICA (quem não participa fica apagado e não entra nos totais). Use a caixinha “todos” e o filtro no cabeçalho de cada coluna. Depois marque quem recebeu o termo, quem já devolveu assinado e quem devolveu o trabalho. Ao marcar “Devolveu”, “Recebeu” é marcado junto. Fica salvo automaticamente neste navegador.</p>
  <div class="card noprint" style="max-width:none;margin-bottom:12px">
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
    <label>Mostrar <select id="ctlF" onchange="CF=this.value;renderCtl()"></select></label>
-   <label>Situação <select id="ctlS" onchange="CS=this.value;renderCtl()"><option value="">Todas</option><option value="sem">Ainda sem termo</option><option value="falta">Recebeu, falta devolver assinado</option><option value="dev">Devolveu assinado</option><option value="tpend">Trabalho ainda não devolvido</option><option value="tdev">Trabalho devolvido</option></select></label>
-   <label>Participação <select id="ctlPt" onchange="CPT=this.value;renderCtl()"><option value="t">Todos</option><option value="s">Participam do FICA</option><option value="n">Não participam</option></select></label>
-   <label>Buscar nome <input class="t" id="ctlQ" style="width:170px;display:inline-block;margin:0 0 0 4px;padding:6px 8px" placeholder="digite parte do nome" oninput="CQ=this.value;renderCtl()"></label>
+   <span class="sm">Filtros por coluna e “marcar todos” ficam no cabeçalho da tabela. Valem para os estudantes que estão visíveis.</span>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="ctlAll(true)">Marcar “Recebeu” em todos da lista</button><button onclick="ctlAll(false)">Limpar tudo da lista</button><button class="p" onclick="doPrint('Controle de entrega dos termos','ctl')">🖨️ Imprimir / salvar PDF</button></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="ctlClear()">Limpar filtros</button><button class="p" onclick="doPrint('Controle de entrega dos termos','ctl')">🖨️ Imprimir / salvar PDF</button></div>
  </div>
  <div id="ctlOut"></div>
 </section>
@@ -1781,21 +1779,31 @@ function askEachTerm(){
 }
 
 /* ---------- controle de entrega dos termos ---------- */
-let CF="",CS="",CPT="t",CQ="";
+let CF="",CQ="",CFL={p:"",r:"",d:"",w:""};
 const ctlPart=s=>s.p!==false;
 const ctlTur=s=>tmOkS(s)&&(!CF||s.t===CF||grp(s.t)===CF);
-const ctlSt=(s,f)=>!f||(f==="sem"&&!s.r)||(f==="falta"&&!!s.r&&!s.d)||(f==="dev"&&!!s.d)||(f==="tpend"&&!s.w)||(f==="tdev"&&!!s.w);
-const ctlIx=()=>selIx(s=>ctlTur(s)&&(CPT==="t"||(CPT==="s")===ctlPart(s))&&ctlSt(s,CS)&&(!CQ||nk(s.n).includes(nk(CQ))));
+const ctlVal=(s,f)=>f==="p"?ctlPart(s):!!s[f];
+const ctlFl=s=>["p","r","d","w"].every(f=>!CFL[f]||ctlVal(s,f)===(CFL[f]==="1"));
+const ctlIx=()=>selIx(s=>ctlTur(s)&&ctlFl(s)&&(!CQ||nk(s.n).includes(nk(CQ))));
 function ctlSet(i,f,v){const s=STU[i];s[f]=v;if(f==="d"&&v)s.r=true;if(f==="r"&&!v)s.d=false;renderCtl();save()}
-function ctlAll(v){const ix=ctlIx().filter(i=>ctlPart(STU[i]));if(!ix.length)return;ix.forEach(i=>{STU[i].r=v;if(!v)STU[i].d=false});renderCtl();save()}
+function ctlCol(f,v){const ix=ctlIx(),el=f==="p"?ix:ix.filter(i=>ctlPart(STU[i]));if(!el.length)return;el.forEach(i=>{const s=STU[i];s[f]=v;if(f==="d"&&v)s.r=true;if(f==="r"&&!v)s.d=false});renderCtl();save()}
+function ctlFlt(f,v){CFL[f]=v;renderCtl()}
+function ctlTurF(v){CF=v;renderCtl()}
+function ctlQf(v){CQ=v;renderCtl()}
+function ctlClear(){CF="";CQ="";CFL={p:"",r:"",d:"",w:""};renderCtl()}
 function renderCtl(){
+ const ae=document.activeElement,keep=ae&&ae.id==="ctlQ"?[ae.selectionStart,ae.selectionEnd]:null;
  const all=selIx(tmOkS),tl=[...new Set(all.map(i=>STU[i].t))].sort();
  $("ctlF").innerHTML='<option value="">Todos os estudantes</option>'+TURMAS.filter(b=>all.some(i=>grp(STU[i].t)===b)).map(b=>`<option ${CF===b?"selected":""}>${esc(b)}</option>`).join("")+tl.map(t=>`<option ${CF===t?"selected":""}>${esc(t)}</option>`).join("");
- $("ctlS").value=CS;$("ctlPt").value=CPT;
  const base=selIx(s=>ctlTur(s)&&ctlPart(s)),ix=ctlIx(),n=base.length,r=base.filter(i=>STU[i].r).length,d=base.filter(i=>STU[i].d).length,w=base.filter(i=>STU[i].w).length,np=selIx(s=>ctlTur(s)&&!ctlPart(s)).length;
- const hd=`<div class="ctlhd"><b>Projeto FICA – Controle de entrega do Termo de Compromisso</b><br>Escola Municipal Geraldo Teixeira da Costa – GETECO${CF?" · "+esc(CF):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}<br><b style="font-size:10pt">Participam: ${n} · Receberam: ${r} de ${n} · Devolveram assinado: ${d} de ${n} · Faltam devolver: ${r-d} · Ainda sem termo: ${n-r} · Trabalho devolvido: ${w} de ${n}${np?" · Não participam: "+np:""}</b></div>`;
+ const hd=`<div class="ctlhd"><b>Projeto FICA – Controle de entrega do Termo de Compromisso</b><br>Escola Municipal Geraldo Teixeira da Costa – GETECO${CF?" · "+esc(CF):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}<br><b style="font-size:10pt">Participam: ${n} · Receberam: ${r} de ${n} · Devolveram assinado: ${d} de ${n} · Faltam devolver: ${r-d} · Ainda sem termo: ${n-r} · Trabalho devolvido: ${w} de ${n}${np?" · Não participam: "+np:""}</b><span class="noprint sm"> · Exibindo ${ix.length} na lista</span></div>`;
  const row=(i,k)=>{const s=STU[i],pt=ctlPart(s),dis=pt?"":" disabled";return `<tr class="${!pt?"np":s.r&&!s.d?"pend":""}"><td class="ck pc"><input type="checkbox" aria-label="Participa do FICA: ${esc(s.n)}" ${pt?"checked":""} onchange="ctlSet(${i},'p',this.checked)"></td><td>${k+1}</td><td>${esc(s.t)}</td><td>${esc(s.n)}</td><td class="ck"><input type="checkbox" aria-label="Recebeu o termo: ${esc(s.n)}" ${s.r?"checked":""}${dis} onchange="ctlSet(${i},'r',this.checked)"></td><td class="ck"><input type="checkbox" aria-label="Devolveu assinado: ${esc(s.n)}" ${s.d?"checked":""}${dis} onchange="ctlSet(${i},'d',this.checked)"></td><td class="ck"><input type="checkbox" aria-label="Trabalho devolvido: ${esc(s.n)}" ${s.w?"checked":""}${dis} onchange="ctlSet(${i},'w',this.checked)"></td></tr>`};
- $("ctlOut").innerHTML=!all.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':hd+`<div class="pv"><table class="tb"><thead><tr><th style="width:84px;text-align:center">Participa do FICA</th><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:110px;text-align:center">Recebeu o termo</th><th style="width:130px;text-align:center">Devolveu assinado</th><th style="width:130px;text-align:center">Trabalho devolvido</th></tr></thead><tbody>${ix.map(row).join("")||'<tr><td colspan="7" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div>`;
+ const fsel=(f,a,b)=>`<select aria-label="Filtrar coluna" onchange="ctlFlt('${f}',this.value)"><option value="">Todos</option><option value="1" ${CFL[f]==="1"?"selected":""}>${a}</option><option value="0" ${CFL[f]==="0"?"selected":""}>${b}</option></select>`;
+ const mk=f=>`<label class="mk"><input type="checkbox" id="ctlM_${f}" onchange="ctlCol('${f}',this.checked)" aria-label="Marcar ou desmarcar todos os visíveis"> todos</label>`;
+ const turOpts='<option value="">Todas</option>'+tl.map(x=>`<option ${CF===x?"selected":""}>${esc(x)}</option>`).join("");
+ $("ctlOut").innerHTML=!all.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':hd+`<div class="pv"><table class="tb"><thead><tr><th style="width:84px;text-align:center">Participa do FICA</th><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:110px;text-align:center">Recebeu o termo</th><th style="width:130px;text-align:center">Devolveu assinado</th><th style="width:130px;text-align:center">Trabalho devolvido</th></tr><tr class="ctlf noprint"><th>${mk("p")}${fsel("p","Sim","Não")}</th><th></th><th><select aria-label="Filtrar turma" onchange="ctlTurF(this.value)">${turOpts}</select></th><th><input class="t" id="ctlQ" placeholder="Filtrar por nome…" value="${esc(CQ)}" oninput="ctlQf(this.value)"></th><th>${mk("r")}${fsel("r","Marcados","Em branco")}</th><th>${mk("d")}${fsel("d","Marcados","Em branco")}</th><th>${mk("w")}${fsel("w","Marcados","Em branco")}</th></tr></thead><tbody>${ix.map(row).join("")||'<tr><td colspan="7" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div>`;
+ ["p","r","d","w"].forEach(f=>{const m=$("ctlM_"+f);if(!m)return;const el=f==="p"?ix:ix.filter(i=>ctlPart(STU[i])),c=el.filter(i=>ctlVal(STU[i],f)).length;m.disabled=!el.length;m.checked=!!el.length&&c===el.length;m.indeterminate=c>0&&c<el.length});
+ if(keep){const q=$("ctlQ");if(q){q.focus();try{q.setSelectionRange(keep[0],keep[1])}catch(e){}}}
 }
 
 /* ---------- blocos ---------- */
