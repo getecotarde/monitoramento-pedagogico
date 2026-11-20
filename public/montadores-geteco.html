@@ -214,6 +214,11 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
     <div class="fgrp">
      <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
      <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button></div>
+    <div class="fgrp">
+     <button onmousedown="event.preventDefault()" onclick="fsz(1)" title="Aumentar a letra do trecho selecionado (1 pt por clique)"><b>A+</b> Aumentar</button>
+     <button onmousedown="event.preventDefault()" onclick="fsz(-1)" title="Diminuir a letra do trecho selecionado (1 pt por clique)"><b style="font-size:.8em">A−</b> Diminuir</button>
+     <button onmousedown="event.preventDefault()" onclick="cs('up')" title="Converter o trecho selecionado para MAIÚSCULAS">AA Maiúsculas</button>
+     <button onmousedown="event.preventDefault()" onclick="cs('low')" title="Converter o trecho selecionado para minúsculas">aa Minúsculas</button></div>
     <span class="sm" id="fmtMsg">Selecione um trecho da prova e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
    <div class="fg"><b>Espaçamento entre linhas</b>
     <div class="fgrp lhg">
@@ -714,6 +719,38 @@ function lh(v){
  if(!els.length){$("lhMsg").textContent="Gere a prova primeiro, ou clique dentro do texto que deseja ajustar.";return}
  els.forEach(e=>{e.style.lineHeight=v});
  $("lhMsg").textContent="Espaçamento "+(v===1?"simples":String(v).replace(".",","))+" aplicado "+(has?"ao trecho selecionado.":"a toda a prova.");save();
+}
+function selOK(){const sel=getSelection(),ed=$("examOut");return sel.rangeCount&&!sel.isCollapsed&&ed.contains(sel.anchorNode)&&ed.contains(sel.focusNode)}
+function fsz(d){
+ const ed=$("examOut"),m=$("fmtMsg");
+ if(!selOK()){m.textContent="Primeiro selecione, na prova aberta ao lado, o trecho cuja letra deseja aumentar ou diminuir.";return}
+ const sel=getSelection(),r=sel.getRangeAt(0),root=r.commonAncestorContainer.nodeType===1?r.commonAncestorContainer:r.commonAncestorContainer.parentNode;
+ const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),cand=[];
+ if(root.nodeType===3)cand.push(root);else for(let n=tw.nextNode();n;n=tw.nextNode())if(r.intersectsNode(n))cand.push(n);
+ const sc=r.startContainer,so=r.startOffset,ec=r.endContainer,eo=r.endOffset;
+ const pt=el=>parseFloat(getComputedStyle(el).fontSize)*0.75,cl=v=>Math.max(6,Math.min(30,Math.round(v*2)/2)),out=[];let nv=0;
+ cand.forEach(n0=>{
+  if(!ed.contains(n0))return;let n=n0;
+  if(n0===ec&&eo<n0.length)n0.splitText(eo);
+  if(n0===sc&&so>0)n=n0.splitText(so);
+  if(!n.data.length||(n0!==sc&&n0!==ec&&!n.data.trim()))return;
+  const par=n.parentElement;nv=cl(pt(par)+d);
+  if(par!==ed&&par.tagName==="SPAN"&&par.style.fontSize&&par.childNodes.length===1){par.style.fontSize=nv+"pt";out.push(par);return}
+  const sp=document.createElement("span");sp.style.fontSize=nv+"pt";n.replaceWith(sp);sp.appendChild(n);out.push(sp)});
+ if(!out.length)return;
+ try{const r2=document.createRange();r2.setStartBefore(out[0]);r2.setEndAfter(out[out.length-1]);sel.removeAllRanges();sel.addRange(r2)}catch(e){}
+ m.textContent="Letra "+(d>0?"aumentada":"diminuída")+" para "+String(nv).replace(".",",")+" pt"+(nv>=30||nv<=6?" (limite)":"")+".";save();
+}
+function cs(mode){
+ const m=$("fmtMsg"),ed=$("examOut");
+ if(!selOK()){m.textContent="Primeiro selecione, na prova aberta ao lado, o trecho que deseja converter.";return}
+ const sel=getSelection(),r=sel.getRangeAt(0),root=r.commonAncestorContainer.nodeType===1?r.commonAncestorContainer:r.commonAncestorContainer.parentNode;
+ const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+ if(root.nodeType===3)nodes.push(root);else for(let n=tw.nextNode();n;n=tw.nextNode())if(r.intersectsNode(n))nodes.push(n);
+ const sc=r.startContainer,so=r.startOffset,ec=r.endContainer,eo=r.endOffset,f=t=>mode==="up"?t.toUpperCase():t.toLocaleLowerCase("pt-BR");
+ nodes.forEach(n=>{if(!ed.contains(n))return;const a=n===sc?so:0,b=n===ec?eo:n.data.length;n.data=n.data.slice(0,a)+f(n.data.slice(a,b))+n.data.slice(b)});
+ try{const r2=document.createRange();r2.setStart(sc,so);r2.setEnd(ec,eo);sel.removeAllRanges();sel.addRange(r2)}catch(e){}
+ m.textContent=mode==="up"?"Trecho convertido para MAIÚSCULAS.":"Trecho convertido para minúsculas.";save();
 }
 function fmt(c){
  const sel=getSelection(),ed=$("examOut");
