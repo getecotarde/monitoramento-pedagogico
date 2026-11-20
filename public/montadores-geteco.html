@@ -263,7 +263,7 @@ function parse(bl){
  const qre=/^\s*(?:quest[ãa]o\s*)?(\d{1,2})\s*[\.\)\-–:]\s*(.*)$/i,are=/^\s*\(?([A-Da-d])\s*[\)\.\-–]\s*(.*)$/;
  const skip=/^(prova|avalia|escola|nome|professor|prof\.|turma|data|aluno|disciplina|trimestre)\b/i;
  const mk=(stem,imgs,num)=>{cur={stem,alts:["","","",""],ans:"",imgs:[...imgs],inc:true,last:-1,num,tid:actT};qs.push(cur)};
- const tre=/^\s*texto\s*\d{1,2}\b/i,ire=/^\s*leia\b.*\btextos?\b/i,fim=/boa\s+prova|somos\s+eternos\s+aprendizes/i,nl=/^[^A-Za-zÀ-ú0-9]*$/;
+ const tre=/^\s*texto\s*(?:\d{1,2}|[ivx]{1,4})(?![A-Za-zÀ-ú0-9])|^\s*texto\s+(?:de\s+apoio|base|motivador|auxiliar|complementar)\b/i,tre2=/^\s*texto\s*(?:\d{1,2}|[ivx]{1,4}|de\s+apoio|base|motivador)\s*[:\-–—.)]/i,ire=/^\s*leia\b.*\btextos?\b/i,ire2=/^\s*(?:leia|releia|observe|analise)\b.*\b(?:lenda|poema|poesia|conto|f[áa]bula|trecho|fragmento|not[íi]cia|reportagem|cr[ôo]nica|charge|tirinha|hist[óo]ria|artigo|letra|can[çc][ãa]o|mapa|gr[áa]fico|imagem|tabela|par[áa]grafo)\b/i,fim=/boa\s+prova|somos\s+eternos\s+aprendizes/i,nl=/^[^A-Za-zÀ-ú0-9]*$/;
  const shut=()=>{if(!curT)return;txs.push({id:curT.id,body:curT.body.join("\n").trim(),imgs:curT.imgs});actT=curT.id;curT=null};
  for(const b of bl){
   const t=b.text;let m;
@@ -273,13 +273,14 @@ function parse(bl){
   }
   if(m=t.match(qre)){
    shut();
-   if(cur&&!cur.num&&nA(cur)===0){cur.num=m[1];cur.stem=(cur.stem+"\n"+m[2]).trim();cur.imgs.push(...b.imgs)}
+   if(cur&&!cur.num&&nA(cur)===0&&cur.stem.length>=120){const id="t"+(txs.length+1);txs.push({id,body:cur.stem.trim(),imgs:[...cur.imgs]});actT=id;qs.splice(qs.indexOf(cur),1);mk(m[2],b.imgs,m[1])}
+   else if(cur&&!cur.num&&nA(cur)===0){cur.num=m[1];cur.stem=(cur.stem+"\n"+m[2]).trim();cur.imgs.push(...b.imgs)}
    else mk(m[2],b.imgs,m[1]);
    continue;
   }
   /* texto de apoio: tudo entre "Texto N"/"Leia os textos..." e a próxima questão numerada */
   if(curT){curT.body.push(t);curT.imgs.push(...b.imgs);continue}
-  if((tre.test(t)&&t.length<=90)||(ire.test(t)&&t.length<220)){curT={id:"t"+(txs.length+1),body:[t],imgs:[...b.imgs]};cur=null;continue}
+  if((tre.test(t)&&(t.length<=90||tre2.test(t)))||(ire.test(t)&&t.length<220)||((!cur||nA(cur)>=4)&&ire2.test(t)&&t.length<220)){curT={id:"t"+(txs.length+1),body:[t],imgs:[...b.imgs]};cur=null;continue}
   if(skip.test(t)&&t.length<90&&(!cur||nA(cur)>=4))continue;
   if(b.li&&cur&&cur.stem&&nA(cur)<4){const k=cur.alts.findIndex(a=>!a);cur.alts[k]=t;cur.last=k;cur.imgs.push(...b.imgs)}
   else if(!cur||nA(cur)>=4)mk(t,b.imgs);
