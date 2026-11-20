@@ -208,7 +208,7 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
 <section id="v-exam" hidden>
  <aside id="exTools" class="noprint">
   <p class="sub">Clique em qualquer texto da prova ao lado para editar. Use este painel para negrito, itálico, espaçamento e para mexer nas imagens.</p>
-  <div class="xact"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF</button> <button onclick="dl('exam')">Baixar para Word (.html)</button></div>
+  <div class="xact"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF</button> <button onclick="dl('exam')">Baixar para Word (.doc)</button></div>
   <div class="card noprint" id="fmtBar"><b class="ftt">Formatação</b><div class="sm">Vale para a prova aberta ao lado.</div>
    <div class="fg"><b>Texto</b>
     <div class="fgrp">
@@ -253,7 +253,7 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
 </section>
 
 <section id="v-key" hidden>
- <p class="noprint"><button class="p" onclick="pr('key')">Imprimir / salvar PDF</button> <button onclick="dl('key')">Baixar para Word (.html)</button></p>
+ <p class="noprint"><button class="p" onclick="pr('key')">Imprimir / salvar PDF</button> <button onclick="dl('key')">Baixar para Word (.doc)</button></p>
  <div class="pv"><table class="pgw" id="keW"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td><div id="keyOut"><p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p></div></td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>
 </section>
 </div>
@@ -407,8 +407,8 @@ const PCSS=`.paper{position:relative;background:#fff;color:#111;font:11.5pt/1.35
 .paper::after{content:"";position:absolute;left:8.4mm;right:8.4mm;top:8.4mm;bottom:8.4mm;border:.5pt solid #111;pointer-events:none}
 .paper .hd{display:flex;align-items:center;gap:4mm;border:1.2pt solid #111;padding:3mm 4mm;margin:0 0 3mm}.paper .hd>div{flex:1;text-align:center;line-height:1.3}
 .paper .hd img.lg{height:20mm;width:auto;max-height:none;max-width:none;margin:0}
-.paper .hd .t1{font-size:10.5pt;font-weight:700;letter-spacing:.02em}.paper .hd .t2{font-size:13pt;font-weight:700;letter-spacing:.06em;margin:1mm 0}.paper .hd .t3{font-size:9.5pt}
-.paper .hd .nt{flex:none;width:44mm;border:1pt solid #111;text-align:center;font-size:8pt;font-weight:700;padding:1mm 0 1.5mm}.paper .hd .nt i{display:flex;align-items:center;justify-content:center;gap:2mm;height:16mm;font-style:normal;font-size:12pt;font-weight:700;line-height:1}.paper .wb{display:inline-block;box-sizing:border-box;width:22mm;height:13mm;border:1.2pt solid #111;background:#fff}
+.paper .hd .t1{font-size:10.5pt;font-weight:700;letter-spacing:.02em}.paper .hd .t2{font-size:13pt;font-weight:700;letter-spacing:.06em;margin:1mm 0}.paper .hd .t3{font-size:10.5pt;white-space:nowrap}.paper .hd .t3 .sr{display:inline-block;font-size:14pt;font-weight:700;border:1.2pt solid #111;padding:.3mm 2.5mm;margin:0 1mm}
+.paper .hd .nt{flex:none;width:46mm;text-align:left;font-size:11pt}.paper .hd .nt .vl{margin-bottom:2.5mm}.paper .hd .nt .nl{display:flex;align-items:center;gap:2.5mm;font-weight:700}.paper .hd .nt .wb{display:inline-block;box-sizing:border-box;width:26mm;height:12mm;border:1.2pt solid #111;background:#fff}
 .paper table.id{width:100%;border-collapse:collapse;margin:0 0 3mm}.paper table.id td{border:1pt solid #111;padding:1mm 2mm;height:11mm;vertical-align:top;font-size:10.5pt;text-align:left}
 .paper table.id small{display:block;font-size:6.5pt;letter-spacing:.08em;color:#444;font-weight:700;text-transform:uppercase}
 .paper .ins{border:1pt solid #111;margin:0 0 3mm;font-size:10pt}.paper .ins .ih{font-size:9pt;font-weight:700;letter-spacing:.12em;text-align:center;border-bottom:1pt solid #111;padding:1mm 0}
@@ -445,13 +445,13 @@ const PCSS=`.paper{position:relative;background:#fff;color:#111;font:11.5pt/1.35
 .paper .abox{position:relative;padding:11mm 9mm;margin:0 0 2mm}
 .paper .fid{position:absolute;display:block;width:0;height:0;box-sizing:content-box;border:3.5mm solid #000;border-radius:50%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .paper .fid.tl{left:0;top:0}.paper .fid.tr{right:0;top:0}.paper .fid.bl{left:0;bottom:0}.paper .fid.br{right:0;bottom:0}
-.paper .cin{padding:0 4mm}.paper .ct{text-align:center;font-size:17pt;font-weight:700;letter-spacing:.12em;margin:1mm 0 1mm}.paper .cs{text-align:center;font-size:9.5pt;margin:0 0 4mm}
+.paper .chd{display:flex;align-items:center;gap:4mm;margin:0 0 3mm}.paper .chd .ctw{flex:1}.paper .chd img.clg{height:18mm;width:auto;max-height:none;max-width:none;margin:0}.paper .cin{padding:0 4mm}.paper .ct{text-align:center;font-size:17pt;font-weight:700;letter-spacing:.12em;margin:1mm 0 1mm}.paper .cs{text-align:center;font-size:9.5pt;margin:0 0 4mm}
 .paper .ac{display:flex;align-items:center;justify-content:flex-end;gap:2mm;font-size:13pt;font-weight:700;margin-top:1mm}
 .paper .ci{border:1pt solid #111;padding:2mm 3mm;font-size:9.5pt;line-height:1.35;text-align:justify;margin:0 0 5mm}.paper .ci .mk{white-space:nowrap}
 .paper table.gr{width:100%;border-collapse:collapse;table-layout:fixed}.paper table.gr td{border:0;padding:0 2mm;vertical-align:top;width:50%}
 .paper .rw{white-space:nowrap}.paper .rn{display:inline-block;width:10mm;text-align:right;margin-right:2mm;font-size:11pt}
 .paper .bb{display:inline-block;box-sizing:border-box;width:7mm;height:7mm;border:1.1pt solid #111;border-radius:50%;text-align:center;font-size:8pt;line-height:5.9mm;margin-left:4mm;vertical-align:middle}
-.paper .cl{font-size:8pt;color:#333;text-align:center;margin-top:4mm}
+.paper .cl{font-size:11pt;font-weight:700;line-height:1.5;color:#111;text-align:center;margin:0 0 3mm;padding:1.5mm 2mm;border-top:1pt solid #111;border-bottom:1pt solid #111}
 .pgfr{display:none}
 .pgw{width:100%;border-collapse:collapse}.pgw>thead>tr>td,.pgw>tbody>tr>td,.pgw>tfoot>tr>td{padding:0;border:0}.pgw .sp{display:none}
 @media print{
@@ -463,14 +463,14 @@ const PCSS=`.paper{position:relative;background:#fff;color:#111;font:11.5pt/1.35
 const imgsH=x=>x.imgs&&x.imgs.length?`<div class="qi n${Math.min(x.imgs.length,4)}">${x.imgs.map(u=>`<img src="${u}" alt="" onload="fitQ(this)">`).join("")}</div>`:"";
 const st=document.createElement("style");st.textContent=PCSS;document.head.appendChild(st);
 
-const hdr=nt=>`<div class="hd"><img class="lg" src="${LOGO}" alt="Logo GETECO"><div><div class="t1">ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA – GETECO</div><div class="t2">AVALIAÇÃO TRIMESTRAL MULTIDISCIPLINAR</div><div class="t3">${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div></div>${nt||""}</div>`;
+const hdr=nt=>`<div class="hd"><img class="lg" src="${LOGO}" alt="Logo GETECO"><div><div class="t2">AVALIAÇÃO TRIMESTRAL MULTIDISCIPLINAR</div><div class="t3">${esc($("tri").value)} · <b class="sr">${esc($("serie").value)}</b> · Modalidade ${esc($("mod").value)}</div></div>${nt||""}</div>`;
 const idt=(dt,ex)=>`<table class="id"><tr><td><small>Aluno(a)</small></td><td style="width:30mm"><small>Turma</small></td><td style="width:20mm"><small>Nº</small></td></tr><tr><td><small>Professor(a) aplicador(a)</small></td><td colspan="2"><small>Data</small>${esc(dt)}</td></tr>${ex||""}</table>`;
 function head(){
  const v=parseFloat(String($("val").value).replace(",","."))||0.6;
  return{v,t:hdr("")};
 }
 const p2=n=>String(n).padStart(2,"0");
-const f2=n=>n.toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:1});
+const f2=n=>n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
 function gen(){
  const h=head(),sel=S.map(s=>({s,q:s.qs.filter(q=>q.inc).slice(0,s.n)}));
  const total=sel.reduce((a,x)=>a+(OPT(x.s.name)&&!x.q.length?0:x.s.n),0),w=[];
@@ -494,8 +494,8 @@ function gen(){
  });
  const C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
  const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${L.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
- const card=`<div class="cbox cfp"><div class="cin"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div><table class="id"><tr><td colspan="3" style="height:19mm"><small>Nº de acertos (preenchido pelo professor)</small><span class="ac"><span class="wb"></span>/ ${n}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div><div class="cl">${leg.join(" · ")}</div></div></div>`;
- const exam=`<div class="paper">${h.t}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com 4 alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${hdr(`<div class="nt">NOTA<i><span class="wb"></span>/ ${f2(h.v)}</i></div>`)}${idt($("dt").value)}${card}</div></div>`;
+ const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
+ const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com 4 alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
  const key=`<div class="paper">${h.t}<h2>Gabarito do professor <small>– ${esc($("serie").value)}</small></h2><table class="kt"><tr><th>Nº</th><th>Disciplina</th><th>Resposta</th><th>Valor</th></tr>${rows}</table><p class="kn">Total: ${n} questões · ${f2(h.v)} pontos</p></div>`;
  $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
  const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
@@ -535,16 +535,56 @@ function wordTable(qb){
  else{const tr=document.createElement("tr");cells.forEach(td=>tr.appendChild(td));t.appendChild(tr)}
  qb.replaceWith(t);
 }
+const b64u=u=>{let s="";for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
+const w76=s=>s.replace(/.{1,76}/g,"$&\r\n");
+async function saveBlob(blob,fn){
+ try{let d=null;try{d=await claude.use("downloads")}catch(e){}
+  if(d){await d.save({filename:fn,data:blob});return}
+ }catch(e){if(e&&e.code==="declined")return}
+ try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
+}
 async function dl(w){
  if(!last[w]){alert("Gere a prova primeiro.");return}
- const d=await claude.use("downloads");
- if(!d){alert("O download não está disponível neste modo. Use Imprimir / salvar PDF.");return}
+ try{
  selImg(null);
- const live=[...$(w+"Out").querySelectorAll("img")],root=$(w+"Out").cloneNode(true);
- [...root.querySelectorAll("img")].forEach((im,i)=>{const r=live[i]?live[i].getBoundingClientRect():null;["class","style","onload","draggable","contenteditable"].forEach(x=>im.removeAttribute(x));if(r&&r.width){const sc=Math.min(1,690/Math.max(r.width,1));im.setAttribute("width",Math.max(10,Math.round(r.width*sc)));im.setAttribute("height",Math.max(10,Math.round(r.height*sc)))}});
+ const src=$(w+"Out"),live=[...src.querySelectorAll("img")],root=src.cloneNode(true),parts=[];
+ [...root.querySelectorAll("img")].forEach((im,i)=>{
+  const lv=live[i],r=lv?lv.getBoundingClientRect():null,m=/^data:(image\/[a-z0-9.+-]+);base64,(.*)$/i.exec(im.getAttribute("src")||"");
+  if(!m||/svg/i.test(m[1])){im.remove();return}
+  const ext=(m[1].split("/")[1]||"png").replace("jpeg","jpg"),loc="file:///C:/geteco/img"+(parts.length+1)+"."+ext;
+  parts.push({loc,mime:m[1],data:m[2]});im.setAttribute("src",loc);
+  ["class","style","onload","draggable","contenteditable"].forEach(x=>im.removeAttribute(x));
+  if(r&&r.width){const sc=Math.min(1,690/Math.max(r.width,1));im.setAttribute("width",Math.max(10,Math.round(r.width*sc)));im.setAttribute("height",Math.max(10,Math.round(r.height*sc)))}
+ });
+ root.removeAttribute("contenteditable");root.querySelectorAll("[contenteditable]").forEach(e=>e.removeAttribute("contenteditable"));
  root.querySelectorAll(".qb").forEach(wordTable);
- const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Prova</title><style>body{margin:0}@page{size:A4;margin:0}${w==="exam"?`@page exampg{size:A4;margin:7mm}${pgCss(examPages())}@page cardpg{size:A4;margin:7mm}.cardpg{page:cardpg}`:""}${PCSS}${w==="exam"?"@media print{body{page:exampg}.pgw{display:block}.pgw>thead,.pgw>tfoot{display:none}.pgw>tbody,.pgw>tbody>tr,.pgw>tbody>tr>td{display:block;padding:0!important}.pgw>tbody>tr>td>.paper{padding:6mm!important;box-decoration-break:clone;-webkit-box-decoration-break:clone}.pgfr{left:0!important;right:0!important;top:0!important;bottom:0!important}}":""}</style></head><body><div class="pgfr"></div><table class="pgw"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${root.innerHTML}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></body></html>`;
- try{await d.save({filename:(w==="exam"?"prova-":"gabarito-")+($("serie").value+$("mod").value).replace(/\W/g,"")+".html",data:new Blob([html],{type:"text/html"})})}catch(e){if(e&&e.code!=="declined")alert("Não foi possível salvar o arquivo.")}
+ const mkT=(h,st)=>{const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");if(st)t.setAttribute("style",st);t.innerHTML=h;return t};
+ root.querySelectorAll(".hd").forEach(hd=>{
+  const im=hd.querySelector("img"),mid=[...hd.children].find(e=>e.tagName==="DIV"&&!e.classList.contains("nt")),nt=hd.querySelector(".nt");
+  let right="";
+  if(nt){const v=nt.querySelector(".vl b");right='<td width="32%" valign="middle" style="padding:6pt 8pt"><p style="margin:0 0 6pt;font-size:11pt">Valor: <b>'+(v?v.textContent:"")+'</b></p><table cellspacing="0" cellpadding="0" border="0"><tr><td valign="middle" style="font-size:11pt;font-weight:bold;padding-right:6pt">Nota:</td><td width="80" height="34" style="border:1.2pt solid #000;width:80pt;height:34pt">&nbsp;</td></tr></table></td>'}
+  const t=mkT('<tr><td width="16%" align="center" valign="middle" style="padding:6pt"></td><td align="center" valign="middle" style="padding:6pt"></td>'+right+'</tr>','border:1.2pt solid #000;border-collapse:collapse;margin-bottom:6pt');
+  if(im)t.rows[0].cells[0].appendChild(im);t.rows[0].cells[1].innerHTML=mid?mid.innerHTML:"";hd.replaceWith(t)});
+ root.querySelectorAll(".chd").forEach(c=>{
+  const im=c.querySelector("img"),ct=c.querySelector(".ctw"),t=mkT('<tr><td width="14%" valign="middle"></td><td align="center" valign="middle"></td></tr>');
+  if(im)t.rows[0].cells[0].appendChild(im);t.rows[0].cells[1].innerHTML=ct?ct.innerHTML:"";c.replaceWith(t)});
+ root.querySelectorAll(".fid").forEach(e=>e.remove());
+ root.querySelectorAll(".rw").forEach(rw=>{
+  const rn=rw.querySelector(".rn"),bb=[...rw.querySelectorAll(".bb")],p=document.createElement("p");
+  p.setAttribute("style","margin:0 0 5pt;font-size:11pt");
+  p.innerHTML="<b>"+(rn?rn.textContent:"")+"</b>&nbsp;&nbsp;"+bb.map(b=>"(&nbsp;"+b.textContent+"&nbsp;)").join("&nbsp;&nbsp;");rw.replaceWith(p)});
+ root.querySelectorAll(".ac").forEach(a=>{const p=document.createElement("p");p.setAttribute("align","right");p.setAttribute("style","margin:6pt 0 0;font-weight:bold");p.innerHTML=a.innerHTML;a.replaceWith(p)});
+ root.querySelectorAll(".pb").forEach(e=>e.setAttribute("style","page-break-before:always"));
+ const css="@page Section1{size:210mm 297mm;margin:12mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#000}p{margin:0 0 3pt}small{font-size:7pt;font-weight:bold;color:#444}.t2{font-size:13pt;font-weight:bold;margin:2pt 0}.t3{font-size:10.5pt}.sr{font-size:14pt;font-weight:bold;border:1pt solid #000;padding:0 6pt}h2{font-size:12pt;margin:10pt 0 4pt}h2 small{font-size:9pt;font-weight:normal;color:#333}.ins{border:1pt solid #000;padding:5pt 8pt;margin:6pt 0 10pt}.ih{text-align:center;font-weight:bold;letter-spacing:2pt;margin:0 0 4pt}.q{margin:0 0 8pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 18pt}.tx{border:1pt solid #888;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}.ti{font-weight:bold}table.id{border-collapse:collapse;width:100%;margin:0 0 6pt}table.id td{border:1pt solid #000;padding:2pt 5pt;height:36pt;vertical-align:top}table.kt{border-collapse:collapse}table.kt td,table.kt th{border:1pt solid #000;padding:2pt 6pt}.kn{font-weight:bold;margin-top:6pt}.ct{text-align:center;font-size:15pt;font-weight:bold;letter-spacing:2pt}.cs{text-align:center;font-size:9pt}.ci{font-size:9pt;border:1pt solid #888;padding:4pt 6pt;margin:6pt 0;text-align:justify}.cl{text-align:center;font-weight:bold;font-size:11pt;border-top:1pt solid #000;border-bottom:1pt solid #000;padding:3pt 0;margin:0 0 6pt}.abox{border:1pt solid #000;padding:6pt}table.gr{width:100%;border-collapse:collapse}table.gr td{border:0;vertical-align:top}img{margin:2pt}";
+ const ttl=w==="exam"?"Prova":"Gabarito",
+  html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>'+ttl+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>'+css+'</style></head><body><div class="Section1">'+root.innerHTML+'</div></body></html>',
+  bd="----=_NextPart_GETECO_"+Date.now();
+ let mh="MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary=\""+bd+"\"; type=\"text/html\"\r\n\r\n--"+bd+"\r\nContent-Type: text/html; charset=\"utf-8\"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/geteco/prova.htm\r\n\r\n"+w76(b64u(new TextEncoder().encode(html)))+"\r\n";
+ parts.forEach(p=>{mh+="--"+bd+"\r\nContent-Type: "+p.mime+"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: "+p.loc+"\r\n\r\n"+w76(p.data)+"\r\n"});
+ mh+="--"+bd+"--\r\n";
+ const fn=(w==="exam"?"prova-":"gabarito-")+($("serie").value+$("mod").value).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"")+".doc";
+ await saveBlob(new Blob([mh],{type:"application/msword"}),fn);
+ }catch(e){alert("Não foi possível gerar o arquivo Word. Use Imprimir / salvar PDF.")}
 }
 const txF=(i,id)=>(S[i].txs||[]).find(t=>t.id===id);
 const txHtml=(t,a,b)=>{const bd=`<div class="tt">${br(t.body)}</div>`;return `<div class="tx"><p class="ti">Leia o texto abaixo e responda ${a===b?"à questão "+p2(a):"às questões "+p2(a)+(b-a===1?" e ":" a ")+p2(b)}.</p>${t.imgs&&t.imgs.length?`<div class="qb fl">${imgsH(t)}<div class="qa">${bd}</div></div>`:bd}</div>`};
