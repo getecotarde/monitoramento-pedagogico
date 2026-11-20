@@ -245,6 +245,7 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
 
 <div class="pgfr" id="pgframe" aria-hidden="true"></div>
 <div id="dlg" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><p id="dlgT" style="margin-top:0"></p><div><button id="dlgNo">Cancelar</button><button class="p" id="dlgOk">Sim, excluir</button></div></div></div>
+<div id="dlgK" class="ov" hidden><div class="bx" role="alertdialog" aria-modal="true" aria-labelledby="dlgKT" style="max-width:480px"><p id="dlgKT" style="margin-top:0;white-space:pre-line"></p><div><button id="dlgKc">Cancelar</button><button id="dlgKn">Gerar do zero</button><button class="p" id="dlgKy">Manter edições</button></div></div></div>
 <section id="v-sum" hidden>
  <h2>Quadro resumo do recebimento</h2>
  <p class="noprint"><button class="p" onclick="pr('sum')">Imprimir / salvar PDF</button></p>
@@ -357,6 +358,17 @@ const fmtG=arr=>arr.some(Boolean)?arr.map((a,k)=>(k+1)+"-"+(a||"?")).join(" "):"
 function applyG(s){const a=parseG(s.gab);if(!s.gab.trim())return;s.qs.forEach((q,k)=>q.ans=a[k]||"")}
 
 /* ---------- ações ---------- */
+/* Cópia automática entre turmas (mesma modalidade): o que é carregado na turma de origem vai também para a turma de destino.
+   7º ABC → 7º DE: Ciências, Geografia, História, Educação Física, Arte
+   6º ABC → 6º DEF: Ciências, Geografia, História, Educação Física, Inglês, Arte */
+const MIRR={"7º ano - turmas ABC":{to:"7º ano - turmas DE",subs:["Ciências","Geografia","História","Educação Física","Arte"]},
+ "6º ano - turmas ABC":{to:"6º ano - turmas DEF",subs:["Ciências","Geografia","História","Educação Física","Inglês","Arte"]}};
+function mirror7(i){
+ const [t,m]=KEY.split("|"),s=S[i],r=MIRR[t];if(!r||!s||!r.subs.includes(s.name)||s.er||!s.qs.length)return;
+ const k=r.to+"|"+m,v=VER[k]||(VER[k]=mkS()),ab=t.replace(" - turmas ","").replace("ano","ano ");
+ const c=JSON.parse(JSON.stringify(s));c.msg="Copiado automaticamente de "+t+" ("+s.qs.length+" questões).";c.er=false;v[i]=c;
+ s.msg=(s.msg||"")+" Também copiado para "+r.to+".";
+}
 async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
  try{
@@ -367,7 +379,7 @@ async function up(i,f){
   s.msg=r.qs.length?r.qs.length+" questões lidas.":"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";
   s.er=!r.qs.length;
  }catch(e){s.msg=errMsg(e,"este arquivo");s.er=true}
- renderGrid();renderRev(i);
+ mirror7(i);renderGrid();renderRev(i);
 }
 async function upG(i,f){
  if(!f)return;const s=S[i];
@@ -375,7 +387,7 @@ async function upG(i,f){
   const bl=await readAny(f),g=fmtG(parseG(bl.map(b=>b.text).join(" ")));
   if(g){s.gab=g;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
  }catch(e){s.msg=errMsg(e,"o gabarito");s.er=true}
- renderGrid();renderRev(i);
+ mirror7(i);renderGrid();renderRev(i);
 }
 function setG(i,v){S[i].gab=v;applyG(S[i]);renderGrid();renderRev(i)}
 const inc=s=>Math.min(s.qs.filter(q=>q.inc).length,s.n);
@@ -471,7 +483,45 @@ function head(){
 }
 const p2=n=>String(n).padStart(2,"0");
 const f2=n=>n.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
-function gen(){
+/* ---------- manter edições ao gerar de novo ---------- */
+const hs=str=>{let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return String(4294967296*(2097151&h2)+(h1>>>0))};
+/* separa o HTML da prova em seções por disciplina: {Português:"<h2>…</h2>…", …} */
+function parseSecs(html){
+ const d=document.createElement("div");d.innerHTML=html;const p=d.querySelector(".paper")||d,out={};let nm=null;
+ for(const el of p.children){
+  if(el.classList.contains("cardpg"))break;
+  if(el.tagName==="H2"){const t=el.textContent.trim();const f=SUBJ.find(([n])=>t.startsWith(n));nm=f?f[0]:null;if(nm)out[nm]=""}
+  if(nm)out[nm]+=el.outerHTML;
+ }
+ return out;
+}
+function askKeep(ed,ok,lost){
+ return new Promise(res=>{
+  let t="Esta prova já tem edições em: "+ed.join(", ")+".";
+  if(ok.length)t+="\n\n• Manter edições: preserva "+ok.join(", ")+" exatamente como estão e atualiza o restante com os dados recebidos.";
+  if(lost.length)t+="\n\nAtenção: em "+lost.join(", ")+" as questões recebidas mudaram (ou a numeração mudou), então as edições dessas disciplinas serão perdidas de qualquer forma.";
+  t+="\n\n• "+(ok.length?"Gerar do zero: descarta todas as edições.":"Gerar mesmo assim: as edições serão perdidas.");
+  $("dlgKT").textContent=t;$("dlgK").hidden=false;
+  const y=$("dlgKy"),n=$("dlgKn"),c=$("dlgKc");y.hidden=!ok.length;n.textContent=ok.length?"Gerar do zero":"Gerar mesmo assim";
+  const end=v=>{$("dlgK").hidden=true;res(v)};
+  y.onclick=()=>end("keep");n.onclick=()=>end("zero");c.onclick=()=>end("cancel");
+  (ok.length?y:n).focus();
+ });
+}
+/* registra, depois que as imagens carregarem, o "estado original" de cada disciplina para saber depois se foi editada */
+async function snapBase(k,ref){
+ try{
+  const im=[...$("examOut").querySelectorAll("img")];
+  await Promise.race([Promise.all(im.map(i=>i.complete?0:new Promise(r=>{i.addEventListener("load",r,{once:true});i.addEventListener("error",r,{once:true})}))),new Promise(r=>setTimeout(r,4000))]);
+  await new Promise(r=>setTimeout(r,60));
+  if(OUT[k]!==ref||KEY!==k)return;
+  const cu=parseSecs(gx());
+  Object.keys(ref.base).forEach(nm=>{if(ref.base[nm].h==null&&cu[nm])ref.base[nm].h=hs(cu[nm])});
+  save();
+ }catch(e){}
+}
+async function gen(){
  const h=head(),sel=S.map(s=>({s,q:s.qs.filter(q=>q.inc).slice(0,s.n)}));
  const total=sel.reduce((a,x)=>a+(OPT(x.s.name)&&!x.q.length?0:x.s.n),0),w=[];
  sel.forEach(({s,q})=>{
@@ -480,26 +530,40 @@ function gen(){
   const sg=q.filter(x=>!x.ans).length;if(sg)w.push(`${s.name}: ${sg} questão(ões) sem resposta no gabarito.`);
   q.forEach((x,k)=>{if(nA(x)<4)w.push(`${s.name}, questão ${k+1}: menos de 4 alternativas.`)});
  });
- const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const leg=[];
+ const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const leg=[],secs=[];
  sel.forEach(({s,q})=>{
   if(!q.length)return;const a=n+1;
-  body+=`<h2>${s.name} <small>(questões ${p2(a)} a ${p2(n+q.length)})</small></h2>`;leg.push(`${s.name} ${p2(a)}–${p2(n+q.length)}`);
+  const cur={name:s.name,a,cnt:q.length,sig:hs(JSON.stringify([pv,a,q.map(x=>[x.stem,x.alts,x.imgs,x.tid]),(s.txs||[]).filter(t=>q.some(x=>x.tid===t.id))])),html:""};secs.push(cur);
+  cur.html+=`<h2>${s.name} <small>(questões ${p2(a)} a ${p2(n+q.length)})</small></h2>`;leg.push(`${s.name} ${p2(a)}–${p2(n+q.length)}`);
   q.forEach((x,k)=>{
    n++;
-   if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;body+=txHtml(t,n,n+e-k)}}
+   if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;cur.html+=txHtml(t,n,n+e-k)}}
    const alts=L.map((l,j)=>`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
-   body+=`<div class="q"><div class="qs"><b>${p2(n)}.</b> <b class="qv">(${pv})</b> ${cmd(br(x.stem))}</div>${x.imgs&&x.imgs.length?`<div class="qb"><div class="qa">${alts}</div>${imgsH(x)}</div>`:alts}</div>`;
+   cur.html+=`<div class="q"><div class="qs"><b>${p2(n)}.</b> <b class="qv">(${pv})</b> ${cmd(br(x.stem))}</div>${x.imgs&&x.imgs.length?`<div class="qb"><div class="qa">${alts}</div>${imgsH(x)}</div>`:alts}</div>`;
    rows+=`<tr><td>${p2(n)}</td><td>${s.name}</td><td><b>${x.ans||"?"}</b></td><td>${f2(pq)}</td></tr>`;
   });
  });
+ let keptNames=[];const oldB=(OUT[KEY]&&OUT[KEY].base)||null;
+ if(oldB&&$("examOut").querySelector(".paper")){
+  const od=OUT[KEY];od.exam=gx();const cu=parseSecs(od.exam),ed=[];
+  Object.keys(oldB).forEach(nm=>{if(oldB[nm].h!=null&&cu[nm]&&hs(cu[nm])!==oldB[nm].h)ed.push(nm)});
+  if(ed.length){
+   const ok=[],lost=[];ed.forEach(nm=>{const f=secs.find(x=>x.name===nm);(f&&f.sig===oldB[nm].sig?ok:lost).push(nm)});
+   const r=await askKeep(ed,ok,lost);
+   if(r==="cancel")return;
+   if(r==="keep")ok.forEach(nm=>{secs.find(x=>x.name===nm).html=cu[nm];keptNames.push(nm)});
+  }
+ }
+ body=secs.map(x=>x.html).join("");
+ const nb={};secs.forEach(x=>{nb[x.name]=keptNames.includes(x.name)?oldB[x.name]:{sig:x.sig}});
  const C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
  const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${L.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
  const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
  const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com 4 alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
  const key=`<div class="paper">${h.t}<h2>Gabarito do professor <small>– ${esc($("serie").value)}</small></h2><table class="kt"><tr><th>Nº</th><th>Disciplina</th><th>Resposta</th><th>Valor</th></tr>${rows}</table><p class="kn">Total: ${n} questões · ${f2(h.v)} pontos</p></div>`;
- $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
+ $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key,base:nb};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
  const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
- show("exam");
+ show("exam");snapBase(KEY,OUT[KEY]);
 }
 function show(v){
  ["build","exam","key","sum"].forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="sum"){renderSum();renderGen()}
