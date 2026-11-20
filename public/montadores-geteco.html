@@ -824,6 +824,13 @@ progress{height:10px;accent-color:var(--ok)}
 </style>
 <style>@media print{.ui:has(#v-exam:not([hidden])){padding:0!important;max-width:none!important;margin:0!important}}</style>
 <style>#modOut img,#examOut .qb img{cursor:pointer}#modOut img.sel,#examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}@media print{img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}#modOut img,#examOut .qb img{touch-action:none}#imgHandle{position:fixed;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;z-index:40;touch-action:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}#dropBar{position:fixed;background:var(--ac);opacity:.85;border-radius:3px;z-index:40;pointer-events:none;display:none}</style>
+<style>
+.paper .gbw{break-inside:avoid;margin-top:12px}.paper .gbt{font-weight:700;font-size:10pt;margin:0 0 4px}.paper .gbn{font-size:8pt;color:#444;margin:3px 0 0}
+.paper table.gb{border-collapse:collapse;margin:0;width:auto}
+.paper table.wrap table.gb th,.paper table.wrap table.gb td{border:1px solid #111;padding:2px 0;width:10mm;min-width:10mm;text-align:center;font-size:11pt;line-height:1.35;background:#fff;color:#111}
+.paper table.wrap table.gb th{background:#e8eef2;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.paper table.wrap table.gb td{font-size:13pt}
+</style>
 <style id="tmcss">
 .paper.tm{position:relative;width:210mm;max-width:none;height:296.6mm;padding:0;overflow:hidden;background:#fff;color:#000;font:11pt/1.5 Arial,Helvetica,sans-serif;flex:none;margin:0 auto 16px;box-sizing:border-box}
 .paper.tm .tmi{padding:15mm 20mm 0}
@@ -1337,7 +1344,8 @@ function disc(st,s,first){
  const info=[esc(st.n),"Turma "+esc(st.t),"Projeto FICA",esc($("tri").value)];if($("dt").value)info.push("Entrega: "+esc($("dt").value));
  const ins=first?`<div class="ins2"><b>Orientações:</b> cada disciplina tem 10 questões. Nas objetivas, marque apenas uma alternativa; nas abertas, responda nas linhas. Use caneta azul ou preta e não use corretivo. Leia cada questão com atenção e, ao terminar, entregue o trabalho à coordenação pedagógica.</div>`:"";
  const body=`<div class="tp">${info.join(" · ")}</div>${ins}<h2>${s.name}<span style="float:right">Nota: ____ / 10</span></h2>${o.length?`<p class="ph"><b>Parte I – Questões objetivas</b> (marque um X na alternativa correta)</p>${gq(o,1)}`:""}${a.length?`<p class="ph"><b>Parte ${o.length?"II":"I"} – Questões abertas</b></p>${gq(a,0)}`:""}`;
- return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
+ const gbT=o.length?`<div class="gbw"><p class="gbt">Gabarito do estudante – ${esc(s.name)} (objetivas)</p><table class="gb" border="1" cellspacing="0" cellpadding="3"><tr><th></th>${o.map((x,i)=>`<th>${p2(i+1)}</th>`).join("")}</tr>${L.map(l=>`<tr><th>${l}</th>${o.map(()=>"<td>○</td>").join("")}</tr>`).join("")}</table><p class="gbn">${esc(st.n)} · Turma ${esc(st.t)}</p></div>`:"";
+ return `<div class="paper pg dp"><table class="wrap"><thead><tr><td><div class="sp"></div></td></tr></thead><tbody><tr><td>${body}${gbT}</td></tr></tbody><tfoot><tr><td><div class="sp"></div></td></tr></tfoot></table></div>`;
 }
 const canGen=()=>STU.length>0&&STU.some(st=>(VER[grp(st.t)+"|"+st.m]||[]).some(ld));
 function warnShow(w){const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":""}
@@ -1488,7 +1496,7 @@ async function dlMod(){
    t.rows[0].cells[0].appendChild(h.cloneNode(true));t.rows[0].cells[1].textContent=nota;h.replaceWith(t)});
   body+='<div'+(pi?' style="page-break-before:always"':'')+'>'+c.innerHTML+'</div>';
  });
- const css='@page Section1{size:210mm 297mm;margin:15mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000}p{margin:0 0 3pt}h2{font-size:14pt;margin:8pt 0 4pt;color:#1d6a87}.tp{font-size:9pt;color:#444;margin:0 0 4pt}.ins2{font-size:9pt;border:1px solid #999;padding:4pt 6pt;margin:4pt 0 8pt;text-align:justify}.ph{margin:6pt 0 4pt}.q{margin:0 0 6pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 17pt}.tx{border:1px solid #888;background:#f7f7f7;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}img{margin:2pt}';
+ const css='@page Section1{size:210mm 297mm;margin:15mm 13mm}div.Section1{page:Section1}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#000}p{margin:0 0 3pt}h2{font-size:14pt;margin:8pt 0 4pt;color:#1d6a87}.tp{font-size:9pt;color:#444;margin:0 0 4pt}.ins2{font-size:9pt;border:1px solid #999;padding:4pt 6pt;margin:4pt 0 8pt;text-align:justify}.ph{margin:6pt 0 4pt}.q{margin:0 0 6pt}.qs{text-align:justify;margin:0 0 3pt}.alt{margin:0 0 1pt 17pt}.tx{border:1px solid #888;background:#f7f7f7;padding:5pt 7pt;margin:5pt 0 8pt;text-align:justify}.gbw{margin-top:12pt}.gbt{font-weight:bold;font-size:10pt;margin:0 0 4pt}.gbn{font-size:8pt;color:#444;margin:3pt 0 0}table.gb{border-collapse:collapse}table.gb td,table.gb th{border:1px solid #000;width:28pt;text-align:center;font-size:11pt;padding:2pt}table.gb th{background:#e8eef2}img{margin:2pt}';
  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Trabalho FICA – '+esc(k.replace("|"," · "))+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>'+css+'</style></head><body><div class="Section1">'+body+'</div></body></html>';
  const bd="----=_NextPart_FICA_"+Date.now();
  let mh="MIME-Version: 1.0\r\nContent-Type: multipart/related; boundary=\""+bd+"\"; type=\"text/html\"\r\n\r\n--"+bd+"\r\nContent-Type: text/html; charset=\"utf-8\"\r\nContent-Transfer-Encoding: base64\r\nContent-Location: file:///C:/fica/trabalho.htm\r\n\r\n"+w76(b64u(new TextEncoder().encode(html)))+"\r\n";
@@ -1893,9 +1901,7 @@ function packG(){
 }
 function restoreG(d){
  const g=d.G;if(!g)return;MOD=g.MOD||{};MODE=g.MODE||"mod";MK=g.MK||"";STALE=!!g.STALE;
- const stripGb=h=>h.replace(/<div class="gbw">[\s\S]*?<\/div>/g,"");
- Object.keys(MOD).forEach(k=>{if(MOD[k]&&MOD[k].html)MOD[k].html=stripGb(MOD[k].html)});
- BK=g.list.filter(x=>STU[x.i]).map(x=>{const st=STU[x.i];return{i:x.i,html:cover(st,[])+stripGb(g.bodies[x.b]).split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))}});
+ BK=g.list.filter(x=>STU[x.i]).map(x=>{const st=STU[x.i];return{i:x.i,html:cover(st,[])+g.bodies[x.b].split(PH_N).join(esc(st.n)).split("Turma "+PH_T).join("Turma "+esc(st.t))}});
  BK.sort((a,b)=>cmpStu(a.i,b.i));SEL=new Set(BK.map(x=>x.i));
 }
 function doSave(){const base={VER,KEY,STU,sgeV:SGE_V,tri:$("tri").value,dt:$("dt").value};let msg="";
