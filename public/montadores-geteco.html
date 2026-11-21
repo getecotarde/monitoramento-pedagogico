@@ -207,19 +207,23 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
 
 <section id="v-exam" hidden>
  <aside id="exTools" class="noprint">
-  <p class="sub">Clique em qualquer texto da prova ao lado para editar. Use este painel para negrito, itálico, espaçamento e para mexer nas imagens.</p>
+  <p class="sub">Clique em qualquer texto da prova ao lado para editar. Use este painel para negrito, itálico, sublinhado, tachado, sobrescrito, subscrito, espaçamento e para mexer nas imagens.</p>
   <div class="xact"><button class="p" onclick="pr('exam')">Imprimir / salvar PDF</button> <button onclick="dl('exam')">Baixar para Word (.doc)</button></div>
   <div class="card noprint" id="fmtBar"><b class="ftt">Formatação</b><div class="sm">Vale para a prova aberta ao lado.</div>
    <div class="fg"><b>Texto</b>
     <div class="fgrp">
      <button onmousedown="event.preventDefault()" onclick="fmt('bold')"><b>N</b> Negrito</button>
-     <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button></div>
+     <button onmousedown="event.preventDefault()" onclick="fmt('italic')"><i>I</i> Itálico</button>
+     <button onmousedown="event.preventDefault()" onclick="fmt('underline')" title="Sublinhar (Ctrl+U)"><u>S</u> Sublinhado</button>
+     <button onmousedown="event.preventDefault()" onclick="fmt('strikeThrough')" title="Tachar o trecho selecionado"><s>T</s> Tachado</button>
+     <button onmousedown="event.preventDefault()" onclick="fmt('superscript')" title="Sobrescrito (ex.: m²)">x<sup>2</sup> Sobrescrito</button>
+     <button onmousedown="event.preventDefault()" onclick="fmt('subscript')" title="Subscrito (ex.: H₂O)">x<sub>2</sub> Subscrito</button></div>
     <div class="fgrp">
      <button onmousedown="event.preventDefault()" onclick="fsz(1)" title="Aumentar a letra do trecho selecionado (1 pt por clique)"><b>A+</b> Aumentar</button>
      <button onmousedown="event.preventDefault()" onclick="fsz(-1)" title="Diminuir a letra do trecho selecionado (1 pt por clique)"><b style="font-size:.8em">A−</b> Diminuir</button>
      <button onmousedown="event.preventDefault()" onclick="cs('up')" title="Converter o trecho selecionado para MAIÚSCULAS">AA Maiúsculas</button>
      <button onmousedown="event.preventDefault()" onclick="cs('low')" title="Converter o trecho selecionado para minúsculas">aa Minúsculas</button></div>
-    <span class="sm" id="fmtMsg">Selecione um trecho da prova e clique. Também vale Ctrl+B e Ctrl+I.</span></div>
+    <span class="sm" id="fmtMsg">Selecione um trecho da prova e clique. Também vale Ctrl+B, Ctrl+I e Ctrl+U.</span></div>
    <div class="fg"><b>Espaçamento entre linhas</b>
     <div class="fgrp lhg">
      <button onmousedown="event.preventDefault()" onclick="lh(1)">Simples</button>
@@ -1274,7 +1278,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
   <div class="wr" id="stale" hidden><b>Os blocos foram editados depois de gerar.</b> Volte em Estudantes e clique em Gerar trabalhos para aplicar as mudanças (edições feitas à mão nesta aba serão refeitas).</div>
   <div class="card noprint" id="fmtBar" style="max-width:none"><div class="fb">
    <b class="ftt">Formatação</b>
-   <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button><button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button></span>
+   <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button><button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button><button onmousedown="event.preventDefault()" onclick="fmt('underline')" title="Sublinhar (Ctrl+U)"><u>S</u></button><button onmousedown="event.preventDefault()" onclick="fmt('strikeThrough')" title="Tachar o trecho selecionado"><s>T</s></button><button onmousedown="event.preventDefault()" onclick="fmt('superscript')" title="Sobrescrito (ex.: m²)">x<sup>2</sup></button><button onmousedown="event.preventDefault()" onclick="fmt('subscript')" title="Subscrito (ex.: H₂O)">x<sub>2</sub></button></span>
    <span class="fsep"></span><span class="sm">Linhas</span>
    <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="lh(1)" title="Espaçamento simples">Simples</button><button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button><button onmousedown="event.preventDefault()" onclick="lh(1.35)" title="Espaçamento padrão">1,35</button><button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button><button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button></span>
    <span class="fsep"></span>
