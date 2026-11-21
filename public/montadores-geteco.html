@@ -385,7 +385,7 @@ async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
  try{
   const r=parse(await readAny(f));
-  s.file=f.name;s.qs=r.qs;s.txs=r.txs;
+  s.file=f.name;s.qs=r.qs;s.txs=r.txs;if(s.fromReg)s.gab="";s.fromReg=false;
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
   applyG(s);
   s.msg=r.qs.length?r.qs.length+" questões lidas.":"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";
@@ -397,18 +397,18 @@ async function upG(i,f){
  if(!f)return;const s=S[i];
  try{
   const bl=await readAny(f),g=fmtG(parseG(bl.map(b=>b.text).join(" ")));
-  if(g){s.gab=g;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
+  if(g){s.gab=g;s.fromReg=false;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
  }catch(e){s.msg=errMsg(e,"o gabarito");s.er=true}
  mirror7(i);renderGrid();renderRev(i);
 }
-function setG(i,v){S[i].gab=v;applyG(S[i]);renderGrid();renderRev(i)}
+function setG(i,v){S[i].gab=v;S[i].fromReg=false;applyG(S[i]);renderGrid();renderRev(i)}
 const inc=s=>Math.min(s.qs.filter(q=>q.inc).length,s.n);
 
 function renderGrid(){
- $("grid").innerHTML=chips()+S.map((s,i)=>{if(i!==cur)return"";
+ $("grid").innerHTML=cpBar()+chips()+S.map((s,i)=>{if(i!==cur)return"";
   const c=s.qs.filter(q=>q.inc).length,cls=!s.qs.length?"":c===s.n?"ok":"wn";
   return `<div class="card"><div class="ch"><b>${s.name}${OPT(s.name)?" (opcional)":""}</b><span class="bd ${cls}">${c}/${s.n} questões</span></div>
-  <label>Prova (Word ou PDF)<input type="file" accept=".docx,.pdf" onchange="up(${i},this.files[0])"></label>
+  ${adBox(i)}<label>${isAd()?"Substituir por prova adaptada (Word ou PDF)":"Prova (Word ou PDF)"}<input type="file" accept=".docx,.pdf" onchange="up(${i},this.files[0])"></label>
   <div class="sm">${s.file?esc(s.file):"Nenhum arquivo enviado"}</div>${s.file?`<div><button onclick="askDel(${i},'p')">Excluir prova enviada</button></div>`:""}
   <label>Gabarito (ex.: A B C D A)<input class="t" value="${esc(s.gab)}" onchange="setG(${i},this.value)"></label>
   <label>Gabarito em arquivo, se vier separado<input type="file" accept=".docx,.pdf" onchange="upG(${i},this.files[0])"></label>
@@ -714,14 +714,52 @@ function sumTop(){
  ts.forEach(t=>ms.forEach(m=>{const v=VER[t+"|"+m];SUBJ.forEach(([n,need],i)=>{tot++;const s=v&&v[i];if(s){const q=s.qs.filter(x=>x.inc).length;if(q===need&&s.qs.filter(x=>x.inc&&x.ans).length===q)done++}if(OPT(n)&&!(s&&s.qs.some(x=>x.inc)))done++})}));
  return `<p class="noprint"><b>Modalidade</b></p><div class="chips noprint">${fb("m",MODS)}</div><p class="noprint"><b>Turmas</b></p><div class="chips noprint">${fb("t",TURMAS)}</div><p><b>Exibindo:</b> ${SF.m} · ${SF.t}</p><p><b>${done} de ${tot}</b> disciplinas completas (questões e gabarito)</p><progress max="${tot}" value="${done}" style="width:100%"></progress>`+matrix(ts,ms);
 }
+/* ---------- Adaptada a partir da Regular ---------- */
+let CPMSG="";
+const cloneS=x=>JSON.parse(JSON.stringify(x));
+const isAd=()=>KEY.split("|")[1]==="Adaptada";
+function copyAllReg(){
+ let n=0,keep=0,none=0;
+ TURMAS.forEach(t=>{
+  const r=VER[t+"|Regular"],k=t+"|Adaptada",v=VER[k]||(VER[k]=mkS());
+  SUBJ.forEach((x,i)=>{
+   const src=r&&r[i];if(!src||!src.qs.length){if(!OPT(x[0]))none++;return}
+   if(v[i]&&v[i].qs.length){keep++;return}
+   const c=cloneS(src);c.fromReg=true;c.er=false;c.msg="Copiada da prova Regular ("+src.qs.length+" questões). Se o professor enviou uma adaptada, use o campo abaixo para substituir.";v[i]=c;n++;
+  });
+ });
+ S=VER[KEY];
+ CPMSG=n+" disciplina(s) copiada(s) da Regular"+(keep?"; "+keep+" já tinha(m) conteúdo na Adaptada e foi(foram) mantida(s)":"")+(none?"; "+none+" sem prova Regular carregada":"")+".";
+ renderGrid();renderRev(cur);
+}
+function useReg(i){
+ const t=KEY.split("|")[0],r=VER[t+"|Regular"],src=r&&r[i],s=S[i];
+ if(!src||!src.qs.length){s.msg="A prova Regular desta disciplina ainda não foi carregada.";s.er=true;renderGrid();return}
+ const go=()=>{const c=cloneS(src);c.fromReg=true;c.er=false;c.msg="Usando a mesma prova da Regular ("+src.qs.length+" questões).";S[i]=c;renderGrid();renderRev(i)};
+ if(s.qs.length&&!s.fromReg){
+  $("dlgT").textContent=`Substituir a prova adaptada de ${s.name} pela prova Regular? As questões adaptadas serão perdidas.`;$("dlgOk").textContent="Sim, substituir";
+  $("dlg").hidden=false;$("dlgNo").focus();
+  $("dlgNo").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir"};
+  $("dlgOk").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir";go()};
+ }else go();
+}
+function adBox(i){
+ if(!isAd())return"";
+ const s=S[i],r=VER[KEY.split("|")[0]+"|Regular"],has=r&&r[i]&&r[i].qs.length;
+ const st=s.fromReg?"✔ Usando a mesma prova da Regular":(s.qs.length?"Prova adaptada própria":"Ainda sem prova");
+ return `<div class="sm"><b>${st}</b></div>${has&&!s.fromReg?`<div><button onclick="useReg(${i})">Usar a prova Regular nesta disciplina</button></div>`:""}`;
+}
+function cpBar(){
+ return `<div class="sm noprint" style="margin:0 0 10px"><button onclick="copyAllReg()">Copiar todas as provas Regulares para Adaptada</button> <span>${esc(CPMSG)}</span><div>Depois, na Adaptada, envie a prova adaptada só nas disciplinas em que o professor mandou uma diferente.</div></div>`;
+}
 function askDel(i,w){
- const s=S[i];
+ const s=S[i];$("dlgOk").textContent="Sim, excluir";
  $("dlgT").textContent=w==="g"?`Excluir o gabarito de ${s.name}?`:`Excluir a prova enviada de ${s.name}? As questões lidas e editadas serão removidas.`;
  $("dlg").hidden=false;$("dlgNo").focus();
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
  $("dlgOk").onclick=()=>{
   if(w==="g"){s.gab="";s.qs.forEach(q=>q.ans="");s.msg="Gabarito excluído."}
-  else{s.file="";s.qs=[];s.txs=[];s.gab="";s.msg="Prova excluída.";s.er=false;s.rev=false}
+  else{s.file="";s.qs=[];s.txs=[];s.gab="";s.fromReg=false;s.msg="Prova excluída.";s.er=false;s.rev=false}
   $("dlg").hidden=true;renderGrid();renderRev();
  };
 }
@@ -811,6 +849,7 @@ async function load(){
  }catch(e){}
 }
 function askClear(){
+ $("dlgOk").textContent="Sim, excluir";
  $("dlgT").textContent="Apagar TODOS os dados salvos neste navegador e no Supabase (provas, gabaritos e provas geradas)? Esta ação não pode ser desfeita.";
  $("dlg").hidden=false;$("dlgNo").focus();
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
