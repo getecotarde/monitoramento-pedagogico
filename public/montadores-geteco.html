@@ -172,6 +172,7 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
 }
 @media print{
  #v-exam,#v-exam:not([hidden]){display:block!important}
+ #v-exam[hidden]{display:none!important}
  #exTools{display:none!important}
  #exMain .pv{background:none!important;border:0!important;border-radius:0!important;padding:0!important;min-height:0!important}
 }
@@ -596,6 +597,18 @@ const pgCss=n=>{const Q=k=>Array.from({length:k},(_,i)=>'"'+(i+1)+'"').join(" ")
  return `@counter-style pgex{system:fixed;symbols:${Q(n+2)};fallback:decimal}@counter-style pgst{system:cyclic;symbols:"${n}"}@counter-style pgtot{system:fixed 2;symbols:${Q(300)};fallback:pgst}@page exampg{@bottom-right{content:counter(page,pgex) "/" counter(pages,pgtot);${PGCSS}}}`};
 function setPgNum(n){let st=document.getElementById("pgnum");if(!st){st=document.createElement("style");st.id="pgnum";document.head.appendChild(st)}
  st.textContent=pgCss(n)}
+/* Textos de apoio curtos (até meia folha) não são partidos entre duas folhas na impressão; os longos podem continuar na folha seguinte. */
+(function(){const k=document.createElement("style");k.textContent="@media print{.paper .tx.kp{break-inside:avoid;page-break-inside:avoid}}";document.head.appendChild(k)})();
+function keepTx(){
+ const PW=184,HALF=135;
+ document.querySelectorAll(".paper .tx").forEach(t=>{
+  const par=t.parentElement;if(!par||!t.offsetHeight)return;
+  const cs=getComputedStyle(par),w=par.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);
+  if(!(w>0))return;
+  t.classList.toggle("kp",t.offsetHeight*0.26458*(w*0.26458/PW)<=HALF);
+ });
+}
+window.addEventListener("beforeprint",keepTx);
 function pr(w){selImg(null);document.body.dataset.p=w;if(w==="exam"){try{setPgNum(examPages())}catch(e){}}try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar” e imprima o arquivo.")}}
 function wordTable(qb){
  const qa=qb.querySelector(".qa"),qi=qb.querySelector(".qi");if(!qa||!qi)return;
@@ -1729,6 +1742,18 @@ function modApply(){
 }
 
 /* ---------- imprimir / baixar o modelo do bloco ---------- */
+/* Textos de apoio curtos (até meia folha) não são partidos entre duas folhas na impressão; os longos podem continuar na folha seguinte. */
+(function(){const k=document.createElement("style");k.textContent="@media print{.paper .tx.kp{break-inside:avoid;page-break-inside:avoid}}";document.head.appendChild(k)})();
+function keepTx(){
+ const PW=184,HALF=135;
+ document.querySelectorAll(".paper .tx").forEach(t=>{
+  const par=t.parentElement;if(!par||!t.offsetHeight)return;
+  const cs=getComputedStyle(par),w=par.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);
+  if(!(w>0))return;
+  t.classList.toggle("kp",t.offsetHeight*0.26458*(w*0.26458/PW)<=HALF);
+ });
+}
+window.addEventListener("beforeprint",keepTx);
 function prMod(){grabMod();selImg(null);doPrint("Trabalho FICA "+(MK||"").replace("|"," "),"exam")}
 const b64u=u=>{let s="";for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)};
 const w76=s=>s.replace(/.{1,76}/g,"$&\r\n");
