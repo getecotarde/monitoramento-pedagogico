@@ -224,6 +224,13 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
      <button onmousedown="event.preventDefault()" onclick="cs('up')" title="Converter o trecho selecionado para MAIÚSCULAS">AA Maiúsculas</button>
      <button onmousedown="event.preventDefault()" onclick="cs('low')" title="Converter o trecho selecionado para minúsculas">aa Minúsculas</button></div>
     <span class="sm" id="fmtMsg">Selecione um trecho da prova e clique. Também vale Ctrl+B, Ctrl+I e Ctrl+U.</span></div>
+   <div class="fg"><b>Alinhamento</b>
+    <div class="fgrp">
+     <button onmousedown="event.preventDefault()" onclick="alg('left')" title="Alinhar à esquerda"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M1 7h9M1 11h14M1 15h9"/></svg> Esquerda</button>
+     <button onmousedown="event.preventDefault()" onclick="alg('center')" title="Centralizar"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M4 7h8M1 11h14M4 15h8"/></svg> Centro</button>
+     <button onmousedown="event.preventDefault()" onclick="alg('right')" title="Alinhar à direita"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M6 7h9M1 11h14M6 15h9"/></svg> Direita</button>
+     <button onmousedown="event.preventDefault()" onclick="alg('full')" title="Justificar (só texto)"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M1 7h14M1 11h14M1 15h14"/></svg> Justificar</button></div>
+    <span class="sm">Clique numa imagem para alinhá-la (esquerda, centro ou direita). Sem imagem selecionada, vale para o parágrafo do texto.</span></div>
    <div class="fg"><b>Espaçamento entre linhas</b>
     <div class="fgrp lhg">
      <button onmousedown="event.preventDefault()" onclick="lh(1)">Simples</button>
@@ -595,13 +602,13 @@ function wordTable(qb){
  if(qb.classList.contains("fl")){
   const c=qb.classList,pos=c.contains("p-b")?"b":c.contains("p-t")?"t":c.contains("p-l")?"l":c.contains("p-r")?"r":c.contains("wide")?"t":"r",
    ims=[...qi.querySelectorAll("img")],tt=qa.firstElementChild||qa;
-  if(pos==="t"||pos==="b"){const p=document.createElement("p");p.setAttribute("align","center");ims.forEach(i=>p.appendChild(i));qb.replaceWith(...(pos==="t"?[p,...qa.childNodes]:[...qa.childNodes,p]))}
+  if(pos==="t"||pos==="b"){const p=document.createElement("p");p.setAttribute("align",qi.style.textAlign||"center");ims.forEach(i=>p.appendChild(i));qb.replaceWith(...(pos==="t"?[p,...qa.childNodes]:[...qa.childNodes,p]))}
   else{ims.slice().reverse().forEach(i=>{i.setAttribute("align",pos==="l"?"left":"right");i.setAttribute("hspace","8");i.setAttribute("vspace","3");tt.insertBefore(i,tt.firstChild)});qb.replaceWith(...qa.childNodes)}
   return}
  const fd=qb.style.flexDirection,col=fd?fd==="column":qb.classList.contains("wide"),first=qi.style.order==="-1";
  const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");
  const mk=(el,wd,al)=>{const td=document.createElement("td");td.setAttribute("valign","top");if(wd)td.setAttribute("width",wd);if(al)td.setAttribute("align",al);td.innerHTML=el.innerHTML;return td};
- const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%","center")];if(first)cells.reverse();
+ const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%",qi.style.textAlign||"center")];if(first)cells.reverse();
  if(col)cells.forEach(td=>{const tr=document.createElement("tr");tr.appendChild(td);t.appendChild(tr)});
  else{const tr=document.createElement("tr");cells.forEach(td=>tr.appendChild(td));t.appendChild(tr)}
  qb.replaceWith(t);
@@ -880,6 +887,26 @@ function fmt(c){
  const sel=getSelection(),ed=$("examOut");
  if(!sel.rangeCount||sel.isCollapsed||!ed.contains(sel.anchorNode)){$("fmtMsg").textContent="Primeiro selecione, na prova aberta abaixo, o trecho que deseja formatar.";return}
  document.execCommand(c);$("fmtMsg").textContent="Formatação aplicada.";save();
+}
+function isCol(qb){const c=qb.classList;if(c.contains("fl"))return c.contains("p-t")||c.contains("p-b")||(c.contains("wide")&&!c.contains("p-l")&&!c.contains("p-r"));const fd=qb.style.flexDirection;return fd?fd==="column":c.contains("wide")}
+function alg(k){
+ const msg=$("fmtMsg"),A={left:["justifyLeft","flex-start","left"],center:["justifyCenter","center","center"],right:["justifyRight","flex-end","right"],full:["justifyFull","","justify"]}[k];
+ if(SELIMG){
+  if(k==="full"){msg.textContent="Justificar vale só para texto. Para a imagem, use esquerda, centro ou direita.";return}
+  const im=SELIMG,qi=im.closest(".qi"),qb=im.closest(".qb"),one=qi.querySelectorAll("img").length===1;
+  ["marginLeft","marginRight","textAlign","alignItems","justifyContent"].forEach(x=>{qi.style[x]=""});im.style.marginLeft=im.style.marginRight="";
+  if(!isCol(qb)){
+   if(k==="center")imgPos("top");
+   else{imgPos(k);selImg(im);save();msg.textContent="Imagem posicionada à "+(k==="left"?"esquerda":"direita")+" do texto.";return}
+  }
+  qi.style.textAlign=A[2];qi.style.alignItems=A[1];
+  if(getComputedStyle(qi).flexDirection==="row")qi.style.justifyContent=A[1];
+  if(one){const ml=k==="left"?"0":"auto",mr=k==="right"?"0":"auto";qi.style.marginLeft=ml;qi.style.marginRight=mr;im.style.marginLeft=ml;im.style.marginRight=mr}
+  posHandle();save();msg.textContent="Imagem alinhada.";return;
+ }
+ const ed=$("examOut"),sel=getSelection();
+ if(!sel.rangeCount||!ed.contains(sel.anchorNode)){msg.textContent="Clique no texto da prova (ou numa imagem) e depois escolha o alinhamento.";return}
+ document.execCommand(A[0]);msg.textContent="Alinhamento aplicado.";save();
 }
 $("examOut").addEventListener("click",e=>{selImg(e.target.tagName==="IMG"&&e.target.closest(".qb")?e.target:null)});
 function corner(){const qb=SELIMG.closest(".qb"),qi=SELIMG.closest(".qi"),qa=qb.querySelector(".qa");if(qb.classList.contains("fl")){const f=getComputedStyle(qi).float;return{left:f==="right",col:f==="none"}}const col=getComputedStyle(qb).flexDirection==="column";return{left:!col&&qi.getBoundingClientRect().left>=qa.getBoundingClientRect().right-2,col}}
@@ -1279,6 +1306,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
   <div class="card noprint" id="fmtBar" style="max-width:none"><div class="fb">
    <b class="ftt">Formatação</b>
    <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="fmt('bold')" title="Negrito: selecione um trecho (Ctrl+B)"><b>N</b></button><button onmousedown="event.preventDefault()" onclick="fmt('italic')" title="Itálico: selecione um trecho (Ctrl+I)"><i>I</i></button><button onmousedown="event.preventDefault()" onclick="fmt('underline')" title="Sublinhar (Ctrl+U)"><u>S</u></button><button onmousedown="event.preventDefault()" onclick="fmt('strikeThrough')" title="Tachar o trecho selecionado"><s>T</s></button><button onmousedown="event.preventDefault()" onclick="fmt('superscript')" title="Sobrescrito (ex.: m²)">x<sup>2</sup></button><button onmousedown="event.preventDefault()" onclick="fmt('subscript')" title="Subscrito (ex.: H₂O)">x<sub>2</sub></button></span>
+   <span class="fsep"></span><span class="fgrp"><button onmousedown="event.preventDefault()" onclick="alg('left')" title="Alinhar à esquerda"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M1 7h9M1 11h14M1 15h9"/></svg></button><button onmousedown="event.preventDefault()" onclick="alg('center')" title="Centralizar"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M4 7h8M1 11h14M4 15h8"/></svg></button><button onmousedown="event.preventDefault()" onclick="alg('right')" title="Alinhar à direita"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M6 7h9M1 11h14M6 15h9"/></svg></button><button onmousedown="event.preventDefault()" onclick="alg('full')" title="Justificar (só texto)"><svg width="14" height="14" viewBox="0 0 16 18" fill="none" stroke="currentColor" stroke-width="1.6" style="vertical-align:-2px"><path d="M1 3h14M1 7h14M1 11h14M1 15h14"/></svg></button></span>
    <span class="fsep"></span><span class="sm">Linhas</span>
    <span class="fgrp"><button onmousedown="event.preventDefault()" onclick="lh(1)" title="Espaçamento simples">Simples</button><button onmousedown="event.preventDefault()" onclick="lh(1.15)">1,15</button><button onmousedown="event.preventDefault()" onclick="lh(1.35)" title="Espaçamento padrão">1,35</button><button onmousedown="event.preventDefault()" onclick="lh(1.5)">1,5</button><button onmousedown="event.preventDefault()" onclick="lh(2)">Duplo</button></span>
    <span class="fsep"></span>
@@ -1715,7 +1743,7 @@ function wordTable(qb){
  const fd=qb.style.flexDirection,col=fd?fd==="column":qb.classList.contains("wide"),first=qi.style.order==="-1";
  const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");
  const mk=(el,w,al)=>{const td=document.createElement("td");td.setAttribute("valign","top");if(w)td.setAttribute("width",w);if(al)td.setAttribute("align",al);td.innerHTML=el.innerHTML;return td};
- const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%","center")];if(first)cells.reverse();
+ const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%",qi.style.textAlign||"center")];if(first)cells.reverse();
  if(col)cells.forEach(td=>{const tr=document.createElement("tr");tr.appendChild(td);t.appendChild(tr)});
  else{const tr=document.createElement("tr");cells.forEach(td=>tr.appendChild(td));t.appendChild(tr)}
  qb.replaceWith(t);
@@ -1801,6 +1829,26 @@ function fmt(c){
  const ed=MODE==="mod"?$("modOut"):$("examOut");
  if(!sel.rangeCount||sel.isCollapsed||!ed.contains(sel.anchorNode)){$("fmtMsg").textContent="Primeiro selecione, no trabalho aberto abaixo, o trecho que deseja formatar.";return}
  document.execCommand(c);$("fmtMsg").textContent=MODE==="mod"?"Formatação aplicada ao modelo. Clique em “Aplicar a todos do bloco” para valer para todos.":"Formatação aplicada só a este estudante.";
+}
+function isCol(qb){const c=qb.classList;if(c.contains("fl"))return c.contains("p-t")||c.contains("p-b")||(c.contains("wide")&&!c.contains("p-l")&&!c.contains("p-r"));const fd=qb.style.flexDirection;return fd?fd==="column":c.contains("wide")}
+function alg(k){
+ const msg=$("fmtMsg"),A={left:["justifyLeft","flex-start","left"],center:["justifyCenter","center","center"],right:["justifyRight","flex-end","right"],full:["justifyFull","","justify"]}[k];
+ if(SELIMG){
+  if(k==="full"){msg.textContent="Justificar vale só para texto. Para a imagem, use esquerda, centro ou direita.";return}
+  const im=SELIMG,qi=im.closest(".qi"),qb=im.closest(".qb"),one=qi.querySelectorAll("img").length===1;
+  ["marginLeft","marginRight","textAlign","alignItems","justifyContent"].forEach(x=>{qi.style[x]=""});im.style.marginLeft=im.style.marginRight="";
+  if(!isCol(qb)){
+   if(k==="center")imgPos("top");
+   else{imgPos(k);selImg(im);save();msg.textContent="Imagem posicionada à "+(k==="left"?"esquerda":"direita")+" do texto.";return}
+  }
+  qi.style.textAlign=A[2];qi.style.alignItems=A[1];
+  if(getComputedStyle(qi).flexDirection==="row")qi.style.justifyContent=A[1];
+  if(one){const ml=k==="left"?"0":"auto",mr=k==="right"?"0":"auto";qi.style.marginLeft=ml;qi.style.marginRight=mr;im.style.marginLeft=ml;im.style.marginRight=mr}
+  posHandle();save();msg.textContent="Imagem alinhada.";return;
+ }
+ const ed=(MODE==="mod"?$("modOut"):$("examOut")),sel=getSelection();
+ if(!sel.rangeCount||!ed.contains(sel.anchorNode)){msg.textContent="Clique no texto da prova (ou numa imagem) e depois escolha o alinhamento.";return}
+ document.execCommand(A[0]);msg.textContent="Alinhamento aplicado.";save();
 }
 ["modOut","examOut"].forEach(id=>$(id).addEventListener("click",e=>{selImg(e.target.tagName==="IMG"&&e.target.closest(".qb")?e.target:null)}));
 function corner(){const qb=SELIMG.closest(".qb"),qi=SELIMG.closest(".qi"),qa=qb.querySelector(".qa"),col=getComputedStyle(qb).flexDirection==="column";return{left:!col&&qi.getBoundingClientRect().left>=qa.getBoundingClientRect().right-2,col}}
