@@ -370,13 +370,14 @@ const fmtG=arr=>arr.some(Boolean)?arr.map((a,k)=>(k+1)+"-"+(a||"?")).join(" "):"
 function applyG(s){const a=parseG(s.gab);if(!s.gab.trim())return;s.qs.forEach((q,k)=>q.ans=a[k]||"")}
 
 /* ---------- ações ---------- */
-/* Cópia automática entre turmas (mesma modalidade): o que é carregado na turma de origem vai também para a turma de destino.
+/* Cópia automática entre turmas (SOMENTE modalidade Regular): o que é carregado na turma de origem vai também para a turma de destino.
+   Na Adaptada a cópia é manual (ver "Cópia Adaptada → Adaptada" mais abaixo), para não sobrescrever edições feitas na turma de destino.
    7º ABC → 7º DE: Ciências, Geografia, História, Educação Física, Arte
    6º ABC → 6º DEF: Ciências, Geografia, História, Educação Física, Inglês, Arte */
 const MIRR={"7º ano - turmas ABC":{to:"7º ano - turmas DE",subs:["Ciências","Geografia","História","Educação Física","Arte"]},
  "6º ano - turmas ABC":{to:"6º ano - turmas DEF",subs:["Ciências","Geografia","História","Educação Física","Inglês","Arte"]}};
 function mirror7(i){
- const [t,m]=KEY.split("|"),s=S[i],r=MIRR[t];if(!r||!s||!r.subs.includes(s.name)||s.er||!s.qs.length)return;
+ const [t,m]=KEY.split("|"),s=S[i],r=MIRR[t];if(m!=="Regular"||!r||!s||!r.subs.includes(s.name)||s.er||!s.qs.length)return;
  const k=r.to+"|"+m,v=VER[k]||(VER[k]=mkS()),ab=t.replace(" - turmas ","").replace("ano","ano ");
  const c=JSON.parse(JSON.stringify(s));c.msg="Copiado automaticamente de "+t+" ("+s.qs.length+" questões).";c.er=false;v[i]=c;
  s.msg=(s.msg||"")+" Também copiado para "+r.to+".";
@@ -385,7 +386,7 @@ async function up(i,f){
  if(!f)return;const s=S[i];s.msg="Lendo arquivo…";s.er=false;renderGrid();
  try{
   const r=parse(await readAny(f));
-  s.file=f.name;s.qs=r.qs;s.txs=r.txs;if(s.fromReg)s.gab="";s.fromReg=false;
+  s.file=f.name;s.qs=r.qs;s.txs=r.txs;if(s.fromCp)s.gab="";s.fromCp=false;
   if(r.gtxt){const g=fmtG(parseG(r.gtxt));if(g)s.gab=g}
   applyG(s);
   s.msg=r.qs.length?r.qs.length+" questões lidas.":"Nenhuma questão encontrada. Confira o formato (1., 2. … e A), B) …).";
@@ -397,11 +398,11 @@ async function upG(i,f){
  if(!f)return;const s=S[i];
  try{
   const bl=await readAny(f),g=fmtG(parseG(bl.map(b=>b.text).join(" ")));
-  if(g){s.gab=g;s.fromReg=false;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
+  if(g){s.gab=g;s.fromCp=false;applyG(s);s.msg="Gabarito lido do arquivo.";s.er=false}else{s.msg="Gabarito não identificado no arquivo.";s.er=true}
  }catch(e){s.msg=errMsg(e,"o gabarito");s.er=true}
  mirror7(i);renderGrid();renderRev(i);
 }
-function setG(i,v){S[i].gab=v;S[i].fromReg=false;applyG(S[i]);renderGrid();renderRev(i)}
+function setG(i,v){S[i].gab=v;S[i].fromCp=false;applyG(S[i]);renderGrid();renderRev(i)}
 const inc=s=>Math.min(s.qs.filter(q=>q.inc).length,s.n);
 
 function renderGrid(){
@@ -714,30 +715,43 @@ function sumTop(){
  ts.forEach(t=>ms.forEach(m=>{const v=VER[t+"|"+m];SUBJ.forEach(([n,need],i)=>{tot++;const s=v&&v[i];if(s){const q=s.qs.filter(x=>x.inc).length;if(q===need&&s.qs.filter(x=>x.inc&&x.ans).length===q)done++}if(OPT(n)&&!(s&&s.qs.some(x=>x.inc)))done++})}));
  return `<p class="noprint"><b>Modalidade</b></p><div class="chips noprint">${fb("m",MODS)}</div><p class="noprint"><b>Turmas</b></p><div class="chips noprint">${fb("t",TURMAS)}</div><p><b>Exibindo:</b> ${SF.m} · ${SF.t}</p><p><b>${done} de ${tot}</b> disciplinas completas (questões e gabarito)</p><progress max="${tot}" value="${done}" style="width:100%"></progress>`+matrix(ts,ms);
 }
-/* ---------- Adaptada a partir da Regular ---------- */
+/* ---------- Cópia Adaptada → Adaptada (de um bloco para o outro) ----------
+   6º ABC → 6º DEF: cópia de todas as disciplinas de uma vez (botão no topo), ou disciplina a disciplina.
+   7º ABC → 7º DE : cópia sempre individual, disciplina a disciplina, conforme a necessidade.
+   A cópia é independente: editar as questões no bloco de destino não altera o bloco de origem. */
 let CPMSG="";
 const cloneS=x=>JSON.parse(JSON.stringify(x));
 const isAd=()=>KEY.split("|")[1]==="Adaptada";
-function copyAllReg(){
- let n=0,keep=0,none=0;
- TURMAS.forEach(t=>{
-  const r=VER[t+"|Regular"],k=t+"|Adaptada",v=VER[k]||(VER[k]=mkS());
-  SUBJ.forEach((x,i)=>{
-   const src=r&&r[i];if(!src||!src.qs.length){if(!OPT(x[0]))none++;return}
-   if(v[i]&&v[i].qs.length){keep++;return}
-   const c=cloneS(src);c.fromReg=true;c.er=false;c.msg="Copiada da prova Regular ("+src.qs.length+" questões). Se o professor enviou uma adaptada, use o campo abaixo para substituir.";v[i]=c;n++;
-  });
+const ADSRC={"6º ano - turmas DEF":"6º ano - turmas ABC","7º ano - turmas DE":"7º ano - turmas ABC"};
+const ADALL={"6º ano - turmas DEF":true};
+const adSrcOf=()=>{const t=KEY.split("|")[0];return isAd()&&ADSRC[t]?ADSRC[t]:null};
+function doCopyAd(srcT,dstT,i,src){
+ const k=dstT+"|Adaptada",v=VER[k]||(VER[k]=mkS()),c=cloneS(src);
+ c.fromCp=true;c.er=false;c.rev=false;
+ c.msg="Copiada da prova Adaptada de "+srcT+" ("+src.qs.length+" questões). Confira e edite o que for necessário; se o professor enviou outra, use o campo abaixo para substituir.";
+ v[i]=c;return v;
+}
+function copyAdAll(){
+ const dstT=KEY.split("|")[0],srcT=adSrcOf();if(!srcT||!ADALL[dstT])return;
+ const r=VER[srcT+"|Adaptada"];let n=0,keep=0,none=0;
+ SUBJ.forEach((x,i)=>{
+  const src=r&&r[i];if(!src||!src.qs.length){if(!OPT(x[0]))none++;return}
+  const ex=(VER[dstT+"|Adaptada"]||[])[i];
+  if(ex&&ex.qs.length){keep++;return}
+  doCopyAd(srcT,dstT,i,src);n++;
  });
  S=VER[KEY];
- CPMSG=n+" disciplina(s) copiada(s) da Regular"+(keep?"; "+keep+" já tinha(m) conteúdo na Adaptada e foi(foram) mantida(s)":"")+(none?"; "+none+" sem prova Regular carregada":"")+".";
- renderGrid();renderRev(cur);
+ CPMSG=n+" disciplina(s) copiada(s) da Adaptada de "+srcT+(keep?"; "+keep+" já tinha(m) conteúdo e foi(foram) mantida(s)":"")+(none?"; "+none+" sem prova Adaptada carregada na origem":"")+".";
+ renderGrid();renderRev(cur0());
 }
-function useReg(i){
- const t=KEY.split("|")[0],r=VER[t+"|Regular"],src=r&&r[i],s=S[i];
- if(!src||!src.qs.length){s.msg="A prova Regular desta disciplina ainda não foi carregada.";s.er=true;renderGrid();return}
- const go=()=>{const c=cloneS(src);c.fromReg=true;c.er=false;c.msg="Usando a mesma prova da Regular ("+src.qs.length+" questões).";S[i]=c;renderGrid();renderRev(i)};
- if(s.qs.length&&!s.fromReg){
-  $("dlgT").textContent=`Substituir a prova adaptada de ${s.name} pela prova Regular? As questões adaptadas serão perdidas.`;$("dlgOk").textContent="Sim, substituir";
+const cur0=()=>typeof cur==="number"?cur:0;
+function copyAdOne(i){
+ const dstT=KEY.split("|")[0],srcT=adSrcOf();if(!srcT)return;
+ const r=VER[srcT+"|Adaptada"],src=r&&r[i],s=S[i];
+ if(!src||!src.qs.length){s.msg="A prova Adaptada de "+srcT+" desta disciplina ainda não foi carregada.";s.er=true;renderGrid();return}
+ const go=()=>{S=doCopyAd(srcT,dstT,i,src);renderGrid();renderRev(i)};
+ if(s.qs.length){
+  $("dlgT").textContent=`${s.name} já tem prova nesta turma. Substituir pela Adaptada de ${srcT}? As questões e edições atuais serão perdidas.`;$("dlgOk").textContent="Sim, substituir";
   $("dlg").hidden=false;$("dlgNo").focus();
   $("dlgNo").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir"};
   $("dlgOk").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir";go()};
@@ -745,12 +759,16 @@ function useReg(i){
 }
 function adBox(i){
  if(!isAd())return"";
- const s=S[i],r=VER[KEY.split("|")[0]+"|Regular"],has=r&&r[i]&&r[i].qs.length;
- const st=s.fromReg?"✔ Usando a mesma prova da Regular":(s.qs.length?"Prova adaptada própria":"Ainda sem prova");
- return `<div class="sm"><b>${st}</b></div>${has&&!s.fromReg?`<div><button onclick="useReg(${i})">Usar a prova Regular nesta disciplina</button></div>`:""}`;
+ const s=S[i],srcT=adSrcOf();
+ const st=s.fromCp?"✔ Copiada da Adaptada de "+srcT:(s.qs.length?"Prova adaptada própria":"Ainda sem prova");
+ if(!srcT)return`<div class="sm"><b>${st}</b></div>`;
+ const r=VER[srcT+"|Adaptada"],has=r&&r[i]&&r[i].qs.length;
+ return`<div class="sm"><b>${st}</b></div>${has?`<div><button onclick="copyAdOne(${i})">${s.qs.length?"Recopiar":"Copiar"} a Adaptada de ${esc(srcT)} nesta disciplina</button></div>`:`<div class="sm">A Adaptada de ${esc(srcT)} ainda não tem prova nesta disciplina.</div>`}`;
 }
 function cpBar(){
- return `<div class="sm noprint" style="margin:0 0 10px"><button onclick="copyAllReg()">Copiar todas as provas Regulares para Adaptada</button> <span>${esc(CPMSG)}</span><div>Depois, na Adaptada, envie a prova adaptada só nas disciplinas em que o professor mandou uma diferente.</div></div>`;
+ const t=KEY.split("|")[0],srcT=adSrcOf();if(!srcT)return"";
+ if(ADALL[t])return`<div class="sm noprint" style="margin:0 0 10px"><button onclick="copyAdAll()">Copiar todas as provas Adaptadas de ${esc(srcT)} para ${esc(t)}</button> <span>${esc(CPMSG)}</span><div>Disciplinas que já têm prova aqui são mantidas. Depois, envie outra prova só onde o professor mandou uma diferente, ou use o botão de cada disciplina.</div></div>`;
+ return`<div class="sm noprint" style="margin:0 0 10px"><div>A cópia da Adaptada de ${esc(srcT)} é feita <b>disciplina a disciplina</b>, conforme a necessidade: abra a disciplina e use o botão de cópia.</div><span>${esc(CPMSG)}</span></div>`;
 }
 function askDel(i,w){
  const s=S[i];$("dlgOk").textContent="Sim, excluir";
@@ -759,7 +777,7 @@ function askDel(i,w){
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
  $("dlgOk").onclick=()=>{
   if(w==="g"){s.gab="";s.qs.forEach(q=>q.ans="");s.msg="Gabarito excluído."}
-  else{s.file="";s.qs=[];s.txs=[];s.gab="";s.fromReg=false;s.msg="Prova excluída.";s.er=false;s.rev=false}
+  else{s.file="";s.qs=[];s.txs=[];s.gab="";s.fromCp=false;s.msg="Prova excluída.";s.er=false;s.rev=false}
   $("dlg").hidden=true;renderGrid();renderRev();
  };
 }
