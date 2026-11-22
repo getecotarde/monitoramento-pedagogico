@@ -117,7 +117,7 @@ progress{height:10px;accent-color:var(--ok)}
 <style>
 @page exampg{size:A4;margin:7mm}
 @page cardpg{size:A4;margin:7mm}
-@page keypg{size:A4;margin:0}
+@page keypg{size:A4;margin:0 0 8mm 0}
 #examOut .qb img,#examOut .qi img{cursor:pointer;touch-action:none}
 #examOut img.sel{outline:3px solid var(--ac);outline-offset:2px}
 #imgHandle{position:fixed;width:14px;height:14px;background:var(--ac);border:2px solid #fff;border-radius:3px;z-index:40;touch-action:none;display:none;box-shadow:0 1px 4px rgba(0,0,0,.4)}
@@ -510,7 +510,7 @@ const PCSS=`.paper{position:relative;background:#fff;color:#111;font:11.5pt/1.35
 const imgsH=x=>x.imgs&&x.imgs.length?`<div class="qi n${Math.min(x.imgs.length,4)}">${x.imgs.map(u=>`<img src="${u}" alt="" onload="fitQ(this)">`).join("")}</div>`:"";
 const st=document.createElement("style");st.textContent=PCSS;document.head.appendChild(st);
 
-const hdr=nt=>`<div class="hd"><img class="lg" src="${LOGO}" alt="Logo GETECO"><div><div class="t2">AVALIAÇÃO TRIMESTRAL MULTIDISCIPLINAR</div><div class="t3">${esc($("tri").value)} · <b class="sr">${esc($("serie").value)}</b> · Modalidade ${esc($("mod").value)}</div></div>${nt||""}</div>`;
+const hdr=nt=>`<div class="hd"><img class="lg" src="${LOGO}" alt="Logo GETECO"><div><div class="t2">AVALIAÇÃO TRIMESTRAL MULTIDISCIPLINAR</div><div class="t3">${esc($("tri").value)} · <b class="sr">${esc($("serie").value)}</b> · Modalidade <b>${esc($("mod").value)}</b></div></div>${nt||""}</div>`;
 const idt=(dt,ex)=>`<table class="id"><tr><td><small>Aluno(a)</small></td><td style="width:30mm"><small>Turma</small></td><td style="width:20mm"><small>Nº</small></td></tr><tr><td><small>Professor(a) aplicador(a)</small></td><td colspan="2"><small>Data</small>${esc(dt)}</td></tr>${ex||""}</table>`;
 function head(){
  const v=parseFloat(String($("val").value).replace(",","."))||0.6;
@@ -596,7 +596,7 @@ async function gen(){
  const nb={};secs.forEach(x=>{nb[x.name]=keptNames.includes(x.name)?oldB[x.name]:{sig:x.sig}});
  const C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
  const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${UL.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
- const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
+ const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade <b>${esc($("mod").value)}</b></div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
  const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com ${UL.length} alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
  const key=`<div class="paper">${h.t}<h2>Gabarito do professor <small>– ${esc($("serie").value)}</small></h2><table class="kt"><tr><th>Nº</th><th>Disciplina</th><th>Resposta</th><th>Valor</th></tr>${rows}</table><p class="kn">Total: ${n} questões · ${f2(h.v)} pontos</p></div>`;
  $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key,base:nb};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
@@ -617,10 +617,13 @@ function examPages(root){
  m.appendChild(c);document.body.appendChild(m);
  const w=m.getBoundingClientRect().width,n=Math.max(1,Math.round(m.scrollWidth/w));m.remove();return n}
 const PGCSS="font:7.5pt Arial,Helvetica,sans-serif;color:#222;vertical-align:top;text-align:right;padding:1.3mm 0 0 0";
+/* identificação da prova no rodapé (centralizada, fonte menor, na mesma linha da numeração): bloco + tipo, ex.: "6º ano - turmas ABC · Regular" */
+const PGLAB="font:6.5pt Arial,Helvetica,sans-serif;color:#222;vertical-align:top;text-align:center;padding:1.6mm 0 0 0;white-space:nowrap";
+const pgLab=()=>{let t="";try{t=String($("serie").value||"").trim()+" · "+String($("mod").value||"").trim()}catch(e){}return t.replace(/[\\"\n\r]/g," ")};
 const pgCss=n=>{const Q=k=>Array.from({length:k},(_,i)=>'"'+(i+1)+'"').join(" ");
  /* total = nº real de folhas do documento (counter(pages)) menos 1, porque a última folha é o cartão-resposta, sem numeração.
     "system:fixed 2" faz o valor 2 virar "1", 3 virar "2"... Se o navegador não souber counter(pages), cai na estimativa n. */
- return `@counter-style pgex{system:fixed;symbols:${Q(n+2)};fallback:decimal}@counter-style pgst{system:cyclic;symbols:"${n}"}@counter-style pgtot{system:fixed 2;symbols:${Q(300)};fallback:pgst}@page exampg{@bottom-right{content:counter(page,pgex) "/" counter(pages,pgtot);${PGCSS}}}`};
+ return `@counter-style pgex{system:fixed;symbols:${Q(n+2)};fallback:decimal}@counter-style pgst{system:cyclic;symbols:"${n}"}@counter-style pgtot{system:fixed 2;symbols:${Q(300)};fallback:pgst}@page exampg{@bottom-right{content:counter(page,pgex) "/" counter(pages,pgtot);${PGCSS}}@bottom-center{content:"${pgLab()}";${PGLAB}}}@page keypg{@bottom-center{content:"${pgLab()}";${PGLAB}}}@page cardpg{@bottom-center{content:"${pgLab()}";${PGLAB}}}`};
 function setPgNum(n){let st=document.getElementById("pgnum");if(!st){st=document.createElement("style");st.id="pgnum";document.head.appendChild(st)}
  st.textContent=pgCss(n)}
 /* Textos de apoio curtos (até meia folha) não são partidos entre duas folhas na impressão; os longos podem continuar na folha seguinte. */
@@ -635,7 +638,7 @@ function keepTx(){
  });
 }
 window.addEventListener("beforeprint",keepTx);
-function pr(w){selImg(null);document.body.dataset.p=w;if(w==="exam"){try{setPgNum(examPages())}catch(e){}}try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar” e imprima o arquivo.")}}
+function pr(w){selImg(null);document.body.dataset.p=w;if(w==="exam"){try{setPgNum(examPages())}catch(e){}}else if(w==="key"){try{setPgNum(1)}catch(e){}}try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar” e imprima o arquivo.")}}
 function wordTable(qb){
  const qa=qb.querySelector(".qa"),qi=qb.querySelector(".qi");if(!qa||!qi)return;
  const gc=qi.classList.contains("g-col"),mkBr=()=>document.createElement("br");
