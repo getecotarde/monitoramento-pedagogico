@@ -727,60 +727,61 @@ function sumTop(){
  ts.forEach(t=>ms.forEach(m=>{const v=VER[t+"|"+m];SUBJ.forEach(([n,need],i)=>{tot++;const s=v&&v[i];if(s){const q=s.qs.filter(x=>x.inc).length;if(q===need&&s.qs.filter(x=>x.inc&&x.ans).length===q)done++}if(OPT(n)&&!(s&&s.qs.some(x=>x.inc)))done++})}));
  return `<p class="noprint"><b>Modalidade</b></p><div class="chips noprint">${fb("m",MODS)}</div><p class="noprint"><b>Turmas</b></p><div class="chips noprint">${fb("t",TURMAS)}</div><p><b>Exibindo:</b> ${SF.m} · ${SF.t}</p><p><b>${done} de ${tot}</b> disciplinas completas (questões e gabarito)</p><progress max="${tot}" value="${done}" style="width:100%"></progress>`+matrix(ts,ms);
 }
-/* ---------- Cópia Adaptada → Adaptada (de um bloco para o outro) ----------
-   6º ABC → 6º DEF: cópia de todas as disciplinas de uma vez (botão no topo), ou disciplina a disciplina.
-   7º ABC → 7º DE : cópia sempre individual, disciplina a disciplina, conforme a necessidade.
-   A cópia é independente: editar as questões no bloco de destino não altera o bloco de origem. */
+/* ---------- Cópia entre blocos do mesmo ano (Regular → Regular e Adaptada → Adaptada), nos dois sentidos ----------
+   6º ABC ⇄ 6º DEF: cópia de todas as disciplinas de uma vez (botão no topo), ou disciplina a disciplina.
+   7º ABC ⇄ 7º DE : cópia sempre individual, disciplina a disciplina, conforme a necessidade.
+   A cópia é sempre dentro da mesma modalidade da tela aberta e é independente: editar o destino não altera a origem. */
 let CPMSG="";
 const cloneS=x=>JSON.parse(JSON.stringify(x));
 const isAd=()=>KEY.split("|")[1]==="Adaptada";
-const ADSRC={"6º ano - turmas DEF":"6º ano - turmas ABC","7º ano - turmas DE":"7º ano - turmas ABC"};
-const ADALL={"6º ano - turmas DEF":true};
-const adSrcOf=()=>{const t=KEY.split("|")[0];return isAd()&&ADSRC[t]?ADSRC[t]:null};
-function doCopyAd(srcT,dstT,i,src){
- const k=dstT+"|Adaptada",v=VER[k]||(VER[k]=mkS()),c=cloneS(src);
+const ADSRC={"6º ano - turmas DEF":"6º ano - turmas ABC","6º ano - turmas ABC":"6º ano - turmas DEF","7º ano - turmas DE":"7º ano - turmas ABC","7º ano - turmas ABC":"7º ano - turmas DE"};
+const ADALL={"6º ano - turmas DEF":true,"6º ano - turmas ABC":true};
+const curM=()=>KEY.split("|")[1];
+const adSrcOf=()=>ADSRC[KEY.split("|")[0]]||null;
+function doCopyAd(srcT,dstT,i,src,m){
+ const k=dstT+"|"+m,v=VER[k]||(VER[k]=mkS()),c=cloneS(src);
  c.fromCp=true;c.er=false;c.rev=false;
- c.msg="Copiada da prova Adaptada de "+srcT+" ("+src.qs.length+" questões). Confira e edite o que for necessário; se o professor enviou outra, use o campo abaixo para substituir.";
+ c.msg="Copiada da prova "+m+" de "+srcT+" ("+src.qs.length+" questões). Confira e edite o que for necessário; se o professor enviou outra, use o campo abaixo para substituir.";
  v[i]=c;return v;
 }
 function copyAdAll(){
- const dstT=KEY.split("|")[0],srcT=adSrcOf();if(!srcT||!ADALL[dstT])return;
- const r=VER[srcT+"|Adaptada"];let n=0,keep=0,none=0;
+ const dstT=KEY.split("|")[0],m=curM(),srcT=adSrcOf();if(!srcT||!ADALL[dstT])return;
+ const r=VER[srcT+"|"+m];let n=0,keep=0,none=0;
  SUBJ.forEach((x,i)=>{
   const src=r&&r[i];if(!src||!src.qs.length){if(!OPT(x[0]))none++;return}
-  const ex=(VER[dstT+"|Adaptada"]||[])[i];
+  const ex=(VER[dstT+"|"+m]||[])[i];
   if(ex&&ex.qs.length){keep++;return}
-  doCopyAd(srcT,dstT,i,src);n++;
+  doCopyAd(srcT,dstT,i,src,m);n++;
  });
  S=VER[KEY];
- CPMSG=n+" disciplina(s) copiada(s) da Adaptada de "+srcT+(keep?"; "+keep+" já tinha(m) conteúdo e foi(foram) mantida(s)":"")+(none?"; "+none+" sem prova Adaptada carregada na origem":"")+".";
+ CPMSG=n+" disciplina(s) copiada(s) da "+m+" de "+srcT+(keep?"; "+keep+" já tinha(m) conteúdo e foi(foram) mantida(s)":"")+(none?"; "+none+" sem prova "+m+" carregada na origem":"")+".";
  renderGrid();renderRev(cur0());
 }
 const cur0=()=>typeof cur==="number"?cur:0;
 function copyAdOne(i){
- const dstT=KEY.split("|")[0],srcT=adSrcOf();if(!srcT)return;
- const r=VER[srcT+"|Adaptada"],src=r&&r[i],s=S[i];
- if(!src||!src.qs.length){s.msg="A prova Adaptada de "+srcT+" desta disciplina ainda não foi carregada.";s.er=true;renderGrid();return}
- const go=()=>{S=doCopyAd(srcT,dstT,i,src);renderGrid();renderRev(i)};
+ const dstT=KEY.split("|")[0],m=curM(),srcT=adSrcOf();if(!srcT)return;
+ const r=VER[srcT+"|"+m],src=r&&r[i],s=S[i];
+ if(!src||!src.qs.length){s.msg="A prova "+m+" de "+srcT+" desta disciplina ainda não foi carregada.";s.er=true;renderGrid();return}
+ const go=()=>{S=doCopyAd(srcT,dstT,i,src,m);renderGrid();renderRev(i)};
  if(s.qs.length){
-  $("dlgT").textContent=`${s.name} já tem prova nesta turma. Substituir pela Adaptada de ${srcT}? As questões e edições atuais serão perdidas.`;$("dlgOk").textContent="Sim, substituir";
+  $("dlgT").textContent=`${s.name} já tem prova nesta turma. Substituir pela ${m} de ${srcT}? As questões e edições atuais serão perdidas.`;$("dlgOk").textContent="Sim, substituir";
   $("dlg").hidden=false;$("dlgNo").focus();
   $("dlgNo").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir"};
   $("dlgOk").onclick=()=>{$("dlg").hidden=true;$("dlgOk").textContent="Sim, excluir";go()};
  }else go();
 }
 function adBox(i){
- if(!isAd())return"";
- const s=S[i],srcT=adSrcOf();
- const st=s.fromCp?"✔ Copiada da Adaptada de "+srcT:(s.qs.length?"Prova adaptada própria":"Ainda sem prova");
- if(!srcT)return`<div class="sm"><b>${st}</b></div>`;
- const r=VER[srcT+"|Adaptada"],has=r&&r[i]&&r[i].qs.length;
- return`<div class="sm"><b>${st}</b></div>${has?`<div><button onclick="copyAdOne(${i})">${s.qs.length?"Recopiar":"Copiar"} a Adaptada de ${esc(srcT)} nesta disciplina</button></div>`:`<div class="sm">A Adaptada de ${esc(srcT)} ainda não tem prova nesta disciplina.</div>`}`;
+ const s=S[i],srcT=adSrcOf(),m=curM();
+ const own=m==="Adaptada"?"Prova adaptada própria":"Prova própria";
+ const st=s.fromCp?"✔ Copiada da "+m+" de "+srcT:(s.qs.length?own:"Ainda sem prova");
+ if(!srcT)return isAd()?`<div class="sm"><b>${st}</b></div>`:"";
+ const r=VER[srcT+"|"+m],has=r&&r[i]&&r[i].qs.length;
+ return`<div class="sm"><b>${st}</b></div>${has?`<div><button onclick="copyAdOne(${i})">${s.qs.length?"Recopiar":"Copiar"} a ${m} de ${esc(srcT)} nesta disciplina</button></div>`:`<div class="sm">A ${m} de ${esc(srcT)} ainda não tem prova nesta disciplina.</div>`}`;
 }
 function cpBar(){
- const t=KEY.split("|")[0],srcT=adSrcOf();if(!srcT)return"";
- if(ADALL[t])return`<div class="sm noprint" style="margin:0 0 10px"><button onclick="copyAdAll()">Copiar todas as provas Adaptadas de ${esc(srcT)} para ${esc(t)}</button> <span>${esc(CPMSG)}</span><div>Disciplinas que já têm prova aqui são mantidas. Depois, envie outra prova só onde o professor mandou uma diferente, ou use o botão de cada disciplina.</div></div>`;
- return`<div class="sm noprint" style="margin:0 0 10px"><div>A cópia da Adaptada de ${esc(srcT)} é feita <b>disciplina a disciplina</b>, conforme a necessidade: abra a disciplina e use o botão de cópia.</div><span>${esc(CPMSG)}</span></div>`;
+ const t=KEY.split("|")[0],m=curM(),srcT=adSrcOf();if(!srcT)return"";
+ if(ADALL[t])return`<div class="sm noprint" style="margin:0 0 10px"><button onclick="copyAdAll()">Copiar todas as provas ${m==="Adaptada"?"Adaptadas":"Regulares"} de ${esc(srcT)} para ${esc(t)}</button> <span>${esc(CPMSG)}</span><div>Disciplinas que já têm prova aqui são mantidas. Depois, envie outra prova só onde o professor mandou uma diferente, ou use o botão de cada disciplina.</div></div>`;
+ return`<div class="sm noprint" style="margin:0 0 10px"><div>A cópia da ${m} de ${esc(srcT)} é feita <b>disciplina a disciplina</b>, conforme a necessidade: abra a disciplina e use o botão de cópia.</div><span>${esc(CPMSG)}</span></div>`;
 }
 function askDel(i,w){
  const s=S[i];$("dlgOk").textContent="Sim, excluir";
