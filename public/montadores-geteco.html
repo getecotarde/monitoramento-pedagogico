@@ -176,6 +176,15 @@ img.sel{outline:none!important}#imgHandle,#dropBar{display:none!important}}
  #exTools{display:none!important}
  #exMain .pv{background:none!important;border:0!important;border-radius:0!important;padding:0!important;min-height:0!important}
 }
+/* Modalidade ADAPTADA aberta: botões em amarelo com texto preto, para destacar e evitar mexer na Regular por engano */
+@media screen{
+body.mod-ad button,body.mod-ad .tabs button,body.mod-ad .chips button,body.mod-ad .seg button{background:#ffd60a;color:#000;border:1px solid #000}
+body.mod-ad button.lk{background:none;border:0;color:var(--mut)}
+body.mod-ad .seg button{border:0}
+body.mod-ad button.on,body.mod-ad .tabs button.on,body.mod-ad .chips button.on{background:#ffd60a;color:#000;font-weight:700;box-shadow:inset 0 0 0 3px #000}
+body.mod-ad input[type=file]::file-selector-button{background:#ffd60a;color:#000;border:1px solid #000}
+body.mod-ad #mod{background:#ffd60a;color:#000;border-color:#000;font-weight:700}
+}
 </style>
 </head>
 <body>
@@ -782,12 +791,13 @@ function askDel(i,w){
  };
 }
 function chips(){return '<div class="chips">'+S.map((s,i)=>{const c=s.qs.filter(q=>q.inc).length;return `<button class="${i===cur?"on":""}" onclick="cur=${i};renderGrid()">${s.name} <small>${s.qs.length&&c===s.n?"✔":c+"/"+s.n}</small></button>`}).join("")+'</div>'}
+function markMod(){document.body.classList.toggle("mod-ad",$("mod").value==="Adaptada")}
 function swV(){
  const od=OUT[KEY];if(od){od.exam=gx();od.key=$("keyOut").innerHTML}
  KEY=$("serie").value+"|"+$("mod").value;S=VER[KEY]||(VER[KEY]=mkS());
  const o=OUT[KEY],e='<p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p>';
  $("examOut").innerHTML=o?o.exam:e;$("keyOut").innerHTML=o?o.key:e;last=o?{exam:o.exam,key:o.key}:{exam:"",key:""};$("warn").hidden=true;
- renderGrid();renderRev();
+ markMod();renderGrid();renderRev();
 }
 function matrix(ts,ms){
  const h=SUBJ.map(([n])=>`<th>${n}</th>`).join("");
@@ -859,7 +869,7 @@ async function load(){
   Object.assign(VER,d.VER);Object.assign(OUT,d.OUT||{});
   if(VER[d.KEY])KEY=d.KEY;
   S=VER[KEY];SUBJ.forEach((x,i)=>{if(!S[i])S[i]=mkS()[i]});
-  const [t,m]=KEY.split("|");if(TURMAS.includes(t)&&MODS.includes(m)){$("serie").value=t;$("mod").value=m}
+  const [t,m]=KEY.split("|");if(TURMAS.includes(t)&&MODS.includes(m)){$("serie").value=t;$("mod").value=m;markMod()}
   ["tri","dt","val"].forEach(k=>{if(d[k]!=null)$(k).value=d[k]});
   const o=OUT[KEY];if(o){$("examOut").innerHTML=o.exam;$("keyOut").innerHTML=o.key;last={exam:o.exam,key:o.key}}
   $("examOut").contentEditable="true";$("keyOut").contentEditable="true";
@@ -873,7 +883,7 @@ function askClear(){
  $("dlgNo").onclick=()=>{$("dlg").hidden=true};
  $("dlgOk").onclick=()=>{
   Object.keys(VER).forEach(k=>delete VER[k]);Object.keys(OUT).forEach(k=>delete OUT[k]);
-  KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();$("serie").value=TURMAS[0];$("mod").value="Regular";
+  KEY=TURMAS[0]+"|Regular";S=VER[KEY]=mkS();$("serie").value=TURMAS[0];$("mod").value="Regular";markMod();
   const e='<p class="empty">Vá em “1 · Receber questões” e clique em Gerar prova final.</p>';$("examOut").innerHTML=e;$("keyOut").innerHTML=e;last={exam:"",key:""};
   $("dlg").hidden=true;renderGrid();renderRev();
  };
