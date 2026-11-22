@@ -32,6 +32,9 @@ button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
  <div class="cards">
   <section class="c"><div class="ic">📝</div><h2>Montador da Prova Trimestral</h2><p>Reúne as questões enviadas pelos professores e gera a prova final por turma e modalidade, com cartão-resposta e gabarito.</p><button onclick="openApp('a1','Montador da Prova Trimestral')">Abrir montador de prova</button></section>
   <section class="c"><div class="ic">📚</div><h2>Montador do Trabalho FICA</h2><p>Reúne 10 questões por disciplina (qualquer combinação de objetivas e abertas) e gera o trabalho individual de cada estudante, com capa, além do termo de compromisso da família. Revise e edite cada bloco (6º ABC, 6º DEF…) antes de gerar.</p><button onclick="openApp('a2','Montador do Trabalho FICA')">Abrir montador FICA</button></section>
+  <section class="c"><div class="ic">✍️</div><h2>Lista de presença da prova</h2><p>Gera, para cada turma, duas folhas A4 no dia da prova: a lista dos estudantes (nome e assinatura) e a lista do professor, com observações de inclusão, prova adaptada e monitor.</p><button onclick="openApp('a3','Lista de presença da prova')">Abrir lista de presença</button></section>
+  <section class="c"><div class="ic">✉️</div><h2>Identificação de envelope</h2><p>Gera a etiqueta em meia folha A4 para o envelope de cada turma, com logo da escola, turma, data, professor aplicador e a atividade (prova trimestral ou prova de redação).</p><button onclick="openApp('a4','Identificação de envelope')">Abrir identificação de envelope</button></section>
+  <section class="c"><div class="ic">📋</div><h2>Cadastro de estudantes</h2><p>Listagem completa dos estudantes, com a indicação de quem é de inclusão, tem prova adaptada ou faz a prova em ambiente reservado, com auxílio de monitor. As indicações aparecem na lista de presença.</p><button onclick="openApp('a5','Cadastro de estudantes')">Abrir cadastro de estudantes</button></section>
  </div>
  <p class="ft">Cada montador guarda seus dados separadamente. <span id="sbst"></span> <button style="background:none;color:var(--ac);border:0;text-decoration:underline;padding:0;font-weight:400" onclick="sbConfig()">Conectar ao Supabase</button></p>
 </div></main>
@@ -2352,6 +2355,257 @@ $("brand").src=LOGO;sbPull().then(load).then(()=>{_ready=true;renderGrid();rende
 </body>
 </html>
 </script>
+<script type="text/plain" id="a3"><!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lista de presença da prova</title>
+<style>
+:root{--bg:#eef3f6;--sf:#fff;--ink:#14293d;--mut:#5a6b7b;--ac:#1d6a87;--acx:#fff;--ln:#cfdae2;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b26;--sf:#172736;--ink:#e6eef4;--mut:#93a6b6;--ac:#5bb6d6;--acx:#08202b;--ln:#2c4153;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+.ui{max-width:1000px;margin:0 auto;padding:18px 20px 60px}
+h1{font-size:1.3rem;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 14px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+input,select{font:inherit;padding:9px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:var(--acx);padding:10px 18px;font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.note{color:var(--mut);font-size:.88rem}
+.sheet{background:#fff;color:#000;width:210mm;height:277mm;margin:0 auto 18px;padding:0;box-shadow:0 4px 24px rgba(0,0,0,.18);font:10pt Arial,Helvetica,sans-serif;overflow:hidden}
+.sheet .hd{display:flex;align-items:center;gap:4mm;border:1.2pt solid #000;padding:2.5mm 4mm;margin:0 0 3mm}
+.sheet .hd img{height:17mm;width:auto}.sheet .hd .tt{flex:1;text-align:center;line-height:1.3}
+.sheet .e{font-size:10pt;font-weight:700}.sheet .t{font-size:13pt;font-weight:700;letter-spacing:.04em}.sheet .t2{font-size:10pt}
+.sheet table{border-collapse:collapse;width:100%;table-layout:fixed}.sheet table.ls th:last-child,.sheet table.ls td:last-child{border-right:1pt solid #000}
+.sheet table.id{margin:0 0 3mm}.sheet table.id td{border:1pt solid #000;padding:1mm 2mm;height:11mm;vertical-align:top;font-size:11pt}
+.sheet table.id small{display:block;font-size:6.5pt;letter-spacing:.08em;color:#444;font-weight:700;text-transform:uppercase}
+.sheet table.id b{font-size:12pt}
+.sheet table.ls th,.sheet table.ls td{border:1pt solid #000;padding:0 2mm;font-size:10pt;text-align:left;white-space:nowrap;overflow:hidden}
+.sheet table.ls th{background:#e9edf0;font-size:9pt;letter-spacing:.06em;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sheet table.ls td.n{width:11mm;text-align:center;padding:0}
+.sheet table.ls td.ind{width:20mm;text-align:center;font-weight:700;letter-spacing:.12em;padding:0}.sheet table.ls td.ob{white-space:normal;font-size:9pt;font-weight:700}.sheet .lgd{margin-top:2mm;font-size:8pt}
+.sheet .ft{margin-top:2mm;font-size:8pt;color:#333;text-align:right}
+@media print{
+ @page{size:A4;margin:10mm}
+ body{background:#fff}.ui{max-width:none;padding:0}.noprint{display:none!important}
+ .sheet{box-shadow:none;margin:0;width:190mm;max-width:100%;height:276mm;overflow:visible;break-after:page;page-break-after:always}.sheet:last-child{break-after:auto;page-break-after:auto}
+}
+</style></head><body><div class="ui">
+<div class="noprint">
+<h1>Lista de presença da prova</h1>
+<p class="sub">Para cada turma, duas folhas A4: a dos estudantes (só nome e assinatura) e a do professor (com observações de inclusão, prova adaptada e monitor, vindas do Cadastro de estudantes). Clique em qualquer texto da folha para corrigir antes de imprimir.</p>
+<div class="card"><div class="grid">
+<label>Atividade<select id="at" onchange="draw()"><option value="T">Prova trimestral (objetiva)</option><option value="R">Prova de redação</option><option value="*">Ambas (uma folha de cada por turma)</option></select></label>
+<label>Listagem<select id="tp" onchange="draw()"><option value="*">Ambas (alunos e professor)</option><option value="A">Só a dos alunos (nome e assinatura)</option><option value="P">Só a do professor (com observações)</option></select></label>
+<label>Turma<select id="tu" onchange="draw()"></select></label>
+<label>Prova trimestral<input id="pr" value="Avaliação Trimestral Multidisciplinar · 3º Trimestre de 2026" oninput="draw()"></label>
+<label>Texto da prova de redação<input id="pr2" value="Prova de Redação · 3º Trimestre de 2026" oninput="draw()"></label>
+<label>Data da prova trimestral (objetiva)<input id="dt" type="date" onchange="draw()"></label>
+<label>Data da prova de redação<input id="dr" type="date" onchange="draw()"></label>
+<label>Professor aplicador<input id="pf" placeholder="Nome do professor" oninput="draw()"></label>
+</div>
+<div class="row"><button onclick="window.print()">🖨️ Imprimir / salvar PDF</button><span class="note" id="nt"></span></div></div>
+</div>
+<div id="out"></div>
+</div>
+<script>
+const D={"6A": ["AGATA SANTOS TEIXEIRA SILVA", "ALEPH ANDRADE SIMOES", "ALICE MANUELLA DE OLIVEIRA FELIX", "ANA JULIA SOUZA OLIVEIRA", "ANDRE XAVIER DA SILVA BISPO", "BERNARDO MARTINS EMIGDIO DE SOUSA", "BRYAN FELIPE DE CARIA TEIXEIRA", "CATARINA PENIDO DE SOUZA", "CLARA ALVES SCARAMELO CUPERTINO", "DIULIA VICTORIA LIMA DA CRUZ", "ELIZABETH CRISTINA FERREIRA BARBO", "ESTHER ALMEIDA BRITO", "ESTHER SOARES ALCANTARA", "HELOISA CAROLINE RODRIGUES MOREIR", "KAIQUE EDUARDO DE SOUZA LOPES", "KAUA VICTOR NUNES SILVA", "KAUAM ROBSON MOREIRA COSTA DA SIL", "LORENZO SANTOS DIAS CASTRO", "LUARA VALENTINA BARBOSA PINTO CAM", "LUCAS DAMIAN BARBOSA GONCALVES", "MARIA EDUARDA DE JESUS SOUZA", "MIGUEL GONCALVES FREITAS", "PEDRO TIAGO PINHEIRO", "RAYSSA DE OLIVEIRA DAMASCENO", "SARAH ALVES DOS SANTOS", "VITOR MIGUEL OLIVEIRA DA SILVA", "CHRISTOPHER FERREIRA CAMPOS", "KAUA CASTRO OLIVEIRA", "DANIEL SERGIO LOBO", "TALITA VIEIRA LOPES"], "6B": ["ALICE PERENNE DE OLIVEIRA", "ALICE PIMENTA CAMPOS RODRIGUES", "ANA VITORIA ANTUNES DE SOUZA", "ANNA VICTORIA NEDES VIEIRA", "ARTHUR OLIVEIRA DE FREITAS", "BARBARA VICTORIA QUINONEZ RAMOS", "BEATRIZ EDUARDA DO NASCIMENTO AMA", "BERNARD ALVES PARREIRAS PERONI", "BERNARDO ALVES DE SOUZA", "CHRISTOPHER ALEJANDRO ALVES DE OL", "CLARA RIOS FRIAS", "DAVI VILAS BOAS MORAIS", "ESTÊVÃO MIGUEL ALVES DOS SANTOS", "ESTHER BRASILEIRO WACHA", "HEITOR VITOR SILVA SANTOS", "ISABELLA VITORIA MORAES RODRIGUES", "ISABELLY GABRIELY FREIRE SOUZA", "KAILLANY EVILLYN FLORENÇO LABOURE", "LARA GULARTE DUARTE", "LAUANE ESTER SILVA MARTINS ROSA", "LORENZO DE PAULA SANTOS DE ALMEID", "MANUELA HELENA XAVIER LOPES", "NATHAN HENRIQUE COUTINHO MACIEL", "RODRIGO MARQUES NASCIMENTO CARDOS", "SARA VITORIA DOS ANJOS SILVA", "SOFIA ESTER ALMEIDA DE MENEZES", "SOPHIA OLIVEIRA VIANA", "VALENTINA ALMEIDA MAGALHAES", "THAUANY ESTER RODRIGUES SILVA", "MATHEUS MICHAEL FERREIRA VALENTIM", "KAUANY CRISTINA LOPES NASCIMENTO"], "6C": ["AGATHA RAFAELLY VIEIRA DE SOUZA", "ALVARO GABRIEL SILVA FERNANDES", "ANA BEATRIZ CASTRO APOSTOLO", "ARTHUR VENTURA DA SILVA ARAUJO", "ARTHUR VINICIUS OLIVEIRA DE PAIVA", "BERNARDO BRAGANÇA DO NASCIMENTO", "BRUNO WILLIAM SILVA DA COSTA", "DAVI CARVALHO DE OLIVEIRA", "EMANUELLE BITTENCOURT SOARES", "EMANUELLY VITORIA PEREIRA FELICIA", "ENZO NEVES DE SOUZA", "ESTER LUIZA FELIX DE OLIVEIRA", "ESTHER LOPES ROCHA DE ABREU", "GABRIELLE RODRIGUES DA SILVA", "GIOVANA VENTURA SILVA", "GUSTAVO FELIPE CAETANO MIRANDA", "JULIA VITALINO DE CARVALHO", "LUIS MIGUEL PINHEIRO MOREIRA", "LUIZ CLÁUDIO SILVA CUNHA PEREIRA", "LUIZA VITÓRIA FERNANDES SANTOS", "PEROLA MARIA PIRES SANTANA", "SOFIA PEREIRA DE CARVALHO", "SOPHIA ALMEIDA PEREIRA DA CRUZ", "YURI CANDIDA MEDEIROS", "ZION ROBERTO BANDEIRA", "ALICE YASMIN MARTINS SILVA", "KAUA FELIPE DE OLIVEIRA ALVARENGA", "DAVI PIETRO SILVA SANTOS", "LUCCA CAMPOS SALDANHA"], "6D": ["ANDRE MIGUEL DE OLIVEIRA DA SILVA", "BRYAN FILIPE PIRES", "CECILIA DE OLIVEIRA TAVARES", "DANIEL CAETANO DA CUNHA", "DAVI GREGIO MACIEL ROSA", "DAVI KENEDY DO ESPIRITO SANTO AZE", "EDUARDO AUGUSTO SOARES SILVA", "GABRIELLY CORREA LIMA", "GIULIA NUNES DA SILVA MACEDO", "GUSTAVO JUNIO DA SILVA PEREIRA", "HEITOR ALVES MEDEIROS", "JENNIFER VITORIA DA CRUZ AGUIAR", "LETICIA EMANUELLY PEREIRA DE SOUZ", "LEVI BENJAMIN COSTA", "LUCAS EDUARDO LIMA ROCHA", "MARCO ANTONIO GONCALVES LIMA", "MARIA ALICE BARBOSA DE SOUZA", "MARIA EDUARDA BATISTA DE SOUZA", "MATHEUS RESENDE SANTOS", "MIGUEL REIS ROMULO DE OLIVEIRA", "MILENA CAROLINA ANTUNES ESTEVES", "QUEZIA DANIELLY MOURA DA SILVA", "RAUL SALES COSTA", "SOPHIA BARBOSA DOS SANTOS", "SOPHIA STEFANI CAMPOS FERREIRA", "VALENTINA AMARAL SALES BISPO", "YASMIN VITORIA RIBEIRO GONCALVES", "NICOLAS MARTINS GOMES", "PIETRA OLIVEIRA RAMOS", "SAMUEL GARCIA NORONHA"], "6E": ["ALICE MENDES ALVES", "ANA BEATRIZ MOURA COSTA", "ARTHUR GOMES CABRAL SILVA", "BRYAN THALES SIMOES DE ASSUMPCAO", "CARLOS EDUARDO MARTINS DE FREITAS", "CECILIA SILVA SOARES", "CLARISSE DE ALMEIDA CARVALHO", "DAVI DE ALCANTARA ANDRADE", "DAVI LEONARDO DE SOUSA MAGALHAES", "DAVI LUCAS ALMEIDA FONSECA", "ENZO GABRIEL FREITAS", "ESTER LUIZA DOS SANTOS", "GABRIELA VITORIA NASCIMENTO DE MI", "GUILHERME OLIVEIRA MELO", "HELENA LOPES ANTUNES", "HENRIQUE DA SILVA JARDIM", "ISAAC AUGUSTO MOREIRA DEZIDERIO", "KALLEB WILLIAN GONCALVES ROSSI", "LARA SARA ALVES CIRIACO", "LUCAS ALBERTO FERREIRA DE OLIVEIR", "LUCAS GABRIEL DE OLIVEIRA CAMPOS", "MARIA CLARA ALVES COSTA", "MARIA EDUARDA DE OLIVEIRA TEIXEIR", "MARIA EDUARDA SILVA PEREIRA", "PEDRO LUCAS RODRIGUES DOS REIS", "RAUL HENRIQUE ARAUJO TEIXEIRA DE", "SOPHIA VICTORIA SANTOS DO NASCIME", "TIAGO RUAN SILVEIRA MENDES", "LEONARDO HENRIQUE QUEIROGA ROCHA", "MARIA CLARA DE JESUS ALVES"], "6F": ["ANNA CLARA SILVA DE OLIVEIRA", "ANNY MARIE VICTORIA DE SOUZA OLIV", "ARTHUR GUIMARAES GOMES FERREIRA", "CECILIA AMARAL TOMAZ", "CLAUDIO CALIXTO FERNANDES JUNIOR", "DAVI LUCCA COUTINHO LOPES", "GABRIEL RODRIGUES DE CALDAS", "GABRIELA SILVA SOARES", "GIOVANNA APARECIDA DO CARMO BATIS", "ISABELLY DE SOUZA XAVIER", "ISADORA LUIZA DE BRITO SOARES", "ISAQUE EMANUEL MEDINA DE SOUZA", "IZABELLE ALICE DOS SANTOS GANDRA", "JOAO GUILHERME SALES RODRIGUES", "JULIA MARIA SILVA DE JESUS", "LEANDRO LESSA RESENDE", "LUCAS CARDOSO DOS SANTOS", "LUIZ PHILIPE VALE TEIXEIRA", "MARIA FERNANDA DA SILVEIRA SANTOS", "MARIA LUIZA LOPES DA SILVA", "MARIA LUIZA NUNES FLOR DE LIMA", "MIGUEL DA SILVA GOMES", "MIGUEL MARTINS DE ALMEIDA", "PEDRO GAEL DA SILVA MARQUES", "PIETRA JULIA JESUS FRANCA", "RAFAEL SOARES DE OLIVEIRA", "RITHA GABRIELLY GONCALVES DA SILV", "SAMUEL LUCCA DE SOUSA PEREIRA", "KETULLY GABRIELLA RAMALHO GOMES", "LUDMYLA AGUIAR FONSECA"], "7A": ["ALICE COSSO GUIMARÃES DE SOUZA SI", "ALICE RODRIGUES AMORIM", "ALLYCE YEVINA MARTINS DOS SANTOS", "ANTONELLY ALVES MARCOLINO DE SOUZ", "CLARA MARIA RODRIGUES DOS SANTOS", "ENZO DAMASCENO SALVADOR", "GABRIEL DE ASSIS FURTADO BRANDÃO", "GABRIEL RODRIGO FERREIRA DE AQUIN", "GABRIELLY FERREIRA DE CARVALHO", "GIOVANA LAYLA GOMES DA COSTA CORR", "HEITOR VITOR DE ALMEIDA VALADARES", "ISAQUY ANTÔNIO VIEIRA DIAS", "LUAN JESUS FRANCA", "MARIA RITA RODRIGUES BRAZ DE SOUS", "MAYARA OLIVEIRA SOUZA", "MIGUEL GONÇALVES DE OLIVEIRA", "MIGUEL ÍTALO MONTEIRO AMARAL", "NICOLLY MAIRA TEIXEIRA DA SILVA V", "NIKOLAS MATHEUS NUNES CURVELANO", "PEDRO HENRIQUE ALVES BUENO", "PIETRO DE ANDRADE PEREIRA AMARAL", "RAISSA GOMES DIAS DOS SANTOS", "SAMUEL DE ARAUJO MAGALHAES", "SAMUEL LUCAS COSTA DE AGUIAR", "SOPHIA GABRIELE PEREIRA DOS SANTO", "STHEPHANY KATLEN DE ALMEIDA LAPA", "VITORIA HANNA CASTRO APOSTOLO", "ANNA CLARA SOUSA COSTA", "VIVIAN FERREIRA FERNANDES", "DAVI LUCCA DA SILVA SOARES", "ANA SOPHIE MENDES DA ROCHA", "ISABELLA VITORIA VIEIRA LOPES"], "7B": ["ANA CLARA VITORINO SANTOS CARVALH", "ARTHUR PIETRO VELOSO CONRADO", "BERNARDO DINIZ DE SOUZA", "BRUNA FRAGOSO QUEIROZ", "CAROLINA FREIRE BORGES", "DANIEL DE ARAUJO SILVA", "DAVI ALVES RESENDE", "DAVI PHILLIP PEREIRA DA SILVA", "DERICK ALEJANDRO DOS SANTOS", "EDUARDO AUGUSTO SILVA DA ANUNCIAC", "GIOVANA JULIANE ANIZIO SANTOS", "JOSE GABRIEL MENEZES GUERRA", "JÚLIA DE CARVALHO SOARES", "JULIA MARIA CRISPIM SANTANA", "KAYO CRISTIANO RODRIGUES SILVA", "LEONARDO MIGUEL CAMPOS", "MARIA ALICE BRAGA LEONEL", "MARIA ALICE SANTOS COSTA", "MARIA EDUARDA DOS SANTOS SOUZA", "MARIA RITA NUNES SILVA", "MIGUEL COELHO DIAS", "NICOLAS DAMASCENO SALVADOR", "NICOLLE ESTER DE OLIVEIRA GUIMARA", "OLIVER ADRIANE ARAÚJO MENDONÇA", "PIETRA MENDES ALVES", "RAPHAEL DA SILVA LOBO", "SARA NICACIO NICOLAU", "SARAH EMANUELLY GONÇALVES DE DEUS", "SOPHYA GABRIELLY VIEIRA SOUZA", "EDUARDO GONCALVES FERNANDES"], "7C": ["AGATHA AMARAL DA SILVA", "ALICE GONÇALVES LAMAS", "ANNA LAURA FERREIRA DE MORAIS", "ARTHUR ANGELO FERNANDES CABRAL", "ARTHUR BORGES MONTEIRO", "ARTHUR GABRIEL DE PAULA MOREIRA", "AUGUSTO NOVAIS ASSIS XAVIER SILVA", "BERNARDO MIGUEL SILVA PEREIRA", "EMANUELLE GONÇALVES DA SILVA", "ENZO REIS PAULINO", "ESTHER SILVA DINIZ", "FABIO BATISTA SANTOS", "GABRIELLE STEFANNY SANTANA COSTA", "HADASSA GABRIELLE ALVES DE ARAUJO", "JOAO LUCAS SOARES ALVES", "JULIA VITORIA TIMOTEO DE PAULA", "KAUAN HENRIQUE MARINHO SOUZA", "LARA OLIVEIRA DE SOUZA", "LAURA GOMES GUIMARAES", "MANUELA VITÓRIA DINIZ LOURENÇO", "MARCELLA SOPHIA ROSA AVELAR LIMA", "MELYSSA ROSA GOMES MOREIRA", "PIETRO FRANCISCO ANDRADE DE PAULA", "SAMUEL DIAS FIDELIS ROSA", "SOFIA COSSO GUIMARAES DE SOUZA SI", "THALITA EMANUELLE SOUZA LIMA", "VICTOR LUCAS CARDOSO MENDES", "LORENZO GABRIEL SILVA LOPES", "ESTHER MARINNA ALVES COSTA", "SIDNEY ROBERTO MIRANDA FERNANDES"], "7D": ["ALANA LARISSA PEREIRA DE SA SILVA", "ARTHUR GONÇALVES FERREIRA", "BEATRIZ ALVES DE SOUZA", "BERNARDO LIMA VIANA DE CARVALHO", "BIANKA VITÓRIA REIS DE MENDONÇA", "CLARICE KELLY VIVEIROS BARBOSA", "DANIEL SILVEIRA SANTOS", "DAVI SOARES DE SOUSA", "HENRIQUE MEIRA URSINE", "HITALO HENRIQUE DA SILVA VIEIRA", "ISABELA ROCHA FERREIRA", "JUAN GUILHERME PEREIRA DA SILVA", "KAMILY GOMES SILVA LEITE", "LAURA MANUELA BRACARENSE AVILA DE", "LHUANNY GABRIELLE QUEIROZ", "LUCAS JUNIO VIEIRA ASSIS", "LUCAS RAFAEL BRAGANÇA DO NASCIMEN", "MARCELLO HENRIQUE FORTES COSTA", "MARIA JULIA DE SOUZA AZEVEDO", "NICOLAS RODRIGUES VIEIRA", "PIETRO AUGUSTO DE SOUZA RIBEIRO", "RYAN RAFAEL GUIMARAES DA SILVA", "SAMUEL SILVA NUNES SANTOS ROCHA", "SKARLETT GABRIELLY DE ALMEIDA LAP", "VALENTINA SANTANA TORRES", "WALLACE BRAYAN DOS SANTOS ALVES", "YASMIN MAGALHÃES KELER DIAS", "MARCELLO LIMA NOGUEIRA", "THIAGO MAGALHAES DA SILVA", "CAIO NASCIMENTO DANTAS DE PAULA"], "7E": ["ANA LUIZA GOMES ROSA", "BERNARDO DE PAULA GERMANO MOREIRA", "BERNARDO HENRIQUE DA SILVA MANGAB", "BERNARDO MIGUEL DE ALMEIDA", "CAIO BITENCORTE DINIZ", "EMANUELLE BEATRIZ GUIMARÃES REIS", "EMANUELLY VITORIA GOMES DE PAULA", "FERNANDA LIMA APARECIDA DE SOUZA", "GABRIEL XISTO DE JESUS OLIVEIRA", "GABRIELLY VITORIA FERREIRA PINTO", "ISAAC EMMANUEL SABINO FERNANDES", "ISABELLA LIMA DE SOUZA", "IZABEL ROCHA PAGLIONI", "KAIQUE CAMPOS ANDRADE", "LAURA LUÍSA FREITAS SANTOS", "LORENZO FONSECA ALVES", "LUIZ FERNANDO SILVA CRUZ", "MARIA ELISA SILVA PINTO", "MARIA FLOR FERNANDES DE SOUZA", "MARIA JULIA RIBEIRO VASCONCELOS", "MELISSA SANTARELLI SANTOS", "PEDRO HENRIQUE DE PAULA PEREIRA", "REBECA VITORIA CANGUSSU DE MIRAND", "ROBERT TAYLOR DOS SANTOS MONTEIRO", "SARAH MARIA BARBOSA SANTOS", "TALLES ARTHUR DE LIMA REIS", "GIOVANNA VITORIA RODRIGUES DE FRE", "GIOVANNA SOUZA DUARTE", "VITOR JUNIO MARTINS DE OLIVEIRA", "IZADORA EMANUELLY DE MOURA ANDRAD"], "8X": ["ARTHUR DIAS DOS SANTOS", "GUILHERME JÚNIO OLIVEIRA CRUZ", "KAUA HENRIQUE RIOS SILVA", "RICHARD FLÁVIO DE OLIVEIRA FARIA", "TAYLOR EDUARDO FERREIRA DA SILVA", "YURI EZEQUIEL MAGALHAES DE LIMA", "MARIA EDUARDA GONÇALVES RAMOS", "THIAGO GABRIEL MIGUEL ALVES"]};
+const $=id=>document.getElementById(id);
+const FK="geteco_alunos_flags_v1";const loadF=()=>{try{return JSON.parse(localStorage.getItem(FK)||"{}")}catch(e){return{}}};
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ANO={"6":"6º ano","7":"7º ano"};
+const lab=k=>(ANO[k[0]]||k[0]+"º ano")+" "+k.slice(1);
+let LOGO="";try{LOGO=parent.document.querySelector(".top img").src}catch(e){}
+$("tu").innerHTML=Object.keys(D).map(k=>`<option value="${k}">${lab(k)} (${D[k].length} estudantes)</option>`).join("")+'<option value="*">Todas as turmas (uma folha por turma)</option>';
+$("dt").value="2026-11-24";$("dr").value="2026-11-25";
+const fd=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");return m?m[3]+"/"+m[2]+"/"+m[1]:"__/__/____"};
+const OBS={I:"Estudante de inclusão",A:"Prova adaptada",R:"Espaço reservado, com acompanhamento do monitor"};
+function sheet(k,x,tp){
+ const FL=loadF(),st=D[k],n=st.length,R=x==="R",P=tp==="P",pt=R?"Prova de redação":"Prova trimestral",px=R?$("pr2").value:$("pr").value,pd=fd($(R?"dr":"dt").value);
+ const fl=nm=>FL[k+"|"+nm]||"",cI=st.filter(z=>fl(z).includes("I")).length,cA=st.filter(z=>fl(z).includes("A")).length,cR=st.filter(z=>fl(z).includes("R")).length;
+ const rh=(P?Math.min(9,Math.max(5.2,(200/(n+3)))):Math.min(9,Math.max(5.2,(216/(n+3))))).toFixed(2);
+ const rows=st.map((nm,i)=>{const f=fl(nm),o=["I","A","R"].filter(c=>f.includes(c)).map(c=>OBS[c]).join("; ");
+  return `<tr style="height:${rh}mm"><td class="n">${String(i+1).padStart(2,"0")}</td><td>${esc(nm)}</td>`+(P?`<td style="text-align:center;font-weight:700;letter-spacing:.08em">${f?"SIM":""}</td><td class="ob">${esc(o)}</td>`:`<td></td>`)+`</tr>`}).join("")+Array(2).fill(`<tr style="height:${rh}mm"><td class="n"></td><td></td>${P?"<td></td><td></td>":"<td></td>"}</tr>`).join("");
+ const head=P?`<th style="width:75mm">Nome do estudante</th><th style="width:30mm;text-align:center;white-space:normal;line-height:1.15;padding:0 1mm">Possível necessidade de prova adaptada</th><th>Indicação</th>`:`<th style="width:80mm">Nome do estudante</th><th>Assinatura</th>`;
+ const resumo=P?`<div class="lgd"><b>Resumo:</b> ${cI||cA||cR?`inclusão: ${cI} · prova adaptada: ${cA} · ambiente reservado, com acompanhamento do monitor: ${cR}`:"nenhum estudante com indicação nesta turma"}</div>`:"";
+ return `<div class="sheet" contenteditable="true"><div class="hd">${LOGO?`<img src="${LOGO}" alt="Logo GETECO">`:""}<div class="tt"><div class="e">ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA – GETECO</div><div class="t">${P?"LISTA DO PROFESSOR – OBSERVAÇÕES":"LISTA DE PRESENÇA"}</div></div></div>`+
+ `<table class="id"><tr><td style="width:22%"><small>Turma</small><b>${lab(k)}</b></td><td><small>${pt}</small>${esc(px)}</td><td style="width:20%"><small>Data</small><b>${pd}</b></td></tr><tr><td colspan="3"><small>Professor aplicador</small>${esc($("pf").value)}&nbsp;</td></tr></table>`+
+ `<table class="ls"><tr style="height:${P?12:7}mm"><th class="n" style="width:11mm;text-align:center;padding:0">Nº</th>${head}</tr>${rows}</table>${resumo}<div class="ft">${pt} · ${n} estudantes · ${lab(k)} · ${P?"via do professor":"via para assinatura dos estudantes"}</div></div>`;
+}
+function draw(){const v=$("tu").value,a=$("at").value,t=$("tp").value,ks=v==="*"?Object.keys(D):[v],as=a==="*"?["T","R"]:[a],ts=t==="*"?["A","P"]:[t],h=[];ks.forEach(k=>as.forEach(x=>ts.forEach(p=>h.push(sheet(k,x,p)))));$("out").innerHTML=h.join("");$("nt").textContent=h.length+" folha(s) A4."}
+draw();
+window.addEventListener("storage",draw);
+<\/script></body></html>
+</script>
+</script>
+<script type="text/plain" id="a4"><!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identificação de envelope</title>
+<style>
+:root{--bg:#eef3f6;--sf:#fff;--ink:#14293d;--mut:#5a6b7b;--ac:#1d6a87;--acx:#fff;--ln:#cfdae2;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b26;--sf:#172736;--ink:#e6eef4;--mut:#93a6b6;--ac:#5bb6d6;--acx:#08202b;--ln:#2c4153;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+.ui{max-width:1000px;margin:0 auto;padding:18px 20px 60px}
+h1{font-size:1.3rem;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 14px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+label.ck{flex-direction:row;align-items:center;gap:8px;font-weight:400}
+input,select{font:inherit;padding:9px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink)}
+input[type=checkbox]{padding:0;width:18px;height:18px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:var(--acx);padding:10px 18px;font-weight:700}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:14px}.note{color:var(--mut);font-size:.88rem}
+.pg{background:#fff;color:#000;width:210mm;height:277mm;margin:0 auto 18px;box-shadow:0 4px 24px rgba(0,0,0,.18);overflow:hidden;font-family:Arial,Helvetica,sans-serif}
+.env{height:136mm;border:1.6pt solid #000;border-radius:3mm;padding:6mm 8mm;display:flex;flex-direction:column;gap:4mm}
+.cut{height:0;border-top:1pt dashed #777;margin:2.5mm 0 2.5mm}
+.hd{display:flex;align-items:center;gap:5mm;border-bottom:1.2pt solid #000;padding:0 0 3.5mm}
+.hd img{height:20mm;width:auto}.hd .tt{flex:1;text-align:center;line-height:1.3}
+.e{font-size:11pt;font-weight:700}.pj{font-size:9pt}
+.ativ{text-align:center;font-size:23pt;font-weight:700;letter-spacing:.05em;line-height:1.1}
+.ativ small{display:block;font-size:10.5pt;font-weight:400;letter-spacing:0;margin-top:1.5mm}
+.mid{display:flex;gap:5mm;align-items:stretch;flex:1}
+.box{border:1.2pt solid #000;padding:2mm 4mm}.box small{display:block;font-size:7pt;letter-spacing:.1em;font-weight:700;color:#333;text-transform:uppercase}
+.tu{flex:none;width:68mm;text-align:center;display:flex;flex-direction:column;justify-content:center}.tu b{display:block;font-size:34pt;line-height:1.15}
+.dd{flex:1;display:flex;flex-direction:column;gap:3mm}.dd .box{flex:1;display:flex;flex-direction:column;justify-content:center}.dd b{font-size:15pt}
+.pf b{font-size:14pt;font-weight:700}
+.ct{display:flex;gap:5mm;font-size:11pt}.ct .box{flex:1;display:flex;align-items:baseline;gap:3mm}.ct .box b{font-size:13pt}
+@media print{
+ @page{size:A4;margin:10mm}
+ body{background:#fff}.ui{max-width:none;padding:0}.noprint{display:none!important}
+ .pg{box-shadow:none;margin:0;break-after:page;page-break-after:always}.pg:last-child{break-after:auto;page-break-after:auto}
+}
+</style></head><body><div class="ui">
+<div class="noprint">
+<h1>Identificação de envelope</h1>
+<p class="sub">Etiqueta em meia folha A4, uma para cada turma, para identificar o envelope de provas. Clique em qualquer texto para corrigir antes de imprimir.</p>
+<div class="card"><div class="grid">
+<label>Atividade<select id="at" onchange="draw()"><option value="T">Prova trimestral</option><option value="R">Prova de redação</option><option value="*">Ambas (uma de cada por turma)</option></select></label>
+<label>Turma<select id="tu" onchange="draw()"></select></label>
+<label>Prova trimestral (texto da etiqueta)<input id="pr" value="Avaliação Trimestral Multidisciplinar · 3º Trimestre de 2026" oninput="draw()"></label>
+<label>Data da prova trimestral (objetiva)<input id="dt" type="date" onchange="draw()"></label>
+<label>Data da prova de redação<input id="dr" type="date" onchange="draw()"></label>
+<label>Professor aplicador<input id="pf" placeholder="Nome do professor" oninput="draw()"></label>
+</div>
+<div class="row"><label class="ck"><input type="checkbox" id="dois" onchange="draw()"> Duas etiquetas por folha (economiza papel)</label><button onclick="window.print()">🖨️ Imprimir / salvar PDF</button><span class="note" id="nt"></span></div></div>
+</div>
+<div id="out"></div>
+</div>
+<script>
+const C={"6A": 30, "6B": 31, "6C": 29, "6D": 30, "6E": 30, "6F": 30, "7A": 32, "7B": 30, "7C": 30, "7D": 30, "7E": 30, "8X": 8};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ANO={"6":"6º ano","7":"7º ano"};
+const lab=k=>(ANO[k[0]]||k[0]+"º ano")+" "+k.slice(1);
+let LOGO="";try{LOGO=parent.document.querySelector(".top img").src}catch(e){}
+$("tu").innerHTML='<option value="*">Todas as turmas</option>'+Object.keys(C).map(k=>`<option value="${k}">${lab(k)}</option>`).join("");
+$("dt").value="2026-11-24";$("dr").value="2026-11-25";
+const fd=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");return m?m[3]+"/"+m[2]+"/"+m[1]:"__/__/____"};
+function env(k,a){
+ const t=a==="T"?"PROVA TRIMESTRAL":"PROVA DE REDAÇÃO",sub=a==="T"?esc($("pr").value):"Avaliação de Produção de Texto";
+ return `<div class="env"><div class="hd">${LOGO?`<img src="${LOGO}" alt="Logo GETECO">`:""}<div class="tt"><div class="e">ESCOLA MUNICIPAL GERALDO TEIXEIRA DA COSTA – GETECO</div></div></div>`+
+ `<div class="ativ">${t}<small>${sub}</small></div>`+
+ `<div class="mid"><div class="box tu"><small>Turma</small><b>${lab(k)}</b></div><div class="dd"><div class="box"><small>Data</small><b>${fd($(a==="T"?"dt":"dr").value)}</b></div><div class="box pf"><small>Professor aplicador</small><b>${esc($("pf").value)}&nbsp;</b></div></div></div>`+
+ `<div class="ct"><div class="box"><small>Estudantes</small><b>${C[k]||"&nbsp;"}</b></div><div class="box"><small>Presentes</small><b>&nbsp;</b></div><div class="box"><small>Ausentes</small><b>&nbsp;</b></div></div></div>`;
+}
+function draw(){
+ const v=$("tu").value,a=$("at").value,ks=v==="*"?Object.keys(C):[v],as=a==="*"?["T","R"]:[a];
+ const it=[];ks.forEach(k=>as.forEach(x=>it.push(env(k,x))));
+ const per=$("dois").checked?2:1,pgs=[];
+ for(let i=0;i<it.length;i+=per)pgs.push(`<div class="pg" contenteditable="true">${it.slice(i,i+per).join('<div class="cut"></div>')}</div>`);
+ $("out").innerHTML=pgs.join("");$("nt").textContent=it.length+" etiqueta(s) em "+pgs.length+" folha(s) A4.";
+}
+draw();
+<\/script></body></html>
+</script>
+<script type="text/plain" id="a5"><!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro de estudantes</title>
+<style>
+:root{--bg:#eef3f6;--sf:#fff;--ink:#14293d;--mut:#5a6b7b;--ac:#1d6a87;--acx:#fff;--ln:#cfdae2;--wn:#b45309;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b26;--sf:#172736;--ink:#e6eef4;--mut:#93a6b6;--ac:#5bb6d6;--acx:#08202b;--ln:#2c4153;--wn:#fbbf24;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+.ui{max-width:1000px;margin:0 auto;padding:18px 20px 60px}
+h1{font-size:1.3rem;margin:0 0 4px}.sub{color:var(--mut);margin:0 0 14px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
+label.ck{flex-direction:row;align-items:center;gap:8px;font-weight:400}
+input,select{font:inherit;padding:9px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink)}
+input[type=checkbox]{padding:0;width:20px;height:20px;accent-color:var(--ac)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:var(--acx);padding:10px 18px;font-weight:700}
+button.g{background:transparent;color:var(--ac)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}.note{color:var(--mut);font-size:.88rem}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--ln);padding:6px 8px;text-align:left;font-size:.92rem}th{background:var(--bg)}
+td.c,th.c{text-align:center}#tb td:nth-child(2){white-space:nowrap}.pv{overflow-x:auto}
+tr.has td{background:rgba(29,106,135,.09)}
+.lg b{display:inline-block;min-width:1.5em;text-align:center;border:1px solid var(--ac);border-radius:5px;padding:0 4px;margin-right:4px}
+#sumP{display:none}
+@media print{
+ body{background:#fff;color:#000}.noprint{display:none!important}.ui{max-width:none;padding:0}
+ body.ps .ui>*:not(#sumP){display:none!important}body.ps #sumP{display:block}
+ #sumP h2{font:700 13pt Arial;margin:0 0 4mm}#sumP h3{font:700 11pt Arial;margin:5mm 0 1.5mm}
+ #sumP table{font:10pt Arial}#sumP th,#sumP td{border:1pt solid #000;padding:1mm 2mm;color:#000;background:#fff}
+ @page{size:A4;margin:12mm}
+}
+</style></head><body><div class="ui">
+<div class="noprint">
+<h1>Cadastro de estudantes</h1>
+<p class="sub">Listagem completa dos estudantes. Marque as indicações de cada um: elas aparecem automaticamente na lista de presença. As marcações ficam salvas neste navegador.</p>
+<div class="card lg"><b>I</b> Estudante de inclusão &nbsp; <b>A</b> Prova adaptada &nbsp; <b>R</b> Prova em ambiente reservado, com auxílio de monitor</div>
+<div class="card"><div class="grid">
+<label>Turma<select id="tu" onchange="draw()"></select></label>
+<label>Buscar pelo nome<input id="q" placeholder="Digite parte do nome" oninput="draw()"></label>
+<label class="ck"><input type="checkbox" id="so" onchange="draw()"> Mostrar só com indicação</label>
+</div>
+<div class="row"><button onclick="prSum()">🖨️ Imprimir resumo das indicações</button><button class="g" onclick="clr()">Limpar todas as indicações</button><span class="note" id="msg"></span></div></div>
+<div class="card pv" id="qd"></div>
+<div class="card pv"><table id="tb"></table></div>
+</div>
+<div id="sumP"></div>
+</div>
+<script>
+const D={"6A": ["AGATA SANTOS TEIXEIRA SILVA", "ALEPH ANDRADE SIMOES", "ALICE MANUELLA DE OLIVEIRA FELIX", "ANA JULIA SOUZA OLIVEIRA", "ANDRE XAVIER DA SILVA BISPO", "BERNARDO MARTINS EMIGDIO DE SOUSA", "BRYAN FELIPE DE CARIA TEIXEIRA", "CATARINA PENIDO DE SOUZA", "CLARA ALVES SCARAMELO CUPERTINO", "DIULIA VICTORIA LIMA DA CRUZ", "ELIZABETH CRISTINA FERREIRA BARBO", "ESTHER ALMEIDA BRITO", "ESTHER SOARES ALCANTARA", "HELOISA CAROLINE RODRIGUES MOREIR", "KAIQUE EDUARDO DE SOUZA LOPES", "KAUA VICTOR NUNES SILVA", "KAUAM ROBSON MOREIRA COSTA DA SIL", "LORENZO SANTOS DIAS CASTRO", "LUARA VALENTINA BARBOSA PINTO CAM", "LUCAS DAMIAN BARBOSA GONCALVES", "MARIA EDUARDA DE JESUS SOUZA", "MIGUEL GONCALVES FREITAS", "PEDRO TIAGO PINHEIRO", "RAYSSA DE OLIVEIRA DAMASCENO", "SARAH ALVES DOS SANTOS", "VITOR MIGUEL OLIVEIRA DA SILVA", "CHRISTOPHER FERREIRA CAMPOS", "KAUA CASTRO OLIVEIRA", "DANIEL SERGIO LOBO", "TALITA VIEIRA LOPES"], "6B": ["ALICE PERENNE DE OLIVEIRA", "ALICE PIMENTA CAMPOS RODRIGUES", "ANA VITORIA ANTUNES DE SOUZA", "ANNA VICTORIA NEDES VIEIRA", "ARTHUR OLIVEIRA DE FREITAS", "BARBARA VICTORIA QUINONEZ RAMOS", "BEATRIZ EDUARDA DO NASCIMENTO AMA", "BERNARD ALVES PARREIRAS PERONI", "BERNARDO ALVES DE SOUZA", "CHRISTOPHER ALEJANDRO ALVES DE OL", "CLARA RIOS FRIAS", "DAVI VILAS BOAS MORAIS", "ESTÊVÃO MIGUEL ALVES DOS SANTOS", "ESTHER BRASILEIRO WACHA", "HEITOR VITOR SILVA SANTOS", "ISABELLA VITORIA MORAES RODRIGUES", "ISABELLY GABRIELY FREIRE SOUZA", "KAILLANY EVILLYN FLORENÇO LABOURE", "LARA GULARTE DUARTE", "LAUANE ESTER SILVA MARTINS ROSA", "LORENZO DE PAULA SANTOS DE ALMEID", "MANUELA HELENA XAVIER LOPES", "NATHAN HENRIQUE COUTINHO MACIEL", "RODRIGO MARQUES NASCIMENTO CARDOS", "SARA VITORIA DOS ANJOS SILVA", "SOFIA ESTER ALMEIDA DE MENEZES", "SOPHIA OLIVEIRA VIANA", "VALENTINA ALMEIDA MAGALHAES", "THAUANY ESTER RODRIGUES SILVA", "MATHEUS MICHAEL FERREIRA VALENTIM", "KAUANY CRISTINA LOPES NASCIMENTO"], "6C": ["AGATHA RAFAELLY VIEIRA DE SOUZA", "ALVARO GABRIEL SILVA FERNANDES", "ANA BEATRIZ CASTRO APOSTOLO", "ARTHUR VENTURA DA SILVA ARAUJO", "ARTHUR VINICIUS OLIVEIRA DE PAIVA", "BERNARDO BRAGANÇA DO NASCIMENTO", "BRUNO WILLIAM SILVA DA COSTA", "DAVI CARVALHO DE OLIVEIRA", "EMANUELLE BITTENCOURT SOARES", "EMANUELLY VITORIA PEREIRA FELICIA", "ENZO NEVES DE SOUZA", "ESTER LUIZA FELIX DE OLIVEIRA", "ESTHER LOPES ROCHA DE ABREU", "GABRIELLE RODRIGUES DA SILVA", "GIOVANA VENTURA SILVA", "GUSTAVO FELIPE CAETANO MIRANDA", "JULIA VITALINO DE CARVALHO", "LUIS MIGUEL PINHEIRO MOREIRA", "LUIZ CLÁUDIO SILVA CUNHA PEREIRA", "LUIZA VITÓRIA FERNANDES SANTOS", "PEROLA MARIA PIRES SANTANA", "SOFIA PEREIRA DE CARVALHO", "SOPHIA ALMEIDA PEREIRA DA CRUZ", "YURI CANDIDA MEDEIROS", "ZION ROBERTO BANDEIRA", "ALICE YASMIN MARTINS SILVA", "KAUA FELIPE DE OLIVEIRA ALVARENGA", "DAVI PIETRO SILVA SANTOS", "LUCCA CAMPOS SALDANHA"], "6D": ["ANDRE MIGUEL DE OLIVEIRA DA SILVA", "BRYAN FILIPE PIRES", "CECILIA DE OLIVEIRA TAVARES", "DANIEL CAETANO DA CUNHA", "DAVI GREGIO MACIEL ROSA", "DAVI KENEDY DO ESPIRITO SANTO AZE", "EDUARDO AUGUSTO SOARES SILVA", "GABRIELLY CORREA LIMA", "GIULIA NUNES DA SILVA MACEDO", "GUSTAVO JUNIO DA SILVA PEREIRA", "HEITOR ALVES MEDEIROS", "JENNIFER VITORIA DA CRUZ AGUIAR", "LETICIA EMANUELLY PEREIRA DE SOUZ", "LEVI BENJAMIN COSTA", "LUCAS EDUARDO LIMA ROCHA", "MARCO ANTONIO GONCALVES LIMA", "MARIA ALICE BARBOSA DE SOUZA", "MARIA EDUARDA BATISTA DE SOUZA", "MATHEUS RESENDE SANTOS", "MIGUEL REIS ROMULO DE OLIVEIRA", "MILENA CAROLINA ANTUNES ESTEVES", "QUEZIA DANIELLY MOURA DA SILVA", "RAUL SALES COSTA", "SOPHIA BARBOSA DOS SANTOS", "SOPHIA STEFANI CAMPOS FERREIRA", "VALENTINA AMARAL SALES BISPO", "YASMIN VITORIA RIBEIRO GONCALVES", "NICOLAS MARTINS GOMES", "PIETRA OLIVEIRA RAMOS", "SAMUEL GARCIA NORONHA"], "6E": ["ALICE MENDES ALVES", "ANA BEATRIZ MOURA COSTA", "ARTHUR GOMES CABRAL SILVA", "BRYAN THALES SIMOES DE ASSUMPCAO", "CARLOS EDUARDO MARTINS DE FREITAS", "CECILIA SILVA SOARES", "CLARISSE DE ALMEIDA CARVALHO", "DAVI DE ALCANTARA ANDRADE", "DAVI LEONARDO DE SOUSA MAGALHAES", "DAVI LUCAS ALMEIDA FONSECA", "ENZO GABRIEL FREITAS", "ESTER LUIZA DOS SANTOS", "GABRIELA VITORIA NASCIMENTO DE MI", "GUILHERME OLIVEIRA MELO", "HELENA LOPES ANTUNES", "HENRIQUE DA SILVA JARDIM", "ISAAC AUGUSTO MOREIRA DEZIDERIO", "KALLEB WILLIAN GONCALVES ROSSI", "LARA SARA ALVES CIRIACO", "LUCAS ALBERTO FERREIRA DE OLIVEIR", "LUCAS GABRIEL DE OLIVEIRA CAMPOS", "MARIA CLARA ALVES COSTA", "MARIA EDUARDA DE OLIVEIRA TEIXEIR", "MARIA EDUARDA SILVA PEREIRA", "PEDRO LUCAS RODRIGUES DOS REIS", "RAUL HENRIQUE ARAUJO TEIXEIRA DE", "SOPHIA VICTORIA SANTOS DO NASCIME", "TIAGO RUAN SILVEIRA MENDES", "LEONARDO HENRIQUE QUEIROGA ROCHA", "MARIA CLARA DE JESUS ALVES"], "6F": ["ANNA CLARA SILVA DE OLIVEIRA", "ANNY MARIE VICTORIA DE SOUZA OLIV", "ARTHUR GUIMARAES GOMES FERREIRA", "CECILIA AMARAL TOMAZ", "CLAUDIO CALIXTO FERNANDES JUNIOR", "DAVI LUCCA COUTINHO LOPES", "GABRIEL RODRIGUES DE CALDAS", "GABRIELA SILVA SOARES", "GIOVANNA APARECIDA DO CARMO BATIS", "ISABELLY DE SOUZA XAVIER", "ISADORA LUIZA DE BRITO SOARES", "ISAQUE EMANUEL MEDINA DE SOUZA", "IZABELLE ALICE DOS SANTOS GANDRA", "JOAO GUILHERME SALES RODRIGUES", "JULIA MARIA SILVA DE JESUS", "LEANDRO LESSA RESENDE", "LUCAS CARDOSO DOS SANTOS", "LUIZ PHILIPE VALE TEIXEIRA", "MARIA FERNANDA DA SILVEIRA SANTOS", "MARIA LUIZA LOPES DA SILVA", "MARIA LUIZA NUNES FLOR DE LIMA", "MIGUEL DA SILVA GOMES", "MIGUEL MARTINS DE ALMEIDA", "PEDRO GAEL DA SILVA MARQUES", "PIETRA JULIA JESUS FRANCA", "RAFAEL SOARES DE OLIVEIRA", "RITHA GABRIELLY GONCALVES DA SILV", "SAMUEL LUCCA DE SOUSA PEREIRA", "KETULLY GABRIELLA RAMALHO GOMES", "LUDMYLA AGUIAR FONSECA"], "7A": ["ALICE COSSO GUIMARÃES DE SOUZA SI", "ALICE RODRIGUES AMORIM", "ALLYCE YEVINA MARTINS DOS SANTOS", "ANTONELLY ALVES MARCOLINO DE SOUZ", "CLARA MARIA RODRIGUES DOS SANTOS", "ENZO DAMASCENO SALVADOR", "GABRIEL DE ASSIS FURTADO BRANDÃO", "GABRIEL RODRIGO FERREIRA DE AQUIN", "GABRIELLY FERREIRA DE CARVALHO", "GIOVANA LAYLA GOMES DA COSTA CORR", "HEITOR VITOR DE ALMEIDA VALADARES", "ISAQUY ANTÔNIO VIEIRA DIAS", "LUAN JESUS FRANCA", "MARIA RITA RODRIGUES BRAZ DE SOUS", "MAYARA OLIVEIRA SOUZA", "MIGUEL GONÇALVES DE OLIVEIRA", "MIGUEL ÍTALO MONTEIRO AMARAL", "NICOLLY MAIRA TEIXEIRA DA SILVA V", "NIKOLAS MATHEUS NUNES CURVELANO", "PEDRO HENRIQUE ALVES BUENO", "PIETRO DE ANDRADE PEREIRA AMARAL", "RAISSA GOMES DIAS DOS SANTOS", "SAMUEL DE ARAUJO MAGALHAES", "SAMUEL LUCAS COSTA DE AGUIAR", "SOPHIA GABRIELE PEREIRA DOS SANTO", "STHEPHANY KATLEN DE ALMEIDA LAPA", "VITORIA HANNA CASTRO APOSTOLO", "ANNA CLARA SOUSA COSTA", "VIVIAN FERREIRA FERNANDES", "DAVI LUCCA DA SILVA SOARES", "ANA SOPHIE MENDES DA ROCHA", "ISABELLA VITORIA VIEIRA LOPES"], "7B": ["ANA CLARA VITORINO SANTOS CARVALH", "ARTHUR PIETRO VELOSO CONRADO", "BERNARDO DINIZ DE SOUZA", "BRUNA FRAGOSO QUEIROZ", "CAROLINA FREIRE BORGES", "DANIEL DE ARAUJO SILVA", "DAVI ALVES RESENDE", "DAVI PHILLIP PEREIRA DA SILVA", "DERICK ALEJANDRO DOS SANTOS", "EDUARDO AUGUSTO SILVA DA ANUNCIAC", "GIOVANA JULIANE ANIZIO SANTOS", "JOSE GABRIEL MENEZES GUERRA", "JÚLIA DE CARVALHO SOARES", "JULIA MARIA CRISPIM SANTANA", "KAYO CRISTIANO RODRIGUES SILVA", "LEONARDO MIGUEL CAMPOS", "MARIA ALICE BRAGA LEONEL", "MARIA ALICE SANTOS COSTA", "MARIA EDUARDA DOS SANTOS SOUZA", "MARIA RITA NUNES SILVA", "MIGUEL COELHO DIAS", "NICOLAS DAMASCENO SALVADOR", "NICOLLE ESTER DE OLIVEIRA GUIMARA", "OLIVER ADRIANE ARAÚJO MENDONÇA", "PIETRA MENDES ALVES", "RAPHAEL DA SILVA LOBO", "SARA NICACIO NICOLAU", "SARAH EMANUELLY GONÇALVES DE DEUS", "SOPHYA GABRIELLY VIEIRA SOUZA", "EDUARDO GONCALVES FERNANDES"], "7C": ["AGATHA AMARAL DA SILVA", "ALICE GONÇALVES LAMAS", "ANNA LAURA FERREIRA DE MORAIS", "ARTHUR ANGELO FERNANDES CABRAL", "ARTHUR BORGES MONTEIRO", "ARTHUR GABRIEL DE PAULA MOREIRA", "AUGUSTO NOVAIS ASSIS XAVIER SILVA", "BERNARDO MIGUEL SILVA PEREIRA", "EMANUELLE GONÇALVES DA SILVA", "ENZO REIS PAULINO", "ESTHER SILVA DINIZ", "FABIO BATISTA SANTOS", "GABRIELLE STEFANNY SANTANA COSTA", "HADASSA GABRIELLE ALVES DE ARAUJO", "JOAO LUCAS SOARES ALVES", "JULIA VITORIA TIMOTEO DE PAULA", "KAUAN HENRIQUE MARINHO SOUZA", "LARA OLIVEIRA DE SOUZA", "LAURA GOMES GUIMARAES", "MANUELA VITÓRIA DINIZ LOURENÇO", "MARCELLA SOPHIA ROSA AVELAR LIMA", "MELYSSA ROSA GOMES MOREIRA", "PIETRO FRANCISCO ANDRADE DE PAULA", "SAMUEL DIAS FIDELIS ROSA", "SOFIA COSSO GUIMARAES DE SOUZA SI", "THALITA EMANUELLE SOUZA LIMA", "VICTOR LUCAS CARDOSO MENDES", "LORENZO GABRIEL SILVA LOPES", "ESTHER MARINNA ALVES COSTA", "SIDNEY ROBERTO MIRANDA FERNANDES"], "7D": ["ALANA LARISSA PEREIRA DE SA SILVA", "ARTHUR GONÇALVES FERREIRA", "BEATRIZ ALVES DE SOUZA", "BERNARDO LIMA VIANA DE CARVALHO", "BIANKA VITÓRIA REIS DE MENDONÇA", "CLARICE KELLY VIVEIROS BARBOSA", "DANIEL SILVEIRA SANTOS", "DAVI SOARES DE SOUSA", "HENRIQUE MEIRA URSINE", "HITALO HENRIQUE DA SILVA VIEIRA", "ISABELA ROCHA FERREIRA", "JUAN GUILHERME PEREIRA DA SILVA", "KAMILY GOMES SILVA LEITE", "LAURA MANUELA BRACARENSE AVILA DE", "LHUANNY GABRIELLE QUEIROZ", "LUCAS JUNIO VIEIRA ASSIS", "LUCAS RAFAEL BRAGANÇA DO NASCIMEN", "MARCELLO HENRIQUE FORTES COSTA", "MARIA JULIA DE SOUZA AZEVEDO", "NICOLAS RODRIGUES VIEIRA", "PIETRO AUGUSTO DE SOUZA RIBEIRO", "RYAN RAFAEL GUIMARAES DA SILVA", "SAMUEL SILVA NUNES SANTOS ROCHA", "SKARLETT GABRIELLY DE ALMEIDA LAP", "VALENTINA SANTANA TORRES", "WALLACE BRAYAN DOS SANTOS ALVES", "YASMIN MAGALHÃES KELER DIAS", "MARCELLO LIMA NOGUEIRA", "THIAGO MAGALHAES DA SILVA", "CAIO NASCIMENTO DANTAS DE PAULA"], "7E": ["ANA LUIZA GOMES ROSA", "BERNARDO DE PAULA GERMANO MOREIRA", "BERNARDO HENRIQUE DA SILVA MANGAB", "BERNARDO MIGUEL DE ALMEIDA", "CAIO BITENCORTE DINIZ", "EMANUELLE BEATRIZ GUIMARÃES REIS", "EMANUELLY VITORIA GOMES DE PAULA", "FERNANDA LIMA APARECIDA DE SOUZA", "GABRIEL XISTO DE JESUS OLIVEIRA", "GABRIELLY VITORIA FERREIRA PINTO", "ISAAC EMMANUEL SABINO FERNANDES", "ISABELLA LIMA DE SOUZA", "IZABEL ROCHA PAGLIONI", "KAIQUE CAMPOS ANDRADE", "LAURA LUÍSA FREITAS SANTOS", "LORENZO FONSECA ALVES", "LUIZ FERNANDO SILVA CRUZ", "MARIA ELISA SILVA PINTO", "MARIA FLOR FERNANDES DE SOUZA", "MARIA JULIA RIBEIRO VASCONCELOS", "MELISSA SANTARELLI SANTOS", "PEDRO HENRIQUE DE PAULA PEREIRA", "REBECA VITORIA CANGUSSU DE MIRAND", "ROBERT TAYLOR DOS SANTOS MONTEIRO", "SARAH MARIA BARBOSA SANTOS", "TALLES ARTHUR DE LIMA REIS", "GIOVANNA VITORIA RODRIGUES DE FRE", "GIOVANNA SOUZA DUARTE", "VITOR JUNIO MARTINS DE OLIVEIRA", "IZADORA EMANUELLY DE MOURA ANDRAD"], "8X": ["ARTHUR DIAS DOS SANTOS", "GUILHERME JÚNIO OLIVEIRA CRUZ", "KAUA HENRIQUE RIOS SILVA", "RICHARD FLÁVIO DE OLIVEIRA FARIA", "TAYLOR EDUARDO FERREIRA DA SILVA", "YURI EZEQUIEL MAGALHAES DE LIMA", "MARIA EDUARDA GONÇALVES RAMOS", "THIAGO GABRIEL MIGUEL ALVES"]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ANO={"6":"6º ano","7":"7º ano"};
+const lab=k=>(ANO[k[0]]||k[0]+"º ano")+" "+k.slice(1);
+const FK="geteco_alunos_flags_v1";let MEM={},OKS=true;
+function loadF(){try{return JSON.parse(localStorage.getItem(FK)||"{}")}catch(e){OKS=false;return MEM}}
+function saveF(F){try{localStorage.setItem(FK,JSON.stringify(F))}catch(e){OKS=false;MEM=F}}
+let F=loadF();
+const ALL=[];Object.keys(D).forEach(t=>D[t].forEach(n=>ALL.push({t,n,k:t+"|"+n})));
+$("tu").innerHTML='<option value="*">Todas as turmas</option>'+Object.keys(D).map(k=>`<option value="${k}">${lab(k)} (${D[k].length})</option>`).join("");
+const has=(k,c)=>(F[k]||"").includes(c);
+function tg(i,c,el){const k=ALL[i].k;let v=F[k]||"";v=el.checked?(v.includes(c)?v:v+c):v.replace(c,"");v=["I","A","R"].filter(x=>v.includes(x)).join("");if(v)F[k]=v;else delete F[k];saveF(F);el.closest("tr").classList.toggle("has",!!v);quadro();$("msg").textContent=OKS?"":"Atenção: este navegador não permitiu salvar. As marcações valem só até fechar a página."}
+function quadro(){
+ const ks=Object.keys(D);let T=[0,0,0,0];
+ const rows=ks.map(t=>{const a=D[t],c=[a.length,0,0,0];a.forEach(n=>{const v=F[t+"|"+n]||"";if(v.includes("I"))c[1]++;if(v.includes("A"))c[2]++;if(v.includes("R"))c[3]++});c.forEach((x,i)=>T[i]+=x);return `<tr><td>${lab(t)}</td><td class="c">${c[0]}</td><td class="c">${c[1]}</td><td class="c">${c[2]}</td><td class="c">${c[3]}</td></tr>`}).join("");
+ $("qd").innerHTML=`<b>Quadro geral</b><table style="margin-top:8px"><tr><th>Turma</th><th class="c">Estudantes</th><th class="c">Inclusão (I)</th><th class="c">Prova adaptada (A)</th><th class="c">Ambiente reservado (R)</th></tr>${rows}<tr><th>Total</th><th class="c">${T[0]}</th><th class="c">${T[1]}</th><th class="c">${T[2]}</th><th class="c">${T[3]}</th></tr></table>`;
+}
+function draw(){
+ const v=$("tu").value,q=$("q").value.trim().toLowerCase(),so=$("so").checked;
+ const h='<tr><th class="c" style="width:44px">Nº</th><th style="width:70px">Turma</th><th>Nome do estudante</th><th class="c">Inclusão (I)</th><th class="c">Prova adaptada (A)</th><th class="c">Ambiente reservado + monitor (R)</th></tr>';
+ let n=0,last="",out="";
+ ALL.forEach((x,i)=>{
+  if(v!=="*"&&x.t!==v)return;if(q&&!x.n.toLowerCase().includes(q))return;if(so&&!F[x.k])return;
+  if(x.t!==last){last=x.t;n=0}n++;
+  out+=`<tr class="${F[x.k]?"has":""}"><td class="c">${n}</td><td>${lab(x.t)}</td><td>${esc(x.n)}</td>`+["I","A","R"].map(c=>`<td class="c"><input type="checkbox" ${has(x.k,c)?"checked":""} onchange="tg(${i},'${c}',this)" aria-label="${c} ${esc(x.n)}"></td>`).join("")+"</tr>";
+ });
+ $("tb").innerHTML=h+(out||'<tr><td colspan="6" class="note">Nenhum estudante encontrado.</td></tr>');quadro();
+}
+function prSum(){
+ let o='<h2>Indicações dos estudantes – Prova Trimestral e Prova de Redação</h2><p>I = inclusão · A = prova adaptada · R = prova em ambiente reservado, com auxílio de monitor</p>',any=false;
+ Object.keys(D).forEach(t=>{const l=D[t].filter(n=>F[t+"|"+n]);if(!l.length)return;any=true;
+  o+=`<h3>${lab(t)}</h3><table><tr><th>Estudante</th><th style="width:14mm">I</th><th style="width:14mm">A</th><th style="width:14mm">R</th></tr>`+l.map(n=>{const v=F[t+"|"+n];return `<tr><td>${esc(n)}</td>`+["I","A","R"].map(c=>`<td style="text-align:center">${v.includes(c)?"✔":""}</td>`).join("")+"</tr>"}).join("")+"</table>"});
+ if(!any)o+="<p>Nenhuma indicação marcada.</p>";
+ $("sumP").innerHTML=o;document.body.classList.add("ps");try{window.print()}finally{setTimeout(()=>document.body.classList.remove("ps"),300)}
+}
+function clr(){if(!Object.keys(F).length||!confirm("Remover TODAS as indicações marcadas?"))return;F={};saveF(F);draw()}
+window.addEventListener("storage",e=>{if(e.key===FK){F=loadF();draw()}});
+draw();
+<\/script></body></html>
+</script>
 <script>
 const $=id=>document.getElementById(id);
 const SUPABASE=(()=>{try{return JSON.parse(localStorage.getItem("geteco_sb")||"{}")}catch(e){return{}}})();
@@ -2366,6 +2620,7 @@ function openApp(id,t){
  if(!f){f=document.createElement("iframe");f.id="f-"+id;f.title=t;f.srcdoc=$(id).textContent.replace(/<\\\/script/g,"</script").replace("<head>","<head><script>window.SBCFG="+JSON.stringify(SUPABASE)+"<\/script>");$("stage").appendChild(f)}
  document.querySelectorAll("#stage iframe").forEach(x=>x.hidden=x!==f);
  $("home").hidden=true;$("bar").hidden=false;$("stage").hidden=false;$("ttl").textContent=t;
+ if(id==="a3"||id==="a4"){try{f.contentWindow.draw()}catch(e){}}
 }
 function goHome(){$("stage").hidden=true;$("bar").hidden=true;$("home").hidden=false}
 </script>
