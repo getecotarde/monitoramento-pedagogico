@@ -571,7 +571,7 @@ async function gen(){
   if(q.some(x=>nA(x)<4))menos4=true;
  });
  if(menos4)w.push("Nesta prova há questões com menos de 4 alternativas.");
- const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const leg=[],secs=[];
+ const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const qls=[];const leg=[],secs=[];
  sel.forEach(({s,q})=>{
   if(!q.length)return;const a=n+1;
   const cur={name:s.name,a,cnt:q.length,sig:hs(JSON.stringify(["v3",pv,a,q.map(x=>[x.stem,x.alts,x.imgs,x.tid]),(s.txs||[]).filter(t=>q.some(x=>x.tid===t.id))])),html:""};secs.push(cur);
@@ -581,6 +581,7 @@ async function gen(){
    if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;cur.html+=txHtml(t,n,n+e-k)}}
    const alts=L.map((l,j)=>(!UL.includes(l)||!String(x.alts[j]||"").trim())?"":`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
    cur.html+=`<div class="q"><div class="qs"><b>${p2(n)}.</b> <b class="qv">(${pv})</b> ${cmd(br(x.stem))}</div>${x.imgs&&x.imgs.length?`<div class="qb"><div class="qa">${alts}</div>${imgsH(x)}</div>`:alts}</div>`;
+   qls.push(L.filter((l,j)=>UL.includes(l)&&String(x.alts[j]||"").trim()));
    rows+=`<tr><td>${p2(n)}</td><td>${s.name}</td><td><b>${x.ans||"?"}</b></td><td>${f2(pq)}</td></tr>`;
   });
  });
@@ -597,10 +598,10 @@ async function gen(){
  }
  body=secs.map(x=>x.html).join("");
  const nb={};secs.forEach(x=>{nb[x.name]=keptNames.includes(x.name)?oldB[x.name]:{sig:x.sig}});
- const C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
- const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${UL.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
+ const isADm=$("mod").value==="Adaptada",C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
+ const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${(isADm&&qls[i-1]&&qls[i-1].length?qls[i-1]:UL).map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
  const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade <b>${esc($("mod").value)}</b></div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
- const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com ${UL.length} alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
+ const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com ${isADm?"até ":""}${UL.length} alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
  const key=`<div class="paper">${h.t}<h2>Gabarito do professor <small>– ${esc($("serie").value)}</small></h2><table class="kt"><tr><th>Nº</th><th>Disciplina</th><th>Resposta</th><th>Valor</th></tr>${rows}</table><p class="kn">Total: ${n} questões · ${f2(h.v)} pontos</p></div>`;
  $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key,base:nb};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
  const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
