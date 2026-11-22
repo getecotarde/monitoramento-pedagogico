@@ -255,6 +255,8 @@ body.mod-ad #mod{background:#ffd60a;color:#000;border-color:#000;font-weight:700
      <label style="display:flex;gap:6px;align-items:center">Tamanho <input type="range" id="imgSz" min="10" max="100" step="5" oninput="imgSize(this.value)"> <span id="imgPct"></span></label>
      <button onclick="imgPos('left')">À esquerda do texto</button><button onclick="imgPos('right')">À direita do texto</button>
      <button onclick="imgPos('top')">Acima do texto</button><button onclick="imgPos('bottom')">Abaixo do texto</button>
+     <span id="imgGrp" style="display:none;flex-direction:column;gap:6px"><span class="sm">Várias imagens neste grupo:</span>
+      <button data-g="row" onclick="imgGroup('row')">Lado a lado</button><button data-g="col" onclick="imgGroup('col')">Uma embaixo da outra</button><button data-g="" onclick="imgGroup('')">Automático</button></span>
      <button onclick="imgReset()">Restaurar imagem</button></span></div>
   </div>
  </aside>
@@ -471,6 +473,14 @@ const PCSS=`.paper{position:relative;background:#fff;color:#111;font:11.5pt/1.35
 .paper .qb.fl.wide:not(.p-l):not(.p-r) .qi,.paper .qb.fl.p-t .qi,.paper .qb.fl.p-b .qi{float:none;width:100%;margin:0 auto 2mm}
 .paper .qb.fl.wide:not(.p-l):not(.p-r) .qi img{max-height:42mm}
 .paper .qb.fl.p-b{display:flex;flex-direction:column}.paper .qb.fl.p-b .qa{flex:none}.paper .qb.fl.p-b .qi{order:1;margin:2mm auto 0}
+/* Várias imagens do mesmo grupo (questão ou texto de apoio), por escolha: "Lado a lado" (g-row) ou "Uma embaixo da outra" (g-col) */
+.paper .qb .qi.qi.g-row{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:2mm}
+.paper .qb .qi.qi.g-row.n2 img{display:block;max-width:48%;max-height:42mm;margin:0}
+.paper .qb .qi.qi.g-row.n3 img{display:block;max-width:31%;max-height:34mm;margin:0}
+.paper .qb .qi.qi.g-row.n4 img{display:block;max-width:48%;max-height:30mm;margin:0}
+.paper .qb .qi.qi.g-col{display:flex;flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-items:center;gap:2mm}
+.paper .qb .qi.qi.g-col img{display:block;max-width:100%;max-height:42mm;margin:0}
+.paper .qb .qi.qi.g-col.n3 img,.paper .qb .qi.qi.g-col.n4 img{max-height:32mm}
 .paper .pb{break-before:page;page-break-before:always;break-inside:avoid;border-top:2px dashed #8a99a6;margin-top:10mm;padding-top:8mm}
 .paper table.kt{width:100%;border-collapse:collapse}.paper table.kt th,.paper table.kt td{border:1px solid #111;padding:3px 8px;text-align:left}.paper table.kt th{background:#eceff1;-webkit-print-color-adjust:exact;print-color-adjust:exact}.paper .kn{margin:3mm 0 0}
 .paper .tx{border:.8pt solid #111;background:#f6f6f6;padding:6px 9px;margin:6px 0 10px;font-size:10.5pt;line-height:1.35;text-align:justify;-webkit-print-color-adjust:exact;print-color-adjust:exact}.paper .tx .ti{margin:0 0 4px;font-weight:700;font-size:10pt;break-after:avoid}
@@ -548,13 +558,16 @@ async function snapBase(k,ref){
 }
 async function gen(){
  const h=head(),sel=S.map(s=>({s,q:s.qs.filter(q=>q.inc).slice(0,s.n)}));
- const total=sel.reduce((a,x)=>a+(OPT(x.s.name)&&!x.q.length?0:x.s.n),0),w=[];
+ /* Letras de alternativa realmente usadas: se uma letra (ex.: D) não existir em NENHUMA das questões, ela some da prova, do cartão-resposta e do texto das instruções. */
+ const UL0=L.filter((l,j)=>sel.some(({q})=>q.some(x=>String(x.alts[j]||"").trim()))),UL=UL0.length?UL0:L;
+ const total=sel.reduce((a,x)=>a+(OPT(x.s.name)&&!x.q.length?0:x.s.n),0),w=[];let menos4=false;
  sel.forEach(({s,q})=>{
   if(q.length<s.n&&!(OPT(s.name)&&!q.length))w.push(`${s.name}: faltam ${s.n-q.length} questão(ões) (${q.length} de ${s.n}).`);
   if(s.qs.filter(x=>x.inc).length>s.n)w.push(`${s.name}: há mais questões marcadas do que o necessário; foram usadas as ${s.n} primeiras.`);
   const sg=q.filter(x=>!x.ans).length;if(sg)w.push(`${s.name}: ${sg} questão(ões) sem resposta no gabarito.`);
-  q.forEach((x,k)=>{if(nA(x)<4)w.push(`${s.name}, questão ${k+1}: menos de 4 alternativas.`)});
+  if(q.some(x=>nA(x)<4))menos4=true;
  });
+ if(menos4)w.push("Nesta prova há questões com menos de 4 alternativas.");
  const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const leg=[],secs=[];
  sel.forEach(({s,q})=>{
   if(!q.length)return;const a=n+1;
@@ -563,7 +576,7 @@ async function gen(){
   q.forEach((x,k)=>{
    n++;
    if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;cur.html+=txHtml(t,n,n+e-k)}}
-   const alts=L.map((l,j)=>`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
+   const alts=L.map((l,j)=>(!UL.includes(l)||(!String(x.alts[j]||"").trim()&&!(x.imgs&&x.imgs.length)))?"":`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
    cur.html+=`<div class="q"><div class="qs"><b>${p2(n)}.</b> <b class="qv">(${pv})</b> ${cmd(br(x.stem))}</div>${x.imgs&&x.imgs.length?`<div class="qb"><div class="qa">${alts}</div>${imgsH(x)}</div>`:alts}</div>`;
    rows+=`<tr><td>${p2(n)}</td><td>${s.name}</td><td><b>${x.ans||"?"}</b></td><td>${f2(pq)}</td></tr>`;
   });
@@ -582,9 +595,9 @@ async function gen(){
  body=secs.map(x=>x.html).join("");
  const nb={};secs.forEach(x=>{nb[x.name]=keptNames.includes(x.name)?oldB[x.name]:{sig:x.sig}});
  const C=Math.min(5,Math.max(2,Math.ceil(n/12))),per=Math.max(1,Math.ceil(n/C)),rh=Math.max(5.5,Math.min(9,80/per)).toFixed(1),bs=Math.min(7,rh-1.3).toFixed(1);
- const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${L.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
+ const cols=Array.from({length:C},(_,c)=>c).map(c=>{let r="";for(let i=c*per+1;i<=Math.min(n,(c+1)*per);i++)r+=`<div class="rw" style="height:${rh}mm;line-height:${rh}mm"><b class="rn">${p2(i)}</b>${UL.map(l=>`<span class="bb" style="width:${bs}mm;height:${bs}mm;line-height:${(bs-1.1).toFixed(1)}mm">${l}</span>`).join("")}</div>`;return `<td style="width:${(100/C).toFixed(2)}%">${r}</td>`}).join("");
  const card=`<div class="cbox cfp"><div class="cin"><div class="chd"><img class="clg" src="${LOGO}" alt="Logo GETECO"><div class="ctw"><div class="ct">CARTÃO-RESPOSTA</div><div class="cs">Avaliação Trimestral Multidisciplinar · ${esc($("tri").value)} · ${esc($("serie").value)} · Modalidade ${esc($("mod").value)}</div></div></div><table class="id cid"><tr><td style="width:50%;height:17mm"><small>Nome</small></td><td style="width:14%"><small>Turma</small></td><td style="width:18%"><small>Nº de acertos</small><span class="ac" style="margin-top:3mm">/ ${n}</span></td><td style="width:18%"><small>Nota</small><span class="ac" style="margin-top:3mm">/ ${f2(h.v)}</span></td></tr></table><div class="ci"><b>Como marcar:</b> preencha totalmente o círculo da alternativa escolhida, com caneta esferográfica azul ou preta. Marque apenas uma alternativa por questão. Não use corretivo, não rasure, não dobre nem amasse este cartão.</div><div class="cl">${leg.join(" · ")}</div><div class="abox c1"><i class="fid tl"></i><i class="fid tr"></i><i class="fid bl"></i><i class="fid br"></i><table class="gr c${C}"><tr>${cols}</tr></table></div></div></div>`;
- const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com 4 alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
+ const exam=`<div class="paper">${hdr(`<div class="nt"><div class="vl">Valor: <b>${f2(h.v)}</b></div><div class="nl">Nota: <span class="wb"></span></div></div>`)}${idt($("dt").value)}<div class="ins"><div class="ih">INSTRUÇÕES</div><ol><li>Esta prova contém <b>${n} questões objetivas</b>, cada uma com ${UL.length} alternativas e <b>apenas uma</b> correta. Cada questão vale <b>${pv} ponto</b> (total: <b>${f2(h.v)} pontos</b>).</li><li>Marque as respostas no <b>cartão-resposta</b> (última folha desta prova), com caneta esferográfica azul ou preta.</li><li>Marque apenas uma alternativa por questão. Não use corretivo nem rasure o cartão-resposta.</li><li>Leia cada questão com atenção antes de responder.</li></ol></div>${body}<div class="cardpg pb">${card}</div></div>`;
  const key=`<div class="paper">${h.t}<h2>Gabarito do professor <small>– ${esc($("serie").value)}</small></h2><table class="kt"><tr><th>Nº</th><th>Disciplina</th><th>Resposta</th><th>Valor</th></tr>${rows}</table><p class="kn">Total: ${n} questões · ${f2(h.v)} pontos</p></div>`;
  $("examOut").innerHTML=exam;$("keyOut").innerHTML=key;last={exam,key};OUT[KEY]={exam,key,base:nb};$("examOut").contentEditable="true";$("keyOut").contentEditable="true";
  const wb=$("warn");wb.hidden=!w.length;wb.innerHTML=w.length?"<b>Atenção antes de imprimir:</b><ul>"+w.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":"";
@@ -625,15 +638,17 @@ window.addEventListener("beforeprint",keepTx);
 function pr(w){selImg(null);document.body.dataset.p=w;if(w==="exam"){try{setPgNum(examPages())}catch(e){}}try{window.print()}catch(e){alert("A impressão não está disponível aqui. Use “Baixar” e imprima o arquivo.")}}
 function wordTable(qb){
  const qa=qb.querySelector(".qa"),qi=qb.querySelector(".qi");if(!qa||!qi)return;
+ const gc=qi.classList.contains("g-col"),mkBr=()=>document.createElement("br");
  if(qb.classList.contains("fl")){
   const c=qb.classList,pos=c.contains("p-b")?"b":c.contains("p-t")?"t":c.contains("p-l")?"l":c.contains("p-r")?"r":c.contains("wide")?"t":"r",
    ims=[...qi.querySelectorAll("img")],tt=qa.firstElementChild||qa;
-  if(pos==="t"||pos==="b"){const p=document.createElement("p");p.setAttribute("align",qi.style.textAlign||"center");ims.forEach(i=>p.appendChild(i));qb.replaceWith(...(pos==="t"?[p,...qa.childNodes]:[...qa.childNodes,p]))}
+  if(pos==="t"||pos==="b"){const p=document.createElement("p");p.setAttribute("align",qi.style.textAlign||"center");ims.forEach((i,k)=>{if(gc&&k)p.appendChild(mkBr());p.appendChild(i)});qb.replaceWith(...(pos==="t"?[p,...qa.childNodes]:[...qa.childNodes,p]))}
+  else if(gc&&ims.length>1){const tb=document.createElement("table");tb.setAttribute("align",pos==="l"?"left":"right");tb.setAttribute("cellspacing","0");tb.setAttribute("cellpadding","4");tb.setAttribute("border","0");ims.forEach(i=>{const tr=document.createElement("tr"),td=document.createElement("td");td.appendChild(i);tr.appendChild(td);tb.appendChild(tr)});tt.insertBefore(tb,tt.firstChild);qb.replaceWith(...qa.childNodes)}
   else{ims.slice().reverse().forEach(i=>{i.setAttribute("align",pos==="l"?"left":"right");i.setAttribute("hspace","8");i.setAttribute("vspace","3");tt.insertBefore(i,tt.firstChild)});qb.replaceWith(...qa.childNodes)}
   return}
  const fd=qb.style.flexDirection,col=fd?fd==="column":qb.classList.contains("wide"),first=qi.style.order==="-1";
  const t=document.createElement("table");t.setAttribute("width","100%");t.setAttribute("cellspacing","0");t.setAttribute("cellpadding","0");t.setAttribute("border","0");
- const mk=(el,wd,al)=>{const td=document.createElement("td");td.setAttribute("valign","top");if(wd)td.setAttribute("width",wd);if(al)td.setAttribute("align",al);td.innerHTML=el.innerHTML;return td};
+ const mk=(el,wd,al)=>{const td=document.createElement("td");td.setAttribute("valign","top");if(wd)td.setAttribute("width",wd);if(al)td.setAttribute("align",al);td.innerHTML=el.innerHTML;if(el===qi&&gc)td.querySelectorAll("img").forEach((im,k)=>{if(k)im.before(mkBr())});return td};
  const cells=[mk(qa,col?"":"58%"),mk(qi,col?"":"42%",qi.style.textAlign||"center")];if(first)cells.reverse();
  if(col)cells.forEach(td=>{const tr=document.createElement("tr");tr.appendChild(td);t.appendChild(tr)});
  else{const tr=document.createElement("tr");cells.forEach(td=>tr.appendChild(td));t.appendChild(tr)}
@@ -903,6 +918,8 @@ function selImg(im){
  if(SELIMG)SELIMG.classList.remove("sel");SELIMG=im;
  $("imgCtl").style.display=im?"flex":"none";$("imgHint").style.display=im?"none":"";
  if(!im){posHandle();return}im.classList.add("sel");
+ const gi=im.closest(".qi"),ng=gi.querySelectorAll("img").length,gm=gi.classList.contains("g-row")?"row":gi.classList.contains("g-col")?"col":"";
+ $("imgGrp").style.display=ng>1?"flex":"none";$("imgGrp").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.g===gm));
  const qi=im.closest(".qi"),qb=im.closest(".qb"),one=qi.querySelectorAll("img").length===1;
  const r=one?qi.getBoundingClientRect().width/qb.getBoundingClientRect().width:im.getBoundingClientRect().width/qi.getBoundingClientRect().width;
  $("imgSz").value=Math.round(Math.max(10,Math.min(100,r*100))/5)*5;$("imgPct").textContent=$("imgSz").value+"%";posHandle();
@@ -920,8 +937,16 @@ function imgPos(p){
  qa.style.flex=col?"none":"1 1 0";qa.style.width=col?"100%":"";
  qi.style.order=(p==="left"||p==="top")?"-1":"1";imgSize($("imgSz").value);
 }
+function imgGroup(m){
+ const im=SELIMG;if(!im)return;const qi=im.closest(".qi");
+ if(qi.querySelectorAll("img").length<2){$("fmtMsg").textContent="Este grupo tem só uma imagem.";return}
+ qi.classList.remove("g-row","g-col");if(m)qi.classList.add("g-"+m);
+ qi.style.flexDirection="";qi.style.justifyContent="";
+ selImg(im);save();
+ $("fmtMsg").textContent=m==="row"?"Imagens lado a lado.":m==="col"?"Imagens uma embaixo da outra.":"Disposição automática das imagens.";
+}
 function imgReset(){
- const im=SELIMG;if(!im)return;im.closest(".qb").classList.remove("p-l","p-r","p-t","p-b");
+ const im=SELIMG;if(!im)return;im.closest(".qi").classList.remove("g-row","g-col");im.closest(".qb").classList.remove("p-l","p-r","p-t","p-b");
  [im,im.closest(".qi"),im.closest(".qb"),im.closest(".qb").querySelector(".qa")].forEach(e=>e.removeAttribute("style"));selImg(im);save();
 }
 function lh(v){
