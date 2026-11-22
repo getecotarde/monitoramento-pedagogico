@@ -360,7 +360,10 @@ function parse(bl){
   }
   if(m=t.match(qre)){
    shut();
-   if(cur&&!cur.num&&nA(cur)===0&&cur.stem.length>=120){const id="t"+(txs.length+1);txs.push({id,body:cur.stem.trim(),imgs:[...cur.imgs]});actT=id;qs.splice(qs.indexOf(cur),1);mk(m[2],b.imgs,m[1])}
+   /* Título + texto de apoio numerados (ex.: "1. A IMPORTÂNCIA DA LEITURA" + imagem + texto, seguido de "QUESTÃO 1 – ..."):
+      o bloco anterior tem o MESMO número, nenhuma alternativa e conteúdo próprio => é texto de apoio (com imagem), não uma questão. */
+   if(cur&&nA(cur)===0&&cur.num&&cur.num===m[1]&&(cur.stem.trim()||cur.imgs.length)){const id="t"+(txs.length+1);txs.push({id,body:cur.stem.trim(),imgs:[...cur.imgs]});actT=id;qs.splice(qs.indexOf(cur),1);mk(m[2],b.imgs,m[1])}
+   else if(cur&&!cur.num&&nA(cur)===0&&cur.stem.length>=120){const id="t"+(txs.length+1);txs.push({id,body:cur.stem.trim(),imgs:[...cur.imgs]});actT=id;qs.splice(qs.indexOf(cur),1);mk(m[2],b.imgs,m[1])}
    else if(cur&&!cur.num&&nA(cur)===0){cur.num=m[1];cur.stem=(cur.stem+"\n"+m[2]).trim();cur.imgs.push(...b.imgs)}
    else mk(m[2],b.imgs,m[1]);
    continue;
