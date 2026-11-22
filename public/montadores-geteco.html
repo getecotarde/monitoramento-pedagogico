@@ -574,12 +574,12 @@ async function gen(){
  const pq=h.v;h.v=pq*total;const pv=String(+pq.toFixed(1)).replace(".",",");let n=0,body="",rows="";const leg=[],secs=[];
  sel.forEach(({s,q})=>{
   if(!q.length)return;const a=n+1;
-  const cur={name:s.name,a,cnt:q.length,sig:hs(JSON.stringify([pv,a,q.map(x=>[x.stem,x.alts,x.imgs,x.tid]),(s.txs||[]).filter(t=>q.some(x=>x.tid===t.id))])),html:""};secs.push(cur);
+  const cur={name:s.name,a,cnt:q.length,sig:hs(JSON.stringify(["v3",pv,a,q.map(x=>[x.stem,x.alts,x.imgs,x.tid]),(s.txs||[]).filter(t=>q.some(x=>x.tid===t.id))])),html:""};secs.push(cur);
   cur.html+=`<h2>${s.name} <small>(questões ${p2(a)} a ${p2(n+q.length)})</small></h2>`;leg.push(`${s.name} ${p2(a)}–${p2(n+q.length)}`);
   q.forEach((x,k)=>{
    n++;
    if(x.tid&&(k===0||q[k-1].tid!==x.tid)){const t=(s.txs||[]).find(y=>y.id===x.tid);if(t){let e=k;while(e+1<q.length&&q[e+1].tid===x.tid)e++;cur.html+=txHtml(t,n,n+e-k)}}
-   const alts=L.map((l,j)=>(!UL.includes(l)||(!String(x.alts[j]||"").trim()&&!(x.imgs&&x.imgs.length)))?"":`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
+   const alts=L.map((l,j)=>(!UL.includes(l)||!String(x.alts[j]||"").trim())?"":`<div class="alt"><b>(${l})</b> ${esc(x.alts[j])}</div>`).join("");
    cur.html+=`<div class="q"><div class="qs"><b>${p2(n)}.</b> <b class="qv">(${pv})</b> ${cmd(br(x.stem))}</div>${x.imgs&&x.imgs.length?`<div class="qb"><div class="qa">${alts}</div>${imgsH(x)}</div>`:alts}</div>`;
    rows+=`<tr><td>${p2(n)}</td><td>${s.name}</td><td><b>${x.ans||"?"}</b></td><td>${f2(pq)}</td></tr>`;
   });
