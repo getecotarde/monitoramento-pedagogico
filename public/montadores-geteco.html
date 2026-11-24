@@ -621,9 +621,10 @@ function examPages(root){
  m.appendChild(c);document.body.appendChild(m);
  const w=m.getBoundingClientRect().width,n=Math.max(1,Math.round(m.scrollWidth/w));m.remove();return n}
 const PGCSS="font:7.5pt Arial,Helvetica,sans-serif;color:#222;vertical-align:top;text-align:right;padding:1.3mm 0 0 0";
+/* Adaptada: sem identificação no rodapé, só a numeração das páginas. Regular mantém. */
 /* identificação da prova no rodapé (centralizada, fonte menor, na mesma linha da numeração): bloco + tipo, ex.: "6º ano - turmas ABC · Regular" */
 const PGLAB="font:6.5pt Arial,Helvetica,sans-serif;color:#222;vertical-align:top;text-align:center;padding:1.6mm 0 0 0;white-space:nowrap";
-const pgLab=()=>{let t="";try{t=String($("serie").value||"").trim()+" · "+String($("mod").value||"").trim()}catch(e){}return t.replace(/[\\"\n\r]/g," ")};
+const pgLab=()=>{let t="";try{if(String($("mod").value||"").trim()==="Adaptada")return "";t=String($("serie").value||"").trim()+" · "+String($("mod").value||"").trim()}catch(e){}return t.replace(/[\\"\n\r]/g," ")};
 const pgCss=n=>{const Q=k=>Array.from({length:k},(_,i)=>'"'+(i+1)+'"').join(" ");
  /* total = nº real de folhas do documento (counter(pages)) menos 1, porque a última folha é o cartão-resposta, sem numeração.
     "system:fixed 2" faz o valor 2 virar "1", 3 virar "2"... Se o navegador não souber counter(pages), cai na estimativa n. */
