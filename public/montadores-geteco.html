@@ -2373,7 +2373,7 @@ label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem
 input,select{font:inherit;padding:9px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink)}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ac);background:var(--ac);color:var(--acx);padding:10px 18px;font-weight:700}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.note{color:var(--mut);font-size:.88rem}
-.sheet{background:#fff;color:#000;width:210mm;height:277mm;margin:0 auto 18px;padding:0;box-shadow:0 4px 24px rgba(0,0,0,.18);font:10pt Arial,Helvetica,sans-serif;overflow:hidden}
+.sheet{background:#fff;color:#000;width:190mm;height:276mm;margin:0 auto 18px;padding:0;box-shadow:0 4px 24px rgba(0,0,0,.18);font:10pt Arial,Helvetica,sans-serif;overflow:hidden}
 .sheet .hd{display:flex;align-items:center;gap:4mm;border:1.2pt solid #000;padding:2.5mm 4mm;margin:0 0 3mm}
 .sheet .hd img{height:17mm;width:auto}.sheet .hd .tt{flex:1;text-align:center;line-height:1.3}
 .sheet .e{font-size:10pt;font-weight:700}.sheet .t{font-size:13pt;font-weight:700;letter-spacing:.04em}.sheet .t2{font-size:10pt}
@@ -2384,12 +2384,12 @@ button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ac);
 .sheet table.ls th,.sheet table.ls td{border:1pt solid #000;padding:0 2mm;font-size:10pt;text-align:left;white-space:nowrap;overflow:hidden}
 .sheet table.ls th{background:#e9edf0;font-size:9pt;letter-spacing:.06em;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sheet table.ls td.n{width:11mm;text-align:center;padding:0}
-.sheet table.ls td.ind{width:20mm;text-align:center;font-weight:700;letter-spacing:.12em;padding:0}.sheet table.ls td.ob{white-space:normal;font-size:9pt;font-weight:700}.sheet .lgd{margin-top:2mm;font-size:8pt}
+.sheet table.ls td.ind{width:20mm;text-align:center;font-weight:700;letter-spacing:.12em;padding:0}.sheet table.ls td.ob{white-space:normal;font-size:8.5pt;font-weight:700;line-height:1.12;padding:.3mm 2mm}.sheet .lgd{margin-top:2mm;font-size:8pt}
 .sheet .ft{margin-top:2mm;font-size:8pt;color:#333;text-align:right}
 @media print{
  @page{size:A4;margin:10mm}
  body{background:#fff}.ui{max-width:none;padding:0}.noprint{display:none!important}
- .sheet{box-shadow:none;margin:0;width:190mm;max-width:100%;height:276mm;overflow:visible;break-after:page;page-break-after:always}.sheet:last-child{break-after:auto;page-break-after:auto}
+ .sheet{box-shadow:none;margin:0;width:190mm;max-width:100%;height:276mm;overflow:hidden;break-after:page;page-break-after:always}.sheet:last-child{break-after:auto;page-break-after:auto}
 }
 </style></head><body><div class="ui">
 <div class="noprint">
@@ -2433,7 +2433,11 @@ function sheet(k,x,tp){
  `<table class="id"><tr><td style="width:22%"><small>Turma</small><b>${lab(k)}</b></td><td><small>${pt}</small>${esc(px)}</td><td style="width:20%"><small>Data</small><b>${pd}</b></td></tr><tr><td colspan="3"><small>Professor aplicador</small>${esc($("pf").value)}&nbsp;</td></tr></table>`+
  `<table class="ls"><tr style="height:${P?12:7}mm"><th class="n" style="width:11mm;text-align:center;padding:0">Nº</th>${head}</tr>${rows}</table>${resumo}<div class="ft">${pt} · ${n} estudantes · ${lab(k)} · ${P?"via do professor":"via para assinatura dos estudantes"}</div></div>`;
 }
-function draw(){const v=$("tu").value,a=$("at").value,t=$("tp").value,ks=v==="*"?Object.keys(D):[v],as=a==="*"?["T","R"]:[a],ts=t==="*"?["A","P"]:[t],h=[];ks.forEach(k=>as.forEach(x=>ts.forEach(p=>h.push(sheet(k,x,p)))));$("out").innerHTML=h.join("");$("nt").textContent=h.length+" folha(s) A4."}
+function draw(){const v=$("tu").value,a=$("at").value,t=$("tp").value,ks=v==="*"?Object.keys(D):[v],as=a==="*"?["T","R"]:[a],ts=t==="*"?["A","P"]:[t],h=[];ks.forEach(k=>as.forEach(x=>ts.forEach(p=>h.push(sheet(k,x,p)))));$("out").innerHTML=h.join("");$("nt").textContent=h.length+" folha(s) A4.";fit()}
+function fit(){document.querySelectorAll(".sheet").forEach(sh=>{const rs=[...sh.querySelectorAll("table.ls tr")].slice(1);if(!rs.length)return;let h=parseFloat(rs[0].style.height)||6,fs=8.5,g=0;
+  const over=()=>sh.scrollHeight>sh.clientHeight+1;
+  while(over()&&g++<80){if(h>4){h=Math.max(4,h-.2);rs.forEach(r=>r.style.height=h+"mm")}else if(fs>6.5){fs-=.25;sh.querySelectorAll("td.ob").forEach(c=>c.style.fontSize=fs+"pt")}else break}})}
+window.addEventListener("beforeprint",fit);
 draw();
 window.addEventListener("storage",draw);
 <\/script></body></html>
