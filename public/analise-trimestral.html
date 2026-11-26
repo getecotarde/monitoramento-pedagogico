@@ -362,6 +362,8 @@ body{
   .fbp-table tr{ break-inside:avoid; page-break-inside:avoid; }
   .fbp-table tr.ant td{ background:#f7b9b0; font-weight:700; }
   .fbp-leg{ margin-top:6px; font-size:9.5px; color:#000; line-height:1.35; }
+  .fbp-sec{ margin-bottom:18px; break-inside:avoid; page-break-inside:avoid; }
+  .fbp-sec:last-child{ margin-bottom:0; }
   body.print-mode-class-table .app{ display:none !important; }
   body.print-mode-class-table .print-class-table-doc{ display:block !important; page:classtable; }
   .ct-page{ page-break-after:always; break-after:page; }
@@ -4047,8 +4049,21 @@ function fbExportCsv(){
   a.download = 'fica-biretidos.csv'; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 }
-const FB_FILTRO_TXT = { todos:'Todos os alunos', fica:'Somente alunos do FICA', bi:'Somente bi-retidos', ant:'Bi-retidos com recuperação final a antecipar', sem:'Alunos sem marcação' };
-function fbPassa(x, r){ const f = fbState.filtro; return f==='fica' ? x.f : f==='bi' ? x.b : f==='ant' ? (x.b && !!r) : f==='sem' ? (!x.f && !x.b) : true; }
+const FB_FILTRO_TXT = {
+  fica: 'Só FICA',
+  bi: 'Só bi-retidos',
+  ambos: 'FICA e bi-retidos',
+  todos: 'Mostrar todos',
+  sem: 'Todos exceto FICA e bi-retidos'
+};
+function fbPassa(x){
+  const f = fbState.filtro;
+  if(f === 'fica') return x.f && !x.b;
+  if(f === 'bi') return x.b && !x.f;
+  if(f === 'ambos') return x.f && x.b;
+  if(f === 'sem') return !x.f && !x.b;
+  return true;
+}
 // Listagem em PDF (impressão): turmas selecionadas, respeitando o filtro e a busca da tela. Uma folha por turma.
 function fbPrint(){
   const sel = fbSelNames(); if(!sel.length) return;
@@ -4067,7 +4082,7 @@ function fbPrint(){
     }).filter(Boolean);
     if(!rows.length) return '';
     total += rows.length;
-    return `<div class="ct-page"><div class="fbp-titulo">FICA / Bi-retidos — ${escHtml(shortTurmaLabel(n))}</div>
+    return `<div class="fbp-sec"><div class="fbp-titulo">FICA / Bi-retidos — ${escHtml(shortTurmaLabel(n))}</div>
       <div class="fbp-sub">${escHtml(FB_FILTRO_TXT[fbState.filtro]||'')}${q?' · busca: “'+escHtml(fbState.busca)+'”':''} · ${rows.length} aluno${rows.length===1?'':'s'}${nant?' · '+nant+' com recuperação final a antecipar':''} · emitido em ${hoje}</div>
       <table class="fbp-table"><thead><tr><th>#</th><th>Aluno</th><th class="c">FICA</th><th class="c">Bi-retido</th><th>Antecipar recuperação final imediatamente (risco de O.E.R)</th></tr></thead>
       <tbody>${rows.join('')}</tbody></table>
@@ -4127,11 +4142,11 @@ function renderFicaBiTab(){
     <div class="fb-tools">
       <input type="text" id="fbBusca" class="rep-filtro" style="min-width:240px" placeholder="Buscar aluno pelo nome…" value="${escHtml(fbState.busca)}">
       <select id="fbFiltro" class="tri-select">
-        <option value="todos" ${fbState.filtro==='todos'?'selected':''}>Mostrar: todos</option>
+        <option value="todos" ${fbState.filtro==='todos'?'selected':''}>Mostrar todos</option>
         <option value="fica" ${fbState.filtro==='fica'?'selected':''}>Só FICA</option>
-        <option value="bi" ${fbState.filtro==='bi'?'selected':''}>Só bi-retidos</option>
-        <option value="ant" ${fbState.filtro==='ant'?'selected':''}>Bi-retidos com recuperação a antecipar</option>
-        <option value="sem" ${fbState.filtro==='sem'?'selected':''}>Sem marcação</option>
+        <option value="bi" ${fbState.filtro==='bi'?'selected':''}>Só bi-retido</option>
+        <option value="ambos" ${fbState.filtro==='ambos'?'selected':''}>FICA e bi-retido</option>
+        <option value="sem" ${fbState.filtro==='sem'?'selected':''}>Todos exceto FICA e bi-retidos</option>
       </select>
       <button class="print-btn" id="fbExp" ${sel.length?'':'disabled'}>⬇ Exportar planilha (CSV)</button>
       <button class="print-btn" id="fbPrt" ${sel.length?'':'disabled'} title="Imprime/salva em PDF a listagem das turmas selecionadas, com o filtro e a busca atuais">🖨 Imprimir listagem (PDF)</button>
