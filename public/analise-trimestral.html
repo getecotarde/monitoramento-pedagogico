@@ -757,6 +757,13 @@ body{
 .qd-table th.qd-d span{ display:inline-block; writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font-size:7.2pt; line-height:1.1; }
 .qd-table tr{ break-inside:avoid; page-break-inside:avoid; }
 .qd-table thead{ display:table-header-group; }
+.fb-tag{display:inline-block; font-size:.72em; font-weight:800; border:1.6px solid #000; border-radius:4px; padding:0 3px; margin-left:3px; line-height:1.3; vertical-align:middle; white-space:nowrap; background:#fff; color:#000; text-transform:uppercase;}
+.fb-tag.b{border-style:dashed; background:#e4e4e4;}
+.qd-table td.qd-fb{ line-height:1.35; }
+.qd-table td.qd-fb .fb-tag{ font-size:1em; margin:0; display:block; text-align:center; }
+.qd-table td.qd-fb .fb-tag + .fb-tag{ margin-top:1px; }
+.qd-table tr.fbr td.nm{ font-weight:800; }
+.rp-page.mf9 .qd-table td.qd-fb{ font-size:calc(9pt * var(--sf,1)); }
 .qd-table td.x{ font-weight:900; font-size:11pt; background:#e4e4e4; }
 .qd-table td.nm{ font-weight:600; }
 .qd-table tr.ad td, .qd-table tr.rf td{ background:#f1f1f1; }
@@ -2684,7 +2691,8 @@ const REP_TUR_VARS = [
   {g:'Alunos', items:[
     ['oer','Alunos em risco de O.E.R (disciplinas e pontos necessários)'],
     ['acomp','Alunos em acompanhamento (abaixo da média em 2 ou mais disciplinas)'],
-    ['destaques','Alunos em destaque (≥ 70% em todas; ≥ 90% em Português e Matemática)']]},
+    ['destaques','Alunos em destaque (≥ 70% em todas; ≥ 90% em Português e Matemática)'],
+    ['ficabi','Alunos do FICA e bi-retidos (seção própria + destaque nas demais listas)']]},
   {g:'Registro e assinaturas', items:[
     ['parecer','Parecer do conselho de classe (linhas em branco)'],
     ['plano','Plano de intervenção (ação, responsável e prazo)'],
@@ -2693,8 +2701,8 @@ const REP_TUR_VARS = [
 const REP_TUR_ALL = REP_TUR_VARS.flatMap(g=>g.items.map(i=>i[0]));
 const REP_TUR_PRESETS = {
   completo: {nome:'Completo',            vars:REP_TUR_ALL},
-  conselho: {nome:'Conselho de classe',  vars:['indicadores','disciplinas','evolucao','criticas','oer','acomp','destaques','parecer','plano','assin']},
-  gestao:   {nome:'Resumo para a gestão',vars:['indicadores','disciplinas','criticas','oer','comparativo','assin']}
+  conselho: {nome:'Conselho de classe',  vars:['indicadores','disciplinas','evolucao','criticas','oer','acomp','destaques','ficabi','parecer','plano','assin']},
+  gestao:   {nome:'Resumo para a gestão',vars:['indicadores','disciplinas','criticas','oer','ficabi','comparativo','assin']}
 };
 const repState = {
   modo:'ind', turmas:new Set(), turmaAluno:null, alunos:new Set(), filtro:'', tri:'auto',
@@ -3003,6 +3011,10 @@ function repFamiliaPage(cd, className, st, t){
 }
 
 // ---------- relatório da turma ----------
+// FICA / bi-retido nos relatórios: tag impressa (funciona em P&B) e texto simples para Excel
+function rpFbTag(className, nome, reg){ const x = fbGet(reg, className, nome); return (x.f?' <span class="fb-tag f">FICA</span>':'')+(x.b?' <span class="fb-tag b">BI-RETIDO</span>':''); }
+function rpFbTxt(className, nome, reg){ const x = fbGet(reg, className, nome); return (x.f?' [FICA]':'')+(x.b?' [BI-RETIDO]':''); }
+const RP_FB_LEG = '<b>FICA:</b> elevado número de faltas; reclassificação após as atividades do projeto. <b>Bi-retido:</b> retido em 2025 e que não poderia ser retido em 2026. Bi-retido em risco de O.E.R (perigo de Recuperação Final) deve ter a recuperação final antecipada imediatamente.';
 function repTurmaPage(cd, className, V, t){
   cd.meta = cd.meta || {};
   const turma = shortTurmaLabel(className);
@@ -3011,6 +3023,7 @@ function repTurmaPage(cd, className, V, t){
   const cs = computeStats(cd, t==='ALL' ? undefined : t);
   const risk = computeRetentionRisk(cd).slice().sort((a,b)=>a.name.localeCompare(b.name));
   const parts = [];
+  const fbOn = V.has('ficabi'), fbReg = fbOn ? fbLoad() : null, tg = n => fbOn ? rpFbTag(className, n, fbReg) : '';
   parts.push(`<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Referência:</b> ${repTriNome(t)}</td></tr><tr><td><b>Alunos:</b> ${cd.students.length}</td><td>${cd.meta.professor?`<b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}`:'&nbsp;'}</td></tr></table>`);
 
   const totOk = st.reduce((a,s)=>a+s.ok,0), totN = st.reduce((a,s)=>a+s.n,0);
@@ -3018,7 +3031,7 @@ function repTurmaPage(cd, className, V, t){
   if(V.has('indicadores')){
     const box = (v,l,c) => `<div class="rp-box ${c||''}"><b>${v}</b><span>${l}</span></div>`;
     const pOk = totN ? Math.round(totOk/totN*100) : null;
-    parts.push(rpSec('Indicadores gerais', `<div class="rp-boxes">${box(cd.students.length,'Alunos')}${box(repFmt(pClasse),'Aproveitamento médio',repTint(pClasse))}${box(repFmt(pOk),'Notas na média<br>(alunos × disciplinas)',repTint(pOk))}${box(risk.length,'Alunos em risco de O.E.R',risk.length?'t-bad':'')}${box(cs.atencao.length,'Alunos em acompanhamento',cs.atencao.length?'t-mid':'')}${box(cs.destaques70.length,'Alunos em destaque')}</div>`));
+    parts.push(rpSec('Indicadores gerais', `<div class="rp-boxes">${box(cd.students.length,'Alunos')}${box(repFmt(pClasse),'Aproveitamento médio',repTint(pClasse))}${box(repFmt(pOk),'Notas na média<br>(alunos × disciplinas)',repTint(pOk))}${box(risk.length,'Alunos em risco de O.E.R',risk.length?'t-bad':'')}${box(cs.atencao.length,'Alunos em acompanhamento',cs.atencao.length?'t-mid':'')}${box(cs.destaques70.length,'Alunos em destaque')}${fbOn?(()=>{ const k = fbCounts([className]); return box(k.f,'Alunos do FICA')+box(k.b,'Alunos bi-retidos'); })():''}</div>`));
   }
 
   if(V.has('disciplinas')){
@@ -3046,17 +3059,32 @@ function repTurmaPage(cd, className, V, t){
   }
 
   if(V.has('oer')){
-    parts.push(rpSec('Alunos em risco de O.E.R ('+risk.length+')', risk.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disciplinas em risco (pontos necessários no 3º trimestre)',l:1}], risk.map((r,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(r.name)}</td><td class="l">${r.subjects.map(s=>escHtml(s.name)+' (<b>'+s.precisa+'</b>'+oerAst(s)+')'+(s.parcial ? ' '+oerBadge(s) : '')).join('; ')}</td></tr>`),'rp-list') + (oerTemParcial(risk.flatMap(r=>r.subjects)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '') : `<div class="rp-ok">Nenhum aluno com risco de O.E.R com as notas lançadas.</div>`));
+    parts.push(rpSec('Alunos em risco de O.E.R ('+risk.length+')', risk.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disciplinas em risco (pontos necessários no 3º trimestre)',l:1}], risk.map((r,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(r.name)+tg(r.name)}</td><td class="l">${r.subjects.map(s=>escHtml(s.name)+' (<b>'+s.precisa+'</b>'+oerAst(s)+')'+(s.parcial ? ' '+oerBadge(s) : '')).join('; ')}</td></tr>`),'rp-list') + (oerTemParcial(risk.flatMap(r=>r.subjects)) ? `<div class="rp-note">${OER_ASTERISCO_TXT}</div>` : '') : `<div class="rp-ok">Nenhum aluno com risco de O.E.R com as notas lançadas.</div>`));
   }
 
   if(V.has('acomp')){
     const a = cs.atencao;
-    parts.push(rpSec('Alunos em acompanhamento — abaixo da média em 2 ou mais disciplinas ('+a.length+')', a.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disc.'},{t:'Disciplinas abaixo da média',l:1}], a.map((s,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(s.name)}</td><td class="t-bad"><b>${s.count}</b></td><td class="l">${s.lowSubjects.map(escHtml).join('; ')}</td></tr>`),'rp-list') : `<div class="rp-ok">Nenhum aluno nesta condição.</div>`));
+    parts.push(rpSec('Alunos em acompanhamento — abaixo da média em 2 ou mais disciplinas ('+a.length+')', a.length ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'Disc.'},{t:'Disciplinas abaixo da média',l:1}], a.map((s,i)=>`<tr><td>${i+1}</td><td class="l">${escHtml(s.name)+tg(s.name)}</td><td class="t-bad"><b>${s.count}</b></td><td class="l">${s.lowSubjects.map(escHtml).join('; ')}</td></tr>`),'rp-list') : `<div class="rp-ok">Nenhum aluno nesta condição.</div>`));
   }
 
   if(V.has('destaques')){
-    const nm = l => l.length ? l.map(s=>escHtml(s.name)).join('; ') : 'Nenhum';
+    const nm = l => l.length ? l.map(s=>escHtml(s.name)+tg(s.name)).join('; ') : 'Nenhum';
     parts.push(rpSec('Alunos em destaque', `<div class="rp-dest"><p><b>≥ 70% em todas as disciplinas (${cs.destaques70.length}):</b> ${nm(cs.destaques70)}</p><p><b>≥ 90% em Língua Portuguesa (${cs.destaquesPort.length}):</b> ${nm(cs.destaquesPort)}</p><p><b>≥ 90% em Matemática (${cs.destaquesMat.length}):</b> ${nm(cs.destaquesMat)}</p></div>`));
+  }
+
+  if(fbOn){
+    const rk = fbRiscoMap(className);
+    const regs = cd.students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(st=>({st, x:fbGet(fbReg, className, st.name)})).filter(o=>o.x.f||o.x.b);
+    let temParc = false;
+    const linhas = regs.map((o,i)=>{
+      const r = rk.get(o.st.name), ant = o.x.b && r;
+      let tx = '';
+      if(r){ tx = r.subjects.map(s=>{ if(s.parcial) temParc = true; return escHtml(s.name)+(s.parcial?'*':''); }).join('; '); if(ant) tx = '<b>Antecipar a recuperação final:</b> '+tx; }
+      return `<tr><td>${i+1}</td><td class="l"><b>${escHtml(o.st.name)}</b></td><td>${o.x.f?'<b>✔</b>':''}</td><td>${o.x.b?'<b>✔</b>':''}</td><td class="l${ant?' t-bad':''}">${tx}</td></tr>`;
+    });
+    parts.push(rpSec('Alunos do FICA e bi-retidos ('+regs.length+')', regs.length
+      ? rpTable([{t:'Nº'},{t:'Aluno',l:1},{t:'FICA'},{t:'Bi-retido'},{t:'Em risco de O.E.R (disciplinas)',l:1}], linhas, 'rp-list') + `<div class="rp-note">${RP_FB_LEG}${temParc?' * Falta nota no 1º ou 2º trimestre na disciplina.':''}</div>`
+      : `<div class="rp-ok">Nenhum aluno marcado como FICA ou bi-retido nesta turma.</div>`));
   }
 
   const msg = rpMsg(); if(msg) parts.push(msg);
@@ -3381,6 +3409,7 @@ function repTurmaRows(cd, className, V, t){
   const st = subs.map(s=>({name:s.name, idx:s.idx, ...repClassSubj(cd, s.idx, t)}));
   const cs = computeStats(cd, t==='ALL' ? undefined : t);
   const risk = computeRetentionRisk(cd).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const fbOn = V.has('ficabi'), fbReg = fbOn ? fbLoad() : null, tx = n => fbOn ? rpFbTxt(className, n, fbReg) : '';
   R.push([{v:schoolName(), s:1}]);
   R.push([B('Relatório da turma — '+turma)]);
   R.push([`Referência: ${repTriNome(t)} · ${effectiveMesAno(cd)} · Alunos: ${cd.students.length}${cd.meta.professor?' · Prof. de referência: '+cd.meta.professor:''}`]);
@@ -3396,6 +3425,7 @@ function repTurmaRows(cd, className, V, t){
     R.push(['Alunos em risco de O.E.R', C(risk.length)]);
     R.push(['Alunos em acompanhamento', C(cs.atencao.length)]);
     R.push(['Alunos em destaque', C(cs.destaques70.length)]);
+    if(fbOn){ const k = fbCounts([className]); R.push(['Alunos do FICA', C(k.f)]); R.push(['Alunos bi-retidos', C(k.b)]); }
     R.push([]);
   }
   if(V.has('disciplinas')){
@@ -3430,7 +3460,7 @@ function repTurmaRows(cd, className, V, t){
     R.push([B('Alunos em risco de O.E.R ('+risk.length+')')]);
     if(risk.length){
       R.push([H('Aluno'),H('Disciplinas em risco (pontos necessários no 3º trimestre)')]);
-      risk.forEach(r=>R.push([r.name, r.subjects.map(s=>`${s.name} (${s.precisa}${oerAst(s)})`).join('; ')]));
+      risk.forEach(r=>R.push([r.name+tx(r.name), r.subjects.map(s=>`${s.name} (${s.precisa}${oerAst(s)})`).join('; ')]));
       if(oerTemParcial(risk.flatMap(r=>r.subjects))) R.push([OER_ASTERISCO_TXT]);
     } else R.push(['Nenhum aluno com risco de O.E.R com as notas lançadas.']);
     R.push([]);
@@ -3440,14 +3470,25 @@ function repTurmaRows(cd, className, V, t){
     R.push([B('Alunos em acompanhamento — abaixo da média em 2 ou mais disciplinas ('+a.length+')')]);
     if(a.length){
       R.push([H('Aluno'),H('Disc.'),H('Disciplinas abaixo da média')]);
-      a.forEach(s=>R.push([s.name,{v:s.count,s:9},s.lowSubjects.join('; ')]));
+      a.forEach(s=>R.push([s.name+tx(s.name),{v:s.count,s:9},s.lowSubjects.join('; ')]));
     } else R.push(['Nenhum aluno nesta condição.']);
     R.push([]);
   }
   if(V.has('destaques')){
     R.push([B('Alunos em destaque')]);
     const blocos = [['≥ 70% em todas as disciplinas',cs.destaques70],['≥ 90% em Língua Portuguesa',cs.destaquesPort],['≥ 90% em Matemática',cs.destaquesMat]];
-    blocos.forEach(([tit,l])=>{ R.push([B(`${tit} (${l.length})`)]); if(l.length) l.forEach(x=>R.push([x.name])); else R.push(['Nenhum']); });
+    blocos.forEach(([tit,l])=>{ R.push([B(`${tit} (${l.length})`)]); if(l.length) l.forEach(x=>R.push([x.name+tx(x.name)])); else R.push(['Nenhum']); });
+    R.push([]);
+  }
+  if(fbOn){
+    const rk = fbRiscoMap(className);
+    const regs = cd.students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(st=>({st, x:fbGet(fbReg, className, st.name)})).filter(o=>o.x.f||o.x.b);
+    R.push([B('Alunos do FICA e bi-retidos ('+regs.length+')')]);
+    if(regs.length){
+      R.push([H('Aluno'),H('FICA'),H('Bi-retido'),H('Em risco de O.E.R (disciplinas)')]);
+      regs.forEach(o=>{ const r = rk.get(o.st.name); R.push([o.st.name, o.x.f?'Sim':'', o.x.b?'Sim':'', r ? (o.x.b?'ANTECIPAR RECUPERAÇÃO FINAL — ':'')+r.subjects.map(s=>s.name+(s.parcial?'*':'')).join('; ') : '']); });
+    } else R.push(['Nenhum aluno marcado como FICA ou bi-retido nesta turma.']);
+    R.push(['FICA: elevado número de faltas; reclassificação após as atividades do projeto. Bi-retido: retido em 2025 e que não poderia ser retido em 2026; em risco de O.E.R, a recuperação final deve ser antecipada imediatamente.']);
     R.push([]);
   }
   R.push([`“% na média” = alunos que atingiram a média (direto ou após recuperação) ÷ alunos com nota lançada. Cores: amarelo = recuperou (ou 40–69%); vermelho = abaixo da média (ou abaixo de 40%). Literatura não é exibida.`]);
@@ -3488,6 +3529,7 @@ function repQuadroRows(cd, className){
   const noEscopo = new Set(todos.filter(st=> quadroState.escopo==='risco' ? riskBy[st.name] : quadroState.escopo==='adapt' ? comEsp(st) : true));
   const cnt = adClassCount(className);
   const prio = todos.filter(st=>riskBy[st.name] && comEsp(st));
+  const fbReg = fbLoad();
   const temParcial = Object.values(riskBy).some(r=>r.parcial);
   const listados = todos.filter(st=>noEscopo.has(st));
   const nS = subs.length, N = Math.max(listados.length,1), EXTRA = 5, nLast = 2+N+EXTRA; // EXTRA = linhas em branco no fim para alunos novos
@@ -3496,7 +3538,7 @@ function repQuadroRows(cd, className){
   const colA = quadroState.aplicada ? xlsCol(4+nS) : null, colO = xlsCol(4+nS+(quadroState.aplicada?1:0)), colAta = xlsCol(5+nS+(quadroState.aplicada?1:0));
   const R = [];
   // 1) Tabela já na primeira linha
-  const hdr = [H('Nº'),H('Aluno'),{v:'LEITURA (PRIORIDADE)', s:10},...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação e diagnóstico'),H('Indicações em ata do conselho')];
+  const hdr = [H('Nº'),H('Aluno'),{v:'LEITURA (PRIORIDADE)', s:10},...subs.map(s=>({v:s.name.toUpperCase(), s:10})),H('Disc. em risco'),...(colA?[H('Adaptação aplicada?')]:[]),H('Observações — adaptação, diagnóstico, FICA e bi-retido'),H('Indicações em ata do conselho')];
   hdr.ht = 95; R.push(hdr);
   // linha de totais logo abaixo dos nomes das disciplinas: soma automática dos X (alunos em O.E.R)
   const T = 18, TL = 19, TW = 20;
@@ -3510,6 +3552,7 @@ function repQuadroRows(cd, className){
     const obs = [];
     if(sim) obs.push('◆ ADAPTAÇÃO'+(ad.d ? ' — Diagnóstico: '+ad.d : ' — diagnóstico não informado'));
     if(ad.r) obs.push('▲ REFORÇO');
+    { const fbv = fbGet(fbReg, className, st.name); if(fbv.f) obs.push('● FICA'); if(fbv.b) obs.push('● BI-RETIDO'+(r ? ' — em risco de O.E.R: antecipar a recuperação final imediatamente' : '')); }
     if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs.push('Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)');
     const apl = (colA && sim && r) ? '☐ Sim  ☐ Não' : '';
     const la = quadroLeituraAta(className, st.name);
@@ -3544,6 +3587,7 @@ function repQuadroRows(cd, className){
   }
   xlsBloco(R, 'X = aluno em risco de O.E.R na disciplina (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)'+(temParcial?'. X* = falta a nota do 1º ou do 2º trimestre: o risco pode deixar de existir quando for lançada.':'.'));
   xlsBloco(R, 'Leitura (coluna C) = prioridade de intervenção (PIP Leitura): Alta (maior necessidade), Méd. (= média) e Baixa (menor necessidade); não mede a qualidade da leitura. N.A. = não avaliado; S/ prior. = sem prioridade registrada. Indicações em ata (última coluna) = Atas do Conselho de Classe, com o(s) trimestre(s) entre parênteses; "—" = não foi possível ler o dado no Supabase.');
+  xlsBloco(R, 'FICA = elevado número de faltas (reclassificação após as atividades do projeto). Bi-retido = retido em 2025, que não poderia ser retido em 2026; em risco de O.E.R, a recuperação final deve ser antecipada imediatamente. Ambos aparecem na coluna de observações.');
   xlsBloco(R, 'A linha "Total em O.E.R" (logo abaixo das disciplinas) e o resumo somam os X automaticamente. A coluna de observações traz adaptação/diagnóstico apenas para chamar a atenção do professor; em branco = aluno sem registro dessa situação. Literatura não é considerada.');
   xlsBloco(R, 'A tabela lista apenas os alunos do filtro escolhido ('+(quadroState.escopo==='risco'?'somente em risco de O.E.R':quadroState.escopo==='adapt'?'somente adaptação ou reforço':'toda a turma')+'); não há linhas ocultas. As 5 linhas em branco no fim da tabela ficam visíveis para incluir alunos novos: digite o nome, marque X nas disciplinas e a coluna "Disc. em risco", os totais e o Resumo já os contam. Documento de uso interno: contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.');
   const perSubj = {}; subs.forEach(s=>{ perSubj[s.name] = Object.values(riskBy).filter(r=>r.subjects.some(x=>x.name===s.name)).length; });
@@ -3680,6 +3724,9 @@ function repQuadroPage(cd, className){
   const totRisco = Object.keys(riskBy).length;
   const prio = cd.students.filter(st=>riskBy[st.name] && comEsp(st)).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
   const cnt = adClassCount(className);
+  const fbReg = fbLoad(), fbx = st => fbGet(fbReg, className, st.name);
+  const nFica = cd.students.filter(st=>fbx(st).f).length, nBi = cd.students.filter(st=>fbx(st).b).length;
+  const antec = cd.students.filter(st=>fbx(st).b && riskBy[st.name]).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
   const temParcial = Object.values(riskBy).some(r=>r.parcial);
   const mostrarAplicada = quadroState.aplicada;
   const portrait = quadroState.orient==='port';
@@ -3697,25 +3744,29 @@ function repQuadroPage(cd, className){
     if(ad.r) obs = (sim ? obs+'<br>' : '') + `<b>▲ REFORÇO</b>`;
     if(r && r.subjects.some(s=>oerNivel(s.precisa)>=2)) obs += `<div class="qd-elev">${(portrait || subs.length>8) ? (portrait ? 'Risco elevadíssimo de Rec. Final (>28 pts no 3º tri)' : 'Risco elevadíssimo de Rec. Final (>28 pts no 3º)') : 'Risco elevadíssimo de Recuperação Final (mais de 28 pts no 3º tri)'}</div>`;
     const la = quadroLeituraAta(className, st.name);
-    const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '');
-    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td><td class="qd-lt${la.alta?' alta':''}">${escHtml(la.leit)}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}${portrait ? `<td class="l qd-obs">${obs}${(la.ata && la.ata!=='—' && la.ata!=='Nenhuma') ? `<div class="qd-ata-in"><b>Ata:</b> ${escHtml(la.ata)}</div>` : ''}</td>` : `<td class="l qd-obs">${obs}</td><td class="l qd-ata">${escHtml(la.ata).replace(/; /g,'<br>')}</td>`}</tr>`;
+    const fb = fbx(st);
+    const cls = (sim ? 'ad' : '') + (ad.r ? ' rf' : '') + ((sim||ad.r) && r ? ' pri' : '') + ((fb.f||fb.b) ? ' fbr' : '');
+    return `<tr class="${cls}"><td>${i+1}</td><td class="l nm">${escHtml(st.name)}</td><td class="qd-lt${la.alta?' alta':''}">${escHtml(la.leit)}</td><td class="qd-fb">${fb.f?'<span class="fb-tag f">FICA</span>':''}${fb.b?'<span class="fb-tag b">BI</span>':''}</td>${cells}<td><b>${r ? r.subjects.length : ''}</b></td>${mostrarAplicada ? `<td class="qd-chk">${sim && r ? '☐ Sim<br>☐ Não' : ''}</td>` : ''}${portrait ? `<td class="l qd-obs">${obs}${(la.ata && la.ata!=='—' && la.ata!=='Nenhuma') ? `<div class="qd-ata-in"><b>Ata:</b> ${escHtml(la.ata)}</div>` : ''}</td>` : `<td class="l qd-obs">${obs}</td><td class="l qd-ata">${escHtml(la.ata).replace(/; /g,'<br>')}</td>`}</tr>`;
   }).join('');
 
   const nSub = subs.length;
   const wS = nSub>13 ? 5.4 : (nSub>10 ? 5.8 : 6.3);
   const colgroup = portrait
-    ? `<colgroup><col style="width:7mm"><col style="width:40mm"><col style="width:10mm">${subs.map(()=>`<col style="width:${wS}mm">`).join('')}<col style="width:8mm">${mostrarAplicada?'<col style="width:11mm">':''}<col></colgroup>`
-    : `<colgroup><col style="width:7mm"><col style="width:${nSub>8?52:56}mm"><col style="width:11mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:13mm">':''}<col style="width:${nSub>8?76:56}mm"><col style="width:${nSub>8?30:46}mm"></colgroup>`;
+    ? `<colgroup><col style="width:7mm"><col style="width:40mm"><col style="width:10mm"><col style="width:9mm">${subs.map(()=>`<col style="width:${wS}mm">`).join('')}<col style="width:8mm">${mostrarAplicada?'<col style="width:11mm">':''}<col></colgroup>`
+    : `<colgroup><col style="width:7mm"><col style="width:${nSub>8?52:56}mm"><col style="width:11mm"><col style="width:10mm">${subs.map(()=>`<col>`).join('')}<col style="width:11mm">${mostrarAplicada?'<col style="width:13mm">':''}<col style="width:${nSub>8?76:56}mm"><col style="width:${nSub>8?30:46}mm"></colgroup>`;
   const tabela = lista.length
-    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th><th class="qd-d"><span>Leitura (prioridade)</span></th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th class="qd-d"><span>Adaptação aplicada?</span></th>':''}${portrait ? '<th class="l">Observações — adaptação, diagnóstico e indicações em ata do conselho</th>' : '<th class="l">Observações — adaptação e diagnóstico</th><th class="l">Indicações em ata do conselho</th>'}</tr></thead><tbody>${rows}</tbody></table>`
+    ? `<table class="qd-table">${colgroup}<thead><tr><th>Nº</th><th class="l">Aluno</th><th class="qd-d"><span>Leitura (prioridade)</span></th><th class="qd-d"><span>FICA / Bi-retido</span></th>${head}<th class="qd-d"><span>Disc. em risco</span></th>${mostrarAplicada?'<th class="qd-d"><span>Adaptação aplicada?</span></th>':''}${portrait ? '<th class="l">Observações — adaptação, diagnóstico e indicações em ata do conselho</th>' : '<th class="l">Observações — adaptação e diagnóstico</th><th class="l">Indicações em ata do conselho</th>'}</tr></thead><tbody>${rows}</tbody></table>`
     : `<div class="rp-ok">Nenhum aluno nesta seleção.</div>`;
 
   const aviso = [];
   if(prio.length){
     aviso.push(`<div class="qd-prio"><b>ATENÇÃO PRIORITÁRIA — ${prio.length} aluno${prio.length>1?'s':''} com risco de O.E.R <u>e</u> situação especial (adaptação e/ou reforço):</b> confirmar se a adaptação foi aplicada e se o reforço está sendo frequentado e dar atenção especial às atividades de final de ano. ${prio.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>[${[comAd(st)?'adaptação':'', comRef(st)?'reforço':''].filter(Boolean).join(' + ')}] (${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
   }
-  const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
-  const foot = `<div class="rp-foot"><b>Leitura</b> (PIP Leitura) = prioridade de intervenção: <b>Alta</b> (maior necessidade), <b>Méd.</b> (= média) e <b>Baixa</b> (menor necessidade); não mede a qualidade da leitura. <b>N.A.</b> = não avaliado; <b>S/ prior.</b> = sem prioridade registrada. <b>Ata:</b> indicações das Atas do Conselho de Classe (trimestre entre parênteses).<br><b>Observações:</b> adaptação/diagnóstico só para atenção do professor; em branco = sem registro. <b>◆ ADAPTAÇÃO</b> e <b>▲ REFORÇO</b> = linha em cinza; <b>barra preta</b> ao lado do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
+  if(antec.length){
+    aviso.push(`<div class="qd-prio"><b>BI-RETIDO${antec.length>1?'S':''} EM RISCO DE O.E.R — ${antec.length} aluno${antec.length>1?'s':''}:</b> antecipar a recuperação final imediatamente. ${antec.map(st=>`<span class="qd-pn">${escHtml(st.name)} <small>(${riskBy[st.name].subjects.map(s=>escHtml(s.name)).join(', ')})</small></span>`).join('')}</div>`);
+  }
+  const idTab = `<table class="rp-id"><tr><td><b>Turma:</b> ${escHtml(turma)} <small>(${escHtml(className.split(' - ')[0])})</small></td><td><b>Alunos na turma:</b> ${cd.students.length} · <b>Em risco de O.E.R:</b> ${totRisco} · <b>Com demanda de adaptação:</b> ${cnt.sim} · <b>Em reforço:</b> ${cnt.ref} · <b>FICA:</b> ${nFica} · <b>Bi-retidos:</b> ${nBi}</td></tr>${cd.meta.professor?`<tr><td colspan="2"><b>Prof. de referência:</b> ${escHtml(cd.meta.professor)}</td></tr>`:''}</table>`;
+  const foot = `<div class="rp-foot"><b>FICA</b> = elevado número de faltas (reclassificação após as atividades do projeto); <b>BI</b> = bi-retido (retido em 2025, que não poderia ser retido em 2026) — bi-retido em risco de O.E.R deve ter a recuperação final antecipada imediatamente.<br><b>Leitura</b> (PIP Leitura) = prioridade de intervenção: <b>Alta</b> (maior necessidade), <b>Méd.</b> (= média) e <b>Baixa</b> (menor necessidade); não mede a qualidade da leitura. <b>N.A.</b> = não avaliado; <b>S/ prior.</b> = sem prioridade registrada. <b>Ata:</b> indicações das Atas do Conselho de Classe (trimestre entre parênteses).<br><b>Observações:</b> adaptação/diagnóstico só para atenção do professor; em branco = sem registro. <b>◆ ADAPTAÇÃO</b> e <b>▲ REFORÇO</b> = linha em cinza; <b>barra preta</b> ao lado do número = risco de O.E.R com adaptação e/ou reforço (prioridade). Literatura não é considerada. <b>Uso interno:</b> contém dados sensíveis de saúde/diagnóstico — não distribuir às famílias nem a outros alunos.</div>`;
   const como = `<div class="qd-how"><b>Como ler:</b> a marca <span class="qd-xm">X</span> indica o <b>aluno em risco de O.E.R naquela disciplina</b> (soma do 1º+2º trimestres abaixo de 36; precisaria de mais de 24 pontos no 3º trimestre)${temParcial?'. <span class="qd-xm">X*</span> = falta a nota do 1º ou do 2º trimestre — o risco pode deixar de existir quando for lançada':''}.</div>`;
   const body = idTab + rpSec('Quadro da turma — disciplinas em risco de O.E.R', como + aviso.join('') + tabela) + rpMsg() + foot;
   return rpWrap(rpHeader('Quadro da turma — risco de O.E.R por disciplina', escHtml(turma)+' · '+escHtml(effectiveMesAno(cd))), body)
