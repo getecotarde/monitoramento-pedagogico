@@ -4053,6 +4053,7 @@ const FB_FILTRO_TXT = {
   fica: 'Só FICA',
   bi: 'Só bi-retidos',
   ambos: 'FICA e bi-retidos',
+  fica_ou_bi: 'FICA e/ou bi-retidos (coincidentes ou não)',
   todos: 'Mostrar todos',
   sem: 'Todos exceto FICA e bi-retidos'
 };
@@ -4061,6 +4062,7 @@ function fbPassa(x){
   if(f === 'fica') return x.f && !x.b;
   if(f === 'bi') return x.b && !x.f;
   if(f === 'ambos') return x.f && x.b;
+  if(f === 'fica_ou_bi') return x.f || x.b;
   if(f === 'sem') return !x.f && !x.b;
   return true;
 }
@@ -4143,9 +4145,10 @@ function renderFicaBiTab(){
       <input type="text" id="fbBusca" class="rep-filtro" style="min-width:240px" placeholder="Buscar aluno pelo nome…" value="${escHtml(fbState.busca)}">
       <select id="fbFiltro" class="tri-select">
         <option value="todos" ${fbState.filtro==='todos'?'selected':''}>Mostrar todos</option>
+        <option value="fica_ou_bi" ${fbState.filtro==='fica_ou_bi'?'selected':''}>FICA e/ou bi-retidos (coincidentes ou não)</option>
         <option value="fica" ${fbState.filtro==='fica'?'selected':''}>Só FICA</option>
         <option value="bi" ${fbState.filtro==='bi'?'selected':''}>Só bi-retido</option>
-        <option value="ambos" ${fbState.filtro==='ambos'?'selected':''}>FICA e bi-retido</option>
+        <option value="ambos" ${fbState.filtro==='ambos'?'selected':''}>FICA e bi-retido (coincidentes)</option>
         <option value="sem" ${fbState.filtro==='sem'?'selected':''}>Todos exceto FICA e bi-retidos</option>
       </select>
       <button class="print-btn" id="fbExp" ${sel.length?'':'disabled'}>⬇ Exportar planilha (CSV)</button>
