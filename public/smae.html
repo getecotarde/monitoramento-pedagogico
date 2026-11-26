@@ -151,6 +151,8 @@ td.obs.red .obs-in{color:#D92D20}
 .rep-out td{border:1px solid #E5E5E5;color:#111}
 .rep-out tbody tr:nth-child(even) td{background:#FAFAF8}
 .rep-out h2{font-size:14px;margin:14px 0 6px}
+.rep-out .v-pd{color:#C62828;font-weight:700}
+.rep-out tbody tr td.v-ok{background:#E3F4E6}
 .rep-out ul{padding-left:18px;margin-bottom:8px}
 .rep-out .kv{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .rep-out .kv div{border:1px solid #E5E5E5;border-radius:8px;padding:8px 12px;min-width:130px}
@@ -283,7 +285,8 @@ td.obs.red .obs-in{color:#D92D20}
         </select>
         <input type="text" id="repTitulo" placeholder="Título (opcional)" oninput="renderRelatorio()" style="min-width:220px">
         <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn pri" onclick="repImprimir()">🖨 Imprimir / PDF</button>
+          <button class="btn pri" onclick="repImprimir('cor')">🖨 Imprimir colorido / PDF</button>
+          <button class="btn" onclick="repImprimir('pb')">🖨 Imprimir preto e branco</button>
           <button class="btn" onclick="repCSV()">⬇ CSV</button>
           <button class="btn" onclick="repCopiar()">⧉ Copiar texto</button>
         </span>
@@ -645,7 +648,7 @@ async function excluirAtual(){
 
 /* ═══ RELATÓRIOS ═══ */
 let repAtual={titulo:'',html:'',rows:[],texto:''};
-const tabHTML=(cab,linhas)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map((c,i)=>`<td${i<2?' style="text-align:left"':''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+const tabHTML=(cab,linhas)=>`<table><thead><tr>${cab.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map((c,i)=>`<td${c==='PD'?' class="v-pd"':c==='OK'?' class="v-ok"':''}${i<2?' style="text-align:left"':''}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
 function filtrarRel(){
   const d=$('repDisc').value,s=$('repSt').value;
   return rows.filter(r=>(!d||r.disciplina===d)&&(!s||sit(r)===s));
@@ -664,7 +667,7 @@ function renderRelatorio(){
     html=`<div class="kv"><div><b>${m.n}</b>professores</div><div><b>${pct(m.planoOk,m.n)}%</b>plano anual completo</div><div><b>${m.cobertura}%</b>conteúdos lançados</div><div><b>${m.pendProf}</b>com pendência</div></div>
       <h2>Plano Anual por item</h2><ul>${m.camp.map(x=>`<li>${esc(x.c.l)}: <b>${x.done}/${m.n}</b> concluídos${x.bad?` · ${x.bad} pendente(s)`:''}${x.mid?` · ${x.mid} em andamento/parcial`:''}</li>`).join('')}</ul>
       <h2>Conteúdos mensais</h2>${tabHTML(['Mês','OK','PD','N/A'],m.porMes.map(x=>[x.m,x.ok,x.pd,x.na]))}
-      <h2>Professores com pendência (${pds.length})</h2>${pds.length?`<ul>${pds.map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${pend(r).length?pend(r).length+' mês(es) em PD: '+pend(r).join(', '):'situação pendente'}${r.obs_mensal?' · '+esc(r.obs_mensal):''}</li>`).join('')}</ul>`:'<p>Nenhuma.</p>'}
+      <h2>Professores com pendência (${pds.length})</h2>${pds.length?`<ul>${pds.map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${pend(r).length?pend(r).length+' mês(es) em <span class="v-pd">PD</span>: '+pend(r).join(', '):'situação pendente'}${r.obs_mensal?' · '+esc(r.obs_mensal):''}</li>`).join('')}</ul>`:'<p>Nenhuma.</p>'}
       <h2>Plano anual incompleto (${incompl.length})</h2>${incompl.length?`<ul>${incompl.map(r=>`<li><b>${esc(r.professor)}</b> (${esc(r.disciplina)}) — ${CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+': '+r[c.k]).join('; ')}${r.obs_plano?' · '+esc(r.obs_plano):''}</li>`).join('')}</ul>`:'<p>Todos completos.</p>'}`;
     tab=[['Indicador','Valor'],['Professores',m.n],['Plano anual completo',m.planoOk],['Conteúdos lançados (OK)',m.ok],['Conteúdos pendentes (PD)',m.pd],['Professores com pendência',m.pendProf],...m.porMes.map(x=>['Mês '+x.m+' (OK/PD/N-A)',x.ok+'/'+x.pd+'/'+x.na])];
     texto=`*${titulo}*\n${meta}\n\n• Plano anual completo: ${m.planoOk}/${m.n} (${pct(m.planoOk,m.n)}%)\n• Conteúdos lançados: ${m.cobertura}% (${m.ok} OK, ${m.pd} PD)\n• Professores com pendência: ${m.pendProf}\n\n*Pendências nos conteúdos mensais:*\n${pds.map(r=>`- ${r.professor} (${r.disciplina}): ${pend(r).length?pend(r).join(', '):'pendente'}`).join('\n')||'- nenhuma'}\n\n*Plano anual incompleto:*\n${incompl.map(r=>`- ${r.professor} (${r.disciplina}): ${CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' '+r[c.k]).join('; ')}`).join('\n')||'- nenhum'}`;
@@ -710,10 +713,11 @@ async function repCopiar(){
   try{await navigator.clipboard.writeText(t);toast('Texto copiado.');}
   catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Texto copiado.');}
 }
-function repImprimir(){
+function repImprimir(modo){
   if(!repAtual.html){toast('Nada para imprimir.');return;}
   const wide=['mensal','plano'].includes($('repTipo').value);
-  const css=`@page{size:A4 ${wide?'landscape':'portrait'};margin:12mm}body{font-family:Arial,sans-serif;color:#111;font-size:${wide?10:12}px}h1{font-size:18px;margin-bottom:2px}.meta{color:#666;margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th{background:#F3C99B;color:#4A2E0B;padding:5px;border:1px solid #bbb;font-size:${wide?9:11}px}td{padding:4px 5px;border:1px solid #ccc;text-align:center}td:first-child{text-align:left}tr{page-break-inside:avoid}h2{font-size:14px;margin:14px 0 6px}ul{padding-left:18px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}`;
+  const pb=modo==='pb';
+  const css=`@page{size:A4 ${wide?'landscape':'portrait'};margin:12mm}body{font-family:Arial,sans-serif;color:#111;font-size:${wide?10:12}px}h1{font-size:18px;margin-bottom:2px}.meta{color:#666;margin-bottom:12px}table{width:100%;border-collapse:collapse;margin-bottom:12px}th{background:#F3C99B;color:#4A2E0B;padding:5px;border:1px solid #bbb;font-size:${wide?9:11}px}td{padding:4px 5px;border:1px solid #ccc;text-align:center}td:first-child{text-align:left}tr{page-break-inside:avoid}h2{font-size:14px;margin:14px 0 6px}ul{padding-left:18px}.kv{display:flex;gap:10px;margin-bottom:10px}.kv div{border:1px solid #ccc;border-radius:6px;padding:6px 10px}.kv b{display:block;font-size:18px}${pb?'.v-pd{font-weight:700}':'.v-pd{color:#C00000;font-weight:700}td.v-ok{background:#DFF2E1}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}'}`;
   const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
   document.body.appendChild(f);
   const d=f.contentWindow.document;d.open();
