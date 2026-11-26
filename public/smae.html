@@ -657,11 +657,14 @@ function renderRelatorio(){
   preencherDisc('repDisc');
   const tipo=$('repTipo').value,l=filtrarRel(),m=metricas(l);
   const tit=$('repTitulo').value.trim();
+  const fd=$('repDisc').value,fs=$('repSt').value;
+  const filtroTxt=[fd?'Disciplina: '+fd:'',fs==='Pendente'?'Somente pendentes':fs==='Em dia'?'Somente em dia':''].filter(Boolean).join(' · ');
+  const filtro=filtroTxt?' — '+filtroTxt:'';
   const meta=`Turno Tarde 2026 · gerado em ${hoje()} · ${l.length} professor(es)`;
   let titulo,html='',tab=[],texto='';
   if(!l.length){$('repOut').innerHTML='<div class="empty" style="color:#666">Nenhum dado para os filtros escolhidos.</div>';repAtual={titulo:'',html:'',rows:[],texto:''};return;}
   if(tipo==='resumo'){
-    titulo=tit||'SMAE — Resumo executivo dos planejamentos';
+    titulo=(tit||'SMAE — Resumo executivo dos planejamentos')+filtro;
     const pds=l.filter(r=>sit(r)==='Pendente').sort((a,b)=>pend(b).length-pend(a).length);
     const incompl=l.filter(r=>!planoCompleto(r));
     html=`<div class="kv"><div><b>${m.n}</b>professores</div><div><b>${pct(m.planoOk,m.n)}%</b>plano anual completo</div><div><b>${m.cobertura}%</b>conteúdos lançados</div><div><b>${m.pendProf}</b>com pendência</div></div>
@@ -673,19 +676,19 @@ function renderRelatorio(){
     texto=`*${titulo}*\n${meta}\n\n• Plano anual completo: ${m.planoOk}/${m.n} (${pct(m.planoOk,m.n)}%)\n• Conteúdos lançados: ${m.cobertura}% (${m.ok} OK, ${m.pd} PD)\n• Professores com pendência: ${m.pendProf}\n\n*Pendências nos conteúdos mensais:*\n${pds.map(r=>`- ${r.professor} (${r.disciplina}): ${pend(r).length?pend(r).join(', '):'pendente'}`).join('\n')||'- nenhuma'}\n\n*Plano anual incompleto:*\n${incompl.map(r=>`- ${r.professor} (${r.disciplina}): ${CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' '+r[c.k]).join('; ')}`).join('\n')||'- nenhum'}`;
   }
   if(tipo==='plano'){
-    titulo=tit||'SMAE — Plano Anual: situação por professor';
+    titulo=(tit||'SMAE — Plano Anual: situação por professor')+filtro;
     const cab=['Professor','Disciplina','Turmas','Turma ref.','Dia ACEPAT',...CAMPOS.map(c=>c.l),'Observações'];
     tab=[cab,...l.map(r=>[r.professor,r.disciplina,r.turmas,r.turma_ref,r.dia_acepat,...CAMPOS.map(c=>r[c.k]),r.obs_plano||''])];
     html=tabHTML(cab,tab.slice(1));
   }
   if(tipo==='mensal'){
-    titulo=tit||'SMAE — Conteúdos mensais por professor';
+    titulo=(tit||'SMAE — Conteúdos mensais por professor')+filtro;
     const cab=['Professor','Disciplina','Turmas','Dia ACEPAT',...MESES,'Situação','Qtd PD','Observações'];
     tab=[cab,...l.map(r=>[r.professor,r.disciplina,r.turmas,r.dia_acepat,...MESES.map(x=>(r.meses||{})[x]||'N/A'),sit(r),pend(r).length,r.obs_mensal||''])];
     html=tabHTML(cab,tab.slice(1));
   }
   if(tipo==='pend'){
-    titulo=tit||'SMAE — Pendências por professor';
+    titulo=(tit||'SMAE — Pendências por professor')+filtro;
     const pl=l.filter(r=>sit(r)==='Pendente'||!planoCompleto(r)).sort((a,b)=>pend(b).length-pend(a).length);
     const cab=['Professor','Disciplina','Turmas','Meses em PD','Qtd PD','Plano anual — itens pendentes','Observações'];
     tab=[cab,...pl.map(r=>[r.professor,r.disciplina,r.turmas,pend(r).join(', ')||'—',pend(r).length,CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' ('+r[c.k]+')').join('; ')||'—',[r.obs_mensal,r.obs_plano].filter(Boolean).join(' · ')])];
@@ -693,7 +696,7 @@ function renderRelatorio(){
     texto=`*${titulo}*\n${meta}\n\n`+(pl.map(r=>`- ${r.professor} (${r.disciplina}): ${pend(r).length?'conteúdos PD em '+pend(r).join(', '):'conteúdos em dia'}${CAMPOS.some(c=>r[c.k]!==c.opts[0])?' | plano anual: '+CAMPOS.filter(c=>r[c.k]!==c.opts[0]).map(c=>c.l+' '+r[c.k]).join('; '):''}`).join('\n')||'- nenhuma pendência');
   }
   if(tipo==='disc'){
-    titulo=tit||'SMAE — Panorama por disciplina';
+    titulo=(tit||'SMAE — Panorama por disciplina')+filtro;
     const cab=['Disciplina','Professores','Plano anual completo','Em dia','Com pendência','Meses PD','Cobertura (%)'];
     tab=[cab,...porDisciplina(l).map(x=>[x.d,x.n,x.planoOk+'/'+x.n,x.emDia,x.pendProf,x.pd,x.semDados?'—':x.cob])];
     html=tabHTML(cab,tab.slice(1));
