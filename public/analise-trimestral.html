@@ -783,6 +783,31 @@ body{
 @media print{
   .print-report-doc .rp-page.rp-land{ page:rpland; width:auto; zoom:1; }
 }
+
+/* ── Aba FICA / Bi-retido ── */
+.overview-btn.fica{background:var(--accent);}
+.fb-defs{display:flex; gap:12px; flex-wrap:wrap; margin:0 0 16px;}
+.fb-def{flex:1; min-width:260px; background:#fff; border:1px solid var(--line); border-left:4px solid var(--plum); border-radius:10px; padding:10px 14px; font-size:12.5px; color:var(--ink-soft); line-height:1.45;}
+.fb-def b{display:block; color:var(--ink); font-size:13px; margin-bottom:2px;}
+.fb-def.bi{border-left-color:var(--danger);}
+.fb-tools{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 18px; font-family:'Inter',sans-serif; font-size:13px;}
+.fb-sum{display:flex; gap:10px; flex-wrap:wrap; margin:0 0 6px;}
+.fb-pill{background:var(--paper-2); border:1px solid var(--line); border-radius:8px; padding:6px 12px; font-size:12.5px; color:var(--ink-soft);}
+.fb-pill b{color:var(--ink); font-size:15px; margin-right:4px;}
+.fb-sec-title{font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:26px 0 10px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+.fb-sec-title small{font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:var(--ink-soft);}
+.fb-table{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); font-size:13px;}
+.fb-table th{background:var(--paper-2); font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:8px 10px; text-align:center; color:var(--ink-soft);}
+.fb-table th small{display:block; text-transform:none; letter-spacing:0; font-weight:500; font-size:10.5px; margin-top:2px;}
+.fb-table td{padding:6px 10px; border-top:1px solid var(--line);}
+.fb-table .l{text-align:left;}
+.fb-table .fb-num{width:38px; color:var(--ink-soft); text-align:right; font-size:11.5px;}
+.fb-table .fb-c{text-align:center; width:150px;}
+.fb-cb{width:18px; height:18px; cursor:pointer; accent-color:var(--plum);}
+.fb-cb.b{accent-color:var(--danger);}
+.fb-row.has-f{background:var(--plum-soft);}
+.fb-row.has-b{background:var(--danger-soft);}
+.fb-row.has-f.has-b{background:linear-gradient(90deg,var(--plum-soft),var(--danger-soft));}
 </style>
 </head>
 <body>
@@ -803,6 +828,7 @@ body{
       <div class="overview-btn" id="overviewBtn">📋 Visão geral — todas as turmas</div>
       <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard - Notas Individuais</div>
       <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
+      <div class="overview-btn fica" id="ficaBiBtn">🏷️ FICA / Bi-retidos</div>
       <div class="overview-btn rep" id="repBtn">📑 Relatórios</div>
     </div>
     <div class="turma-switch">
@@ -1895,6 +1921,7 @@ function renderMain(){
   if(activeClass==='OVERVIEW') return renderOverview();
   if(activeClass==='DASHBOARD') return renderDashboard();
   if(activeClass==='OER') return renderOerTab();
+  if(activeClass==='FICABI') return renderFicaBiTab();
   if(activeClass==='RELATORIOS') return renderReportsTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
@@ -3870,6 +3897,147 @@ function adBindEditor(main, S, names){
   if(Object.keys(currentClasses).length) { activeClass = Object.keys(currentClasses).sort()[0]; }
   renderMain();
 })();
+
+// ═══════════════════════════════════════════════════════════════════════
+// ABA FICA / BI-RETIDOS
+// FICA: aluno com elevado número de faltas; será reclassificado depois de cumprir as atividades do projeto.
+// Bi-retido: aluno retido em 2025 que não poderia ser retido novamente em 2026.
+// Marcações salvas no navegador (mesma chave turma+nome do cadastro de adaptação), então
+// sobrevivem à reimportação dos PDFs.
+// ═══════════════════════════════════════════════════════════════════════
+const FICABI_KEY = 'config:ficaBi';
+const fbState = { sel:new Set(), touched:false, busca:'', filtro:'todos' };
+function fbLoad(){
+  try{ const o = JSON.parse(localStorage.getItem(FICABI_KEY)||'{}'); return (o && o.items) ? o : {items:{}}; }
+  catch(e){ return {items:{}}; }
+}
+function fbSave(o){
+  try{ localStorage.setItem(FICABI_KEY, JSON.stringify(o)); return true; }
+  catch(e){ alert('Não foi possível salvar a marcação neste navegador: '+e.message); return false; }
+}
+function fbGet(reg, className, name){ return Object.assign({f:false, b:false}, reg.items[adKey(className, name)]||{}); }
+function fbSet(className, name, patch){
+  const reg = fbLoad(), k = adKey(className, name);
+  const cur = Object.assign({f:false, b:false}, reg.items[k]||{}, patch);
+  if(!cur.f && !cur.b) delete reg.items[k]; else reg.items[k] = cur;
+  return fbSave(reg);
+}
+function fbCounts(names){
+  const reg = fbLoad(); let f=0, b=0, ambos=0, total=0;
+  names.forEach(n=> currentClasses[n].students.forEach(st=>{
+    total++; const x = fbGet(reg, n, st.name);
+    if(x.f) f++; if(x.b) b++; if(x.f && x.b) ambos++;
+  }));
+  return {f, b, ambos, total};
+}
+function fbSelNames(){ return Object.keys(currentClasses).sort(ordemTurmas).filter(n=>fbState.sel.has(n)); }
+function fbRefreshCounts(){
+  const sel = fbSelNames(), c = fbCounts(sel);
+  const set = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+  set('fbTotF', c.f); set('fbTotB', c.b); set('fbTotBoth', c.ambos); set('fbTotAl', c.total);
+  sel.forEach((n,i)=>{ const k = fbCounts([n]); set('fbSec'+i, k.f+' FICA · '+k.b+' bi-retido'+(k.b===1?'':'s')+' · '+k.total+' alunos'); });
+}
+function fbAplicaBusca(){
+  const q = normNome(fbState.busca);
+  document.querySelectorAll('#main .fb-sec').forEach(sec=>{
+    let vis = 0;
+    sec.querySelectorAll('.fb-row').forEach(tr=>{
+      const ok = !q || tr.dataset.nome.indexOf(q) >= 0;
+      tr.hidden = !ok; if(ok) vis++;
+    });
+    sec.hidden = vis === 0;
+  });
+}
+function fbExportCsv(){
+  const reg = fbLoad(), linhas = [['Turma','Aluno','FICA','Bi-retido']];
+  fbSelNames().forEach(n=>{
+    currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).forEach(st=>{
+      const x = fbGet(reg, n, st.name);
+      linhas.push([shortTurmaLabel(n), st.name, x.f?'Sim':'', x.b?'Sim':'']);
+    });
+  });
+  const csv = '\ufeff' + linhas.map(r=> r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'fica-biretidos.csv'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+}
+function renderFicaBiTab(){
+  const main = document.getElementById('main');
+  const names = Object.keys(currentClasses).sort(ordemTurmas);
+  if(!names.length){
+    main.innerHTML = `<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para listar os alunos.</p></div>`;
+    return;
+  }
+  fbState.sel = new Set([...fbState.sel].filter(n=>currentClasses[n]));
+  if(!fbState.touched) fbState.sel = new Set(names);   // por padrão: todas as turmas
+  const sel = fbSelNames(), reg = fbLoad(), c = fbCounts(sel);
+  const allOn = sel.length === names.length;
+  const chips = names.map(n=>`<label class="oer-chip${fbState.sel.has(n)?' on':''}" title="${escHtml(n)}"><input type="checkbox" class="fb-turma-cb" value="${escHtml(n)}" ${fbState.sel.has(n)?'checked':''}> ${escHtml(shortTurmaLabel(n))}</label>`).join('');
+  const passa = x => fbState.filtro==='fica' ? x.f : fbState.filtro==='bi' ? x.b : fbState.filtro==='sem' ? (!x.f && !x.b) : true;
+  const sections = sel.map((n,i)=>{
+    const alunos = currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+    const k = fbCounts([n]);
+    let seq = 0;
+    const rows = alunos.map(st=>{
+      const x = fbGet(reg, n, st.name); seq++;
+      if(!passa(x)) return '';
+      return `<tr class="fb-row${x.f?' has-f':''}${x.b?' has-b':''}" data-nome="${escHtml(normNome(st.name))}">
+        <td class="fb-num">${seq}</td><td class="l">${escHtml(st.name)}</td>
+        <td class="fb-c"><input type="checkbox" class="fb-cb f" data-k="f" data-t="${escHtml(n)}" data-n="${escHtml(st.name)}" ${x.f?'checked':''}></td>
+        <td class="fb-c"><input type="checkbox" class="fb-cb b" data-k="b" data-t="${escHtml(n)}" data-n="${escHtml(st.name)}" ${x.b?'checked':''}></td></tr>`;
+    }).join('');
+    return `<div class="fb-sec"><div class="fb-sec-title">${escHtml(shortTurmaLabel(n))} <small id="fbSec${i}">${k.f} FICA · ${k.b} bi-retido${k.b===1?'':'s'} · ${k.total} alunos</small></div>
+      <table class="fb-table"><thead><tr><th>#</th><th class="l">Aluno</th>
+        <th>FICA<small>reclassificar após as atividades</small></th>
+        <th>Bi-retido<small>retido em 2025</small></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="4" class="l" style="color:var(--ink-soft)">Nenhum aluno neste filtro.</td></tr>`}</tbody></table></div>`;
+  }).join('');
+  main.innerHTML = `<div class="hdr"><div><h1>FICA / Bi-retidos</h1>
+      <div class="hdr-sub">Marque, por aluno, quem está no projeto FICA e quem é bi-retido</div></div></div>
+    <div class="fb-defs">
+      <div class="fb-def"><b>FICA</b>Alunos com elevado número de faltas. Deverão ser reclassificados, uma vez que realizem as atividades do projeto FICA.</div>
+      <div class="fb-def bi"><b>Bi-retido</b>Alunos que foram retidos em 2025 e que não poderiam ser retidos em 2026.</div>
+    </div>
+    <div class="fb-sum">
+      <div class="fb-pill"><b id="fbTotF">${c.f}</b>no FICA</div>
+      <div class="fb-pill"><b id="fbTotB">${c.b}</b>bi-retidos</div>
+      <div class="fb-pill"><b id="fbTotBoth">${c.ambos}</b>nas duas situações</div>
+      <div class="fb-pill"><b id="fbTotAl">${c.total}</b>alunos listados</div>
+    </div>
+    <div class="oer-tab-controls" style="margin-top:14px"><span><b>Turmas:</b></span>
+      <label class="oer-chip all${allOn?' on':''}"><input type="checkbox" id="fbAllCb" ${allOn?'checked':''}> Todas</label>${chips}</div>
+    <div class="fb-tools">
+      <input type="text" id="fbBusca" class="rep-filtro" style="min-width:240px" placeholder="Buscar aluno pelo nome…" value="${escHtml(fbState.busca)}">
+      <select id="fbFiltro" class="tri-select">
+        <option value="todos" ${fbState.filtro==='todos'?'selected':''}>Mostrar: todos</option>
+        <option value="fica" ${fbState.filtro==='fica'?'selected':''}>Só FICA</option>
+        <option value="bi" ${fbState.filtro==='bi'?'selected':''}>Só bi-retidos</option>
+        <option value="sem" ${fbState.filtro==='sem'?'selected':''}>Sem marcação</option>
+      </select>
+      <button class="print-btn" id="fbExp" ${sel.length?'':'disabled'}>⬇ Exportar planilha (CSV)</button>
+    </div>
+    ${sections || '<div class="empty"><p>Nenhuma turma selecionada.</p></div>'}`;
+  main.querySelectorAll('.fb-turma-cb').forEach(cb=>{
+    cb.onchange = ()=>{ fbState.touched = true; if(cb.checked) fbState.sel.add(cb.value); else fbState.sel.delete(cb.value); renderFicaBiTab(); };
+  });
+  document.getElementById('fbAllCb').onchange = e=>{
+    fbState.touched = true; fbState.sel = e.target.checked ? new Set(names) : new Set(); renderFicaBiTab();
+  };
+  main.querySelectorAll('.fb-cb').forEach(cb=>{
+    cb.onchange = ()=>{
+      const ok = fbSet(cb.dataset.t, cb.dataset.n, {[cb.dataset.k]: cb.checked});
+      if(!ok){ cb.checked = !cb.checked; return; }
+      cb.closest('tr').classList.toggle(cb.dataset.k==='f' ? 'has-f' : 'has-b', cb.checked);
+      fbRefreshCounts();
+    };
+  });
+  document.getElementById('fbBusca').oninput = e=>{ fbState.busca = e.target.value; fbAplicaBusca(); };
+  document.getElementById('fbFiltro').onchange = e=>{ fbState.filtro = e.target.value; renderFicaBiTab(); };
+  document.getElementById('fbExp').onclick = fbExportCsv;
+  fbAplicaBusca();
+}
+document.getElementById('ficaBiBtn').onclick = ()=>{ activeClass = 'FICABI'; renderSidebar(); renderMain(); };
 </script>
 </body>
 </html>
