@@ -4316,7 +4316,7 @@ function renderEnturmTab(){
     <div class="fb-sum">${pill(c.tot,'alunos')}${pill(c.C,'progressão direta')}${pill(c.O,'OER/progressão')}${pill(c.P,'rec. final/progressão')}${pill(c.L,'FICA/reclassificação')}${pill(c.F,'FICA/retido')}${pill(c.R,'retidos')}${pill(c.sem,'sem marcação')}${pill(c.N,'matrículas novas')}</div>
     <div class="oer-tab-controls" style="margin-top:14px">${[['marc','Marcação por turma'],['quad','Quadro das turmas 2027'],['novas','Matrículas novas']].map(([k,t])=>`<button class="print-btn en-tab${v===k?' on':''}" data-v="${k}">${t}</button>`).join('')}</div>
     <div class="fb-tools"><button class="print-btn" id="enXlsx">⬇ Planilha para preencher (.xlsx)</button><label class="print-btn" style="cursor:pointer">⬆ Importar planilha preenchida<input type="file" id="enImp" accept=".xlsx" style="display:none"></label>
-      <button class="print-btn" id="enPrtB">🖨 Ficha em branco (PDF)</button><button class="print-btn" id="enPrtF">🖨 Imprimir preenchida</button><button class="print-btn" id="enTurmasBtn">⚙ Turmas de 2027</button></div>
+      <button class="print-btn" id="enPrtB">🖨 Ficha em branco (PDF)</button><button class="print-btn" id="enPrtF">🖨 Imprimir preenchida</button><button class="print-btn" id="enPrtFil" title="Imprime as turmas selecionadas respeitando os filtros da tela (situação, indicadores e busca)">🖨 Imprimir listagem filtrada</button><button class="print-btn" id="enTurmasBtn">⚙ Turmas de 2027</button></div>
     ${v==='marc'?enMarc(o,names):v==='quad'?enQuad(o,names):enNovas(o)}`;
   const $=s=>main.querySelectorAll(s),$1=id=>document.getElementById(id);
   $('.en-tab').forEach(b=>b.onclick=()=>{enState.view=b.dataset.v;enRender();});
@@ -4335,7 +4335,7 @@ function renderEnturmTab(){
   $('.en-nv').forEach(el=>el.onchange=()=>{o.novos[+el.dataset.i][el.dataset.k]=el.value;enSave(o);if(el.dataset.k==='nome')enRender();});
   $('.en-nv-del').forEach(b=>b.onclick=()=>{o.novos.splice(+b.dataset.i,1);enSave(o);enRender();});
   $1('enXlsx').onclick=enXlsx; $1('enImp').onchange=e=>{if(e.target.files[0])enImport(e.target.files[0]);e.target.value='';};
-  $1('enPrtB').onclick=()=>enPrint(false); $1('enPrtF').onclick=()=>enPrint(true);
+  $1('enPrtFil').onclick=enPrintFiltrado; $1('enPrtB').onclick=()=>enPrint(false); $1('enPrtF').onclick=()=>enPrint(true);
   $1('enTurmasBtn').onclick=()=>{const t=prompt('Turmas de 2027, separadas por vírgula (ex.: 6ºA, 6ºB, 7ºA, 7ºB, 8ºA, 9ºA).\nDeixe em branco para voltar ao padrão (gerado a partir das turmas carregadas).',enTurmas(o).join(', '));if(t===null)return;o.turmas=t.split(',').map(x=>x.trim()).filter(Boolean);if(!o.turmas.length)o.turmas=null;enSave(o);enRender();};
 }
 function enPrint(filled){
@@ -4352,6 +4352,31 @@ function enPrint(filled){
   const nv=filled?o.novos.filter(z=>z.nome):[],rows=nv.concat(Array.from({length:Math.max(15,25-nv.length)},()=>({nome:'',esc:'',to:'',turma:''})));
   const nova=`<div class="enp-sec"><div class="fbp-titulo">Matrículas novas 2027 (Escola Padre Marzano Matias, cadastro geral, 5º ano…)</div><div class="fbp-sub">emitido em ${hoje}</div><table class="fbp-table"><thead><tr><th>#</th><th>Nome do aluno</th><th>Origem</th><th>Turma de origem</th><th>Turma 2027</th></tr></thead><tbody>${rows.map((z,i)=>`<tr><td class="n">${i+1}</td><td>${escHtml(z.nome)}</td><td>${escHtml(z.esc)}</td><td>${escHtml(z.to)}</td><td>${escHtml(z.turma)}</td></tr>`).join('')}</tbody></table></div>`;
   runPrintMode('printEnturmDoc',pg+nova,'print-mode-enturm');
+}
+// Listagem para impressão: turmas selecionadas + filtros da tela (situação, indicadores, busca). Uma folha por turma.
+function enPrintFiltrado(){
+  const o=enLoad(),reg=fbLoad(),sel=enSelNames(),q=normNome(enState.busca),f=enState.filtro,hoje=new Date().toLocaleDateString('pt-BR');
+  const NI={f:'FICA',b:'Bi-retido',r:'Risco O.E.R'},ks=[...enState.ind];
+  const desc=[f==='todos'?'todas as situações':f==='sem'?'sem marcação':EN_SIT[f],
+    ks.length?'indicadores: '+ks.map(k=>NI[k]).join(enState.indMode==='all'?' + ':' ou '):'',q?'busca: “'+enState.busca+'”':''].filter(Boolean).join(' · ');
+  let total=0;
+  const pg=sel.map(n=>{
+    const rk=fbRiscoMap(n);let seq=0;
+    const rows=currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(st=>{
+      seq++;const x=enGetX(o,n,st.name),fb=fbGet(reg,n,st.name);
+      if(f==='sem'?x.s:(f!=='todos'&&x.s!==f)) return '';
+      if(ks.length){const has=k=>k==='f'?fb.f:k==='b'?fb.b:rk.has(st.name);if(!(enState.indMode==='all'?ks.every(has):ks.some(has))) return '';}
+      if(q&&normNome(st.name).indexOf(q)<0) return '';
+      const ind=[fb.f?'FICA':'',fb.b?'Bi-retido':'',rk.has(st.name)?'Risco O.E.R':''].filter(Boolean).join(' · ');
+      return `<tr><td class="n">${seq}</td><td>${escHtml(st.name)}</td><td style="font-size:9.5px;font-weight:700">${ind}</td><td>${x.s?EN_SIT[x.s]:''}</td><td>${escHtml(x.d)}</td></tr>`;
+    }).filter(Boolean);
+    if(!rows.length) return ''; total+=rows.length;
+    return `<div class="enp-sec"><div class="fbp-titulo">Enturmação 2027 — ${escHtml(shortTurmaLabel(n))}</div><div class="fbp-sub">${escHtml(desc)} · ${rows.length} aluno${rows.length===1?'':'s'} · emitido em ${hoje}</div>
+      <table class="fbp-table"><thead><tr><th>#</th><th>Aluno</th><th style="width:36mm">Indicadores</th><th style="width:50mm">Situação final</th><th style="width:22mm">Turma 2027</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+      <div class="fbp-leg"><b>FICA:</b> elevado número de faltas. <b>Bi-retido:</b> retido em 2025 e que não poderia ser retido em 2026. <b>Risco O.E.R:</b> risco de recuperação em alguma disciplina.</div></div>`;
+  }).filter(Boolean);
+  if(!total){alert('Nenhum aluno para imprimir com os filtros atuais.');return;}
+  runPrintMode('printEnturmDoc',pg.join(''),'print-mode-enturm');
 }
 function enSheetXml(rows,widths,dv){
   const cell=(c,i,j)=>{if(c===''||c==null)return'';const o=typeof c==='object'?c:{v:c,s:0},ref=xlsCol(j)+(i+1);
