@@ -835,6 +835,27 @@ body{
 .fb-alert{margin:5px 0 2px; padding:5px 9px; border:1px solid var(--danger); border-left-width:4px; border-radius:6px; background:#fff; color:var(--ink); font-size:11.5px; line-height:1.4; font-weight:500;}
 .fb-alert b{color:var(--danger); font-weight:700;}
 .fb-alert[hidden]{display:none;}
+.overview-btn.en{background:#3B6EA5;}
+.print-enturm-doc{display:none;}
+.en-tab.on{background:var(--ink); color:var(--paper);}
+.en-tag{display:inline-block; font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:10px; margin-right:4px; background:var(--plum-soft); color:var(--plum);}
+.en-tag.b{background:var(--danger-soft); color:var(--danger);}
+.en-tag.r{background:var(--warn-soft); color:var(--warn);}
+.en-row.sC{background:var(--accent-soft);}
+.en-row.sR{background:var(--danger-soft);}
+.en-row.sL, .en-row.sF{background:var(--plum-soft);}
+.en-row select{width:100%;}
+.en-row.sF{background:var(--danger-soft);}
+.en-row.sO, .en-row.sP{background:var(--warn-soft);}
+.en-tag.a{background:var(--accent-soft); color:var(--accent);}
+@page enturm{ size:A4 portrait; margin:9mm 10mm; }
+@media print{
+  body.print-mode-enturm .app{ display:none !important; }
+  body.print-mode-enturm .print-enturm-doc{ display:block !important; page:enturm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .enp-sec{ break-after:page; page-break-after:always; }
+  .enp-sec:last-child{ break-after:auto; page-break-after:auto; }
+  .enp-sec .fbp-table td{ height:7mm; }
+}
 </style>
 </head>
 <body>
@@ -856,6 +877,7 @@ body{
       <div class="overview-btn dash" id="dashboardBtn">📊 Dashboard - Notas Individuais</div>
       <div class="overview-btn oer" id="oerBtn">🎯 O.E.R — risco de recuperação</div>
       <div class="overview-btn fica" id="ficaBiBtn">🏷️ FICA / Bi-retidos</div>
+      <div class="overview-btn en" id="enturmBtn">🧭 Enturmação 2027</div>
       <div class="overview-btn rep" id="repBtn">📑 Relatórios</div>
     </div>
     <div class="turma-switch">
@@ -878,6 +900,7 @@ body{
 <div id="printOerCardsDoc" class="print-oer-cards-doc"></div>
 <div id="printClassTableDoc" class="print-class-table-doc"></div>
 <div id="printFicaBiDoc" class="print-ficabi-doc"></div>
+<div id="printEnturmDoc" class="print-enturm-doc"></div>
 <div id="printReportDoc" class="print-report-doc"></div>
 
 <script>
@@ -1950,6 +1973,7 @@ function renderMain(){
   if(activeClass==='DASHBOARD') return renderDashboard();
   if(activeClass==='OER') return renderOerTab();
   if(activeClass==='FICABI') return renderFicaBiTab();
+  if(activeClass==='ENTURM') return renderEnturmTab();
   if(activeClass==='RELATORIOS') return renderReportsTab();
   if(!activeClass || !currentClasses[activeClass]){
     main.innerHTML = `<div class="empty"><h2>Nenhuma turma selecionada</h2><p>Envie um PDF ou escolha uma turma no seletor ao lado.</p></div>`;
@@ -3396,7 +3420,7 @@ function xlsxBlob(sheets){ // sheets: [{name, rows, widths}]
     {name:'xl/workbook.xml', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xmlEsc(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets><calcPr fullCalcOnLoad="1"/></workbook>`},
     {name:'xl/_rels/workbook.xml.rels', data:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
     {name:'xl/styles.xml', data:XLS_STYLES},
-    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`, data:xlsSheetXml(s.rows, s.widths, s.freeze, s.cf, s.hid)}))
+    ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`, data:(s.xml||xlsSheetXml(s.rows, s.widths, s.freeze, s.cf, s.hid))}))
   ];
   return zipStore(files);
 }
@@ -4177,6 +4201,221 @@ function renderFicaBiTab(){
   fbAplicaBusca();
 }
 document.getElementById('ficaBiBtn').onclick = ()=>{ activeClass = 'FICABI'; renderSidebar(); renderMain(); };
+
+// ═══════════════════════════════════════════════════════════════════════
+// ENTURMAÇÃO 2027 — situação final (continuidade/retido/reclassificado/FICA), turma de destino e matrículas novas.
+// Salvo no navegador (chave própria, sobrevive à reimportação dos PDFs). Planilha .xlsx com listas suspensas para preencher fora e importar de volta.
+// ═══════════════════════════════════════════════════════════════════════
+const EN_KEY='config:enturm2027';
+const EN_SIT={C:'Progressão direta',O:'OER/Progressão',P:'Recuperação final/Progressão',L:'FICA/Reclassificação',F:'FICA/Retido',R:'Retido'};
+const enState={view:'marc',sel:new Set(),touched:false,busca:'',filtro:'todos',ind:new Set(),indMode:'any'};
+function enLoad(){try{const o=JSON.parse(localStorage.getItem(EN_KEY)||'{}');return{items:o.items||{},novos:o.novos||[],turmas:o.turmas||null};}catch(e){return{items:{},novos:[],turmas:null};}}
+function enSave(o){try{localStorage.setItem(EN_KEY,JSON.stringify(o));return true;}catch(e){alert('Não foi possível salvar neste navegador: '+e.message);return false;}}
+function enParse(l){const m=/^(\d+)\s*[ºo°]?\s*([A-Za-zÀ-ÿ0-9]*)$/.exec((l||'').trim());return m?{g:+m[1],l:m[2].toUpperCase()}:null;}
+function enConcl(n){const p=enParse(shortTurmaLabel(n));return !!p&&p.g===8&&p.l==='X';}  // 8ºX: turma projeto, conclui o Ensino Fundamental
+function enTurmas(o){
+  if(o.turmas&&o.turmas.length) return o.turmas;
+  const ps=Object.keys(currentClasses).filter(n=>!enConcl(n)).map(n=>enParse(shortTurmaLabel(n))).filter(Boolean); if(!ps.length) return [];
+  const L=g=>[...new Set(ps.filter(p=>p.g===g).map(p=>p.l))].sort();
+  return [...L(6).map(l=>'6º'+l),...[...new Set([...L(6),...L(7)])].sort().map(l=>'7º'+l),'8º manhã'];
+}
+function enExp(cls,s){const p=enParse(shortTurmaLabel(cls));return p?((s==='R'||s==='F')?p.g:p.g+1):null;}
+function enAuto(o,cls,s){const p=enParse(shortTurmaLabel(cls)),g=enExp(cls,s);if(!p||!g)return '';const T=enTurmas(o),c=g+'º'+p.l;if(T.includes(c))return c;const gg=T.filter(x=>(enParse(x)||{}).g===g);return gg.length===1?gg[0]:'';}
+function enNames(){return Object.keys(currentClasses).filter(n=>!enConcl(n)).sort(ordemTurmas);}
+function enSelNames(){const n=enNames();return enState.touched?n.filter(x=>enState.sel.has(x)):n;}
+// Progressão direta (única marcação automática): 60 pontos ou mais no ano em TODAS as disciplinas (3 trimestres lançados). Quem está no FICA fica em aberto.
+function enProg(cls,name){
+  const cd=currentClasses[cls],st=cd&&cd.students.find(x=>x.name===name); if(!st) return false;
+  if(fbGet(fbLoad(),cls,name).f) return false;
+  let n=0;
+  for(let i=0;i<cd.subjects.length;i++){ if(isLiteratura(cd.subjects[i])) continue; const c=subjectCalc(st.subjects[i]); if(c.filledCount<3||c.ta<CUM_PASS[2]) return false; n++; }
+  return n>0;
+}
+function enGetX(o,cls,name){
+  const x=Object.assign({s:'',d:'',a:0,z:0,au:0},o.items[adKey(cls,name)]||{});
+  if(!x.s&&!x.z&&enProg(cls,name)){x.s='C';x.au=1;if(!x.d){x.d=enAuto(o,cls,'C');x.a=1;}}
+  return x;
+}
+function enSet(cls,name,patch){
+  const o=enLoad(),k=adKey(cls,name),c=Object.assign({s:'',d:'',a:0,z:0},o.items[k]||{},patch);
+  if(patch.d!==undefined) c.a=0;
+  if(patch.s!==undefined){ c.z=c.s?0:1; const p=enParse(c.d); if(patch.d===undefined&&(!c.d||c.a||!p||p.g!==enExp(cls,c.s))){c.d=c.s?enAuto(o,cls,c.s):'';c.a=c.d?1:0;} }
+  if(!c.s&&!c.d&&!c.z) delete o.items[k]; else o.items[k]=c; enSave(o);
+}
+function enCounts(names,o){
+  const c={tot:0,C:0,O:0,P:0,R:0,L:0,F:0,sem:0,N:o.novos.filter(z=>z.nome).length};
+  names.forEach(n=>currentClasses[n].students.forEach(st=>{c.tot++;const s=enGetX(o,n,st.name).s;if(s)c[s]++;else c.sem++;}));
+  return c;
+}
+function enRender(){const y=document.scrollingElement.scrollTop;renderEnturmTab();document.scrollingElement.scrollTop=y;}
+function enMarc(o,names){
+  const sel=enSelNames(),reg=fbLoad(),T=enTurmas(o),q=normNome(enState.busca),f=enState.filtro;
+  const secs=sel.map(n=>{
+    const rk=fbRiscoMap(n);let seq=0;
+    const rows=currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(st=>{
+      seq++;const x=enGetX(o,n,st.name),fb=fbGet(reg,n,st.name);
+      if(f==='sem'?x.s:(f!=='todos'&&x.s!==f)) return '';
+      if(enState.ind.size){const has=k=>k==='f'?fb.f:k==='b'?fb.b:rk.has(st.name),ks=[...enState.ind];if(!(enState.indMode==='all'?ks.every(has):ks.some(has))) return '';}
+      const g=enExp(n,x.s)||enExp(n,'C'),opt=t=>`<option ${t===x.d?'selected':''}>${escHtml(t)}</option>`,
+        pri=T.filter(t=>(enParse(t)||{}).g===g),oth=T.filter(t=>(enParse(t)||{}).g!==g),at=`data-t="${escHtml(n)}" data-n="${escHtml(st.name)}"`;
+      const tags=(fb.f?'<span class="en-tag f">FICA</span>':'')+(fb.b?'<span class="en-tag b">Bi-retido</span>':'')+(rk.has(st.name)?'<span class="en-tag r">Risco O.E.R</span>':'')+(x.au?'<span class="en-tag a">automático: 60+ em todas</span>':'');
+      return `<tr class="fb-row en-row s${x.s}" data-nome="${escHtml(normNome(st.name))}"><td class="fb-num">${seq}</td><td class="l">${escHtml(st.name)}</td><td class="l">${tags}</td>
+        <td><select class="tri-select en-s" ${at}><option value="">— definir —</option>${Object.entries(EN_SIT).map(([k,v])=>`<option value="${k}" ${x.s===k?'selected':''}>${v}</option>`).join('')}</select></td>
+        <td><select class="tri-select en-d" ${at}><option value="">— a definir —</option><optgroup label="${g}º ano">${pri.map(opt).join('')}</optgroup><optgroup label="Outras turmas">${oth.map(opt).join('')}</optgroup></select></td></tr>`;
+    }).join('');
+    const k=enCounts([n],o);
+    return `<div class="fb-sec"><div class="fb-sec-title">${escHtml(shortTurmaLabel(n))} <small>${k.tot} alunos · ${k.C} progressão direta · ${k.O} OER · ${k.P} rec. final · ${k.L} FICA/reclass. · ${k.F+k.R} retido${k.F+k.R===1?'':'s'} · ${k.sem} sem marcação</small></div>
+      <table class="fb-table"><thead><tr><th>#</th><th class="l">Aluno</th><th class="l">Indicadores</th><th>Situação final</th><th>Turma em 2027</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="l" style="color:var(--ink-soft)">Nenhum aluno neste filtro.</td></tr>'}</tbody></table></div>`;
+  }).join('');
+  const chips=names.map(n=>`<label class="oer-chip${sel.includes(n)?' on':''}"><input type="checkbox" class="en-turma-cb" value="${escHtml(n)}" ${sel.includes(n)?'checked':''}> ${escHtml(shortTurmaLabel(n))}</label>`).join('');
+  const cc=Object.keys(currentClasses).filter(enConcl),aviso=cc.length?`<div class="fb-def" style="margin:0 0 12px"><b>${cc.map(n=>escHtml(shortTurmaLabel(n))).join(', ')} — turma projeto</b>${cc.reduce((a,n)=>a+currentClasses[n].students.length,0)} alunos concluem o Ensino Fundamental este ano e não seguem para a enturmação de 2027 (fora desta lista, da planilha e da ficha).</div>`:'';
+  const indUi=`<div class="oer-tab-controls"><span><b>Indicadores:</b></span>${[['f','FICA'],['b','Bi-retido'],['r','Risco O.E.R']].map(([k,v])=>`<label class="oer-chip${enState.ind.has(k)?' on':''}"><input type="checkbox" class="en-ind-cb" value="${k}" ${enState.ind.has(k)?'checked':''}> ${v}</label>`).join('')}<select id="enIndMode" class="tri-select" title="Com mais de um indicador marcado"><option value="any">Qualquer um dos marcados</option><option value="all" ${enState.indMode==='all'?'selected':''}>Todos os marcados juntos</option></select></div>`;
+  return `${aviso}<div class="oer-tab-controls"><span><b>Turmas:</b></span><label class="oer-chip all${sel.length===names.length?' on':''}"><input type="checkbox" id="enAllCb" ${sel.length===names.length?'checked':''}> Todas</label>${chips}</div>
+    <div class="fb-tools"><input type="text" id="enBusca" class="rep-filtro" style="min-width:220px" placeholder="Buscar aluno…" value="${escHtml(enState.busca)}">
+      <select id="enFiltro" class="tri-select"><option value="todos">Mostrar todos</option><option value="sem" ${f==='sem'?'selected':''}>Sem marcação</option>${Object.entries(EN_SIT).map(([k,v])=>`<option value="${k}" ${f===k?'selected':''}>${v}</option>`).join('')}</select>
+      </div>${indUi}${secs||'<div class="empty"><p>Nenhuma turma selecionada.</p></div>'}`;
+}
+function enGroups(o,names){
+  const m=new Map(),add=(t,r)=>{if(!m.has(t))m.set(t,[]);m.get(t).push(r);};
+  names.forEach(n=>currentClasses[n].students.forEach(st=>{const x=enGetX(o,n,st.name);if(x.s)add(x.d||'(sem turma definida)',{n:st.name,s:x.s,o:shortTurmaLabel(n)});}));
+  o.novos.forEach(z=>{if(z.nome)add(z.turma||'(sem turma definida)',{n:z.nome,s:'N',o:(z.esc||'outra escola')+(z.to?' · '+z.to:'')});});
+  return m;
+}
+function enQuad(o,names){
+  const m=enGroups(o,names),keys=[...enTurmas(o),...[...m.keys()].filter(k=>!enTurmas(o).includes(k))].filter(k=>m.has(k)||enTurmas(o).includes(k));
+  const cnt=(l,s)=>l.filter(r=>r.s===s).length;
+  return `<table class="fb-table" style="margin-top:14px"><thead><tr><th class="l">Turma 2027</th><th>Progressão</th><th>Retidos</th><th>FICA/Reclass.</th><th>Matrículas novas</th><th>Total</th></tr></thead><tbody>${keys.map(k=>{const l=m.get(k)||[];
+    return `<tr><td class="l"><details><summary><b>${escHtml(k)}</b></summary><ol style="margin:6px 0 4px;font-size:12px;color:var(--ink-soft)">${l.sort((a,b)=>a.n.localeCompare(b.n,'pt-BR')).map(r=>`<li>${escHtml(r.n)} <i>(${r.s==='N'?'nova · '+escHtml(r.o):escHtml(r.o)+' · '+EN_SIT[r.s]})</i></li>`).join('')||'<li>Sem alunos.</li>'}</ol></details></td>
+      <td class="fb-c">${cnt(l,'C')+cnt(l,'O')+cnt(l,'P')}</td><td class="fb-c">${cnt(l,'R')+cnt(l,'F')}</td><td class="fb-c">${cnt(l,'L')}</td><td class="fb-c">${cnt(l,'N')}</td><td class="fb-c"><b>${l.length}</b></td></tr>`;}).join('')}</tbody></table>`;
+}
+const EN_ORIG=['Escola Padre Marzano Matias','Cadastro geral','5º ano','Outra escola'];
+function enNovas(o){
+  const T=enTurmas(o),opts=T.map(x=>`<option>${escHtml(x)}</option>`).join(''),res={};
+  o.novos.filter(z=>z.nome).forEach(z=>{const k=z.esc||'(origem não informada)';res[k]=(res[k]||0)+1;});
+  const resTxt=Object.entries(res).map(([k,v])=>escHtml(k)+': <b>'+v+'</b>').join(' · ');
+  return `<datalist id="enOrigDl">${EN_ORIG.map(x=>`<option value="${escHtml(x)}">`).join('')}</datalist>
+    <details class="rep-card" style="margin-top:14px" ${o.novos.length?'':'open'}><summary><b>Colar a lista de uma turma que chega</b> <span class="rep-hint">(uma turma inteira de uma vez)</span></summary>
+      <div class="rep-row"><label>Origem: <input class="rep-filtro" id="enPOrig" list="enOrigDl" placeholder="ex.: Escola Padre Marzano Matias"></label>
+        <label>Turma de origem: <input class="rep-filtro" id="enPTo" style="width:130px" placeholder="ex.: 6ºB tarde"></label>
+        <label>Turma em 2027: <select class="tri-select" id="enPDest"><option value="">— a definir —</option>${opts}</select></label></div>
+      <textarea id="enPTxt" class="rep-msg-in" rows="5" placeholder="Um nome por linha (pode colar de uma planilha)"></textarea>
+      <div class="rep-row"><button class="print-btn" id="enPBtn">Adicionar à lista</button></div></details>
+    <div class="fb-tools" style="margin-top:14px"><button class="print-btn" id="enNvAdd">＋ Adicionar um aluno</button><span class="rep-hint">${resTxt||'Origens: Escola Padre Marzano Matias, cadastro geral, 5º ano…'}</span></div>
+    <table class="fb-table"><thead><tr><th>#</th><th class="l">Nome do aluno</th><th class="l">Origem</th><th class="l">Turma de origem</th><th>Turma em 2027</th><th class="l">Observação</th><th></th></tr></thead><tbody>${o.novos.map((z,i)=>`<tr><td class="fb-num">${i+1}</td>
+      <td><input class="rep-filtro en-nv" style="width:100%" data-i="${i}" data-k="nome" value="${escHtml(z.nome)}"></td>
+      <td><input class="rep-filtro en-nv" style="width:100%" list="enOrigDl" data-i="${i}" data-k="esc" value="${escHtml(z.esc)}"></td>
+      <td><input class="rep-filtro en-nv" style="width:100%" data-i="${i}" data-k="to" value="${escHtml(z.to)}"></td>
+      <td><select class="tri-select en-nv" data-i="${i}" data-k="turma"><option value="">— a definir —</option>${T.map(x=>`<option ${x===z.turma?'selected':''}>${escHtml(x)}</option>`).join('')}</select></td>
+      <td><input class="rep-filtro en-nv" style="width:100%" data-i="${i}" data-k="obs" value="${escHtml(z.obs)}"></td><td><button class="print-btn en-nv-del" data-i="${i}">✕</button></td></tr>`).join('')||'<tr><td colspan="7" class="l" style="color:var(--ink-soft)">Nenhuma matrícula nova cadastrada.</td></tr>'}</tbody></table>`;
+}
+function renderEnturmTab(){
+  const main=document.getElementById('main'),names=enNames(),o=enLoad(),v=enState.view;
+  if(!names.length){main.innerHTML='<div class="empty"><h2>Nenhuma turma carregada</h2><p>Envie ao menos um PDF para listar os alunos.</p></div>';return;}
+  const c=enCounts(names,o),pill=(n,t)=>`<div class="fb-pill"><b>${n}</b>${t}</div>`;
+  main.innerHTML=`<div class="hdr"><div><h1>Enturmação 2027</h1><div class="hdr-sub">Situação final, turma de destino e matrículas novas</div></div></div>
+    <div class="fb-sum">${pill(c.tot,'alunos')}${pill(c.C,'progressão direta')}${pill(c.O,'OER/progressão')}${pill(c.P,'rec. final/progressão')}${pill(c.L,'FICA/reclassificação')}${pill(c.F,'FICA/retido')}${pill(c.R,'retidos')}${pill(c.sem,'sem marcação')}${pill(c.N,'matrículas novas')}</div>
+    <div class="oer-tab-controls" style="margin-top:14px">${[['marc','Marcação por turma'],['quad','Quadro das turmas 2027'],['novas','Matrículas novas']].map(([k,t])=>`<button class="print-btn en-tab${v===k?' on':''}" data-v="${k}">${t}</button>`).join('')}</div>
+    <div class="fb-tools"><button class="print-btn" id="enXlsx">⬇ Planilha para preencher (.xlsx)</button><label class="print-btn" style="cursor:pointer">⬆ Importar planilha preenchida<input type="file" id="enImp" accept=".xlsx" style="display:none"></label>
+      <button class="print-btn" id="enPrtB">🖨 Ficha em branco (PDF)</button><button class="print-btn" id="enPrtF">🖨 Imprimir preenchida</button><button class="print-btn" id="enTurmasBtn">⚙ Turmas de 2027</button></div>
+    ${v==='marc'?enMarc(o,names):v==='quad'?enQuad(o,names):enNovas(o)}`;
+  const $=s=>main.querySelectorAll(s),$1=id=>document.getElementById(id);
+  $('.en-tab').forEach(b=>b.onclick=()=>{enState.view=b.dataset.v;enRender();});
+  $('.en-s').forEach(s=>s.onchange=()=>{enSet(s.dataset.t,s.dataset.n,{s:s.value});enRender();});
+  $('.en-d').forEach(s=>s.onchange=()=>{enSet(s.dataset.t,s.dataset.n,{d:s.value,s:s.closest('tr').querySelector('.en-s').value});enRender();});
+  $('.en-turma-cb').forEach(cb=>cb.onchange=()=>{if(!enState.touched){enState.touched=true;enState.sel=new Set(names);}cb.checked?enState.sel.add(cb.value):enState.sel.delete(cb.value);enRender();});
+  if($1('enAllCb')) $1('enAllCb').onchange=e=>{enState.touched=true;enState.sel=e.target.checked?new Set(names):new Set();enRender();};
+  if($1('enBusca')) $1('enBusca').oninput=e=>{enState.busca=e.target.value;const q=normNome(e.target.value);$('.en-row').forEach(tr=>tr.hidden=!!q&&tr.dataset.nome.indexOf(q)<0);$('.fb-sec').forEach(s=>s.hidden=![...s.querySelectorAll('.en-row')].some(r=>!r.hidden));};
+  if($1('enBusca')&&enState.busca) $1('enBusca').oninput({target:$1('enBusca')});
+  if($1('enFiltro')) $1('enFiltro').onchange=e=>{enState.filtro=e.target.value;enRender();};
+  $('.en-ind-cb').forEach(cb=>cb.onchange=()=>{cb.checked?enState.ind.add(cb.value):enState.ind.delete(cb.value);enRender();});
+  if($1('enIndMode')) $1('enIndMode').onchange=e=>{enState.indMode=e.target.value;enRender();};
+  if($1('enFill')) $1('enFill').onclick=()=>{if(!confirm('Marcar como Continuidade (ou FICA, para quem está no FICA) todos os alunos sem marcação nas turmas selecionadas?'))return;const reg=fbLoad();enSelNames().forEach(n=>currentClasses[n].students.forEach(st=>{if(!enGetX(enLoad(),n,st.name).s)enSet(n,st.name,{s:fbGet(reg,n,st.name).f?'F':'C'});}));enRender();};
+  if($1('enPBtn')) $1('enPBtn').onclick=()=>{const ls=$1('enPTxt').value.split(/\r?\n/).map(x=>x.replace(/\t.*$/,'').trim()).filter(Boolean);if(!ls.length){alert('Cole ao menos um nome.');return;}ls.forEach(nome=>o.novos.push({nome,esc:$1('enPOrig').value.trim(),to:$1('enPTo').value.trim(),turma:$1('enPDest').value,obs:''}));enSave(o);enRender();};
+  if($1('enNvAdd')) $1('enNvAdd').onclick=()=>{o.novos.push({nome:'',esc:'',to:'',turma:'',obs:''});enSave(o);enRender();};
+  $('.en-nv').forEach(el=>el.onchange=()=>{o.novos[+el.dataset.i][el.dataset.k]=el.value;enSave(o);if(el.dataset.k==='nome')enRender();});
+  $('.en-nv-del').forEach(b=>b.onclick=()=>{o.novos.splice(+b.dataset.i,1);enSave(o);enRender();});
+  $1('enXlsx').onclick=enXlsx; $1('enImp').onchange=e=>{if(e.target.files[0])enImport(e.target.files[0]);e.target.value='';};
+  $1('enPrtB').onclick=()=>enPrint(false); $1('enPrtF').onclick=()=>enPrint(true);
+  $1('enTurmasBtn').onclick=()=>{const t=prompt('Turmas de 2027, separadas por vírgula (ex.: 6ºA, 6ºB, 7ºA, 7ºB, 8ºA, 9ºA).\nDeixe em branco para voltar ao padrão (gerado a partir das turmas carregadas).',enTurmas(o).join(', '));if(t===null)return;o.turmas=t.split(',').map(x=>x.trim()).filter(Boolean);if(!o.turmas.length)o.turmas=null;enSave(o);enRender();};
+}
+function enPrint(filled){
+  const o=enLoad(),hoje=new Date().toLocaleDateString('pt-BR'),bx=on=>on?'☒':'☐',sel=enSelNames();
+  const reg=fbLoad(),opcoes=Object.values(EN_SIT).join(' · ');
+  const pg=sel.map(n=>{const rk=fbRiscoMap(n);
+    const rows=currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map((st,i)=>{
+      const x=enGetX(o,n,st.name),fb=fbGet(reg,n,st.name),ind=[fb.f?'FICA':'',fb.b?'Bi-retido':'',rk.has(st.name)?'Risco O.E.R':''].filter(Boolean).join(' · ');
+      return `<tr><td class="n">${i+1}</td><td>${escHtml(st.name)}</td><td style="font-size:9.5px;font-weight:700">${ind}</td><td>${filled&&x.s?EN_SIT[x.s]:''}</td><td>${filled?escHtml(x.d):''}</td></tr>`;}).join('');
+    const extra=`<tr><td class="n">${currentClasses[n].students.length+1}</td><td></td><td></td><td></td><td></td></tr>`;  // linha extra: matrícula que o sistema ainda não registrou
+    return `<div class="enp-sec"><div class="fbp-titulo">Enturmação 2027 — ${escHtml(shortTurmaLabel(n))}</div><div class="fbp-sub">Escreva a situação final (<b>${opcoes}</b>) e a turma de 2027 · emitido em ${hoje}</div>
+      <table class="fbp-table"><thead><tr><th>#</th><th>Aluno</th><th style="width:36mm">Indicadores</th><th style="width:50mm">Situação final</th><th style="width:22mm">Turma 2027</th></tr></thead><tbody>${rows}${extra}</tbody></table>
+      <div class="fbp-leg"><b>FICA:</b> elevado número de faltas. <b>Bi-retido:</b> retido em 2025 e que não poderia ser retido em 2026. <b>Risco O.E.R:</b> risco de recuperação em alguma disciplina.</div></div>`;}).join('');
+  const nv=filled?o.novos.filter(z=>z.nome):[],rows=nv.concat(Array.from({length:Math.max(15,25-nv.length)},()=>({nome:'',esc:'',to:'',turma:''})));
+  const nova=`<div class="enp-sec"><div class="fbp-titulo">Matrículas novas 2027 (Escola Padre Marzano Matias, cadastro geral, 5º ano…)</div><div class="fbp-sub">emitido em ${hoje}</div><table class="fbp-table"><thead><tr><th>#</th><th>Nome do aluno</th><th>Origem</th><th>Turma de origem</th><th>Turma 2027</th></tr></thead><tbody>${rows.map((z,i)=>`<tr><td class="n">${i+1}</td><td>${escHtml(z.nome)}</td><td>${escHtml(z.esc)}</td><td>${escHtml(z.to)}</td><td>${escHtml(z.turma)}</td></tr>`).join('')}</tbody></table></div>`;
+  runPrintMode('printEnturmDoc',pg+nova,'print-mode-enturm');
+}
+function enSheetXml(rows,widths,dv){
+  const cell=(c,i,j)=>{if(c===''||c==null)return'';const o=typeof c==='object'?c:{v:c,s:0},ref=xlsCol(j)+(i+1);
+    if(o.v===''||o.v==null)return`<c r="${ref}" s="${o.s||0}"/>`;
+    return typeof o.v==='number'?`<c r="${ref}" s="${o.s||0}"><v>${o.v}</v></c>`:`<c r="${ref}" s="${o.s||0}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(o.v)}</t></is></c>`;};
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.map((r,i)=>`<row r="${i+1}">${r.map((c,j)=>cell(c,i,j)).join('')}</row>`).join('')}</sheetData>${dv.length?`<dataValidations count="${dv.length}">${dv.map(d=>`<dataValidation type="list" allowBlank="1" showErrorMessage="1"${d.w?' errorStyle="warning"':''} sqref="${d.sq}"><formula1>${xmlEsc(d.f)}</formula1></dataValidation>`).join('')}</dataValidations>`:''}</worksheet>`;
+}
+function enXlsx(){
+  const o=enLoad(),T=enTurmas(o),reg=fbLoad(),H=v=>({v,s:2}),sheets=[],used=new Set(),NT=Math.max(T.length,1)+1;
+  const sitF='"'+Object.values(EN_SIT).join(',')+'"',turF=`Listas!$B$2:$B$${NT}`;
+  enNames().forEach(n=>{
+    const rk=fbRiscoMap(n),L=shortTurmaLabel(n),st=currentClasses[n].students.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+    const rows=[[H('Nº'),H('Aluno'),H('Turma atual'),H('Indicadores'),H('Situação final'),H('Turma 2027')]];
+    st.forEach((s,i)=>{const x=enGetX(o,n,s.name),fb=fbGet(reg,n,s.name);
+      rows.push([{v:i+1,s:12},{v:s.name,s:11},{v:L,s:12},{v:[fb.f?'FICA':'',fb.b?'Bi-retido':'',rk.has(s.name)?'Risco O.E.R':''].filter(Boolean).join(' · '),s:11},{v:x.s?EN_SIT[x.s]:'',s:8},{v:x.d,s:8}]);});
+    let nm=L.replace(/[\[\]:*?\/\\]/g,'-').slice(0,28)||'Turma';while(used.has(nm.toLowerCase()))nm+='_';used.add(nm.toLowerCase());
+    sheets.push({name:nm,xml:enSheetXml(rows,[5,46,12,28,18,14],[{sq:`E2:E${rows.length}`,f:sitF},{sq:`F2:F${rows.length}`,f:turF}])});
+  });
+  const nv=o.novos.filter(z=>z.nome),nr=[[H('Nome'),H('Escola de origem'),H('Turma de origem'),H('Turma 2027'),H('Observação')]];
+  nv.concat(Array.from({length:60},()=>({nome:'',esc:'',to:'',turma:'',obs:''}))).forEach(z=>nr.push([{v:z.nome,s:11},{v:z.esc,s:11},{v:z.to||'',s:11},{v:z.turma,s:8},{v:z.obs,s:11}]));
+  sheets.push({name:'Matrículas novas',xml:enSheetXml(nr,[44,30,18,14,34],[{sq:'B2:B1000',f:'"'+EN_ORIG.join(',')+'"',w:1},{sq:'D2:D1000',f:turF}])});
+  const lr=[[H('Situação final'),H('Turma 2027')]];for(let i=0;i<Math.max(Object.keys(EN_SIT).length,T.length);i++)lr.push([Object.values(EN_SIT)[i]||'',T[i]||'']);
+  sheets.push({name:'Listas',xml:enSheetXml(lr,[18,14],[])});
+  const a=document.createElement('a');a.href=URL.createObjectURL(xlsxBlob(sheets));a.download='enturmacao-2027.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+async function enUnzip(buf){
+  const dv=new DataView(buf),u=new Uint8Array(buf),td=new TextDecoder(),out={};let e=u.length-22;
+  while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--; if(e<0)throw new Error('Arquivo .xlsx inválido.');
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);
+  for(let i=0;i<n;i++){
+    const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true),
+      name=td.decode(u.subarray(p+46,p+46+nl)),s=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true);
+    let d=u.subarray(s,s+cs);
+    if(m===8)d=new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    out[name]=td.decode(d);p+=46+nl+xl+cl;
+  }
+  return out;
+}
+async function enImport(file){
+  try{
+    const z=await enUnzip(await file.arrayBuffer()),ss=[],px=t=>new DOMParser().parseFromString(t,'text/xml');
+    if(z['xl/sharedStrings.xml'])px(z['xl/sharedStrings.xml']).querySelectorAll('si').forEach(si=>ss.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join('')));
+    const o=enLoad(),sit={};Object.entries(EN_SIT).forEach(([k,v])=>sit[normNome(v)]=k);Object.assign(sit,{'PROGRESSAO':'C','CONTINUIDADE':'C','RECLASSIFICADO':'L','RECLASSIFICACAO':'L','OER':'O'});let ok=0,bad=0,nv=null;
+    Object.keys(z).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).forEach(k=>{
+      const rows=[];
+      px(z[k]).querySelectorAll('row').forEach(r=>{const a=[];r.querySelectorAll('c').forEach(c=>{
+        const col=c.getAttribute('r').match(/[A-Z]+/)[0].split('').reduce((s,ch)=>s*26+ch.charCodeAt(0)-64,0)-1,t=c.getAttribute('t'),v=c.querySelector('v');
+        a[col]=t==='s'?ss[+v.textContent]:t==='inlineStr'?[...c.getElementsByTagName('t')].map(x=>x.textContent).join(''):(v?v.textContent:'');});rows.push(a);});
+      const H=(rows[0]||[]).map(x=>normNome(x)),ix=h=>H.indexOf(h),iA=ix('ALUNO'),iS=ix('SITUACAO FINAL'),iD=ix('TURMA 2027'),iT=ix('TURMA ATUAL'),iE=ix('ESCOLA DE ORIGEM'),iN=ix('NOME');
+      if(iA>=0&&iS>=0&&iD>=0&&iT>=0){
+        rows.slice(1).forEach(r=>{
+          if(!r[iA])return;const s=sit[normNome(r[iS])]||'',d=String(r[iD]||'').trim();if(!s&&!d)return;
+          const cls=Object.keys(currentClasses).find(n=>normTurma(shortTurmaLabel(n))===normTurma(r[iT])),st=cls&&currentClasses[cls].students.find(x=>normNome(x.name)===normNome(r[iA]));
+          if(!st){bad++;return;}
+          o.items[adKey(cls,st.name)]={s,d:d||(s?enAuto(o,cls,s):''),a:(!d&&s)?1:0};ok++;});
+      }else if(iE>=0&&iN>=0&&iD>=0){
+        nv=rows.slice(1).filter(r=>r[iN]&&String(r[iN]).trim()).map(r=>({nome:String(r[iN]).trim(),esc:String(r[iE]||'').trim(),to:String(r[ix('TURMA DE ORIGEM')]||'').trim(),turma:String(r[iD]||'').trim(),obs:String(r[ix('OBSERVACAO')]||'').trim()}));
+      }
+    });
+    if(nv)o.novos=nv; enSave(o); enRender();
+    alert(`Importação concluída: ${ok} aluno${ok===1?'':'s'} atualizado${ok===1?'':'s'}${bad?` (${bad} linha${bad===1?'':'s'} não reconhecida${bad===1?'':'s'})`:''}${nv?` · ${nv.length} matrícula${nv.length===1?'':'s'} nova${nv.length===1?'':'s'} (lista substituída pela da planilha)`:''}.`);
+  }catch(e){alert('Não foi possível ler a planilha: '+e.message+'\nUse o arquivo .xlsx gerado por este painel (salvo pelo Excel ou LibreOffice).');}
+}
+document.getElementById('enturmBtn').onclick=()=>{activeClass='ENTURM';renderSidebar();renderMain();};
 </script>
 </body>
 </html>
