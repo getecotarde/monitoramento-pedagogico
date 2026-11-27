@@ -1344,6 +1344,33 @@ body[data-v=exam] .svbar{margin-bottom:8px}
  body[data-p=ctl] #ctlOut tr{break-inside:avoid;page-break-inside:avoid}
 }
 </style>
+<style id="sitcss">
+#sitOut td.sitn{text-align:center;font-weight:700}
+#sitOut .sitt{display:inline-block;font-weight:700;font-size:.88rem}
+#sitOut .sitt.sr{color:#b3261e}#sitOut .sitt.sg{color:var(--mut)}#sitOut .sitt.sk{color:#1b7a43}
+#sitOut .sitcs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+#sitOut .sitc{border:1px solid var(--ln);border-radius:4px;padding:1px 6px;font-size:.78rem;white-space:nowrap}
+#sitOut .sitc.sb2{background:rgba(179,38,30,.12);border-color:rgba(179,38,30,.45)}
+#sitOut .sitc.sb1{background:rgba(240,170,0,.16);border-color:rgba(200,140,0,.5)}
+#sitOut tr.np td{opacity:.45}
+#sitOut tr.sitdet td{background:var(--bg);border-top:0}
+#sitOut table.sitm{width:auto;border-collapse:collapse}
+#sitOut table.sitm th,#sitOut table.sitm td{border:1px solid var(--ln);padding:2px 6px;font-size:.74rem;text-align:center;background:transparent}
+#sitOut table.sitm td.lo{color:#b3261e;font-weight:700}
+@page sitpg{size:A4;margin:12mm 10mm}
+@media print{
+ #v-sit{page:sitpg}
+ body[data-p=sit] .ui{padding:0!important;max-width:none!important;margin:0!important}
+ body[data-p=sit] #sitOut .pv{padding:0!important;overflow:visible!important}
+ body[data-p=sit] #sitOut .tb{box-shadow:none!important;border-radius:0!important;overflow:visible!important}
+ body[data-p=sit] #sitOut .tb td,body[data-p=sit] #sitOut .tb th{font-size:9pt!important}
+ body[data-p=sit] #sitOut thead{display:table-header-group}
+ body[data-p=sit] #sitOut tr{break-inside:avoid;page-break-inside:avoid}
+ body[data-p=sit] #sitOut .sitc{font-size:8pt!important}
+ body[data-p=sit] #sitOut table.sitm td,body[data-p=sit] #sitOut table.sitm th{font-size:7.5pt!important}
+ body[data-p=sit] #sitOut tr.np td{opacity:1}
+}
+</style>
 </head>
 <body>
 <div class="ui">
@@ -1358,6 +1385,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
  <button id="b-sum" onclick="show('sum')">📊 Andamento</button>
  <button id="b-term" onclick="show('term')">📄 Termos</button>
  <button id="b-ctl" onclick="show('ctl')">✅ Entrega dos termos</button>
+ <button id="b-sit" onclick="show('sit')">📈 Situação nas notas</button>
 </div>
 <div class="bar ctx">
  <label>Turmas<select id="serie" onchange="swV()"></select></label>
@@ -1459,6 +1487,21 @@ body[data-v=exam] .svbar{margin-bottom:8px}
  </div>
  <div id="ctlOut"></div>
 </section>
+<section id="v-sit" hidden>
+ <h2 class="noprint" style="margin-top:0">Situação nas notas · 1º e 2º trimestres</h2>
+ <p class="sub">Busca as notas lançadas no Monitoramento Pedagógico (tabela notas_trimestrais) dos estudantes cadastrados na aba 3 e mostra, por disciplina, o rendimento do 1º e do 2º trimestre. Em destaque ficam as disciplinas abaixo do limite escolhido. O cruzamento é feito por nome e turma; quem não for encontrado aparece como “sem notas”.</p>
+ <div class="card noprint" style="max-width:none;margin-bottom:12px">
+  <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+   <label>Mostrar <select id="sitF" onchange="SIF=this.value;renderSit()"></select></label>
+   <label>Abaixo de <input class="t" id="sitL" type="number" min="0" max="100" value="60" style="width:70px" onchange="renderSit()"> %</label>
+   <label class="ck"><input type="checkbox" id="sitP" checked onchange="renderSit()"> Só quem participa do FICA</label>
+   <label class="ck"><input type="checkbox" id="sitR" onchange="renderSit()"> Só quem tem disciplina abaixo do limite</label>
+   <label class="ck"><input type="checkbox" id="sitD" onchange="renderSit()"> Detalhar todas as disciplinas</label>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button onclick="sitLoad(true)">🔄 Buscar notas de novo</button><button class="p" onclick="doPrint('Situação nas notas - Projeto FICA','sit')">🖨️ Imprimir / salvar PDF</button><span class="sm" id="sitSt"></span></div>
+ </div>
+ <div id="sitOut"></div>
+</section>
 <section id="v-term" hidden>
  <h2 class="noprint" style="margin-top:0">Termo de compromisso da família</h2>
  <p class="sub">Gera um termo por estudante, já com o nome completo preenchido (vem da aba 3 · Estudantes). Data de nascimento, código SGE e dados do responsável ficam em branco para preencher à mão.</p>
@@ -1486,7 +1529,7 @@ body[data-v=exam] .svbar{margin-bottom:8px}
 <script>
 const SUBJ=["Português","Matemática","Ciências","Geografia","História","Inglês","Educação Física","Arte"],NT=10;
 const TURMAS=["6º ano - turmas ABC","6º ano - turmas DEF","7º ano - turmas ABC","7º ano - turmas DE","8º ano - turma X"],MODS=["Regular","Adaptada"];
-const L=["A","B","C","D"],VW=["build","blk","stu","exam","key","sum","term","ctl"];
+const L=["A","B","C","D"],VW=["build","blk","stu","exam","key","sum","term","ctl","sit"];
 const mkS=()=>SUBJ.map(name=>({name,qs:[],txs:[],file:"",gab:"",msg:"",er:false}));
 const DEF=`6B;ARTHUR OLIVEIRA DE FREITAS;32
 6B;KAILLANY EVILLYN FLORENÇO LABOURE DA SILVA;38
@@ -2043,7 +2086,7 @@ async function dlSum(){
  }catch(e){if(e&&e.code==="declined")return}
  try{const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(e){alert("Não foi possível baixar o arquivo.")}
 }
-function show(v){document.body.dataset.v=v;if(v==="exam")sideInit();VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam"){if(!BK.length&&canGen())autoGen();renderEx()}if(v==="key")renderKey();if(v==="sum")renderSum();if(v==="term")renderTerm();if(v==="ctl")renderCtl();window.scrollTo(0,0)}
+function show(v){document.body.dataset.v=v;if(v==="exam")sideInit();VW.forEach(x=>{$("v-"+x).hidden=x!==v;$("b-"+x).classList.toggle("on",x===v)});if(v==="blk")renderBlk();if(v==="stu")renderStu();if(v==="exam"){if(!BK.length&&canGen())autoGen();renderEx()}if(v==="key")renderKey();if(v==="sum")renderSum();if(v==="term")renderTerm();if(v==="ctl")renderCtl();if(v==="sit")renderSit();window.scrollTo(0,0)}
 let BIGM=[],BIGZ=1;
 function bigPv(){return $(MODE==="mod"?"modPv":"indPv")}
 function bigApply(){const e=bigPv();e.style.zoom=BIGZ;$("bigZv").textContent=Math.round(BIGZ*100)+"%"}
@@ -2233,6 +2276,80 @@ function renderCtl(){
  $("ctlOut").innerHTML=!all.length?'<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>':hd+`<div class="pv"><table class="tb"><thead><tr><th style="width:110px;text-align:center">Recebeu o trabalho</th><th style="width:84px;text-align:center">Participa do FICA</th><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:110px;text-align:center">Recebeu o termo</th><th style="width:130px;text-align:center">Devolveu assinado</th><th style="width:130px;text-align:center">Trabalho devolvido</th></tr><tr class="ctlf noprint"><th>${mk("g")}${fsel("g","Marcados","Em branco")}</th><th>${mk("p")}${fsel("p","Sim","Não")}</th><th></th><th><select aria-label="Filtrar turma" onchange="ctlTurF(this.value)">${turOpts}</select></th><th><input class="t" id="ctlQ" placeholder="Filtrar por nome…" value="${esc(CQ)}" oninput="ctlQf(this.value)"></th><th>${mk("r")}${fsel("r","Marcados","Em branco")}</th><th>${mk("d")}${fsel("d","Marcados","Em branco")}</th><th>${mk("w")}${fsel("w","Marcados","Em branco")}</th></tr></thead><tbody>${ix.map(row).join("")||'<tr><td colspan="8" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div>`;
  ["g","p","r","d","w"].forEach(f=>{const m=$("ctlM_"+f);if(!m)return;const el=f==="p"?ix:ix.filter(i=>ctlPart(STU[i])),c=el.filter(i=>ctlVal(STU[i],f)).length;m.disabled=!el.length;m.checked=!!el.length&&c===el.length;m.indeterminate=c>0&&c<el.length});
  if(keep){const q=$("ctlQ");if(q){q.focus();try{q.setSelectionRange(keep[0],keep[1])}catch(e){}}}
+}
+
+/* ---------- situação nas notas (1º e 2º tri) ---------- */
+let SIF="",SIT={rows:null,at:null,err:"",busy:false};
+const SIT_FB={url:"https://jmlxtczcrraefymjxqim.supabase.co",key:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHh0Y3pjcnJhZWZ5bWp4cWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyOTc0MzcsImV4cCI6MjA5NDg3MzQzN30._4YX7xxHnprG_kI01TwPkFkKE9Wtwaz5E3DgEOdwOJ8"};
+const SIT_AB={"ARTE":"ARTE","CIÊNCIAS":"CIÊN","EDUCAÇÃO FÍSICA":"ED.FÍS","GEOGRAFIA":"GEO","HISTÓRIA":"HIST","LÍNGUA ESTRANGEIRA":"L.EST","LÍNGUA PORTUGUESA":"L.PORT","MATEMÁTICA":"MAT","ENSINO RELIGIOSO":"ENS.REL","CIÊNCIAS DA NATUREZA":"CIÊN.NAT","CIÊNCIAS HUMANAS":"CIÊN.HUM","FILOSOFIA":"FIL","SOCIOLOGIA":"SOC","REDAÇÃO":"RED","INFORMÁTICA":"INFO"};
+const sitAb=d=>{const k=String(d||"").trim().toUpperCase();return SIT_AB[k]||(k.length>7?k.slice(0,6)+".":k)};
+async function sitFetchAll(base,turmas){
+ const h={apikey:base.key,Authorization:"Bearer "+base.key};
+ const q="notas_trimestrais?select=matricula,aluno_nome,turma,disciplina,trimestre,percentual,status&trimestre=in.(1,2)&turma=in.("+turmas.map(encodeURIComponent).join(",")+")&order=turma.asc,aluno_nome.asc,disciplina.asc,trimestre.asc";
+ let out=[],off=0;
+ for(;;){
+  const r=await fetch(base.url+"/rest/v1/"+q+"&limit=1000&offset="+off,{headers:h});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const j=await r.json();if(!Array.isArray(j))throw new Error("resposta inesperada");
+  out=out.concat(j);if(j.length<1000)break;off+=1000;
+ }
+ return out;
+}
+async function sitLoad(force){
+ if(SIT.busy||(SIT.rows&&!force))return;
+ const turmas=[...new Set(selIx(tmOkS).map(i=>String(STU[i].t||"").trim()).filter(Boolean))];
+ if(!turmas.length){SIT.rows=[];renderSit();return}
+ SIT.busy=true;SIT.err="";const st=$("sitSt");if(st)st.textContent="Buscando notas no Monitoramento…";
+ const bases=[];if(SB.url&&SB.key)bases.push({url:String(SB.url).replace(/\/+$/,""),key:SB.key});bases.push(SIT_FB);
+ let rows=null,last="";
+ for(const b of bases){try{rows=await sitFetchAll(b,turmas);break}catch(e){last=String(e&&e.message||e)}}
+ SIT.busy=false;
+ if(rows){SIT.rows=rows;SIT.at=new Date();SIT.err=""}else{SIT.rows=null;SIT.err=last||"falha na conexão"}
+ renderSit();
+}
+function sitCalc(s,idx,L){
+ const k=nk(s.n)+"|"+nk(s.t);let rs=idx.byKey[k];
+ if(!rs){const c=idx.byName[nk(s.n)];if(c&&c.length&&new Set(c.map(r=>nk(r.turma))).size===1)rs=c}
+ rs=rs||[];const D={};
+ rs.forEach(r=>{const d=String(r.disciplina||"").trim();if(!d)return;const o=D[d]||(D[d]={});o[r.trimestre]=r.percentual==null?null:Number(r.percentual);if(r.status==="recuperada")o["r"+r.trimestre]=true});
+ const ds=Object.keys(D).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+ const b1=ds.filter(d=>D[d][1]!=null&&D[d][1]<L),b2=ds.filter(d=>D[d][2]!=null&&D[d][2]<L);
+ const risco=ds.filter(d=>(D[d][1]!=null&&D[d][1]<L)||(D[d][2]!=null&&D[d][2]<L));
+ const has1=ds.some(d=>D[d][1]!=null),has2=ds.some(d=>D[d][2]!=null);
+ return {D,ds,b1,b2,risco,has1,has2,sem:!ds.length};
+}
+function renderSit(){
+ const out=$("sitOut");if(!out)return;
+ const all=selIx(tmOkS),tl=[...new Set(all.map(i=>STU[i].t))].sort();
+ $("sitF").innerHTML='<option value="">Todos os estudantes</option>'+TURMAS.filter(b=>all.some(i=>grp(STU[i].t)===b)).map(b=>`<option ${SIF===b?"selected":""}>${esc(b)}</option>`).join("")+tl.map(t=>`<option ${SIF===t?"selected":""}>${esc(t)}</option>`).join("");
+ const st=$("sitSt");
+ if(!all.length){out.innerHTML='<p class="empty">Adicione os estudantes na aba 3 · Estudantes.</p>';if(st)st.textContent="";return}
+ if(SIT.busy){out.innerHTML='<p class="empty">Buscando notas no Monitoramento…</p>';return}
+ if(!SIT.rows){
+  if(SIT.err){out.innerHTML='<p class="empty">Não foi possível buscar as notas ('+esc(SIT.err)+'). Verifique a conexão e clique em “Buscar notas de novo”.</p>';if(st)st.textContent="";return}
+  sitLoad();return;
+ }
+ if(st)st.textContent="Notas carregadas às "+SIT.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+" · "+SIT.rows.length+" registros.";
+ const L=Math.max(0,Math.min(100,parseInt($("sitL").value,10)||60)),onlyP=$("sitP").checked,onlyR=$("sitR").checked,det=$("sitD").checked;
+ const idx={byKey:{},byName:{}};
+ SIT.rows.forEach(r=>{const a=nk(r.aluno_nome),k=a+"|"+nk(r.turma);(idx.byKey[k]=idx.byKey[k]||[]).push(r);(idx.byName[a]=idx.byName[a]||[]).push(r)});
+ const base=selIx(s=>tmOkS(s)&&(!SIF||s.t===SIF||grp(s.t)===SIF)&&(!onlyP||ctlPart(s)));
+ const calc=base.map(i=>({i,c:sitCalc(STU[i],idx,L)}));
+ const nSem=calc.filter(x=>x.c.sem).length,nRisk=calc.filter(x=>x.c.b2.length).length,nRisk1=calc.filter(x=>x.c.b1.length).length;
+ const list=calc.filter(x=>!onlyR||x.c.risco.length);
+ const hd=`<div class="ctlhd"><b>Projeto FICA – Situação nas notas do 1º e 2º trimestres</b><br>Escola Municipal Geraldo Teixeira da Costa – GETECO${SIF?" · "+esc(SIF):""} · Emitido em ${new Date().toLocaleDateString("pt-BR")}<br><b style="font-size:10pt">Estudantes: ${base.length} · Com disciplina abaixo de ${L}% no 1º tri: ${nRisk1} · no 2º tri: ${nRisk} · Sem notas encontradas: ${nSem}</b><span class="noprint sm"> · Exibindo ${list.length} na lista</span></div>`;
+ const fmt=v=>v==null?"—":v+"%";
+ const chip=(c,d)=>{const p1=c.D[d][1],p2=c.D[d][2],bad2=p2!=null&&p2<L,bad1=p1!=null&&p1<L;const cls=bad2?"sb2":"sb1";const ic=(c.D[d]["r2"]||c.D[d]["r1"])?" ⚠":"";return `<span class="sitc ${cls}" title="${esc(d)}">${esc(sitAb(d))}: ${fmt(p1)} → ${fmt(p2)}${ic}</span>`};
+ const sit=c=>{
+  if(c.sem)return '<span class="sitt sg">Sem notas encontradas</span>';
+  if(!c.has2){return c.b1.length?`<span class="sitt sr">${c.b1.length} abaixo de ${L}% no 1º tri · 2º tri sem notas</span>`:'<span class="sitt sg">Sem pendência no 1º tri · 2º tri sem notas</span>'}
+  if(!c.b2.length)return c.b1.length?`<span class="sitt sk">Recuperou: nenhuma abaixo de ${L}% no 2º tri (1º tri: ${c.b1.length})</span>`:`<span class="sitt sk">Nenhuma abaixo de ${L}%</span>`;
+  const t=c.has1?(c.b2.length>c.b1.length?" · piorou":c.b2.length<c.b1.length?" · melhorou":" · igual ao 1º tri"):"";
+  return `<span class="sitt sr">${c.b2.length} abaixo de ${L}% no 2º tri${c.has1?` (1º tri: ${c.b1.length})`:""}${t}</span>`;
+ };
+ const full=c=>`<tr class="sitdet"><td></td><td colspan="5"><table class="sitm"><thead><tr><th></th>${c.ds.map(d=>`<th title="${esc(d)}">${esc(sitAb(d))}</th>`).join("")}</tr></thead><tbody>${[1,2].map(t=>`<tr><th>${t}º tri</th>${c.ds.map(d=>{const v=c.D[d][t];return `<td class="${v!=null&&v<L?"lo":""}">${v==null?"—":v+"%"}${c.D[d]["r"+t]?" ⚠":""}</td>`}).join("")}</tr>`).join("")}</tbody></table></td></tr>`;
+ const rows=list.map((x,k)=>{const s=STU[x.i],c=x.c;return `<tr class="${!ctlPart(s)?"np":""}"><td>${k+1}</td><td>${esc(s.t)}</td><td>${esc(s.n)}</td><td class="sitn">${c.sem?"—":c.b1.length}</td><td class="sitn">${c.sem?"—":c.b2.length}</td><td>${sit(c)}${c.risco.length?`<div class="sitcs">${c.risco.map(d=>chip(c,d)).join("")}</div>`:""}</td></tr>`+(det&&!c.sem?full(c):"")}).join("");
+ out.innerHTML=hd+`<div class="pv"><table class="tb sitt0"><thead><tr><th style="width:34px">Nº</th><th style="width:60px">Turma</th><th>Estudante</th><th style="width:62px;text-align:center">Abaixo 1º tri</th><th style="width:62px;text-align:center">Abaixo 2º tri</th><th style="width:46%">Situação e disciplinas abaixo de ${L}% (1º → 2º tri)</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Nenhum estudante nesta lista.</td></tr>'}</tbody></table></div><p class="sm">⚠ indica que a média do trimestre foi obtida após recuperação. “—” = nota não lançada.</p>`;
 }
 
 /* ---------- blocos ---------- */
